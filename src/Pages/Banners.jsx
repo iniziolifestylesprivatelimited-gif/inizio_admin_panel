@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { 
   FiPlus, FiEdit2, FiTrash2, FiImage, 
@@ -180,8 +181,8 @@ const Banners = () => {
   return (
     <div className="relative space-y-6 min-h-full z-0">
       {/* Glassmorphism Background Ambient Glows */}
-      <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none z-[-1]"></div>
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none z-[-1]"></div>
+      <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
+      <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
       
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -281,11 +282,11 @@ const Banners = () => {
       )}
 
       {/* ADD/EDIT MODAL */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {isModalOpen && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeModal}></div>
           
-          <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl mx-4 w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-2xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
             
             <div className="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-slate-800/50">
               <h3 className="font-bold text-white text-lg">
@@ -296,7 +297,7 @@ const Banners = () => {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="overflow-y-auto custom-scrollbar p-6 space-y-5">
+            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-5">
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* Title */}
@@ -411,18 +412,18 @@ const Banners = () => {
               </div>
 
               {/* Submit Buttons */}
-              <div className="pt-6 border-t border-white/10 flex justify-end gap-3">
+              <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row justify-end gap-3 shrink-0">
                 <button 
                   type="button"
                   onClick={closeModal}
-                  className="px-6 py-2.5 bg-transparent border border-white/10 text-slate-300 font-bold rounded-xl hover:bg-slate-800 transition-colors"
+                  className="w-full sm:w-auto px-6 py-2.5 bg-transparent border border-white/10 text-slate-300 font-bold rounded-xl hover:bg-slate-800 transition-colors"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit"
                   disabled={isSubmitting || (!editingBanner && !imageFile)}
-                  className="flex items-center px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? <FiLoader className="animate-spin mr-2" /> : <FiCheck className="mr-2" />}
                   {isSubmitting ? 'Saving...' : 'Save Banner'}
@@ -432,7 +433,7 @@ const Banners = () => {
             </form>
           </div>
         </div>
-      )}
+      , document.body)}
     </div>
   );
 };

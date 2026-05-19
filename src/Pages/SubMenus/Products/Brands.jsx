@@ -126,8 +126,8 @@ const Brands = () => {
   return (
     <div className="relative space-y-6 min-h-full z-0">
       {/* Glassmorphism Background Ambient Glows */}
-      <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none z-[-1]"></div>
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none z-[-1]"></div>
+      <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
+      <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
 
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
@@ -227,8 +227,8 @@ const Brands = () => {
         {/* Right Column: Brands List Table */}
         <div className="lg:col-span-2">
           <div className="bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full">
-            <div className="overflow-x-auto custom-scrollbar">
-              <table className="w-full text-left border-collapse whitespace-nowrap">
+            <div className="overflow-x-auto custom-scrollbar touch-pan-x">
+              <table className="w-full text-left border-collapse whitespace-nowrap min-w-[500px]">
                 <thead className="bg-slate-800/50 border-b border-white/10 border-collapse">
                   <tr>
                     <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider w-16">S.No.</th>

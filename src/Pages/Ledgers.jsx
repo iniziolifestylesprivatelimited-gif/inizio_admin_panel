@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { api, BASE_URL } from '../api/axios';
 import { 
   FiUpload, FiTrash2, FiFileText, FiLoader, 
@@ -172,8 +173,8 @@ export const Ledgers = () => {
         </div>
       ) : (
         <div className="relative z-10 bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden">
-          <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left border-collapse">
+          <div className="overflow-x-auto custom-scrollbar touch-pan-x">
+            <table className="w-full text-left border-collapse whitespace-nowrap min-w-[600px]">
               <thead>
                 <tr className="bg-slate-800/50 border-b border-white/10 text-xs uppercase tracking-wider text-slate-400">
                   <th className="p-5 font-bold">S.No</th>
@@ -227,10 +228,10 @@ export const Ledgers = () => {
       )}
 
       {/* Upload Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 lg:p-8">
+      {isModalOpen && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeModal}></div>
-          <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-3xl mx-4 w-full max-w-lg overflow-hidden flex flex-col max-h-[80vh] animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
             <div className="px-5 py-3 border-b border-white/10 flex justify-between items-center bg-slate-800/50">
               <h3 className="font-bold text-white text-lg flex items-center gap-2">
                 <FiUpload className="text-blue-400" /> Upload New Ledger
@@ -279,19 +280,19 @@ export const Ledgers = () => {
                 />
               </div>
 
-              <div className="pt-4 border-t border-white/10 flex justify-end gap-3">
+              <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row justify-end gap-3">
                 <button 
                   type="button"
                   onClick={closeModal}
                   disabled={isSubmitting}
-                  className="px-6 py-2.5 bg-transparent border border-white/10 text-slate-300 font-bold rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-50"
+                  className="w-full sm:w-auto px-6 py-2.5 bg-transparent border border-white/10 text-slate-300 font-bold rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex items-center px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? <FiLoader className="animate-spin mr-2" /> : <FiUpload className="mr-2" />}
                   {isSubmitting ? 'Uploading...' : 'Upload Ledger'}
@@ -300,7 +301,7 @@ export const Ledgers = () => {
             </form>
           </div>
         </div>
-      )}
+      , document.body)}
     </div>
   );
 }

@@ -39,9 +39,9 @@ const Layout = () => {
     <div className="flex h-screen bg-linear-to-br from-black via-slate-950 to-blue-950 font-sans overflow-hidden text-slate-300 relative z-0">
       
       {/* Global Ambient Glows */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-[-1]">
-        <div className="absolute top-[-10%] left-[-5%] w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50"></div>
-        <div className="absolute bottom-[-10%] right-[-5%] w-120 h-120 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[120px] opacity-50"></div>
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10 transform-gpu">
+        <div className="absolute top-[-10%] left-[-5%] w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 transform-gpu"></div>
+        <div className="absolute bottom-[-10%] right-[-5%] w-120 h-120 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[120px] opacity-50 transform-gpu"></div>
       </div>
 
       {/* MOBILE TOP BAR (Visible only on small screens) */}
@@ -109,9 +109,9 @@ const Layout = () => {
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         {/* Sidebar Ambient Glows */}
-        <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-[-1]">
-          <div className="absolute top-[10%] -left-[20%] w-64 h-64 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-60"></div>
-          <div className="absolute bottom-[20%] -right-[20%] w-72 h-72 bg-blue-600/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50"></div>
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none -z-10 transform-gpu">
+          <div className="absolute top-[10%] -left-[20%] w-64 h-64 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-60 transform-gpu"></div>
+          <div className="absolute bottom-[20%] -right-[20%] w-72 h-72 bg-blue-600/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 transform-gpu"></div>
         </div>
 
         <div className="h-16 flex items-center justify-center px-6 border-b border-white/10 bg-transparent shrink-0">

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { FiSearch, FiSend, FiPaperclip, FiMoreVertical, FiPhone, FiVideo, FiSmile, FiInfo } from 'react-icons/fi';
+import { FiSearch, FiSend, FiPaperclip, FiMoreVertical, FiPhone, FiVideo, FiSmile, FiInfo, FiArrowLeft } from 'react-icons/fi';
 
 const Chat = () => {
-  const [activeContact, setActiveContact] = useState(1);
+  const [activeContact, setActiveContact] = useState(null);
   const [message, setMessage] = useState('');
 
   // Mock data
@@ -34,12 +34,12 @@ const Chat = () => {
   return (
     <div className="relative flex h-[calc(100vh-8rem)] z-0">
       {/* Glassmorphism Background Ambient Glows */}
-      <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none z-[-1]"></div>
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none z-[-1]"></div>
+      <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
+      <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
       
       <div className="flex w-full h-full bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl shadow-black/50">
         {/* Sidebar - Contacts */}
-        <div className="w-full md:w-80 lg:w-96 border-r border-white/10 flex flex-col bg-black/20">
+        <div className={`${activeContact ? 'hidden md:flex' : 'flex'} w-full md:w-80 lg:w-96 border-r border-white/10 flex-col bg-black/20`}>
         <div className="p-4 border-b border-white/10">
           <h2 className="text-xl font-bold text-white mb-4 tracking-tight">Messages</h2>
           <div className="relative">
@@ -91,12 +91,18 @@ const Chat = () => {
       </div>
 
       {/* Main Chat Area */}
-      <div className="hidden md:flex flex-1 flex-col bg-black/10">
+      <div className={`${activeContact ? 'flex' : 'hidden md:flex'} flex-1 flex-col bg-black/10`}>
         {activeContactDetails ? (
           <>
             {/* Chat Header */}
-            <div className="h-16 px-6 border-b border-white/10 flex items-center justify-between bg-black/20 shrink-0">
+            <div className="h-16 px-4 sm:px-6 border-b border-white/10 flex items-center justify-between bg-black/20 shrink-0">
               <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => setActiveContact(null)} 
+                  className="md:hidden p-2 -ml-2 text-slate-400 hover:text-white transition-colors"
+                >
+                  <FiArrowLeft className="text-xl" />
+                </button>
                 <div className="relative">
                   <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold shadow-inner">
                     {activeContactDetails.avatar}
