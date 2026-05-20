@@ -20,7 +20,7 @@ const UsersVerification = () => {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = sessionStorage.getItem('accessToken');
       const response = await api.get('/admin/pending', {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -50,7 +50,7 @@ const UsersVerification = () => {
     if (!window.confirm('Are you sure you want to approve this user KYC and generate their User ID?')) return;
     setIsActionLoading(true);
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = sessionStorage.getItem('accessToken');
       // 1. Approve the user's KYC
       await api.put(`/admin/approve/${id}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
@@ -75,7 +75,7 @@ const UsersVerification = () => {
     if (!window.confirm('Are you sure you want to reject this KYC? This action cannot be undone.')) return;
     setIsActionLoading(true);
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = sessionStorage.getItem('accessToken');
       await api.delete(`/admin/reject/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -151,7 +151,7 @@ const UsersVerification = () => {
       ) : (
         <div className="bg-black/20 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden">
           <div className="overflow-x-auto custom-scrollbar touch-pan-x">
-            <table className="w-full text-left border-collapse whitespace-nowrap min-w-[800px]">
+            <table className="w-full text-left border-collapse whitespace-nowrap min-w-200">
               <thead>
                 <tr className="bg-slate-800/50 border-b border-white/10 text-xs uppercase tracking-wider text-slate-400">
                   <th className="p-5 font-bold">S.No</th>
@@ -209,7 +209,7 @@ const UsersVerification = () => {
 
       {/* User Details Modal */}
       {isModalOpen && selectedUser && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeModal}></div>
           
           <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-2xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">

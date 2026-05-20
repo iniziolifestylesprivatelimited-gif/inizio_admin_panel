@@ -26,7 +26,7 @@ const Variants = () => {
 
   const fetchProduct = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = sessionStorage.getItem('accessToken');
       const response = await axios.get(`${BASE_URL}/api/products/${productId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -122,7 +122,7 @@ const Variants = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = sessionStorage.getItem('accessToken');
       
       // Format variants for API
       let payloadVariants;

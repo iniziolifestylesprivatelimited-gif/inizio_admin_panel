@@ -29,7 +29,7 @@ const Brands = () => {
   const fetchBrands = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('accessToken');
+      const token = sessionStorage.getItem('accessToken');
       const response = await axios.get(`${BASE_URL}/api/brands/`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -59,7 +59,7 @@ const Brands = () => {
 
     setIsSubmitting(true);
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = sessionStorage.getItem('accessToken');
       const data = new FormData();
       data.append('name', formData.name);
       if (imageFile) {
@@ -94,7 +94,7 @@ const Brands = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this brand?')) {
       try {
-        const token = localStorage.getItem('accessToken');
+        const token = sessionStorage.getItem('accessToken');
         await axios.delete(`${BASE_URL}/api/brands/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -228,7 +228,7 @@ const Brands = () => {
         <div className="lg:col-span-2">
           <div className="bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full">
             <div className="overflow-x-auto custom-scrollbar touch-pan-x">
-              <table className="w-full text-left border-collapse whitespace-nowrap min-w-[500px]">
+              <table className="w-full text-left border-collapse whitespace-nowrap min-w-125">
                 <thead className="bg-slate-800/50 border-b border-white/10 border-collapse">
                   <tr>
                     <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider w-16">S.No.</th>

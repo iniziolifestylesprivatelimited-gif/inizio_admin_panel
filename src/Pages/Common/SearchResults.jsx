@@ -23,7 +23,7 @@ const SearchResults = () => {
       setError(null);
       
       try {
-        const token = localStorage.getItem('accessToken');
+        const token = sessionStorage.getItem('accessToken');
         
         // Fetching products to search through them. 
         // If your backend has a dedicated search endpoint like `/api/search?q=${query}`, 

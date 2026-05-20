@@ -20,7 +20,7 @@ const Orders = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('accessToken');
+      const token = sessionStorage.getItem('accessToken');
       const response = await axios.get(`${BASE_URL}/api/orders/all`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -43,7 +43,7 @@ const Orders = () => {
   const handleStatusChange = async (orderId, newStatus) => {
     try {
       setUpdatingId(orderId);
-      const token = localStorage.getItem('accessToken');
+      const token = sessionStorage.getItem('accessToken');
       const response = await axios.put(
         `${BASE_URL}/api/orders/${orderId}/status`,
         { orderStatus: newStatus },
@@ -131,7 +131,7 @@ const Orders = () => {
       {!loading && !error && (
         <div className="bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-2xl md:rounded-3xl overflow-hidden">
           <div className="overflow-x-auto custom-scrollbar touch-pan-x">
-            <table className="w-full text-left border-collapse min-w-[800px]">
+            <table className="w-full text-left border-collapse min-w-200">
               <thead>
                 <tr className="border-b border-white/10 bg-black/20 text-xs font-bold text-slate-400 uppercase tracking-wider">
                   <th className="p-3 pl-6 w-16">S.No</th>
@@ -174,7 +174,7 @@ const Orders = () => {
                           </div>
                         )}
                         <div className="flex flex-col min-w-0">
-                          <span className="text-slate-200 font-medium line-clamp-1 max-w-[150px]" title={order.items?.[0]?.product?.name}>
+                          <span className="text-slate-200 font-medium line-clamp-1 max-w-37.5" title={order.items?.[0]?.product?.name}>
                             {order.items?.[0]?.product?.name || 'Product'}
                           </span>
                           <span className="text-xs text-slate-400 mt-0.5">
@@ -204,7 +204,7 @@ const Orders = () => {
                       </button>
                     </td>
                     <td className="p-4 pr-6">
-                      <div className="relative inline-block w-full min-w-[140px]">
+                      <div className="relative inline-block w-full min-w-35">
                         {updatingId === order._id ? (
                           <div className="flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold text-slate-400 bg-black/20 border border-white/5 rounded-lg w-full">
                             <FiLoader className="animate-spin" /> Updating
@@ -261,7 +261,7 @@ const Orders = () => {
 
       {/* ORDER DETAILS MODAL */}
       {isModalOpen && selectedOrder && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeModal}></div>
           
           <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-5xl h-[90vh] md:h-[85vh] max-h-[95vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">

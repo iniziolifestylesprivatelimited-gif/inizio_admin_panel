@@ -45,7 +45,7 @@ const ProductList = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem('accessToken');
+        const token = sessionStorage.getItem('accessToken');
         const headers = { Authorization: `Bearer ${token}` };
         
         const [prodRes, brandRes, catRes] = await Promise.all([
@@ -72,7 +72,7 @@ const ProductList = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this Product?')) {
       try {
-        const token = localStorage.getItem('accessToken');
+        const token = sessionStorage.getItem('accessToken');
         await axios.delete(`${BASE_URL}/api/products/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -127,7 +127,7 @@ const ProductList = () => {
       .filter(qp => qp.minQty > 0 || qp.price > 0);
 
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = sessionStorage.getItem('accessToken');
       
       const formData = new FormData();
       formData.append('name', editFormData.name || '');
@@ -218,7 +218,7 @@ const ProductList = () => {
       .filter(qp => qp.minQty > 0 || qp.price > 0);
 
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = sessionStorage.getItem('accessToken');
       
       const formData = new FormData();
       formData.append('name', addFormData.name || '');
@@ -274,7 +274,7 @@ const ProductList = () => {
   const handleBulkDelete = async () => {
     if (window.confirm(`Are you sure you want to delete ${selectedProducts.length} selected products?`)) {
       try {
-        const token = localStorage.getItem('accessToken');
+        const token = sessionStorage.getItem('accessToken');
         await Promise.all(selectedProducts.map(id => 
           axios.delete(`${BASE_URL}/api/products/${id}`, {
             headers: { Authorization: `Bearer ${token}` }
@@ -306,7 +306,7 @@ const ProductList = () => {
 
   const handleImageSave = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = sessionStorage.getItem('accessToken');
       const formData = new FormData();
       
       formData.append('name', currentProductForImages.name);
@@ -592,7 +592,7 @@ const ProductList = () => {
 
       {/* Edit Product Modal */}
       {isEditModalOpen && editFormData && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeEditModal}></div>
           <div className="relative bg-slate-900 border border-white/10 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
             
@@ -724,7 +724,7 @@ const ProductList = () => {
 
       {/* Add Product Modal */}
       {isAddModalOpen && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeAddModal}></div>
           <div className="relative bg-slate-900 border border-white/10 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
             
@@ -893,7 +893,7 @@ const ProductList = () => {
 
       {/* Image Modal */}
       {isImageModalOpen && currentProductForImages && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={() => setIsImageModalOpen(false)}></div>
           <div className="relative bg-slate-900 border border-white/10 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-800/50">

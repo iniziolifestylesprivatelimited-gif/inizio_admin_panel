@@ -29,7 +29,7 @@ const UsersList = () => {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = sessionStorage.getItem('accessToken');
       // Fetch all processed users from the same API
       const response = await api.get('/admin/customers', {
         headers: { Authorization: `Bearer ${token}` }
@@ -94,7 +94,7 @@ const UsersList = () => {
     if (!window.confirm('Are you sure you want to permanently delete this user? This action cannot be undone.')) return;
     setIsActionLoading(true);
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = sessionStorage.getItem('accessToken');
       // Note: Adjust the endpoint below to match your backend route for deleting users
       await api.delete(`/admin/reject/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -192,7 +192,7 @@ const UsersList = () => {
       ) : (
         <div className="relative z-10 bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden">
           <div className="overflow-x-auto custom-scrollbar touch-pan-x">
-            <table className="w-full text-left border-collapse whitespace-nowrap min-w-[800px]">
+            <table className="w-full text-left border-collapse whitespace-nowrap min-w-200">
               <thead>
                 <tr className="bg-slate-800/50 border-b border-white/10 text-xs uppercase tracking-wider text-slate-400">
                   <th className="p-2 font-bold">S.No</th>
@@ -302,7 +302,7 @@ const UsersList = () => {
 
       {/* User Details Modal (Imported similarly from previous code but without Action controls) */}
       {isModalOpen && selectedUser && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeModal}></div>
           <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-2xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
             <div className="px-5 py-3 border-b border-white/10 flex justify-between items-center bg-slate-800/50">

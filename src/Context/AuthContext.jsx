@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Check for existing token on load
-    const token = localStorage.getItem('accessToken');
+    const token = sessionStorage.getItem('accessToken');
 
     if (token) {
       try {
@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
           logout();
         } else {
           // Load the full user details we saved in Login.jsx
-          const savedUser = localStorage.getItem('user');
+          const savedUser = sessionStorage.getItem('user');
           setUser(savedUser ? { ...JSON.parse(savedUser), token } : { id: decoded.id, token });
         }
       } catch (err) {
@@ -38,9 +38,9 @@ export const AuthProvider = ({ children }) => {
       
       const { token, _id, role, name, email: userEmail } = response.data;
       
-      localStorage.setItem('accessToken', token);
+      sessionStorage.setItem('accessToken', token);
       const userData = { _id, role, name, email: userEmail };
-      localStorage.setItem('user', JSON.stringify(userData));
+      sessionStorage.setItem('user', JSON.stringify(userData));
       
       setUser({ ...userData, token });
       return response.data;
@@ -50,9 +50,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('accessToken');
+    sessionStorage.removeItem('refreshToken');
+    sessionStorage.removeItem('user');
     setUser(null);
   };
 

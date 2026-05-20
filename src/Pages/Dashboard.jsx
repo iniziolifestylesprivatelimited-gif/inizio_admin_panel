@@ -16,7 +16,7 @@ const Dashboard = () => {
    useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem('accessToken');
+        const token = sessionStorage.getItem('accessToken');
         const headers = { Authorization: `Bearer ${token}` };
         const [productsResponse, brandsResponse, usersResponse, ordersResponse] = await Promise.all([
           api.get('/products/', { headers }).catch(() => ({ data: [] })),

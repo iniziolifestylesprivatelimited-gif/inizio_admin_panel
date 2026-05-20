@@ -1,11 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import ProtectedRoute from './components/ProtectedRoute';
-import Layout from './components/Layout';
+import { AuthProvider } from './Context/AuthContext';
+import ProtectedRoute from './Components/ProtectedRoute';
+import Layout from './Components/Layout';
 
 // Placeholder Pages (Create these in src/pages/)
-import Login from './pages/Auth/Login';
-import Dashboard from './pages/Dashboard';
+import Login from './Pages/Auth/Login';
+import Dashboard from './Pages/Dashboard';
 import ProductList from './Pages/SubMenus/Products/ProductList';
 import Category from './Pages/SubMenus/Products/Category';
 import Brands from './Pages/SubMenus/Products/Brands';

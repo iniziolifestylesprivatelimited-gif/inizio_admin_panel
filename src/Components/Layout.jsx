@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Link, Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../Context/AuthContext';
 import { 
   FiLogOut, FiMenu, FiX, FiUser,
   FiBell, FiChevronDown, FiChevronRight

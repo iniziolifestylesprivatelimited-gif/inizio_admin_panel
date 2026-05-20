@@ -40,7 +40,7 @@ const Banners = () => {
   const fetchBanners = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('accessToken');
+      const token = sessionStorage.getItem('accessToken');
       const response = await axios.get(`${BASE_URL}/api/banners`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -110,7 +110,7 @@ const Banners = () => {
     setIsSubmitting(true);
 
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = sessionStorage.getItem('accessToken');
       
       // We MUST use FormData because we are uploading a file (multipart/form-data)
       const data = new FormData();
@@ -167,7 +167,7 @@ const Banners = () => {
     if (!window.confirm('Are you sure you want to delete this banner?')) return;
     
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = sessionStorage.getItem('accessToken');
       await axios.delete(`${BASE_URL}/api/banners/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -283,7 +283,7 @@ const Banners = () => {
 
       {/* ADD/EDIT MODAL */}
       {isModalOpen && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeModal}></div>
           
           <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-2xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">

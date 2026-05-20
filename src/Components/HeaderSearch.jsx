@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../Context/AuthContext';
 import { 
   FiSearch, FiX, FiLoader, FiFileText, FiPackage, FiTag, FiGrid
 } from 'react-icons/fi';
@@ -41,7 +41,7 @@ const HeaderSearch = () => {
   useEffect(() => {
     const fetchAllData = async () => {
       try {
-        const token = localStorage.getItem('accessToken');
+        const token = sessionStorage.getItem('accessToken');
         const headers = { Authorization: `Bearer ${token}` };
         
         const [prodRes, brandRes, catRes] = await Promise.all([
