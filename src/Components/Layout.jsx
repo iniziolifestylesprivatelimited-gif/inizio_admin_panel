@@ -41,7 +41,7 @@ const Layout = () => {
       {/* Global Ambient Glows */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10 transform-gpu">
         <div className="absolute top-[-10%] left-[-5%] w-96 h-96 bg-blue-600/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 transform-gpu"></div>
-        <div className="absolute bottom-[-10%] right-[-5%] w-120 h-120 bg-blue-600/20 rounded-full mix-blend-screen filter blur-[120px] opacity-50 transform-gpu"></div>
+        <div className="absolute bottom-[-10%] right-[-5%] w-120 h-120 bg-blue-600/50 rounded-full mix-blend-screen filter blur-[120px] opacity-50 transform-gpu"></div>
       </div>
 
       {/* MOBILE TOP BAR (Visible only on small screens) */}
