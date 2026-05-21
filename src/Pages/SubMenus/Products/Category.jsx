@@ -227,7 +227,7 @@ const Category = () => {
         {/* Right Column: Categories List Table */}
         <div className="lg:col-span-2">
           <div className="bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full">
-            <div className="overflow-x-auto custom-scrollbar touch-pan-x">
+            <div className="overflow-x-auto custom-scrollbar">
               <table className="w-full text-left border-collapse whitespace-nowrap min-w-125">
                 <thead className="bg-slate-800/50 border-b border-white/10 border-collapse">
                   <tr>

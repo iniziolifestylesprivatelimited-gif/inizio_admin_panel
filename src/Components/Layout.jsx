@@ -36,12 +36,12 @@ const Layout = () => {
   const userMenus = getAccessibleMenus();
 
   return (
-    <div className="flex h-screen bg-linear-to-br from-black via-slate-950 to-blue-950 font-sans overflow-hidden text-slate-300 relative z-0">
+    <div className="flex h-dvh bg-linear-to-br from-black via-slate-950 to-blue-950 font-sans overflow-hidden text-slate-300 relative z-0">
       
       {/* Global Ambient Glows */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10 transform-gpu">
-        <div className="absolute top-[-10%] left-[-5%] w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 transform-gpu"></div>
-        <div className="absolute bottom-[-10%] right-[-5%] w-120 h-120 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[120px] opacity-50 transform-gpu"></div>
+        <div className="absolute top-[-10%] left-[-5%] w-96 h-96 bg-blue-600/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 transform-gpu"></div>
+        <div className="absolute bottom-[-10%] right-[-5%] w-120 h-120 bg-blue-600/20 rounded-full mix-blend-screen filter blur-[120px] opacity-50 transform-gpu"></div>
       </div>
 
       {/* MOBILE TOP BAR (Visible only on small screens) */}
@@ -56,7 +56,7 @@ const Layout = () => {
           {/* Mobile Profile Dropdown */}
           <div className="relative">
             <div 
-              className="w-8 h-8 rounded-full bg-linear-to-tr from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-xs shadow-inner cursor-pointer"
+              className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-inner cursor-pointer"
               onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
             >
             {user.email ? user.email.charAt(0).toUpperCase() : 'U'}
@@ -110,8 +110,8 @@ const Layout = () => {
       `}>
         {/* Sidebar Ambient Glows */}
         <div className="absolute top-0 left-0 w-full h-full pointer-events-none -z-10 transform-gpu">
-          <div className="absolute top-[10%] -left-[20%] w-64 h-64 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-60 transform-gpu"></div>
-          <div className="absolute bottom-[20%] -right-[20%] w-72 h-72 bg-blue-600/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 transform-gpu"></div>
+          <div className="absolute top-[10%] left-[-20%] w-64 h-64 bg-blue-600/20 rounded-full mix-blend-screen filter blur-[80px] opacity-60 transform-gpu"></div>
+          <div className="absolute bottom-[20%] right-[-20%] w-72 h-72 bg-blue-600/50 rounded-full mix-blend-screen filter blur-[100px] opacity-50 transform-gpu"></div>
         </div>
 
         <div className="h-16 flex items-center justify-center px-6 border-b border-white/10 bg-transparent shrink-0">
@@ -147,14 +147,14 @@ const Layout = () => {
                     onClick={() => toggleSubMenu(menu.name)}
                     className={`
                       w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group
-                      ${isChildActive && !isOpen ? 'bg-blue-600/20 text-blue-400' : 'text-slate-300 hover:bg-white/10 hover:text-white cursor-pointer'}
+                      ${isChildActive && !isOpen ? 'bg-blue-600/20 text-blue-500' : 'text-slate-300 hover:bg-white/10 hover:text-white cursor-pointer'}
                     `}
                   >
                     <div className="flex items-center">
                       {Icon && <Icon className="text-lg mr-3 group-hover:scale-110 transition-transform" />}
                       <span className="font-medium text-sm">{menu.name}</span>
                     </div>
-                    <FiChevronRight className={`transition-transform duration-300 ${isOpen ? 'rotate-90 text-blue-400' : 'text-slate-500'}`} />
+                    <FiChevronRight className={`transition-transform duration-300 ${isOpen ? 'rotate-90 text-blue-500' : 'text-slate-500'}`} />
                   </button>
 
                   {/* Collapsible Sub-Menus */}
@@ -170,7 +170,7 @@ const Layout = () => {
                             className={`
                               flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors
                               ${isSubActive 
-                                ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                                 : 'text-slate-400 hover:bg-white/10 hover:text-white'
                               }
                             `}
@@ -194,8 +194,8 @@ const Layout = () => {
                 to={menu.path} 
                 className={`
                   flex items-center px-4 py-3 rounded-xl transition-all duration-200 group
-                  ${isActive 
-                    ? 'bg-blue-600/20 text-blue-400 shadow-sm border border-blue-500/30' 
+                  ${isActive
+                    ? 'bg-blue-600/20 text-blue-500 shadow-sm border border-blue-600/50' 
                     : 'text-slate-300 hover:bg-white/10 hover:text-white border border-transparent'
                   }
                 `}
@@ -219,7 +219,7 @@ const Layout = () => {
 
           {/* Right Side: Profile & Notifications */}
           <div className="flex items-center space-x-6">
-            <button className="text-slate-400 hover:text-blue-600 relative transition-colors">
+            <button className="text-slate-400 hover:text-blue-500 relative transition-colors">
               <FiBell className="text-xl" />
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-slate-900"></span>
             </button>
@@ -232,7 +232,7 @@ const Layout = () => {
                 className="flex items-center cursor-pointer group"
                 onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
               >
-                <div className="w-8 h-8 rounded-full bg-linear-to-tr from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-xs shadow-inner">
+                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-inner">
                 {user.email ? user.email.charAt(0).toUpperCase() : 'U'}
                 </div>
                 <div className="ml-3 hidden md:block">
@@ -279,8 +279,8 @@ const Layout = () => {
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-xs text-slate-400 font-medium">
             <p>© {new Date().getFullYear()} Inizio Workspace. All rights reserved.</p>
             <div className="flex items-center space-x-4 mt-2 md:mt-0">
-              <Link to="/help" className="hover:text-blue-400 transition-colors">Help Center</Link>
-              <Link to="/privacy" className="hover:text-blue-400 transition-colors">Privacy Policy</Link>
+              <Link to="/help" className="hover:text-blue-500 transition-colors">Help Center</Link>
+              <Link to="/privacy" className="hover:text-blue-500 transition-colors">Privacy Policy</Link>
               <span className="px-2 py-0.5 bg-white/10 text-slate-300 rounded-md border border-white/10">
                 v1.2.0
               </span>

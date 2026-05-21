@@ -130,7 +130,7 @@ const Orders = () => {
 
       {!loading && !error && (
         <div className="bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-2xl md:rounded-3xl overflow-hidden">
-          <div className="overflow-x-auto custom-scrollbar touch-pan-x">
+          <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse min-w-200">
               <thead>
                 <tr className="border-b border-white/10 bg-black/20 text-xs font-bold text-slate-400 uppercase tracking-wider">

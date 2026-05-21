@@ -173,7 +173,7 @@ export const Ledgers = () => {
         </div>
       ) : (
         <div className="relative z-10 bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden">
-          <div className="overflow-x-auto custom-scrollbar touch-pan-x">
+          <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse whitespace-nowrap min-w-150">
               <thead>
                 <tr className="bg-slate-800/50 border-b border-white/10 text-xs uppercase tracking-wider text-slate-400">

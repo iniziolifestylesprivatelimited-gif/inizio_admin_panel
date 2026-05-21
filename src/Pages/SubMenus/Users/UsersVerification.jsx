@@ -150,7 +150,7 @@ const UsersVerification = () => {
         </div>
       ) : (
         <div className="bg-black/20 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden">
-          <div className="overflow-x-auto custom-scrollbar touch-pan-x">
+          <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse whitespace-nowrap min-w-200">
               <thead>
                 <tr className="bg-slate-800/50 border-b border-white/10 text-xs uppercase tracking-wider text-slate-400">

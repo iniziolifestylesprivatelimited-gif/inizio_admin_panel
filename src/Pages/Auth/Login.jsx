@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { FiMail, FiLock, FiArrowRight, FiHexagon, FiAlertCircle, FiLoader } from 'react-icons/fi';
-import darkThemeImg from '../../assets/dark_theme_img.png';
+import darkThemeImg from '../../assets/3d_login_image.png';
 import logoImg from '../../assets/logos.png';
 
 const Login = () => {
@@ -33,31 +33,34 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex font-sans bg-linear-to-b from-black to-[#0000B2] text-white">
+    <div className="min-h-screen flex font-sans bg-linear-to-br from-black via-slate-950 to-blue-950 text-slate-300 overflow-hidden">
       
       {/* Left Image Section */}
-      <div className="hidden lg:flex lg:w-1/2 items-center justify-center relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 items-center justify-center relative">
         
         {/* Decorative blurred blobs for depth */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob transform-gpu"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 transform-gpu"></div>
+
+        {/* Subtle glow behind the image */}
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[70%] h-[70%] bg-blue-600/20 rounded-full mix-blend-screen filter blur-[100px] z-0 transform-gpu"></div>
 
         <img 
           src={darkThemeImg} 
           alt="Dashboard Preview" 
-          className="absolute inset-0 w-full h-full object-cover bg-white/0"
+          className="absolute inset-0 w-full h-full scale-90 object-cover bg-white/0 drop-shadow-[0_0_30px_rgba(37,99,235,0.3)] z-10"
         />
       </div>
 
       {/* Right Form Section */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center relative overflow-hidden">
+      <div className="w-full lg:w-1/2 flex items-center justify-center relative">
         
         {/* Decorative blurred blobs for depth */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob transform-gpu"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 transform-gpu"></div>
 
         {/* Glassmorphism Login Card */}
-        <div className="relative w-full max-w-md mx-4 p-8 sm:p-10 bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl rounded-3xl z-10">
+        <div className="relative w-full max-w-md mx-4 p-8 sm:p-10 bg-white/10 backdrop-blur-md transform-gpu border border-white/20 shadow-2xl rounded-3xl z-10">
           
           {/* Branding */}
           <div className="flex flex-col items-center justify-center mb-8">
@@ -80,13 +83,13 @@ const Login = () => {
               <label className="block text-sm font-semibold text-white ml-1">Email Address</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                  <FiMail className="text-black group-focus-within:text-white transition-colors" />
+                  <FiMail className="text-slate-400 group-focus-within:text-blue-600 transition-colors" />
                 </div>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 focus:bg-white/10 text-white placeholder-white/40 transition-all duration-300 shadow-sm"
+                  className="w-full pl-11 pr-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/50 focus:bg-black/40 shadow-inner backdrop-blur-md transform-gpu text-white placeholder-slate-500 transition-all duration-300"
                   placeholder="admin@inizio.com"
                   required
                 />
@@ -98,13 +101,13 @@ const Login = () => {
               <label className="block text-sm font-semibold text-white ml-1">Password</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                  <FiLock className="text-black group-focus-within:text-white transition-colors" />
+                  <FiLock className="text-slate-400 group-focus-within:text-blue-600 transition-colors" />
                 </div>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 focus:bg-white/10 text-white placeholder-white/40 transition-all duration-300 shadow-sm"
+                  className="w-full pl-11 pr-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/50 focus:bg-black/40 shadow-inner backdrop-blur-md transform-gpu text-white placeholder-slate-500 transition-all duration-300"
                   placeholder="••••••••"
                   required
                 />
