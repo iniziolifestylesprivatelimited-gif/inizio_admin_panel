@@ -122,7 +122,7 @@ const TermsAndCo = () => {
                   onChange={(e) => setNewTitle(e.target.value)}
                   placeholder="Enter the section title..."
                   autoFocus
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-slate-500 transition-all text-sm font-medium"
+                  className="w-full px-4 py-3 bg-transparent border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-slate-500 transition-all text-sm font-medium"
                 />
               </div>
               <div>
@@ -132,7 +132,7 @@ const TermsAndCo = () => {
                   onChange={(e) => setNewContent(e.target.value)}
                   placeholder="Enter the terms content..."
                   rows="6"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-slate-500 transition-all text-sm font-medium resize-none"
+                  className="w-full px-4 py-3 bg-transparent border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-slate-500 transition-all text-sm font-medium resize-none"
                 ></textarea>
               </div>
               <div className="flex gap-3 pt-2">
@@ -161,11 +161,11 @@ const TermsAndCo = () => {
               <p className="text-slate-400 italic text-center py-12">No Terms and Conditions sections available. Click "Add Section" to get started.</p>
             ) : (
               terms.map((term) => (
-                <div key={term.id} className="border border-white/10 rounded-2xl bg-white/5 hover:bg-white/10 transition-all overflow-hidden">
+                <div key={term.id} className="border border-white/10 rounded-2xl bg-transparent hover:bg-white/10 transition-all overflow-hidden">
                   
                   {/* Term Header (Title) */}
                   <div 
-                    className={`p-5 flex justify-between items-center cursor-pointer select-none transition-colors ${expandedId === term.id ? 'bg-white/5 border-b border-white/5' : ''}`}
+                    className={`p-5 flex justify-between items-center cursor-pointer select-none transition-colors ${expandedId === term.id ? 'bg-transparent border-b border-white/5' : ''}`}
                     onClick={() => toggleExpand(term.id)}
                   >
                     {editingId === term.id ? (

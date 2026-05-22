@@ -166,7 +166,7 @@ const UsersVerification = () => {
               <tbody className="divide-y divide-white/5">
                 {filteredUsers.length > 0 ? (
                   filteredUsers.map((user, index) => (
-                    <tr key={user._id} className="hover:bg-white/5 transition-colors">
+                    <tr key={user._id} className="hover:bg-transparent transition-colors">
                       <td className="p-5 text-sm text-slate-400 font-medium">{index + 1}</td>
                       <td className="p-5 text-sm text-white font-medium">{user.name}</td>
                       <td className="p-5 text-sm text-slate-300">{user.email}</td>
@@ -272,7 +272,7 @@ const UsersVerification = () => {
                         <FiFileText className="text-lg" /> View Uploaded Document
                       </a>
                     ) : (
-                      <div className="inline-flex items-center gap-2 px-4 py-3 bg-white/5 border border-dashed border-white/10 text-slate-500 rounded-xl text-sm italic">
+                      <div className="inline-flex items-center gap-2 px-4 py-3 bg-transparent border border-dashed border-white/10 text-slate-500 rounded-xl text-sm italic">
                         <FiFileText className="text-lg" /> No document uploaded
                       </div>
                     )}

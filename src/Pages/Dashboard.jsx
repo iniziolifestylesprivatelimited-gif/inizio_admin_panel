@@ -207,7 +207,7 @@ const Dashboard = () => {
         {metrics.map((metric, index) => (
           <div 
             key={index} 
-            className="bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/50 cursor-pointer relative overflow-hidden group" 
+            className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/50 cursor-pointer relative overflow-hidden group" 
             onClick={() => usernav(index)}
           >
             <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
@@ -225,7 +225,7 @@ const Dashboard = () => {
       </div>
 
       {/* Main Content Area (Sales Chart) */}
-      <div className="relative mt-8 bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 sm:p-8 overflow-hidden z-10">
+      <div className="relative mt-8 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 sm:p-8 overflow-hidden z-10">
         <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
         <div className="relative flex items-center justify-between mb-6 z-10">
           <h2 className="text-lg font-bold text-white">Electronics Sales Overview</h2>

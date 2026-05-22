@@ -127,7 +127,7 @@ const Category = () => {
     <div className="relative space-y-6 min-h-full z-0">
       {/* Glassmorphism Background Ambient Glows */}
       <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
+      {/* <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div> */}
 
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
@@ -154,7 +154,7 @@ const Category = () => {
         
         {/* Left Column: Add / Edit Form */}
         <div className="lg:col-span-1">
-          <div className="bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 sticky top-24">
+          <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 sticky top-24">
             <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
               <div className="w-10 h-10 rounded-xl bg-blue-900/50 text-blue-400 flex items-center justify-center text-lg">
                 {editingId ? <FiEdit2 /> : <FiTag />}
@@ -203,7 +203,7 @@ const Category = () => {
                 <button 
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 flex items-center justify-center px-4 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 flex items-center justify-center px-4 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/5 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? <FiLoader className="mr-2 animate-spin" /> : (editingId ? <FiSave className="mr-2" /> : <FiPlus className="mr-2" />)}
                   {isSubmitting ? 'Saving...' : (editingId ? 'Update Category' : 'Add Category')}
@@ -226,7 +226,7 @@ const Category = () => {
 
         {/* Right Column: Categories List Table */}
         <div className="lg:col-span-2">
-          <div className="bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full">
+          <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full">
             <div className="overflow-x-auto custom-scrollbar">
               <table className="w-full text-left border-collapse whitespace-nowrap min-w-125">
                 <thead className="bg-slate-800/50 border-b border-white/10 border-collapse">
@@ -246,7 +246,7 @@ const Category = () => {
                     </tr>
                   ) : currentCategories.length > 0 ? (
                     currentCategories.map((category, index) => (
-                      <tr key={category._id} className="hover:bg-white/5 transition-colors group">
+                      <tr key={category._id} className="hover:bg-transparent transition-colors group">
                         <td className="px-6 py-4 text-sm font-medium text-slate-300">{indexOfFirstItem + index + 1}</td>
                         <td className="px-6 py-4">
                           <div className="flex items-center">

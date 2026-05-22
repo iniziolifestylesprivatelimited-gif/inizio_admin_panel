@@ -155,7 +155,7 @@ export const Ledgers = () => {
         </div>
         <button 
           onClick={openModal}
-          className="flex items-center px-4 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/30"
+          className="flex items-center px-4 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/5"
         >
           <FiUpload className="mr-2" /> Upload Ledger
         </button>
@@ -172,7 +172,7 @@ export const Ledgers = () => {
           <FiAlertCircle className="mr-2 text-lg shrink-0" /> {error}
         </div>
       ) : (
-        <div className="relative z-10 bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden">
+        <div className="relative z-10 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden">
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse whitespace-nowrap min-w-150">
               <thead>
@@ -187,7 +187,7 @@ export const Ledgers = () => {
               <tbody className="divide-y divide-white/5">
                 {ledgers.length > 0 ? (
                   ledgers.map((ledger, index) => (
-                    <tr key={ledger._id} className="hover:bg-white/5 transition-colors">
+                    <tr key={ledger._id} className="hover:bg-transparent transition-colors">
                       <td className="p-5 text-sm text-slate-400 font-medium">{index + 1}</td>
                       <td className="p-5 text-sm text-white font-medium">{ledger.title}</td>
                       <td className="p-5 text-sm text-slate-300">{getUserName(ledger.user)}</td>

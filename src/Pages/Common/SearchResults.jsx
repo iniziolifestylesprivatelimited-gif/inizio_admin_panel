@@ -58,7 +58,7 @@ const SearchResults = () => {
     <div className="relative space-y-6 min-h-full z-0">
       {/* Glassmorphism Background Ambient Glows */}
       <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none z-[-1]"></div>
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none z-[-1]"></div>
+      {/* <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none z-[-1]"></div> */}
 
       {/* Header Section */}
       <div className="flex flex-col gap-2 mb-8">
@@ -70,14 +70,14 @@ const SearchResults = () => {
 
       {/* Loading State */}
       {loading && (
-        <div className="flex justify-center items-center py-20 bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl">
+        <div className="flex justify-center items-center py-20 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl">
           <FiLoader className="animate-spin text-4xl text-blue-600" />
         </div>
       )}
 
       {/* Error State */}
       {error && (
-        <div className="flex flex-col items-center justify-center py-20 bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl text-red-400">
+        <div className="flex flex-col items-center justify-center py-20 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl text-red-400">
           <FiAlertCircle className="text-4xl mb-4" />
           <p className="font-medium">{error}</p>
         </div>
@@ -85,7 +85,7 @@ const SearchResults = () => {
 
       {/* Results List */}
       {!loading && !error && (
-        <div className="bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6">
+        <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6">
           {results.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {results.map((item) => (
@@ -94,7 +94,7 @@ const SearchResults = () => {
                   to={`/products/variants/${item._id}`}
                   className="flex items-start gap-4 p-4 rounded-2xl border border-white/10 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/20 transition-all bg-black/20 group cursor-pointer"
                 >
-                  <div className="w-16 h-16 shrink-0 bg-white/5 rounded-xl border border-white/10 flex items-center justify-center overflow-hidden">
+                  <div className="w-16 h-16 shrink-0 bg-transparent rounded-xl border border-white/10 flex items-center justify-center overflow-hidden">
                     <FiPackage className="text-2xl text-slate-400 group-hover:scale-110 transition-transform" />
                   </div>
                   <div className="flex-1 min-w-0">

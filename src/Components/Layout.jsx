@@ -41,11 +41,11 @@ const Layout = () => {
       {/* Global Ambient Glows */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10 transform-gpu">
         <div className="absolute top-[-10%] left-[-5%] w-96 h-96 bg-blue-600/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 transform-gpu"></div>
-        <div className="absolute bottom-[-10%] right-[-5%] w-120 h-120 bg-blue-600/50 rounded-full mix-blend-screen filter blur-[120px] opacity-50 transform-gpu"></div>
+        {/* <div className="absolute bottom-[-10%] right-[-5%] w-120 h-120 bg-blue-600/50 rounded-full mix-blend-screen filter blur-[120px] opacity-50 transform-gpu"></div> */}
       </div>
 
       {/* MOBILE TOP BAR (Visible only on small screens) */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/5 backdrop-blur-2xl border-b border-white/10 z-30 flex items-center justify-between px-4 shadow-xl shadow-black/50">
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-transparent backdrop-blur-2xl border-b border-white/10 z-30 flex items-center justify-between px-4 shadow-xl shadow-black/50">
         <img src={logoImg} alt="logo" className="h-14 w-auto object-contain scale-200 origin-left mt-1.5" />
         <div className="flex items-center gap-4">
           <button className="text-slate-300 hover:text-white relative transition-colors">
@@ -104,7 +104,7 @@ const Layout = () => {
 
       {/* SIDEBAR */}
       <aside className={`
-        fixed inset-y-0 left-0 z-50 w-72 bg-white/5 backdrop-blur-2xl border-r border-white/10 flex flex-col shadow-2xl shadow-black/50 lg:shadow-none
+        fixed inset-y-0 left-0 z-50 w-72 bg-transparent backdrop-blur-2xl border-r border-white/10 flex flex-col shadow-2xl shadow-black/50 lg:shadow-none
         transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 overflow-hidden
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
@@ -212,7 +212,7 @@ const Layout = () => {
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden bg-transparent relative pt-16 lg:pt-0">
         
         {/* GLOBAL HEADER (Desktop Top Bar) */}
-        <header className="hidden lg:flex h-16 bg-white/5 backdrop-blur-2xl border-b border-white/10 shadow-sm shadow-black/50 items-center justify-between px-8 sticky top-0 z-20">
+        <header className="hidden lg:flex h-16 bg-transparent backdrop-blur-2xl border-b border-white/10 shadow-sm shadow-black/50 items-center justify-between px-8 sticky top-0 z-20">
           
           {/* Left Side: Global Search */}
           <HeaderSearch />
@@ -275,7 +275,7 @@ const Layout = () => {
         </main>
 
         {/* GLOBAL FOOTER */}
-        <footer className="bg-white/5 backdrop-blur-2xl border-t border-white/10 shadow-lg shadow-black/50 py-4 px-8 mt-auto z-10 relative">
+        <footer className="bg-transparent backdrop-blur-2xl border-t border-white/10 shadow-lg shadow-black/50 py-4 px-8 mt-auto z-10 relative">
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-xs text-slate-400 font-medium">
             <p>© {new Date().getFullYear()} Inizio Workspace. All rights reserved.</p>
             <div className="flex items-center space-x-4 mt-2 md:mt-0">

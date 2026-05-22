@@ -122,7 +122,7 @@ const Faqs = () => {
                   onChange={(e) => setNewQuestion(e.target.value)}
                   placeholder="Enter the question..."
                   autoFocus
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-slate-500 transition-all text-sm font-medium"
+                  className="w-full px-4 py-3 bg-transparent border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-slate-500 transition-all text-sm font-medium"
                 />
               </div>
               <div>
@@ -132,7 +132,7 @@ const Faqs = () => {
                   onChange={(e) => setNewAnswer(e.target.value)}
                   placeholder="Enter the answer..."
                   rows="4"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-slate-500 transition-all text-sm font-medium resize-none"
+                  className="w-full px-4 py-3 bg-transparent border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-slate-500 transition-all text-sm font-medium resize-none"
                 ></textarea>
               </div>
               <div className="flex gap-3 pt-2">
@@ -161,11 +161,11 @@ const Faqs = () => {
               <p className="text-slate-400 italic text-center py-12">No FAQs available. Click "Add FAQ" to get started.</p>
             ) : (
               faqs.map((faq) => (
-                <div key={faq.id} className="border border-white/10 rounded-2xl bg-white/5 hover:bg-white/10 transition-all overflow-hidden">
+                <div key={faq.id} className="border border-white/10 rounded-2xl bg-transparent hover:bg-white/10 transition-all overflow-hidden">
                   
                   {/* FAQ Header (Question) */}
                   <div 
-                    className={`p-5 flex justify-between items-center cursor-pointer select-none transition-colors ${expandedId === faq.id ? 'bg-white/5 border-b border-white/5' : ''}`}
+                    className={`p-5 flex justify-between items-center cursor-pointer select-none transition-colors ${expandedId === faq.id ? 'bg-transparent border-b border-white/5' : ''}`}
                     onClick={() => toggleExpand(faq.id)}
                   >
                     {editingId === faq.id ? (

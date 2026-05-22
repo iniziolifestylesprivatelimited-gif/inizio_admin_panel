@@ -403,7 +403,7 @@ const ProductList = () => {
     <div className="relative space-y-6 min-h-full z-0">
       {/* Glassmorphism Background Ambient Glows */}
       <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
+      {/* <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div> */}
 
       {/* Header Section */}
       <div className="flex flex-col gap-6 mb-8">
@@ -453,12 +453,12 @@ const ProductList = () => {
               className="hidden" 
               onChange={handleFileUpload} 
             />
-            <label htmlFor="csv-upload" className="flex items-center justify-center px-4 py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/30 cursor-pointer">
+            <label htmlFor="csv-upload" className="flex items-center justify-center px-4 py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/5 cursor-pointer">
               <FiUpload className="mr-2" />
               Upload CSV
             </label>
           </div>
-          <button onClick={openAddModal} className="flex items-center justify-center px-4 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 cursor-pointer">
+          <button onClick={openAddModal} className="flex items-center justify-center px-4 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/5 cursor-pointer">
             <FiPlus className="mr-2" />
             Add Product
           </button>
@@ -466,7 +466,7 @@ const ProductList = () => {
       </div>
 
       {/* Table Section */}
-      <div className="bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-2xl md:rounded-3xl overflow-hidden flex flex-col h-full">
+      <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-2xl md:rounded-3xl overflow-hidden flex flex-col h-full">
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead className="bg-slate-800/50 border-b border-white/10 border-collapse text-slate-300 text-sm">
@@ -503,7 +503,7 @@ const ProductList = () => {
               ) : currentProducts.length > 0 ? (
                 currentProducts.map((product, index) => {
                   return (
-                    <tr key={product._id || index} className="hover:bg-white/5 transition-colors group">
+                    <tr key={product._id || index} className="hover:bg-transparent transition-colors group">
                       <td className="px-4 py-3 text-center">
                         <input 
                           type="checkbox" 
@@ -650,23 +650,23 @@ const ProductList = () => {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">EAN Number</label>
-                  <input type="number" name="eanNumber" value={editFormData.eanNumber || ''} onChange={handleEditChange} required className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500  scheme-dark" />
+                  <input type="number" name="eanNumber" value={editFormData.eanNumber || ''} onChange={handleEditChange} required className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500 scheme-dark" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Base Price</label>
-                  <input type="number" name="basePrice" value={editFormData.basePrice || ''} onChange={handleEditChange} required className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500  scheme-dark" />
+                  <input type="number" name="basePrice" value={editFormData.basePrice || ''} onChange={handleEditChange} required className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500 scheme-dark" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Offer Price</label>
-                  <input type="number" name="offerPrice" value={editFormData.offerPrice || ''} onChange={handleEditChange} className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500  scheme-dark" />
+                  <input type="number" name="offerPrice" value={editFormData.offerPrice || ''} onChange={handleEditChange} className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500 scheme-dark" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">L1 Price</label>
-                  <input type="number" name="l1Price" value={editFormData.l1Price || ''} onChange={handleEditChange} className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500  scheme-dark" />
+                  <input type="number" name="l1Price" value={editFormData.l1Price || ''} onChange={handleEditChange} className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500 scheme-dark" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">L2 Price</label>
-                  <input type="number" name="l2Price" value={editFormData.l2Price || ''} onChange={handleEditChange} className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500  scheme-dark" />
+                  <input type="number" name="l2Price" value={editFormData.l2Price || ''} onChange={handleEditChange} className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500 scheme-dark" />
                 </div>
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Quantity Pricing Slabs</label>

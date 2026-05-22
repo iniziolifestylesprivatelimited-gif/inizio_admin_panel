@@ -71,7 +71,7 @@ const Notifications = () => {
     <div className="relative space-y-6 min-h-full z-0">
       {/* Glassmorphism Background Ambient Glows */}
       <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
+      {/* <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div> */}
 
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -86,7 +86,7 @@ const Notifications = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* SECTION 1: Compose Notification */}
-        <div className="bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 sm:p-8">
+        <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 sm:p-8">
           <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
             <MdSend className="text-blue-400" /> Send Notification
           </h2>
@@ -164,7 +164,7 @@ const Notifications = () => {
         </div>
 
         {/* SECTION 2: Notification History */}
-        <div className="bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 sm:p-8 flex flex-col max-h-[85vh]">
+        <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 sm:p-8 flex flex-col max-h-[85vh]">
           <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2 shrink-0">
             <MdHistory className="text-blue-400" /> Notification History
           </h2>
@@ -174,7 +174,7 @@ const Notifications = () => {
               <p className="text-slate-400 italic text-center py-12">No notifications sent yet.</p>
             ) : (
               history.map((item) => (
-                <div key={item.id} className="p-5 border border-white/10 rounded-2xl bg-white/5 hover:bg-white/10 transition-all relative group">
+                <div key={item.id} className="p-5 border border-white/10 rounded-2xl bg-transparent hover:bg-white/10 transition-all relative group">
                   <div className="pr-8">
                     <h3 className="font-bold text-white tracking-tight">{item.title}</h3>
                     <p className="text-sm text-slate-300 mt-1.5">{item.description}</p>

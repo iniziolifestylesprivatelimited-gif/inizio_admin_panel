@@ -27,7 +27,7 @@ const Profile = () => {
     <div className="relative space-y-6 min-h-full z-0">
       {/* Glassmorphism Background Ambient Glows */}
       <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none z-[-1]"></div>
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none z-[-1]"></div>
+      {/* <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none z-[-1]"></div> */}
 
       {/* Header Section */}
       <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 z-10">
@@ -40,7 +40,7 @@ const Profile = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Profile Summary Card */}
         <div className="lg:col-span-1">
-          <div className="bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-8 text-center flex flex-col items-center relative overflow-hidden">
+          <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-8 text-center flex flex-col items-center relative overflow-hidden">
             <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
             <div className="w-24 h-24 rounded-full bg-linear-to-tr from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-4xl shadow-inner mb-4">
               {user?.email ? user.email.charAt(0).toUpperCase() : 'U'}
@@ -55,7 +55,7 @@ const Profile = () => {
 
         {/* Profile Details & Security */}
         <div className="lg:col-span-2">
-          <div className="bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-8 relative overflow-hidden">
+          <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-8 relative overflow-hidden">
             <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
             <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
               <h3 className="text-xl font-bold text-white flex items-center gap-2">
@@ -64,7 +64,7 @@ const Profile = () => {
               <button 
                 type="button"
                 onClick={() => setIsEditing(!isEditing)}
-                className="flex items-center px-4 py-2 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white rounded-xl transition-all shadow-sm text-sm font-bold border border-white/10 backdrop-blur-md"
+                className="flex items-center px-4 py-2 bg-transparent text-slate-300 hover:bg-white/10 hover:text-white rounded-xl transition-all shadow-sm text-sm font-bold border border-white/10 backdrop-blur-md"
               >
                 {isEditing ? 'Cancel Edit' : <><FiEdit2 className="mr-1.5" /> Edit Profile</>}
               </button>

@@ -165,7 +165,7 @@ const Maintenance = () => {
                 disabled={isActive}
                 placeholder="e.g. We are currently undergoing scheduled maintenance. We'll be back shortly."
                 rows="3"
-                className={`w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-slate-500 transition-all text-sm font-medium resize-none ${isActive ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`w-full px-4 py-3 bg-transparent border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-slate-500 transition-all text-sm font-medium resize-none ${isActive ? 'opacity-50 cursor-not-allowed' : ''}`}
               ></textarea>
             </div>
 
@@ -178,7 +178,7 @@ const Maintenance = () => {
                   onChange={(e) => setStartTime(e.target.value)}
                   disabled={isActive}
                   style={{ colorScheme: 'dark' }}
-                  className={`w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white transition-all text-sm font-medium ${isActive ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`w-full px-4 py-3 bg-transparent border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white transition-all text-sm font-medium ${isActive ? 'opacity-50 cursor-not-allowed' : ''}`}
                 />
               </div>
               <div>
@@ -189,7 +189,7 @@ const Maintenance = () => {
                   onChange={(e) => setEndTime(e.target.value)}
                   disabled={isActive}
                   style={{ colorScheme: 'dark' }}
-                  className={`w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white transition-all text-sm font-medium ${isActive ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`w-full px-4 py-3 bg-transparent border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white transition-all text-sm font-medium ${isActive ? 'opacity-50 cursor-not-allowed' : ''}`}
                 />
               </div>
             </div>
@@ -233,7 +233,7 @@ const Maintenance = () => {
               <p className="text-slate-400 italic text-center py-12">No maintenance history available.</p>
             ) : (
               history.map((item) => (
-                <div key={item.id} className="p-5 border border-white/10 rounded-2xl bg-white/5 hover:bg-white/10 transition-all relative group">
+                <div key={item.id} className="p-5 border border-white/10 rounded-2xl bg-transparent hover:bg-white/10 transition-all relative group">
                   <div className="pr-8">
                     <h3 className="font-bold text-white tracking-tight leading-tight">{item.message}</h3>
                     

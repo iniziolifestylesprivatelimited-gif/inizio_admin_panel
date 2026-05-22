@@ -103,7 +103,7 @@ const Orders = () => {
     <div className="relative space-y-6 min-h-full z-0">
       {/* Glassmorphism Background Ambient Glows */}
       <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
+      {/* <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div> */}
 
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -116,7 +116,7 @@ const Orders = () => {
       </div>
 
       {loading && (
-        <div className="h-64 flex flex-col justify-center items-center bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl">
+        <div className="h-64 flex flex-col justify-center items-center bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl">
           <FiLoader className="animate-spin text-3xl text-blue-400 mb-4" />
           <p className="text-slate-400">Loading orders...</p>
         </div>
@@ -129,7 +129,7 @@ const Orders = () => {
       )}
 
       {!loading && !error && (
-        <div className="bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-2xl md:rounded-3xl overflow-hidden">
+        <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-2xl md:rounded-3xl overflow-hidden">
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse min-w-200">
               <thead>
@@ -147,7 +147,7 @@ const Orders = () => {
               </thead>
               <tbody className="divide-y divide-white/5">
                 {currentOrders.map((order, index) => (
-                  <tr key={order._id} className="hover:bg-white/5 transition-colors group align-middle">
+                  <tr key={order._id} className="hover:bg-transparent transition-colors group align-middle">
                     <td className="p-3 pl-6 text-sm text-slate-400 font-medium">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
@@ -242,14 +242,14 @@ const Orders = () => {
                 <button
                   onClick={handlePrevPage}
                   disabled={currentPage === 1}
-                  className="px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium border border-white/10"
+                  className="px-4 py-2 bg-transparent hover:bg-white/10 text-slate-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium border border-white/10"
                 >
                   Previous
                 </button>
                 <button
                   onClick={handleNextPage}
                   disabled={currentPage === totalPages}
-                  className="px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium border border-white/10"
+                  className="px-4 py-2 bg-transparent hover:bg-white/10 text-slate-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium border border-white/10"
                 >
                   Next
                 </button>
@@ -349,7 +349,7 @@ const Orders = () => {
                 </h4>
                 <div className="space-y-4">
                   {selectedOrder.items?.map((item, idx) => (
-                    <div key={idx} className="flex flex-col sm:flex-row gap-4 justify-between p-4 bg-white/5 rounded-xl border border-white/5">
+                    <div key={idx} className="flex flex-col sm:flex-row gap-4 justify-between p-4 bg-transparent rounded-xl border border-white/5">
                       <div className="flex flex-col gap-3 flex-1 min-w-0">
                         <div className="min-w-0">
                           <p className="font-bold text-white line-clamp-2">{item.product?.name || 'Unknown Product'}</p>

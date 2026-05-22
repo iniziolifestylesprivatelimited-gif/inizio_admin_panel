@@ -35,9 +35,9 @@ const Chat = () => {
     <div className="relative flex h-[calc(100vh-8rem)] z-0">
       {/* Glassmorphism Background Ambient Glows */}
       <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
+      {/* <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div> */}
       
-      <div className="flex w-full h-full bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl shadow-black/50">
+      <div className="flex w-full h-full bg-transparent backdrop-blur-2xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl shadow-black/50">
         {/* Sidebar - Contacts */}
         <div className={`${activeContact ? 'hidden md:flex' : 'flex'} w-full md:w-80 lg:w-96 border-r border-white/10 flex-col bg-black/20`}>
         <div className="p-4 border-b border-white/10">
@@ -57,7 +57,7 @@ const Chat = () => {
             <div 
               key={contact.id} 
               onClick={() => setActiveContact(contact.id)}
-              className={`flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-all mb-1 ${activeContact === contact.id ? 'bg-blue-600/20 border border-blue-500/30' : 'hover:bg-white/5 border border-transparent'}`}
+              className={`flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-all mb-1 ${activeContact === contact.id ? 'bg-blue-600/20 border border-blue-500/30' : 'hover:bg-transparent border border-transparent'}`}
             >
               <div className="relative shrink-0">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-inner ${activeContact === contact.id ? 'bg-blue-600' : 'bg-slate-700'}`}>
@@ -194,7 +194,7 @@ const Chat = () => {
           </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-slate-500">
-            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-4">
+            <div className="w-20 h-20 bg-transparent rounded-full flex items-center justify-center mb-4">
               <FiSend className="text-3xl" />
             </div>
             <p className="font-medium text-lg text-slate-400">Select a conversation</p>

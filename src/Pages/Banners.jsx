@@ -182,7 +182,7 @@ const Banners = () => {
     <div className="relative space-y-6 min-h-full z-0">
       {/* Glassmorphism Background Ambient Glows */}
       <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
+      {/* <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div> */}
       
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -200,7 +200,7 @@ const Banners = () => {
       </div>
 
       {loading && (
-        <div className="h-64 flex flex-col justify-center items-center bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl">
+        <div className="h-64 flex flex-col justify-center items-center bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl">
           <FiLoader className="animate-spin text-3xl text-blue-400 mb-4" />
           <p className="text-slate-400">Loading banners...</p>
         </div>
@@ -216,7 +216,7 @@ const Banners = () => {
       {!loading && !error && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {banners.map((banner) => (
-            <div key={banner._id} className="bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden group flex flex-col">
+            <div key={banner._id} className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden group flex flex-col">
               
               {/* Image Header */}
               <div className="relative h-48 bg-slate-800 flex items-center justify-center overflow-hidden border-b border-white/10">
@@ -273,7 +273,7 @@ const Banners = () => {
           ))}
 
           {banners.length === 0 && (
-            <div className="col-span-full py-16 flex flex-col items-center justify-center bg-white/5 backdrop-blur-2xl rounded-3xl border border-dashed border-white/20">
+            <div className="col-span-full py-16 flex flex-col items-center justify-center bg-transparent backdrop-blur-2xl rounded-3xl border border-dashed border-white/20">
               <FiImage className="text-5xl text-slate-500 mb-4" />
               <p className="text-slate-400 font-medium">No banners found. Create one to get started.</p>
             </div>

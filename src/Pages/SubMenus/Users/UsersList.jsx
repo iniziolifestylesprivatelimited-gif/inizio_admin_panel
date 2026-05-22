@@ -137,7 +137,7 @@ const UsersList = () => {
     <div className="relative space-y-6 min-h-full z-0 isolate w-full">
       {/* Glassmorphism Background Ambient Glows */}
       <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
+      {/* <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div> */}
 
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -151,17 +151,17 @@ const UsersList = () => {
       </div>
 
       {/* Tabs and Search */}
-      <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-4 bg-white/5 backdrop-blur-2xl shadow-lg shadow-black/20 p-4 rounded-2xl border border-white/10">
+      <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-4 bg-transparent backdrop-blur-2xl shadow-lg shadow-black/20 p-4 rounded-2xl border border-white/10">
         <div className="flex space-x-2 w-full md:w-auto">
           <button 
             onClick={() => setActiveTab('customers')}
-            className={`flex-1 md:flex-none px-5 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${activeTab === 'customers' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+            className={`flex-1 md:flex-none px-5 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${activeTab === 'customers' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/5' : 'text-slate-400 hover:bg-transparent hover:text-white'}`}
           >
             Approved Customers
           </button>
           <button 
             onClick={() => setActiveTab('rejected')}
-            className={`flex-1 md:flex-none px-5 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${activeTab === 'rejected' ? 'bg-red-600 text-white shadow-lg shadow-red-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+            className={`flex-1 md:flex-none px-5 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${activeTab === 'rejected' ? 'bg-red-600 text-white shadow-lg shadow-red-500/5' : 'text-slate-400 hover:bg-transparent hover:text-white'}`}
           >
             Rejected KYC
           </button>
@@ -190,7 +190,7 @@ const UsersList = () => {
           <FiAlertCircle className="mr-2 text-lg shrink-0" /> {error}
         </div>
       ) : (
-        <div className="relative z-10 bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden">
+        <div className="relative z-10 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden">
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse whitespace-nowrap min-w-200">
               <thead>
@@ -208,7 +208,7 @@ const UsersList = () => {
               <tbody className="divide-y divide-white/5">
                 {currentUsers.length > 0 ? (
                   currentUsers.map((user, index) => (
-                    <tr key={user._id} className="hover:bg-white/5 transition-colors">
+                    <tr key={user._id} className="hover:bg-transparent transition-colors">
                       <td className="p-5 text-sm text-slate-400 font-medium">{indexOfFirstUser + index + 1}</td>
                       <td className="p-5 text-sm text-white font-medium">{user.name}</td>
                       <td className="p-5 text-sm text-slate-300">{user.email}</td>
@@ -274,7 +274,7 @@ const UsersList = () => {
 
       {/* Pagination Controls */}
       {!loading && !error && filteredUsers.length > 0 && (
-        <div className="relative z-10 flex flex-col md:flex-row justify-end items-center gap-4 bg-white/5 backdrop-blur-2xl shadow-lg shadow-black/20 p-4 rounded-2xl border border-white/10">
+        <div className="relative z-10 flex flex-col md:flex-row justify-end items-center gap-4 bg-transparent backdrop-blur-2xl shadow-lg shadow-black/20 p-4 rounded-2xl border border-white/10">
           {/* <p className="text-slate-400 text-sm">
             Showing <span className="text-white font-bold">{indexOfFirstUser + 1}</span> to <span className="text-white font-bold">{Math.min(indexOfLastUser, filteredUsers.length)}</span> of <span className="text-white font-bold">{filteredUsers.length}</span> entries
           </p> */}
@@ -282,17 +282,17 @@ const UsersList = () => {
             <button 
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold"
+              className="px-4 py-2 bg-transparent border border-white/10 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold"
             >
               Previous
             </button>
-            <div className="flex items-center px-4 bg-white/5 border border-white/10 rounded-xl text-slate-300 text-sm font-bold">
+            <div className="flex items-center px-4 bg-transparent border border-white/10 rounded-xl text-slate-300 text-sm font-bold">
               Page {currentPage} of {totalPages}
             </div>
             <button 
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold"
+              className="px-4 py-2 bg-transparent border border-white/10 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold"
             >
               Next
             </button>
@@ -316,7 +316,7 @@ const UsersList = () => {
             
             <div className="overflow-y-auto custom-scrollbar p-5 space-y-4">
               {/* Status Header */}
-              <div className="flex justify-between items-center bg-white/5 border border-white/10 p-4 rounded-2xl">
+              <div className="flex justify-between items-center bg-transparent border border-white/10 p-4 rounded-2xl">
                 <div>
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Status</p>
                   {activeTab === 'rejected' ? (
@@ -384,7 +384,7 @@ const UsersList = () => {
                         <FiFileText className="text-lg" /> View Uploaded Document
                       </a>
                     ) : (
-                      <div className="inline-flex items-center gap-2 px-4 py-3 bg-white/5 border border-dashed border-white/10 text-slate-500 rounded-xl text-sm italic">
+                      <div className="inline-flex items-center gap-2 px-4 py-3 bg-transparent border border-dashed border-white/10 text-slate-500 rounded-xl text-sm italic">
                         <FiFileText className="text-lg" /> No document uploaded
                       </div>
                     )}

@@ -170,7 +170,7 @@ const HeaderSearch = () => {
           onChange={(e) => setSearchQuery(e.target.value)}
           onFocus={() => searchQuery.trim() && setShowSuggestions(true)}
           placeholder="Search products, brands, or categories..." 
-          className="w-full pl-10 pr-10 py-2 bg-white/5 border border-white/10 focus:border-blue-500/50 focus:bg-white/10 rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all text-sm text-white placeholder-slate-400"
+          className="w-full pl-10 pr-10 py-2 bg-transparent border border-white/10 focus:border-blue-500/50 focus:bg-white/10 rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all text-sm text-white placeholder-slate-400"
         />
         {searchQuery && (
           <button
