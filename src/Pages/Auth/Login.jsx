@@ -36,7 +36,7 @@ const Login = () => {
     <div className="min-h-screen flex font-sans bg-linear-to-br from-black via-slate-950 to-blue-950 text-slate-300 overflow-hidden">
       
       {/* Left Image Section */}
-      <div className="hidden lg:flex lg:w-1/2 items-center justify-center relative">
+      <div className="flex lg:flex lg:w-1/2 items-center justify-center relative">
         
         {/* Decorative blurred blobs for depth */}
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob transform-gpu"></div>
@@ -46,21 +46,21 @@ const Login = () => {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[70%] h-[70%] bg-blue-600/20 rounded-full mix-blend-screen filter blur-[100px] z-0 transform-gpu"></div>
 
         <img 
-          src={darkThemeImg} 
+          src={darkThemeImg}
           alt="Dashboard Preview" 
-          className="absolute inset-0 w-full h-full scale-90 object-cover bg-white/0 drop-shadow-[0_0_30px_rgba(37,99,235,0.3)] z-10"
+          className="absolute scale-85 object-cover bg-white/0 drop-shadow-[0_0_30px_rgba(37,99,235,0.3)] z-10"
         />
       </div>
 
       {/* Right Form Section */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center relative">
+      <div className="w-full lg:w-1/2 flex items-center justify-center relative transform-gpu">
         
         {/* Decorative blurred blobs for depth */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob transform-gpu"></div>
+        {/* <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob transform-gpu"></div> */}
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 transform-gpu"></div>
 
         {/* Glassmorphism Login Card */}
-        <div className="relative w-full max-w-md mx-4 p-8 sm:p-10 bg-white/10 backdrop-blur-md transform-gpu border border-white/20 shadow-2xl rounded-3xl z-10">
+        <div className="relative w-full max-w-md mx-4 p-8 sm:p-10 bg-transparent backdrop-blur-md transform-gpu border border-white/20 shadow-2xl rounded-3xl z-10">
           
           {/* Branding */}
           <div className="flex flex-col items-center justify-center mb-8">
@@ -118,7 +118,7 @@ const Login = () => {
             <button 
               type="submit"
               disabled={isLoading}
-              className="w-full mt-4 flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl transition-all duration-300 font-semibold shadow-lg shadow-blue-600/30 group disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full mt-4 flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl transition-all duration-300 font-semibold shadow-lg shadow-blue-600/5 group disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
             >
               {isLoading ? (
                 <FiLoader className="animate-spin text-xl" />

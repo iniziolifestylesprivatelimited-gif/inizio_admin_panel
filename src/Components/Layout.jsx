@@ -209,7 +209,7 @@ const Layout = () => {
       </aside>
 
       {/* MAIN CONTENT WRAPPER (Includes Header, Content, Footer) */}
-      <div className="flex-1 flex flex-col min-h-screen overflow-hidden bg-transparent relative pt-16 lg:pt-0">
+      <div className="flex-1 flex flex-col h-full overflow-hidden bg-transparent relative pt-16 lg:pt-0">
         
         {/* GLOBAL HEADER (Desktop Top Bar) */}
         <header className="hidden lg:flex h-16 bg-transparent backdrop-blur-2xl border-b border-white/10 shadow-sm shadow-black/50 items-center justify-between px-8 sticky top-0 z-20">
@@ -269,14 +269,14 @@ const Layout = () => {
 
         {/* DYNAMIC PAGE CONTENT */}
         <main className="flex-1 overflow-y-auto custom-scrollbar">
-          <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 min-h-full">
+          <div className="w-full mx-auto p-4 sm:p-6 lg:p-8 min-h-full">
             <Outlet />
           </div>
         </main>
 
         {/* GLOBAL FOOTER */}
         <footer className="bg-transparent backdrop-blur-2xl border-t border-white/10 shadow-lg shadow-black/50 py-4 px-8 mt-auto z-10 relative">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-xs text-slate-400 font-medium">
+          <div className="w-full mx-auto flex flex-col md:flex-row justify-between items-center text-xs text-slate-400 font-medium">
             <p>© {new Date().getFullYear()} Inizio Workspace. All rights reserved.</p>
             <div className="flex items-center space-x-4 mt-2 md:mt-0">
               <Link to="/help" className="hover:text-blue-500 transition-colors">Help Center</Link>
