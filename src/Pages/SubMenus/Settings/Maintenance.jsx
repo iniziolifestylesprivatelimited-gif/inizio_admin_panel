@@ -149,9 +149,11 @@ const Maintenance = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
+        <div className="absolute bottom-10 left-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
         
         {/* SECTION 1: Control Panel */}
-        <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-3xl p-6 sm:p-8">
+        <div className="bg-tranparent backdrop-blur-xl border border-white/20 shadow-2xl rounded-3xl p-6 sm:p-8">
           <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
             <FiClock className="text-blue-400" /> Configure Downtime
           </h2>
@@ -223,7 +225,7 @@ const Maintenance = () => {
         </div>
 
         {/* SECTION 2: Maintenance History */}
-        <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-3xl p-6 sm:p-8 flex flex-col max-h-[85vh]">
+        <div className="bg-transparent backdrop-blur-xl border border-white/20 shadow-2xl rounded-3xl p-6 sm:p-8 flex flex-col max-h-[85vh]">
           <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2 shrink-0">
             <FiCalendar className="text-blue-400" /> Maintenance Logs
           </h2>

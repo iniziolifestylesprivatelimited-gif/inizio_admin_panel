@@ -134,14 +134,14 @@ const Orders = () => {
             <table className="w-full text-left border-collapse min-w-200">
               <thead>
                 <tr className="border-b border-white/10 bg-black/20 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  <th className="p-3 pl-6 w-16">S.No</th>
+                  <th className="p-2 pl-6 w-16">S.No</th>
                   <th className="p-4">Order ID</th>
                   <th className="p-4">Date</th>
                   <th className="p-4">Customer</th>
                   <th className="p-4">Items</th>
                   <th className="p-4">Amount</th>
                   <th className="p-4">Payment</th>
-                  <th className="p-4 text-center">Details</th>
+                  <th className="p-2 text-center">Details</th>
                   <th className="p-4 pr-6">Status Action</th>
                 </tr>
               </thead>

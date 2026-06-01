@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Outlet, Link, Navigate, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
 import { 
   FiLogOut, FiMenu, FiX, FiUser,
@@ -8,6 +8,7 @@ import {
 import { getAccessibleMenus } from '../config/menus';
 import HeaderSearch from './HeaderSearch';
 import logoImg from '../assets/logos.png';
+import { api } from '../api/axios';
 
 const Layout = () => {
   const { user, logout } = useAuth();
@@ -15,6 +16,12 @@ const Layout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [openMenus, setOpenMenus] = useState({});
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [chatUnreadCount, setChatUnreadCount] = useState(0);
+  const navigation = useNavigate();
+
+  const chatNavigate = () => {
+    navigation('/chat');
+  };
 
   const toggleSubMenu = (menuName) => {
     setOpenMenus(prev => ({
@@ -28,6 +35,28 @@ const Layout = () => {
     setIsMobileMenuOpen(false);
     setIsProfileDropdownOpen(false);
   }, [location.pathname]);
+
+  // Poll chat unread count
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      if (!user) return;
+      try {
+        const token = sessionStorage.getItem('accessToken');
+        const response = await api.get('/chat/users/list', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const contacts = Array.isArray(response.data) ? response.data : [];
+        const totalUnread = contacts.reduce((sum, contact) => sum + (Number(contact.unreadCount) || 0), 0);
+        setChatUnreadCount(totalUnread);
+      } catch (error) {
+        console.error("Failed to fetch unread messages count", error);
+      }
+    };
+
+    fetchUnreadCount();
+    const intervalId = setInterval(fetchUnreadCount, 5000);
+    return () => clearInterval(intervalId);
+  }, [user]);
 
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -48,9 +77,13 @@ const Layout = () => {
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-transparent backdrop-blur-2xl border-b border-white/10 z-30 flex items-center justify-between px-4 shadow-xl shadow-black/50">
         <img src={logoImg} alt="logo" className="h-14 w-auto object-contain scale-200 origin-left mt-1.5" />
         <div className="flex items-center gap-4">
-          <button className="text-slate-300 hover:text-white relative transition-colors">
+          <button className="text-slate-300 hover:text-white relative transition-colors mt-1">
             <FiBell className="text-xl" />
-            <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            {chatUnreadCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-1 bg-red-500 text-white text-[9px] font-bold flex items-center justify-center rounded-full border border-slate-900 shadow-sm">
+                {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
+              </span>
+            )}
           </button>
 
           {/* Mobile Profile Dropdown */}
@@ -219,9 +252,13 @@ const Layout = () => {
 
           {/* Right Side: Profile & Notifications */}
           <div className="flex items-center space-x-6">
-            <button className="text-slate-400 hover:text-blue-500 relative transition-colors">
-              <FiBell className="text-xl" />
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-slate-900"></span>
+            <button className="text-slate-400 hover:text-blue-500 relative transition-colors mt-1">
+              <FiBell className="text-xl cursor-pointer" onClick={chatNavigate} />
+              {chatUnreadCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-1 bg-red-500 text-white text-[9px] font-bold flex items-center justify-center rounded-full border-2 border-slate-900 shadow-sm">
+                  {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
+                </span>
+              )}
             </button>
             
             <div className="h-8 w-px bg-white/10"></div>

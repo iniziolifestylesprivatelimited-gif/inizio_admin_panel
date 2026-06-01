@@ -30,24 +30,35 @@ const UsersList = () => {
     setError('');
     try {
       const token = sessionStorage.getItem('accessToken');
-      // Fetch all processed users from the same API
-      const response = await api.get('/admin/customers', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      
+      // Fetch all processed users and pending users concurrently
+      const [customersResponse, pendingResponse] = await Promise.all([
+        api.get('/admin/customers', { headers: { Authorization: `Bearer ${token}` } }),
+        api.get('/admin/pending', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] }))
+      ]);
       
       // Safely handle cases where the backend might wrap the array in an object
       let allUsers = [];
-      if (Array.isArray(response.data)) {
-        allUsers = response.data;
-      } else if (response.data && typeof response.data === 'object') {
-        allUsers = response.data.data || response.data.users || response.data.customers || [];
+      if (Array.isArray(customersResponse.data)) {
+        allUsers = customersResponse.data;
+      } else if (customersResponse.data && typeof customersResponse.data === 'object') {
+        allUsers = customersResponse.data.data || customersResponse.data.users || customersResponse.data.customers || [];
       }
+
+      // Extract pending users to filter them out from the rejected list
+      let pendingUsers = [];
+      if (Array.isArray(pendingResponse.data)) {
+        pendingUsers = pendingResponse.data;
+      } else if (pendingResponse.data && typeof pendingResponse.data === 'object') {
+        pendingUsers = pendingResponse.data.data || pendingResponse.data.users || pendingResponse.data.pending || [];
+      }
+      const pendingIds = new Set(pendingUsers.map(user => user._id));
       
       // Filter locally based on the approval status OR the presence of a generated userId
       if (activeTab === 'customers') {
         setUsers(allUsers.filter(user => user.isApproved === true || !!user.userId));
       } else if (activeTab === 'rejected') {
-        setUsers(allUsers.filter(user => user.isApproved === false && !user.userId));
+        setUsers(allUsers.filter(user => user.isApproved === false && !user.userId && !pendingIds.has(user._id)));
       }
     } catch (err) {
       console.error('Fetch users error:', err);
@@ -71,23 +82,23 @@ const UsersList = () => {
     setSelectedUser(null);
   };
 
-  // Undo Rejection
-  const handleUndoReject = async (id) => {
-    if (!window.confirm('Are you sure you want to restore this user to the pending KYC list?')) return;
-    setIsActionLoading(true);
-    try {
-      // Note: Adjust the endpoint below to match your backend route for undoing rejections
-      await api.put(`/admin/undo-reject/${id}`);
-      setUsers((prevUsers) => prevUsers.filter((user) => user._id !== id));
-      if (selectedUser && selectedUser._id === id) closeModal();
-      alert('User restored successfully! They have been moved to the Pending KYC list.');
-    } catch (err) {
-      console.error('Undo reject error:', err);
-      alert(err.response?.data?.message || 'Failed to restore user.');
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
+  // // Undo Rejection
+  // const handleUndoReject = async (id) => {
+  //   if (!window.confirm('Are you sure you want to restore this user to the pending KYC list?')) return;
+  //   setIsActionLoading(true);
+  //   try {
+  //     // Note: Adjust the endpoint below to match your backend route for undoing rejections
+  //     await api.put(`/admin/undo-reject/${id}`);
+  //     setUsers((prevUsers) => prevUsers.filter((user) => user._id !== id));
+  //     if (selectedUser && selectedUser._id === id) closeModal();
+  //     alert('User restored successfully! They have been moved to the Pending KYC list.');
+  //   } catch (err) {
+  //     console.error('Undo reject error:', err);
+  //     alert(err.response?.data?.message || 'Failed to restore user.');
+  //   } finally {
+  //     setIsActionLoading(false);
+  //   }
+  // };
 
   // Delete User
   const handleDelete = async (id) => {
@@ -194,14 +205,14 @@ const UsersList = () => {
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse whitespace-nowrap min-w-200">
               <thead>
-                <tr className="bg-slate-800/50 border-b border-white/10 text-xs uppercase tracking-wider text-slate-400">
+                <tr className="bg-slate-800/50 border-b border-white/10 text-xs text-center uppercase tracking-wider text-slate-400">
                   <th className="p-2 font-bold">S.No</th>
                   <th className="p-4 font-bold">Name</th>
                   <th className="p-4 font-bold">Email</th>
                   <th className="p-4 font-bold">Phone</th>
                   <th className="p-4 font-bold">Business Type</th>
                   <th className="p-4 font-bold">Status</th>
-                  {activeTab === 'customers' && <th className="p-5 font-bold">User ID</th>}
+                  {activeTab === 'customers' && <th className="p-4 font-bold">User ID</th>}
                   <th className="p-4 font-bold text-center">Actions</th>
                 </tr>
               </thead>
@@ -209,16 +220,16 @@ const UsersList = () => {
                 {currentUsers.length > 0 ? (
                   currentUsers.map((user, index) => (
                     <tr key={user._id} className="hover:bg-transparent transition-colors">
-                      <td className="p-5 text-sm text-slate-400 font-medium">{indexOfFirstUser + index + 1}</td>
-                      <td className="p-5 text-sm text-white font-medium">{user.name}</td>
-                      <td className="p-5 text-sm text-slate-300">{user.email}</td>
-                      <td className="p-5 text-sm text-slate-300">{user.phone || 'N/A'}</td>
-                      <td className="p-5 text-sm">
+                      <td className="p-2 text-sm text-slate-400 text-center font-medium">{indexOfFirstUser + index + 1}</td>
+                      <td className="p-4 text-sm text-white font-medium">{user.name}</td>
+                      <td className="p-4 text-sm text-slate-300">{user.email}</td>
+                      <td className="p-4 text-sm text-slate-300">{user.phone || 'N/A'}</td>
+                      <td className="p-4 text-sm text-center">
                         <span className="bg-slate-700/50 border border-slate-600/50 text-slate-300 px-2.5 py-1 rounded-md text-xs font-bold">
                           {user.businessType || 'L1'}
                         </span>
                       </td>
-                      <td className="p-5 text-sm">
+                      <td className="p-4 text-sm">
                         {activeTab === 'rejected' ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold">
                             <FiX className="text-[10px]" /> Rejected
@@ -230,14 +241,13 @@ const UsersList = () => {
                         )}
                       </td>
                       {activeTab === 'customers' && (
-                        <td className="p-5 text-sm text-emerald-400 font-mono font-semibold">{user.userId || 'N/A'}</td>
+                        <td className="p-4 text-sm text-emerald-400 font-mono font-semibold">{user.userId || 'N/A'}</td>
                       )}
-                      <td className="p-5 flex items-center justify-center gap-2">
+                      <td className="p-4 flex items-center justify-center gap-2">
                         <button onClick={() => openModal(user)} className="p-2.5 text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all cursor-pointer" title="View Full Details">
                           <FiEye />
                         </button>
                         {activeTab === 'rejected' && (
-                          <>
                             <button 
                               onClick={() => handleUndoReject(user._id)} 
                               disabled={isActionLoading} 
@@ -246,16 +256,15 @@ const UsersList = () => {
                             >
                               <FiRefreshCcw />
                             </button>
-                            <button 
-                              onClick={() => handleDelete(user._id)} 
-                              disabled={isActionLoading} 
-                              className="p-2.5 text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50 cursor-pointer" 
-                              title="Permanently Delete User"
-                            >
-                              <FiTrash2 />
-                            </button>
-                          </>
                         )}
+                        <button 
+                          onClick={() => handleDelete(user._id)} 
+                          disabled={isActionLoading} 
+                          className="p-2.5 text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50 cursor-pointer" 
+                          title="Permanently Delete User"
+                        >
+                          <FiTrash2 />
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -355,6 +364,10 @@ const UsersList = () => {
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Role</p>
                     <p className="text-white font-medium capitalize">{selectedUser.role || 'customer'}</p>
                   </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Registration Date</p>
+                    <p className="text-white font-medium">{selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}</p>
+                  </div>
                 </div>
               </div>
 
@@ -394,16 +407,16 @@ const UsersList = () => {
             </div>
 
             {/* Footer Actions */}
-            {activeTab === 'rejected' && (
-              <div className="pt-3 pb-4 px-5 border-t border-white/10 flex flex-col sm:flex-row justify-end gap-3 bg-slate-800/30 shrink-0">
-                <button 
-                  onClick={() => handleDelete(selectedUser._id)}
-                  disabled={isActionLoading}
-                  className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-transparent border border-red-500/30 text-red-400 font-bold rounded-xl hover:bg-red-500/10 transition-all disabled:opacity-50 cursor-pointer"
-                >
-                  <FiTrash2 className="mr-2 text-lg" />
-                  Delete User
-                </button>
+            <div className="pt-3 pb-4 px-5 border-t border-white/10 flex flex-col sm:flex-row justify-end gap-3 bg-slate-800/30 shrink-0">
+              <button 
+                onClick={() => handleDelete(selectedUser._id)}
+                disabled={isActionLoading}
+                className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-transparent border border-red-500/30 text-red-400 font-bold rounded-xl hover:bg-red-500/10 transition-all disabled:opacity-50 cursor-pointer"
+              >
+                <FiTrash2 className="mr-2 text-lg" />
+                Delete User
+              </button>
+              {activeTab === 'rejected' && (
                 <button 
                   onClick={() => handleUndoReject(selectedUser._id)}
                   disabled={isActionLoading}
@@ -412,8 +425,8 @@ const UsersList = () => {
                   {isActionLoading ? <FiLoader className="mr-2 animate-spin" /> : <FiRefreshCcw className="mr-2 text-lg" />}
                   {isActionLoading ? 'Processing...' : 'Undo Rejection'}
                 </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       , document.body)}
