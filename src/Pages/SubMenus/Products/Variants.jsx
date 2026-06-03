@@ -119,7 +119,7 @@ const Variants = () => {
     setVariants(newVariants);
   };
 
-  const handleSave = async () => {
+    const handleSave = async () => {
     setSaving(true);
     try {
       const token = sessionStorage.getItem('accessToken');
@@ -180,8 +180,8 @@ const Variants = () => {
   
       formData.append('variants', JSON.stringify(payloadVariants));
 
-      if (Array.isArray(fullProduct.images)) {
-        fullProduct.images.forEach(img => formData.append('images', img));
+      if (Array.isArray(fullProduct.images) && fullProduct.images.length > 0) {
+        formData.append('images', JSON.stringify(fullProduct.images));
       }
 
       await axios.put(`${BASE_URL}/api/products/${productId}`, formData, {
@@ -200,6 +200,7 @@ const Variants = () => {
       setSaving(false);
     }
   };
+
 
   if (loading) {
     return <div className="flex justify-center py-20"><FiLoader className="animate-spin text-4xl text-blue-400" /></div>;

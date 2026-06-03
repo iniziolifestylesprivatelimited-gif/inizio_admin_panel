@@ -5,7 +5,7 @@ import {
   FiBookOpen, FiPercent, FiSend, FiEye, FiArchive,
   FiCreditCard, FiNavigation, FiPaperclip, FiAlertTriangle,
   FiImage, FiBell, FiPackage, FiTag, FiGrid, FiTool, FiMessageCircle,
-  FiUserCheck, FiUser, FiHelpCircle, FiFile
+  FiUserCheck, FiUser, FiHelpCircle, FiFile, FiFilter
 } from 'react-icons/fi';
 
 const PAGES = {
@@ -26,7 +26,8 @@ const PAGES = {
     subMenus: [
       { path: '/products/brands', name: 'Brands', icon: FiTag },
       { path: '/products/categories', name: 'Categories', icon: FiGrid },
-      { path: '/products/list', name: 'Product List', icon: FiPackage }
+      { path: '/products/list', name: 'Product List', icon: FiPackage },
+      { path: 'products/mapping', name: 'Product Mapping', icon: FiFilter }
     ]
   },
 

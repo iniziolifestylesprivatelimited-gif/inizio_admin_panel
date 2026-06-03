@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
 import { 
@@ -18,6 +18,9 @@ const Layout = () => {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [chatUnreadCount, setChatUnreadCount] = useState(0);
   const navigation = useNavigate();
+  const prevContactsRef = useRef([]);
+  const isInitialLoad = useRef(true);
+  const [toastMsg, setToastMsg] = useState(null);
 
   const chatNavigate = () => {
     navigation('/chat');
@@ -36,6 +39,13 @@ const Layout = () => {
     setIsProfileDropdownOpen(false);
   }, [location.pathname]);
 
+  // Request Browser Notification Permission on load
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
+
   // Poll chat unread count
   useEffect(() => {
     const fetchUnreadCount = async () => {
@@ -46,6 +56,65 @@ const Layout = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         const contacts = Array.isArray(response.data) ? response.data : [];
+
+        // Check for new messages to trigger device notifications
+        contacts.forEach(contact => {
+          const prevContact = prevContactsRef.current.find(c => c.userId === contact.userId);
+          const prevUnread = prevContact ? (Number(prevContact.unreadCount) || 0) : 0;
+          const currentUnread = Number(contact.unreadCount) || 0;
+
+          if (!isInitialLoad.current && currentUnread > prevUnread) {
+            // 1. Vibrate & Play Sound (Supported across most mobile browsers)
+            try {
+              if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+              const AudioContext = window.AudioContext || window.webkitAudioContext;
+              if (AudioContext) {
+                const ctx = new AudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.5);
+                osc.stop(ctx.currentTime + 0.5);
+              }
+            } catch (err) {
+              console.log('Audio/Vibration failed', err);
+            }
+
+            const isNotOnChatPage = !window.location.pathname.includes('/chat');
+            
+            // 2. In-App Toast
+            if (isNotOnChatPage) {
+              setToastMsg(`New message from ${contact.name || 'Customer'}`);
+              setTimeout(() => setToastMsg(null), 5000);
+            }
+
+            // 3. System Push Notification (Desktop / Supported Browsers)
+            if ('Notification' in window && Notification.permission === 'granted' && (document.hidden || isNotOnChatPage)) {
+              try {
+                const notification = new Notification(`New message from ${contact.name || 'Customer'}`, {
+                  body: contact.lastMessage || 'You received a new message.',
+                  icon: logoImg
+                });
+                
+                notification.onclick = () => {
+                  window.focus();
+                  navigation('/chat');
+                };
+              } catch (e) {
+                console.log('System notification failed (often requires ServiceWorker on mobile):', e);
+              }
+            }
+          }
+        });
+        
+        prevContactsRef.current = contacts;
+        isInitialLoad.current = false;
+
         const totalUnread = contacts.reduce((sum, contact) => sum + (Number(contact.unreadCount) || 0), 0);
         setChatUnreadCount(totalUnread);
       } catch (error) {
@@ -72,6 +141,19 @@ const Layout = () => {
         <div className="absolute top-[-10%] left-[-5%] w-96 h-96 bg-blue-600/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 transform-gpu"></div>
         {/* <div className="absolute bottom-[-10%] right-[-5%] w-120 h-120 bg-blue-600/50 rounded-full mix-blend-screen filter blur-[120px] opacity-50 transform-gpu"></div> */}
       </div>
+
+      {/* Custom In-App Toast Notification */}
+      {toastMsg && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-100 animate-in fade-in slide-in-from-top-4">
+          <div 
+            onClick={() => { navigation('/chat'); setToastMsg(null); }}
+            className="bg-blue-600 text-white px-6 py-3 rounded-full shadow-2xl shadow-blue-600/50 flex items-center gap-3 cursor-pointer border border-blue-500/50"
+          >
+            <FiBell className="text-xl animate-bounce" />
+            <span className="font-bold text-sm whitespace-nowrap">{toastMsg}</span>
+          </div>
+        </div>
+      )}
 
       {/* MOBILE TOP BAR (Visible only on small screens) */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-transparent backdrop-blur-2xl border-b border-white/10 z-30 flex items-center justify-between px-4 shadow-xl shadow-black/50">

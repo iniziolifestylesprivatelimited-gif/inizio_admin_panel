@@ -7,6 +7,7 @@ import Layout from './Components/Layout';
 import Login from './Pages/Auth/Login';
 import Dashboard from './Pages/Dashboard';
 import ProductList from './Pages/SubMenus/Products/ProductList';
+import ProductMapping from './Pages/SubMenus/Products/ProductMapping';
 import Category from './Pages/SubMenus/Products/Category';
 import Brands from './Pages/SubMenus/Products/Brands';
 import Banners from './Pages/Banners';
@@ -41,6 +42,7 @@ function App() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/products/list" element={<ProductList />} />
+              <Route path="/products/mapping" element={<ProductMapping />} />
               <Route path="/products/categories" element={<Category />} />
               <Route path="/products/brands" element={<Brands />} />
               <Route path='/banners' element={<Banners/>}/>

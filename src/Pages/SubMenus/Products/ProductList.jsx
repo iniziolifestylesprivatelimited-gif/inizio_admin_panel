@@ -241,7 +241,9 @@ const ProductList = () => {
       if (addFormData.category) formData.append('category', addFormData.category);
 
       const imageUrls = addFormData.image_urls ? addFormData.image_urls.split(',').map(url => url.trim()).filter(Boolean) : [];
-      imageUrls.forEach(url => formData.append('images', url));
+      if (imageUrls.length > 0) {
+        formData.append('images', JSON.stringify(imageUrls));
+      }
 
       addProductImageFiles.forEach(file => {
         formData.append('images', file);
@@ -334,9 +336,9 @@ const ProductList = () => {
       const v = currentProductForImages.variants || [];
       formData.append('variants', JSON.stringify(v));
       
-      existingImages.forEach(img => {
-        formData.append('images', img);
-      });
+      if (existingImages.length > 0) {
+        formData.append('images', JSON.stringify(existingImages));
+      }
 
       newImageFiles.forEach(file => {
         formData.append('images', file);
@@ -445,19 +447,10 @@ const ProductList = () => {
               Delete ({selectedProducts.length})
             </button>
           )}
-          <div>
-            <input 
-              type="file" 
-              id="csv-upload" 
-              accept=".csv" 
-              className="hidden" 
-              onChange={handleFileUpload} 
-            />
-            <label htmlFor="csv-upload" className="flex items-center justify-center px-4 py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/5 cursor-pointer">
-              <FiUpload className="mr-2" />
-              Upload CSV
-            </label>
-          </div>
+          <button onClick={() => navigate('/products/mapping')} className="flex items-center justify-center px-4 py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/5 cursor-pointer">
+            <FiUpload className="mr-2" />
+            Upload Excel / CSV
+          </button>
           <button onClick={openAddModal} className="flex items-center justify-center px-4 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/5 cursor-pointer">
             <FiPlus className="mr-2" />
             Add Product

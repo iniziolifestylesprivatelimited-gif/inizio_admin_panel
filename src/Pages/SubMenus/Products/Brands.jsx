@@ -123,6 +123,8 @@ const Brands = () => {
   const currentBrands = filteredBrands.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredBrands.length / itemsPerPage);
 
+  console.log(brands)
+
   return (
     <div className="relative space-y-6 min-h-full z-0">
       {/* Glassmorphism Background Ambient Glows */}
