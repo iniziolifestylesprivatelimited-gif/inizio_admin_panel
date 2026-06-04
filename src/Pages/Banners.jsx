@@ -193,7 +193,7 @@ const Banners = () => {
         
         <button 
           onClick={() => openModal()}
-          className="flex items-center px-4 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/30"
+          className="flex items-center px-4 py-2.5 bg-blue-600/50 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/30"
         >
           <FiPlus className="mr-2" /> Create New Banner
         </button>
@@ -423,7 +423,7 @@ const Banners = () => {
                 <button 
                   type="submit"
                   disabled={isSubmitting || (!editingBanner && !imageFile)}
-                  className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-blue-600/50 text-white font-bold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? <FiLoader className="animate-spin mr-2" /> : <FiCheck className="mr-2" />}
                   {isSubmitting ? 'Saving...' : 'Save Banner'}

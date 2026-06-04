@@ -225,7 +225,7 @@ const Variants = () => {
         <button 
           onClick={handleSave} 
           disabled={saving}
-          className="flex items-center justify-center px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 disabled:opacity-50"
+          className="flex items-center justify-center px-6 py-2.5 bg-blue-600/50 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 disabled:opacity-50"
         >
           {saving ? <FiLoader className="animate-spin mr-2" /> : <FiSave className="mr-2" />}
           Update Variants

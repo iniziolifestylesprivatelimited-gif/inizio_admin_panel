@@ -118,7 +118,7 @@ const Login = () => {
             <button 
               type="submit"
               disabled={isLoading}
-              className="w-full mt-4 flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl transition-all duration-300 font-semibold shadow-lg shadow-blue-600/5 group disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+              className="w-full mt-4 flex items-center justify-center bg-blue-600/50 hover:bg-blue-700 text-white py-3.5 rounded-xl transition-all duration-300 font-semibold shadow-lg shadow-blue-600/5 group disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
             >
               {isLoading ? (
                 <FiLoader className="animate-spin text-xl" />

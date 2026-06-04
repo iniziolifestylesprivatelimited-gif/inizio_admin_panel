@@ -203,7 +203,7 @@ const PrivacyP = () => {
                           <div className="flex gap-3">
                             <button
                               onClick={handleSaveEdit}
-                              className="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold py-2.5 px-4 rounded-lg transition-all flex items-center gap-2"
+                              className="bg-emerald-600/50 hover:bg-emerald-500 text-white text-sm font-bold py-2.5 px-4 rounded-lg transition-all flex items-center gap-2"
                             >
                               <FiSave /> Save Changes
                             </button>

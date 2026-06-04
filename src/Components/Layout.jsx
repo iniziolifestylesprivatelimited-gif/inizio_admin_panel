@@ -285,7 +285,7 @@ const Layout = () => {
                             className={`
                               flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors
                               ${isSubActive 
-                                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                                ? 'bg-blue-600/20 text-white shadow-md shadow-blue-600/20'
                                 : 'text-slate-400 hover:bg-white/10 hover:text-white'
                               }
                             `}

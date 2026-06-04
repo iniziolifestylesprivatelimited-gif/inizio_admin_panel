@@ -29,6 +29,7 @@ const ProductList = () => {
   const [currentProductForImages, setCurrentProductForImages] = useState(null);
   const [existingImages, setExistingImages] = useState([]);
   const [newImageFiles, setNewImageFiles] = useState([]);
+  const [newImageUrls, setNewImageUrls] = useState('');
   const [addProductImageFiles, setAddProductImageFiles] = useState([]);
   const navigate = useNavigate();
 
@@ -303,6 +304,7 @@ const ProductList = () => {
     setCurrentProductForImages(product);
     setExistingImages(product.images || []);
     setNewImageFiles([]);
+    setNewImageUrls('');
     setIsImageModalOpen(true);
   };
 
@@ -336,8 +338,11 @@ const ProductList = () => {
       const v = currentProductForImages.variants || [];
       formData.append('variants', JSON.stringify(v));
       
-      if (existingImages.length > 0) {
-        formData.append('images', JSON.stringify(existingImages));
+      const parsedImageUrls = newImageUrls ? newImageUrls.split(',').map(url => url.trim()).filter(Boolean) : [];
+      const combinedImages = [...existingImages, ...parsedImageUrls];
+
+      if (combinedImages.length > 0) {
+        formData.append('images', JSON.stringify(combinedImages));
       }
 
       newImageFiles.forEach(file => {
@@ -441,17 +446,17 @@ const ProductList = () => {
           {selectedProducts.length > 0 && (
             <button 
               onClick={handleBulkDelete}
-              className="flex items-center justify-center px-4 py-2.5 bg-red-600 text-white font-bold rounded-xl hover:bg-red-100 hover:text-red-600 transition-all border border-red-600 shadow-sm cursor-pointer"
+              className="flex items-center justify-center px-4 py-2.5 bg-red-600/50 text-white font-bold rounded-xl hover:bg-red-100 hover:text-red-600 transition-all border border-red-600 shadow-sm cursor-pointer"
             >
               <FiTrash2 className="mr-2" />
               Delete ({selectedProducts.length})
             </button>
           )}
-          <button onClick={() => navigate('/products/mapping')} className="flex items-center justify-center px-4 py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/5 cursor-pointer">
+          <button onClick={() => navigate('/products/mapping')} className="flex items-center justify-center px-4 py-2.5 bg-emerald-600/50 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/5 cursor-pointer">
             <FiUpload className="mr-2" />
             Upload Excel / CSV
           </button>
-          <button onClick={openAddModal} className="flex items-center justify-center px-4 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/5 cursor-pointer">
+          <button onClick={openAddModal} className="flex items-center justify-center px-4 py-2.5 bg-blue-600/50 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/5 cursor-pointer">
             <FiPlus className="mr-2" />
             Add Product
           </button>
@@ -585,7 +590,53 @@ const ProductList = () => {
               >
                 Previous
               </button>
-              <p className='py-1.5 text-slate-500 text-sm'>Page <span className='text-white font-bold text-base md:text-lg'>{currentPage}</span> of {totalPages}</p>
+              <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
+                {(() => {
+                  const pageNumbers = [];
+                  if (totalPages <= 7) {
+                    for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+                  } else {
+                    if (currentPage <= 4) {
+                      for (let i = 1; i <= 5; i++) pageNumbers.push(i);
+                      pageNumbers.push('...');
+                      pageNumbers.push(totalPages);
+                    } else if (currentPage >= totalPages - 3) {
+                      pageNumbers.push(1);
+                      pageNumbers.push('...');
+                      for (let i = totalPages - 4; i <= totalPages; i++) pageNumbers.push(i);
+                    } else {
+                      pageNumbers.push(1);
+                      pageNumbers.push('...');
+                      for (let i = currentPage - 1; i <= currentPage + 1; i++) pageNumbers.push(i);
+                      pageNumbers.push('...');
+                      pageNumbers.push(totalPages);
+                    }
+                  }
+                  return pageNumbers.map((page, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        if (page !== '...') {
+                          setSearchParams(prev => {
+                            prev.set('page', page);
+                            return prev;
+                          });
+                        }
+                      }}
+                      disabled={page === '...'}
+                      className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-sm font-medium border transition-colors shrink-0 ${
+                        page === currentPage
+                          ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
+                          : page === '...'
+                          ? 'bg-transparent text-slate-500 border-transparent cursor-default'
+                          : 'bg-slate-800 text-slate-300 border-white/10 hover:bg-slate-700 cursor-pointer'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ));
+                })()}
+              </div>
               <button 
                 onClick={() => {
                   setSearchParams(prev => {
@@ -933,12 +984,47 @@ const ProductList = () => {
                       <div key={i} className="relative w-28 h-28 border border-white/10 rounded-xl overflow-hidden group bg-slate-800">
                         <img src={getImageUrl(url)} alt="Product" className="w-full h-full object-contain bg-white p-2" />
                         <button 
+                          onClick={() => {
+                            const updatedUrl = window.prompt("Edit Image URL:", url);
+                            if (updatedUrl !== null && updatedUrl.trim() !== "") {
+                              const newImages = [...existingImages];
+                              newImages[i] = updatedUrl.trim();
+                              setExistingImages(newImages);
+                            }
+                          }}
+                          className="absolute top-2 left-2 bg-slate-900/90 text-blue-400 hover:bg-blue-600 hover:text-white p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-sm cursor-pointer"
+                          title="Edit Image URL"
+                        >
+                          <FiEdit2 size={14} />
+                        </button>
+                        <button 
                           onClick={() => setExistingImages(existingImages.filter((_, index) => index !== i))}
                           className="absolute top-2 right-2 bg-slate-900/90 text-red-400 hover:bg-red-600 hover:text-white p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-sm cursor-pointer"
                           title="Remove Image"
                         >
                           <FiTrash2 size={14} />
                         </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Image URLs Section */}
+              <div>
+                <h3 className="text-sm font-bold text-slate-300 mb-3">Add Image URLs (comma separated)</h3>
+                <input 
+                  type="text" 
+                  value={newImageUrls} 
+                  onChange={(e) => setNewImageUrls(e.target.value)} 
+                  placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg" 
+                  className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500" 
+                />
+                {newImageUrls && newImageUrls.split(',').filter(url => url.trim()).length > 0 && (
+                  <div className="flex flex-wrap gap-4 mt-4 p-4 bg-slate-800/50 border border-white/10 rounded-xl">
+                    {newImageUrls.split(',').map((url, i) => url.trim() && (
+                      <div key={`new-url-${i}`} className="relative w-28 h-28 border border-white/10 rounded-xl overflow-hidden group bg-slate-800 shadow-sm shrink-0">
+                        <img src={getImageUrl(url.trim())} alt={`Preview ${i}`} className="w-full h-full object-contain bg-white p-2" onError={(e) => e.target.src='https://placehold.co/150x150?text=Error'} />
                       </div>
                     ))}
                   </div>

@@ -98,7 +98,7 @@ const TermsAndCo = () => {
         {!isAdding && (
           <button
             onClick={() => setIsAdding(true)}
-            className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-600/30 gap-2"
+            className="flex items-center px-4 py-2 bg-blue-600/50 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-600/30 gap-2"
           >
             <FiPlus size={20} /> Add Section
           </button>
@@ -138,7 +138,7 @@ const TermsAndCo = () => {
               <div className="flex gap-3 pt-2">
                 <button
                   type="submit"
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-blue-600/30 flex justify-center items-center gap-2"
+                  className="flex-1 bg-blue-600/50 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-blue-600/30 flex justify-center items-center gap-2"
                 >
                   <FiSave /> Save
                 </button>
@@ -203,7 +203,7 @@ const TermsAndCo = () => {
                           <div className="flex gap-3">
                             <button
                               onClick={handleSaveEdit}
-                              className="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold py-2.5 px-4 rounded-lg transition-all flex items-center gap-2"
+                              className="bg-emerald-600/50 hover:bg-emerald-500 text-white text-sm font-bold py-2.5 px-4 rounded-lg transition-all flex items-center gap-2"
                             >
                               <FiSave /> Save Changes
                             </button>

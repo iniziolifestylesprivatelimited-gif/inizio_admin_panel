@@ -166,16 +166,16 @@ const UsersList = () => {
         <div className="flex space-x-2 w-full md:w-auto">
           <button 
             onClick={() => setActiveTab('customers')}
-            className={`flex-1 md:flex-none px-5 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${activeTab === 'customers' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/5' : 'text-slate-400 hover:bg-transparent hover:text-white'}`}
+            className={`flex-1 md:flex-none px-5 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${activeTab === 'customers' ? 'bg-blue-600/70 text-white shadow-lg shadow-blue-500/5' : 'text-slate-400 hover:bg-transparent hover:text-white'}`}
           >
             Approved Customers
           </button>
-          <button 
+          {/* <button 
             onClick={() => setActiveTab('rejected')}
-            className={`flex-1 md:flex-none px-5 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${activeTab === 'rejected' ? 'bg-red-600 text-white shadow-lg shadow-red-500/5' : 'text-slate-400 hover:bg-transparent hover:text-white'}`}
+            className={`flex-1 md:flex-none px-5 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${activeTab === 'rejected' ? 'bg-red-600/70 text-white shadow-lg shadow-red-500/5' : 'text-slate-400 hover:bg-transparent hover:text-white'}`}
           >
             Rejected KYC
-          </button>
+          </button> */}
         </div>
 
         <div className="relative w-full md:w-64">
@@ -295,12 +295,51 @@ const UsersList = () => {
             >
               Previous
             </button>
-            <div className="flex items-center px-4 bg-transparent border border-white/10 rounded-xl text-slate-300 text-sm font-bold">
-              Page {currentPage} of {totalPages}
+            <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 items-center">
+              {(() => {
+                const pageNumbers = [];
+                if (totalPages <= 7) {
+                  for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+                } else {
+                  if (currentPage <= 4) {
+                    for (let i = 1; i <= 5; i++) pageNumbers.push(i);
+                    pageNumbers.push('...');
+                    pageNumbers.push(totalPages);
+                  } else if (currentPage >= totalPages - 3) {
+                    pageNumbers.push(1);
+                    pageNumbers.push('...');
+                    for (let i = totalPages - 4; i <= totalPages; i++) pageNumbers.push(i);
+                  } else {
+                    pageNumbers.push(1);
+                    pageNumbers.push('...');
+                    for (let i = currentPage - 1; i <= currentPage + 1; i++) pageNumbers.push(i);
+                    pageNumbers.push('...');
+                    pageNumbers.push(totalPages);
+                  }
+                }
+                return pageNumbers.map((page, index) => (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      if (page !== '...') setCurrentPage(page);
+                    }}
+                    disabled={page === '...'}
+                    className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-sm font-medium border transition-colors shrink-0 ${
+                      page === currentPage
+                        ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
+                        : page === '...'
+                        ? 'bg-transparent text-slate-500 border-transparent cursor-default'
+                        : 'bg-slate-800 text-slate-300 border-white/10 hover:bg-slate-700 cursor-pointer'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ));
+              })()}
             </div>
             <button 
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
+              disabled={currentPage === totalPages || totalPages === 0}
               className="px-4 py-2 bg-transparent border border-white/10 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold"
             >
               Next

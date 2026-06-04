@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FiArrowLeft, FiUpload, FiCheck, FiX, FiLoader, FiAlertCircle } from 'react-icons/fi';
-import * as XLSX from 'xlsx';
+import { read, utils } from 'xlsx';
 import { BASE_URL } from '../../../api/axios';
 
 const ProductMapping = () => {
@@ -42,10 +42,10 @@ const ProductMapping = () => {
     reader.onload = (evt) => {
       try {
         const bstr = evt.target.result;
-        const wb = XLSX.read(bstr, { type: 'binary' });
+        const wb = read(bstr, { type: 'binary' });
         const wsname = wb.SheetNames[0];
         const ws = wb.Sheets[wsname];
-        const data = XLSX.utils.sheet_to_json(ws);
+        const data = utils.sheet_to_json(ws);
         
         processMapping(data);
       } catch (error) {

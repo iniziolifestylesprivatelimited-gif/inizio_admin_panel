@@ -27,7 +27,7 @@ const PAGES = {
       { path: '/products/brands', name: 'Brands', icon: FiTag },
       { path: '/products/categories', name: 'Categories', icon: FiGrid },
       { path: '/products/list', name: 'Product List', icon: FiPackage },
-      { path: 'products/mapping', name: 'Product Mapping', icon: FiFilter }
+      { path: '/products/mapping', name: 'Product Mapping', icon: FiFilter }
     ]
   },
 

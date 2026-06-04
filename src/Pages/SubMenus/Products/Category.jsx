@@ -20,7 +20,7 @@ const Category = () => {
   const itemsPerPage = 10;
 
   // Form State
-  const [formData, setFormData] = useState({ name: '' });
+  const [formData, setFormData] = useState({ name: '', isActive: true });
   const [editingId, setEditingId] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -62,6 +62,7 @@ const Category = () => {
       const token = sessionStorage.getItem('accessToken');
       const data = new FormData();
       data.append('name', formData.name);
+      data.append('isActive', formData.isActive);
       if (imageFile) {
         data.append('image', imageFile);
       }
@@ -86,7 +87,7 @@ const Category = () => {
 
   const handleEdit = (category) => {
     setEditingId(category._id);
-    setFormData({ name: category.name });
+    setFormData({ name: category.name, isActive: category.isActive !== false });
     setImagePreview(getImageUrl(category.image));
     setImageFile(null);
   };
@@ -108,7 +109,7 @@ const Category = () => {
 
   const cancelEdit = () => {
     setEditingId(null);
-    setFormData({ name: '' });
+    setFormData({ name: '', isActive: true });
     setImagePreview(null);
     setImageFile(null);
   };
@@ -199,11 +200,30 @@ const Category = () => {
                 </div>
               </div>
 
+            {/* Category Status Toggle (Visible when editing) */}
+            {editingId && (
+              <div>
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Category Status</label>
+                <label className="inline-flex items-center cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    className="sr-only peer"
+                    checked={formData.isActive}
+                    onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
+                  />
+                  <div className="relative w-11 h-6 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/30 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-white after:border-slate-400 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                  <span className="ms-3 text-sm font-bold text-slate-300">
+                    {formData.isActive ? 'Active & Visible' : 'Hidden'}
+                  </span>
+                </label>
+              </div>
+            )}
+
               <div className="pt-4 flex gap-3">
                 <button 
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 flex items-center justify-center px-4 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/5 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 flex items-center justify-center px-4 py-2.5 bg-blue-600/70 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/5 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? <FiLoader className="mr-2 animate-spin" /> : (editingId ? <FiSave className="mr-2" /> : <FiPlus className="mr-2" />)}
                   {isSubmitting ? 'Saving...' : (editingId ? 'Update Category' : 'Add Category')}
@@ -251,13 +271,18 @@ const Category = () => {
                         <td className="px-6 py-4">
                           <div className="flex items-center">
                             {category.image ? (
-                              <img src={getImageUrl(category.image)} alt={category.name} className="w-10 h-10 rounded-lg object-contain bg-white p-1 border border-white/10 mr-3" />
+                            <img src={getImageUrl(category.image)} alt={category.name} className="w-10 h-10 rounded-lg object-contain bg-white p-1 border border-white/10 mr-3 shrink-0" />
                             ) : (
-                              <div className="w-8 h-8 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center mr-3 text-slate-400">
+                            <div className="w-10 h-10 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center mr-3 text-slate-400 shrink-0">
                                 <FiTag />
                               </div>
                             )}
+                          <div className="flex flex-col">
                             <span className="font-bold text-white">{category.name}</span>
+                            <span className={`text-[9px] font-bold mt-1 px-2 py-0.5 rounded w-fit border ${category.isActive !== false ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-slate-800 text-slate-400 border-white/10'}`}>
+                              {category.isActive !== false ? 'ACTIVE' : 'HIDDEN'}
+                            </span>
+                          </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 text-right space-x-2">
@@ -295,6 +320,50 @@ const Category = () => {
                   >
                     Previous
                   </button>
+                  <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
+                    {(() => {
+                      const pageNumbers = [];
+                      if (totalPages <= 7) {
+                        for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+                      } else {
+                        if (currentPage <= 4) {
+                          for (let i = 1; i <= 5; i++) pageNumbers.push(i);
+                          pageNumbers.push('...');
+                          pageNumbers.push(totalPages);
+                        } else if (currentPage >= totalPages - 3) {
+                          pageNumbers.push(1);
+                          pageNumbers.push('...');
+                          for (let i = totalPages - 4; i <= totalPages; i++) pageNumbers.push(i);
+                        } else {
+                          pageNumbers.push(1);
+                          pageNumbers.push('...');
+                          for (let i = currentPage - 1; i <= currentPage + 1; i++) pageNumbers.push(i);
+                          pageNumbers.push('...');
+                          pageNumbers.push(totalPages);
+                        }
+                      }
+                      return pageNumbers.map((page, index) => (
+                        <button
+                          key={index}
+                          onClick={() => {
+                            if (page !== '...') {
+                              setCurrentPage(page);
+                            }
+                          }}
+                          disabled={page === '...'}
+                          className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-sm font-medium border transition-colors shrink-0 ${
+                            page === currentPage
+                              ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
+                              : page === '...'
+                              ? 'bg-transparent text-slate-500 border-transparent cursor-default'
+                              : 'bg-slate-800 text-slate-300 border-white/10 hover:bg-slate-700 cursor-pointer'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ));
+                    })()}
+                  </div>
                   <button 
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages || totalPages === 0}

@@ -132,7 +132,7 @@ const Profile = () => {
                 <div className="flex justify-end pt-4">
                   <button 
                     type="submit"
-                    className="flex items-center justify-center px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30"
+                    className="flex items-center justify-center px-6 py-2.5 bg-blue-600/50 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30"
                   >
                     <FiSave className="mr-2" /> Save Changes
                   </button>

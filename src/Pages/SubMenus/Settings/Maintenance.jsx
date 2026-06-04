@@ -208,7 +208,7 @@ const Maintenance = () => {
             {!isActive ? (
               <button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl transition-all duration-300 flex justify-center items-center gap-2 shadow-lg shadow-blue-600/30"
+                className="w-full bg-blue-600/50 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl transition-all duration-300 flex justify-center items-center gap-2 shadow-lg shadow-blue-600/30"
               >
                 <FiPlay /> Start Maintenance
               </button>

@@ -155,7 +155,7 @@ export const Ledgers = () => {
         </div>
         <button 
           onClick={openModal}
-          className="flex items-center px-4 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/5"
+          className="flex items-center px-4 py-2.5 bg-blue-600/50 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/5"
         >
           <FiUpload className="mr-2" /> Upload Ledger
         </button>
