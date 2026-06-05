@@ -19,15 +19,23 @@ const PAGES = {
 
 
     // --- NESTED MENUS --------------------------------------------------------------
+  CATALOG_MASTERS: {
+    name: 'Catalog',
+    icon: FiArchive,
+    subMenus: [
+      { path: '/products/brands', name: 'Brands', icon: FiTag },
+      { path: '/products/categories', name: 'Categories', icon: FiGrid }
+    ]
+  },
+
   PRODUCTS_CATALOG: { 
     name: 'Products', 
     icon: FiBox,
     // When subMenus exists, the Layout will render it as a dropdown
     subMenus: [
-      { path: '/products/brands', name: 'Brands', icon: FiTag },
-      { path: '/products/categories', name: 'Categories', icon: FiGrid },
       { path: '/products/list', name: 'Product List', icon: FiPackage },
-      { path: '/products/mapping', name: 'Product Mapping', icon: FiFilter }
+      { path: '/products/mapping', name: 'Product Mapping', icon: FiFilter },
+      { path: '/products/updated-stock', name: 'Updated Stock', icon: FiRefreshCcw },
     ]
   },
 
@@ -57,6 +65,7 @@ export const getAccessibleMenus = () => {
   return [
     PAGES.DASHBOARD, 
     PAGES.USER_MGMT, 
+    PAGES.CATALOG_MASTERS,
     PAGES.PRODUCTS_CATALOG, 
     PAGES.ORDERS,
     PAGES.LEDGERS,

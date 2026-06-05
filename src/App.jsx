@@ -24,6 +24,7 @@ import PrivacyP from './Pages/SubMenus/Settings/PrivacyP';
 import TermsAndCo from './Pages/SubMenus/Settings/TC';
 import Orders from './Pages/Orders';
 import { Ledgers } from './Pages/Ledgers';
+import UpdatedStock from './Pages/SubMenus/Products/UpdatedStock';
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/products/list" element={<ProductList />} />
               <Route path="/products/mapping" element={<ProductMapping />} />
+              <Route path="/products/updated-stock" element={<UpdatedStock />} />
               <Route path="/products/categories" element={<Category />} />
               <Route path="/products/brands" element={<Brands />} />
               <Route path='/banners' element={<Banners/>}/>

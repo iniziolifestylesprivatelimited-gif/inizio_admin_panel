@@ -465,9 +465,9 @@ const ProductList = () => {
 
       {/* Table Section */}
       <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-2xl md:rounded-3xl overflow-hidden flex flex-col h-full">
-        <div className="overflow-x-auto custom-scrollbar">
+        <div className="overflow-auto custom-scrollbar max-h-[70vh]">
           <table className="w-full text-left border-collapse whitespace-nowrap">
-            <thead className="bg-slate-800/50 border-b border-white/10 border-collapse text-slate-300 text-sm">
+            <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md border-b border-white/10 text-slate-300 text-sm shadow-md">
               <tr>
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs w-10 text-center">
                   <input 

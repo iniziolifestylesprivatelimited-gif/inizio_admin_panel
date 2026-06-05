@@ -129,11 +129,11 @@ const Orders = () => {
       )}
 
       {!loading && !error && (
-        <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-2xl md:rounded-3xl overflow-hidden">
-          <div className="overflow-x-auto custom-scrollbar">
+        <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-2xl md:rounded-3xl overflow-hidden flex flex-col h-full">
+          <div className="overflow-auto custom-scrollbar max-h-[70vh]">
             <table className="w-full text-left border-collapse min-w-200">
-              <thead>
-                <tr className="border-b border-white/10 bg-black/20 text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md shadow-md">
+                <tr className="border-b border-white/10 text-xs font-bold text-slate-400 uppercase tracking-wider">
                   <th className="p-2 pl-6 w-16">S.No</th>
                   <th className="p-4">Order ID</th>
                   <th className="p-4">Date</th>
