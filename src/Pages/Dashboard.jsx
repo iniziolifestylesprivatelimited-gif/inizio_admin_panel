@@ -194,8 +194,8 @@ const Dashboard = () => {
 
       {/* Header Section */}
       <div className="relative flex justify-between items-end mb-8 z-10">
-        <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Dashboard</h1>
+        <div className="flex">
+          <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3"><FiTrendingUp className="text-blue-400" /> Dashboard</h1>
           {/* <p className="text-slate-500 font-medium mt-1">
             Welcome back to Inizio. You are logged in as <span className="text-blue-600 font-bold px-2 py-0.5 bg-blue-50 rounded-md">{user?.role}</span>
           </p> */}

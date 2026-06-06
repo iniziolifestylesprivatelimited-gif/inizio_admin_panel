@@ -4,6 +4,7 @@ import axios from 'axios';
 import { BASE_URL } from '../api/axios';
 import { FiBox, FiLoader, FiAlertCircle, FiChevronDown, FiCalendar, FiEye, FiX, FiMapPin, FiCreditCard, FiUser, FiPhone, FiMail } from 'react-icons/fi';
 import CustomDropdown from '../Components/CustomDropdown';
+import { useOutletContext } from 'react-router-dom';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -17,6 +18,8 @@ const Orders = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const { setOrdersUnreadCount } = useOutletContext() || {};
+
   const fetchOrders = async () => {
     try {
       setLoading(true);
@@ -28,6 +31,11 @@ const Orders = () => {
       const fetchedOrders = Array.isArray(response.data) ? response.data : response.data.orders || [];
       // Sort by latest orders first
       setOrders(fetchedOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+      
+      // Clear the notification badge once data is viewed
+      if (setOrdersUnreadCount) {
+        setOrdersUnreadCount(0);
+      }
       setLoading(false);
     } catch (err) {
       console.error(err);
@@ -97,7 +105,7 @@ const Orders = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
   };
 
-//   console.log(orders);
+  console.log(orders);
   
   return (
     <div className="relative space-y-6 min-h-full z-0">
@@ -168,15 +176,20 @@ const Orders = () => {
                     </td>
                     <td className="p-4 text-sm">
                       <div className="flex items-center gap-3">
-                        {order.items && order.items[0]?.product?.images && (
+                        {order.items && (order.items[0]?.image || order.items[0]?.variant?.images?.[0] || order.items[0]?.product?.images?.[0]) && (
                           <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/10 shrink-0 border border-white/5">
-                            <img src={order.items[0].product.images[0]} alt="Product" className="w-full h-full object-cover bg-white" />
+                            <img src={order.items[0].image || order.items[0].variant?.images?.[0] || order.items[0].product?.images?.[0]} alt="Product" className="w-full h-full object-cover bg-white" />
                           </div>
                         )}
                         <div className="flex flex-col min-w-0">
-                          <span className="text-slate-200 font-medium line-clamp-1 max-w-37.5" title={order.items?.[0]?.product?.name}>
-                            {order.items?.[0]?.product?.name || 'Product'}
+                          <span className="text-slate-200 font-medium line-clamp-1 max-w-37.5" title={order.items?.[0]?.product?.name || order.items?.[0]?.name}>
+                            {order.items?.[0]?.product?.name || order.items?.[0]?.name || 'Product'}
                           </span>
+                          {order.items?.[0]?.variant?.name && (
+                            <span className="text-amber-400 text-xs mt-0.5 line-clamp-1" title={order.items[0].variant.name}>
+                              Variant: {order.items[0].variant.name}
+                            </span>
+                          )}
                           <span className="text-xs text-slate-400 mt-0.5">
                             {order.items?.length > 1 ? `+ ${order.items.length - 1} more item(s)` : `Qty: ${order.items?.[0]?.quantity || 1}`}
                           </span>
@@ -238,17 +251,59 @@ const Orders = () => {
               <span className="text-sm text-slate-400 text-center sm:text-left">
                 Showing <span className="font-bold text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastItem, orders.length)}</span> of <span className="font-bold text-white">{orders.length}</span> orders
               </span>
-              <div className="flex gap-2 w-full sm:w-auto justify-center sm:justify-end">
+              <div className="flex space-x-2 w-full sm:w-auto justify-center sm:justify-end">
                 <button
-                  onClick={handlePrevPage}
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
                   className="px-4 py-2 bg-transparent hover:bg-white/10 text-slate-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium border border-white/10"
                 >
                   Previous
                 </button>
+                <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 items-center">
+                  {(() => {
+                    const pageNumbers = [];
+                    if (totalPages <= 7) {
+                      for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+                    } else {
+                      if (currentPage <= 4) {
+                        for (let i = 1; i <= 5; i++) pageNumbers.push(i);
+                        pageNumbers.push('...');
+                        pageNumbers.push(totalPages);
+                      } else if (currentPage >= totalPages - 3) {
+                        pageNumbers.push(1);
+                        pageNumbers.push('...');
+                        for (let i = totalPages - 4; i <= totalPages; i++) pageNumbers.push(i);
+                      } else {
+                        pageNumbers.push(1);
+                        pageNumbers.push('...');
+                        for (let i = currentPage - 1; i <= currentPage + 1; i++) pageNumbers.push(i);
+                        pageNumbers.push('...');
+                        pageNumbers.push(totalPages);
+                      }
+                    }
+                    return pageNumbers.map((page, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          if (page !== '...') setCurrentPage(page);
+                        }}
+                        disabled={page === '...'}
+                        className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-sm font-medium border transition-colors shrink-0 ${
+                          page === currentPage
+                            ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
+                            : page === '...'
+                            ? 'bg-transparent text-slate-500 border-transparent cursor-default'
+                            : 'bg-slate-800 text-slate-300 border-white/10 hover:bg-slate-700 cursor-pointer'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ));
+                  })()}
+                </div>
                 <button
-                  onClick={handleNextPage}
-                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages || totalPages === 0}
                   className="px-4 py-2 bg-transparent hover:bg-white/10 text-slate-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium border border-white/10"
                 >
                   Next
@@ -352,26 +407,39 @@ const Orders = () => {
                     <div key={idx} className="flex flex-col sm:flex-row gap-4 justify-between p-4 bg-transparent rounded-xl border border-white/5">
                       <div className="flex flex-col gap-3 flex-1 min-w-0">
                         <div className="min-w-0">
-                          <p className="font-bold text-white line-clamp-2">{item.product?.name || 'Unknown Product'}</p>
+                          <p className="font-bold text-white line-clamp-2">
+                            {item.product?.name || item.name || 'Unknown Product'}
+                            {item.variant?.name && <span className="text-amber-400 ml-2 text-sm">({item.variant.name})</span>}
+                          </p>
                           <p className="text-xs text-slate-400 mt-1">Quantity: <span className="font-bold text-white">{item.quantity}</span></p>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          {item.product?.images?.length > 0 ? (
-                            item.product.images.map((img, imgIdx) => (
-                              <div key={imgIdx} className="w-14 h-14 rounded-lg overflow-hidden bg-white/10 shrink-0 border border-white/10 flex items-center justify-center">
-                                <img src={img} alt={`Product ${imgIdx + 1}`} className="w-full h-full object-cover bg-white" />
+                          {(() => {
+                            const displayImages = item.variant?.images?.length > 0 
+                              ? item.variant.images 
+                              : item.product?.images?.length > 0 
+                                ? item.product.images 
+                                : item.image 
+                                  ? [item.image] 
+                                  : [];
+                            
+                            return displayImages.length > 0 ? (
+                              displayImages.map((img, imgIdx) => (
+                                <div key={imgIdx} className="w-14 h-14 rounded-lg overflow-hidden bg-white/10 shrink-0 border border-white/10 flex items-center justify-center">
+                                  <img src={img} alt={`Product ${imgIdx + 1}`} className="w-full h-full object-cover bg-white" />
+                                </div>
+                              ))
+                            ) : (
+                              <div className="w-14 h-14 rounded-lg overflow-hidden bg-white/10 shrink-0 border border-white/10 flex items-center justify-center">
+                                <FiBox className="text-xl text-slate-500" />
                               </div>
-                            ))
-                          ) : (
-                            <div className="w-14 h-14 rounded-lg overflow-hidden bg-white/10 shrink-0 border border-white/10 flex items-center justify-center">
-                              <FiBox className="text-xl text-slate-500" />
-                            </div>
-                          )}
+                            );
+                          })()}
                         </div>
                       </div>
                       <div className="text-left sm:text-right shrink-0">
                         <p className="text-xs text-slate-400">Price/Unit</p>
-                        <p className="font-bold text-emerald-400">₹{(item.product?.basePrice || 0).toLocaleString('en-IN')}</p>
+                        <p className="font-bold text-emerald-400">₹{(item.price || item.variant?.offerPrice || item.variant?.price || item.product?.basePrice || 0).toLocaleString('en-IN')}</p>
                       </div>
                     </div>
                   ))}

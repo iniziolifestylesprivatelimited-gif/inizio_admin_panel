@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { FiSearch, FiSend, FiPaperclip, FiMoreVertical, FiPhone, FiVideo, FiSmile, FiInfo, FiArrowLeft, FiCheck } from 'react-icons/fi';
 import { api } from '../api/axios';
+import { useOutletContext } from 'react-router-dom';
 
 const Chat = () => {
   const [activeContact, setActiveContact] = useState(null);
@@ -8,6 +9,7 @@ const Chat = () => {
   const messagesEndRef = useRef(null);
   const [contacts, setContacts] = useState([]);
   const [messages, setMessages] = useState([]);
+  const { setChatUnreadCount } = useOutletContext() || {};
 
   const fetchContacts = useCallback(async () => {
     try {
@@ -57,13 +59,20 @@ const Chat = () => {
       // Update unread count locally
       setContacts(prev => {
         let hasChanges = false;
+        let countToSubtract = 0;
         const updated = prev.map(c => {
           if (c.userId === userId && c.unreadCount !== 0) {
             hasChanges = true;
+            countToSubtract = c.unreadCount;
             return { ...c, unreadCount: 0 };
           }
           return c;
         });
+        
+        if (hasChanges && setChatUnreadCount) {
+          setChatUnreadCount(currentTotal => Math.max(0, currentTotal - countToSubtract));
+        }
+        
         return hasChanges ? updated : prev;
       });
     } catch (err) {

@@ -187,7 +187,7 @@ const Banners = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Promotional Banners</h1>
+          <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3"><FiImage className="text-blue-400" />Banners</h1>
           <p className="text-slate-400 font-medium mt-1">Manage homepage carousel banners and promotions.</p>
         </div>
         

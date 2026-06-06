@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../../api/axios';
-import { FiArrowLeft, FiUpload, FiRefreshCcw, FiLoader, FiCheckCircle, FiAlertTriangle } from 'react-icons/fi';
+import { FiArrowLeft, FiUpload, FiRefreshCcw, FiLoader, FiCheckCircle, FiAlertTriangle, FiFilter } from 'react-icons/fi';
 import * as XLSX from 'xlsx';
 
 const ProductMapping = () => {
@@ -211,16 +211,13 @@ const ProductMapping = () => {
   return (
     <div className="relative space-y-6 min-h-full z-0">
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate(-1)} className="p-2 bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 rounded-xl shadow-sm transition-colors">
-          <FiArrowLeft className="text-xl" />
-        </button>
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Product Mapping</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight flex items-center gap-3"><FiFilter className='text-blue-400'/>Product Mapping</h1>
           <p className="text-slate-400 font-medium mt-1">Upload Tally stock report to sync product quantities.</p>
         </div>
       </div>
 
-      <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-2xl md:rounded-3xl p-6 space-y-6">
+      <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-2xl md:rounded-3xl p-6 space-y-6 w-lg">
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-bold text-slate-300 mb-2">Step 1: Upload Tally Export File</label>

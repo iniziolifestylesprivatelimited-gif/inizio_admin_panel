@@ -5,6 +5,7 @@ import {
   FiCheck, FiX, FiEye, FiLoader, FiAlertCircle, 
   FiSearch, FiUser, FiFileText, FiRefreshCcw, FiTrash2
 } from 'react-icons/fi';
+import { useOutletContext } from 'react-router-dom';
 
 const UsersList = () => {
   const [activeTab, setActiveTab] = useState('customers'); // 'customers' or 'rejected'
@@ -20,6 +21,8 @@ const UsersList = () => {
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [usersPerPage] = useState(10);
+
+  const { setUsersUnreadCount } = useOutletContext() || {};
 
   useEffect(() => {
     setCurrentPage(1);
@@ -59,6 +62,11 @@ const UsersList = () => {
         setUsers(allUsers.filter(user => user.isApproved === true || !!user.userId));
       } else if (activeTab === 'rejected') {
         setUsers(allUsers.filter(user => user.isApproved === false && !user.userId && !pendingIds.has(user._id)));
+      }
+
+      // Clear the notification badge once data is viewed
+      if (setUsersUnreadCount) {
+        setUsersUnreadCount(0);
       }
     } catch (err) {
       console.error('Fetch users error:', err);

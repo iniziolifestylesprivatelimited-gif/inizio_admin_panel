@@ -5,6 +5,7 @@ import {
   FiCheck, FiX, FiEye, FiLoader, FiAlertCircle, 
   FiSearch, FiUser, FiFileText 
 } from 'react-icons/fi';
+import { useOutletContext } from 'react-router-dom';
 
 const UsersVerification = () => {
   const [users, setUsers] = useState([]);
@@ -15,6 +16,8 @@ const UsersVerification = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
+
+  const { setUsersUnreadCount } = useOutletContext() || {};
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -33,6 +36,11 @@ const UsersVerification = () => {
         fetchedUsers = response.data.data || response.data.users || response.data.pending || [];
       }
       setUsers(fetchedUsers);
+
+      // Clear the notification badge once data is viewed
+      if (setUsersUnreadCount) {
+        setUsersUnreadCount(0);
+      }
     } catch (err) {
       console.error('Fetch users error:', err);
       setError(err.response?.data?.message || 'Failed to load pending users.');

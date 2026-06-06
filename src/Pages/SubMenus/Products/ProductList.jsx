@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
-import { FiEdit2, FiTrash2, FiPlus, FiLoader, FiSearch, FiUpload, FiX, FiSave, FiImage } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiPlus, FiLoader, FiSearch, FiUpload, FiX, FiSave, FiImage, FiPackage } from 'react-icons/fi';
 import { api, BASE_URL } from '../../../api/axios';
 
 const getImageUrl = (path) => {
@@ -416,7 +416,7 @@ const ProductList = () => {
       <div className="flex flex-col gap-6 mb-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Product List</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight flex items-center gap-3"><FiPackage className='text-blue-400'/>Product List</h1>
             <p className="text-slate-400 font-medium mt-1">View and manage all products in your catalog.</p>
           </div>
           <div className="relative w-full sm:w-72">

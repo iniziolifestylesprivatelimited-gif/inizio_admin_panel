@@ -17,9 +17,14 @@ const Layout = () => {
   const [openMenus, setOpenMenus] = useState({});
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [chatUnreadCount, setChatUnreadCount] = useState(0);
+  const [ordersUnreadCount, setOrdersUnreadCount] = useState(0);
+  const [usersUnreadCount, setUsersUnreadCount] = useState(0);
   const navigation = useNavigate();
   const prevContactsRef = useRef([]);
   const isInitialLoad = useRef(true);
+  const prevOrdersRef = useRef(null);
+  const prevUsersRef = useRef(null);
+  const isInitialDataLoad = useRef(true);
   const [toastMsg, setToastMsg] = useState(null);
 
   const chatNavigate = () => {
@@ -127,9 +132,70 @@ const Layout = () => {
     return () => clearInterval(intervalId);
   }, [user]);
 
+  // Clear counts when visiting the page
+  useEffect(() => {
+    if (location.pathname === '/orders') {
+      setOrdersUnreadCount(0);
+    }
+    if (location.pathname === '/users/list') {
+      setUsersUnreadCount(0);
+    }
+  }, [location.pathname]);
+
+  // Poll orders and users
+  useEffect(() => {
+    const fetchOrdersAndUsers = async () => {
+      if (!user) return;
+      try {
+        const token = sessionStorage.getItem('accessToken');
+        const headers = { Authorization: `Bearer ${token}` };
+
+        const [ordersRes, usersRes] = await Promise.all([
+          api.get('/orders/all', { headers }).catch(() => ({ data: [] })),
+          api.get('/admin/customers', { headers }).catch(() => ({ data: [] }))
+        ]);
+
+        const orders = Array.isArray(ordersRes.data) ? ordersRes.data : ordersRes.data?.orders || [];
+        const users = Array.isArray(usersRes.data) ? usersRes.data : [];
+
+        if (!isInitialDataLoad.current) {
+           const prevOrdersCount = prevOrdersRef.current?.length || 0;
+           const currentOrdersCount = orders.length;
+           if (currentOrdersCount > prevOrdersCount && location.pathname !== '/orders') {
+             setOrdersUnreadCount(prev => prev + (currentOrdersCount - prevOrdersCount));
+           }
+
+           const prevUsersCount = prevUsersRef.current?.length || 0;
+           const currentUsersCount = users.length;
+           if (currentUsersCount > prevUsersCount && location.pathname !== '/users/list') {
+             setUsersUnreadCount(prev => prev + (currentUsersCount - prevUsersCount));
+           }
+        }
+
+        prevOrdersRef.current = orders;
+        prevUsersRef.current = users;
+        isInitialDataLoad.current = false;
+
+      } catch (error) {
+        console.error("Failed to fetch orders or users", error);
+      }
+    };
+
+    fetchOrdersAndUsers();
+    const intervalId = setInterval(fetchOrdersAndUsers, 10000);
+    return () => clearInterval(intervalId);
+  }, [user, location.pathname]);
+
   if (!user) {
     return <Navigate to="/login" replace />;
   }
+
+  const getBadgeCount = (path) => {
+    if (path === '/chat') return chatUnreadCount;
+    if (path === '/orders') return ordersUnreadCount;
+    if (path === '/users/list') return usersUnreadCount;
+    return 0;
+  };
 
   const userMenus = getAccessibleMenus();
 
@@ -254,6 +320,7 @@ const Layout = () => {
               const isOpen = openMenus[menu.name];
               // Check if any sub-menu is the currently active page so we can highlight the parent
               const isChildActive = menu.subMenus.some(sub => location.pathname === sub.path);
+              const parentBadgeCount = menu.subMenus.reduce((sum, sub) => sum + getBadgeCount(sub.path), 0);
 
               return (
                 <div key={menu.name} className="space-y-1">
@@ -269,7 +336,14 @@ const Layout = () => {
                       {Icon && <Icon className="text-lg mr-3 group-hover:scale-110 transition-transform" />}
                       <span className="font-medium text-sm">{menu.name}</span>
                     </div>
-                    <FiChevronRight className={`transition-transform duration-300 ${isOpen ? 'rotate-90 text-blue-500' : 'text-slate-500'}`} />
+                    <div className="flex items-center">
+                      {!isOpen && parentBadgeCount > 0 && (
+                        <span className="mr-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shrink-0">
+                          {parentBadgeCount > 9 ? '9+' : parentBadgeCount}
+                        </span>
+                      )}
+                      <FiChevronRight className={`transition-transform duration-300 ${isOpen ? 'rotate-90 text-blue-500' : 'text-slate-500'}`} />
+                    </div>
                   </button>
 
                   {/* Collapsible Sub-Menus */}
@@ -278,20 +352,28 @@ const Layout = () => {
                       {menu.subMenus.map((sub) => {
                         const isSubActive = location.pathname === sub.path;
                         const SubIcon = sub.icon;
+                        const badgeCount = getBadgeCount(sub.path);
                         return (
                           <Link
                             key={sub.path}
                             to={sub.path}
                             className={`
-                              flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors
+                              flex items-center justify-between px-4 py-2 rounded-lg text-sm font-medium transition-colors
                               ${isSubActive 
                                 ? 'bg-blue-600/20 text-white shadow-md shadow-blue-600/20'
                                 : 'text-slate-400 hover:bg-white/10 hover:text-white'
                               }
                             `}
                           >
-                            {SubIcon && <SubIcon className="text-base mr-3" />}
-                            <span>{sub.name}</span>
+                            <div className="flex items-center">
+                              {SubIcon && <SubIcon className="text-base mr-3" />}
+                              <span>{sub.name}</span>
+                            </div>
+                            {badgeCount > 0 && (
+                              <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shrink-0">
+                                {badgeCount > 9 ? '9+' : badgeCount}
+                              </span>
+                            )}
                           </Link>
                         );
                       })}
@@ -303,20 +385,29 @@ const Layout = () => {
 
             // IF THIS IS A STANDARD FLAT LINK
             const isActive = location.pathname === menu.path;
+            const badgeCount = getBadgeCount(menu.path);
+            
             return (
               <Link 
                 key={menu.path} 
                 to={menu.path} 
                 className={`
-                  flex items-center px-4 py-3 rounded-xl transition-all duration-200 group
+                  flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group
                   ${isActive
                     ? 'bg-blue-600/20 text-blue-500 shadow-sm border border-blue-600/50' 
                     : 'text-slate-300 hover:bg-white/10 hover:text-white border border-transparent'
                   }
                 `}
               >
-                {Icon && <Icon className={`text-lg mr-3 transition-transform ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />}
-                <span className="font-medium text-sm">{menu.name}</span>
+                <div className="flex items-center">
+                  {Icon && <Icon className={`text-lg mr-3 transition-transform ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />}
+                  <span className="font-medium text-sm">{menu.name}</span>
+                </div>
+                {badgeCount > 0 && (
+                  <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shrink-0">
+                    {badgeCount > 9 ? '9+' : badgeCount}
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -338,7 +429,7 @@ const Layout = () => {
               <FiBell className="text-xl cursor-pointer" onClick={chatNavigate} />
               {chatUnreadCount > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-1 bg-red-500 text-white text-[9px] font-bold flex items-center justify-center rounded-full border-2 border-slate-900 shadow-sm">
-                  {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
+                  {chatUnreadCount > 9 ? '9+' : chatUnreadCount}
                 </span>
               )}
             </button>
@@ -389,7 +480,7 @@ const Layout = () => {
         {/* DYNAMIC PAGE CONTENT */}
         <main className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="w-full mx-auto p-4 sm:p-6 lg:p-8 min-h-full">
-            <Outlet />
+            <Outlet context={{ setChatUnreadCount, setOrdersUnreadCount, setUsersUnreadCount }} />
           </div>
         </main>
 

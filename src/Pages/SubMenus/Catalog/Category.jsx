@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiTag, FiImage, FiLoader, FiSearch } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiTag, FiImage, FiLoader, FiSearch, FiGrid } from 'react-icons/fi';
 
 import { api, BASE_URL } from '../../../api/axios';
 
@@ -133,7 +133,7 @@ const Category = () => {
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Categories</h1>
+          <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3"><FiGrid className='text-blue-400'/> Category Management</h1>
           <p className="text-slate-400 font-medium mt-1">Add, edit, and organize product categories across your catalog.</p>
         </div>
         <div className="relative w-full sm:w-72 mt-4 sm:mt-0">
