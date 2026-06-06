@@ -217,7 +217,7 @@ const ProductMapping = () => {
         </div>
       </div>
 
-      <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-2xl md:rounded-3xl p-6 space-y-6 w-lg">
+      <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-2xl md:rounded-3xl p-6 space-y-6">
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-bold text-slate-300 mb-2">Step 1: Upload Tally Export File</label>
