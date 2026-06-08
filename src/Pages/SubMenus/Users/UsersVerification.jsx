@@ -123,9 +123,9 @@ const UsersVerification = () => {
   });
 
   return (
-    <div className="space-y-6 relative">
+    <div className="space-y-4 relative">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
         <div>
           <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
             <FiUser className="text-amber-400" />

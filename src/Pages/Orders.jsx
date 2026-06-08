@@ -108,13 +108,13 @@ const Orders = () => {
   console.log(orders);
   
   return (
-    <div className="relative space-y-6 min-h-full z-0">
+    <div className="relative space-y-4 min-h-full z-0">
       {/* Glassmorphism Background Ambient Glows */}
       <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
       {/* <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div> */}
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight flex items-center gap-3">
             <FiBox className="text-blue-400" /> Orders Management

@@ -209,8 +209,8 @@ const ProductMapping = () => {
   };
 
   return (
-    <div className="relative space-y-6 min-h-full z-0">
-      <div className="flex items-center gap-4 mb-8">
+    <div className="relative space-y-4 min-h-full z-0">
+      <div className="flex items-center gap-4 mb-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight flex items-center gap-3"><FiFilter className='text-blue-400'/>Product Mapping</h1>
           <p className="text-slate-400 font-medium mt-1">Upload Tally stock report to sync product quantities.</p>

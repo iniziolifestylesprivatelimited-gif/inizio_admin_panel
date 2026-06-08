@@ -186,14 +186,14 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="relative space-y-6 min-h-full z-0 isolate w-full">
+    <div className="relative space-y-4 min-h-full z-0 isolate w-full">
       
       {/* Added 'transform-gpu' to the heavy blur elements to force hardware acceleration */}
       <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
       <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
 
       {/* Header Section */}
-      <div className="relative flex justify-between items-end mb-8 z-10">
+      <div className="relative flex justify-between items-end mb-4 z-10">
         <div className="flex">
           <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3"><FiTrendingUp className="text-blue-400" /> Dashboard</h1>
           {/* <p className="text-slate-500 font-medium mt-1">

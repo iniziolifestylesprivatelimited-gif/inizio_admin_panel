@@ -25,12 +25,9 @@ const ProductList = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editFormData, setEditFormData] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
-  const [currentProductForImages, setCurrentProductForImages] = useState(null);
-  const [existingImages, setExistingImages] = useState([]);
-  const [newImageFiles, setNewImageFiles] = useState([]);
-  const [newImageUrls, setNewImageUrls] = useState('');
   const [addProductImageFiles, setAddProductImageFiles] = useState([]);
+  const [isImageViewOpen, setIsImageViewOpen] = useState(false);
+  const [currentProductForView, setCurrentProductForView] = useState(null);
   const navigate = useNavigate();
 
   const initialFormState = {
@@ -105,6 +102,7 @@ const ProductList = () => {
       cancellationPolicy: product.cancellationPolicy || '',
       sevenDaysReturn: product.sevenDaysReturn || '',
       warranty: product.warranty || '',
+      images: product.images || []
     });
     setIsEditModalOpen(true);
   };
@@ -150,6 +148,10 @@ const ProductList = () => {
       if (editFormData.brand) formData.append('brand', editFormData.brand);
       if (editFormData.category) formData.append('category', editFormData.category);
       
+      if (editFormData.images && editFormData.images.length > 0) {
+        formData.append('images', JSON.stringify(editFormData.images));
+      }
+
       const response = await axios.put(`${BASE_URL}/api/products/${editFormData._id}`, formData, {
         headers: { 
           Authorization: `Bearer ${token}`,
@@ -292,75 +294,16 @@ const ProductList = () => {
     }
   };
 
+  const openImageView = (product) => {
+    setCurrentProductForView(product);
+    setIsImageViewOpen(true);
+  };
+
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
       // console.log('CSV file selected:', file.name);
       // Implement CSV parsing or upload logic here (e.g., using FormData or PapaParse)
-    }
-  };
-
-  const openImageModal = (product) => {
-    setCurrentProductForImages(product);
-    setExistingImages(product.images || []);
-    setNewImageFiles([]);
-    setNewImageUrls('');
-    setIsImageModalOpen(true);
-  };
-
-  const handleImageSave = async () => {
-    try {
-      const token = sessionStorage.getItem('accessToken');
-      const formData = new FormData();
-      
-      formData.append('name', currentProductForImages.name);
-      formData.append('description', currentProductForImages.description || '');
-      formData.append('details', currentProductForImages.details || '');
-      formData.append('expertNotes', currentProductForImages.expertNotes || '');
-      formData.append('basePrice', currentProductForImages.basePrice || 0);
-      formData.append('offerPrice', currentProductForImages.offerPrice || 0);
-      formData.append('l1Price', currentProductForImages.l1Price || 0);
-      formData.append('l2Price', currentProductForImages.l2Price || 0);
-      formData.append('l3Price', currentProductForImages.l3Price || 0);
-      formData.append('quantityPricing', JSON.stringify(currentProductForImages.quantityPricing || []));
-      formData.append('totalQuantity', currentProductForImages.totalQuantity || 0);
-      formData.append('eanNumber', currentProductForImages.eanNumber || '');
-      formData.append('sevenDaysReturn', currentProductForImages.sevenDaysReturn || '');
-      formData.append('warranty', currentProductForImages.warranty || '');
-      formData.append('cancellationPolicy', currentProductForImages.cancellationPolicy || '');
-      
-      const brandId = typeof currentProductForImages.brand === 'object' ? currentProductForImages.brand?._id : currentProductForImages.brand;
-      const catId = typeof currentProductForImages.category === 'object' ? currentProductForImages.category?._id : currentProductForImages.category;
-      
-      if (brandId) formData.append('brand', brandId);
-      if (catId) formData.append('category', catId);
-  
-      const v = currentProductForImages.variants || [];
-      formData.append('variants', JSON.stringify(v));
-      
-      const parsedImageUrls = newImageUrls ? newImageUrls.split(',').map(url => url.trim()).filter(Boolean) : [];
-      const combinedImages = [...existingImages, ...parsedImageUrls];
-
-      if (combinedImages.length > 0) {
-        formData.append('images', JSON.stringify(combinedImages));
-      }
-
-      newImageFiles.forEach(file => {
-        formData.append('images', file);
-      });
-  
-      const response = await axios.put(`${BASE_URL}/api/products/${currentProductForImages._id}`, formData, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-  
-      setProducts(products.map(p => p._id === currentProductForImages._id ? { ...response.data, _id: p._id } : p));
-      setIsImageModalOpen(false);
-    } catch (error) {
-       console.error('Failed to update images', error);
-       alert(error.response?.data?.message || 'Failed to update images');
     }
   };
 
@@ -407,13 +350,13 @@ const ProductList = () => {
   // console.log(currentPage)
 
   return (
-    <div className="relative space-y-6 min-h-full z-0">
+    <div className="relative space-y-4 min-h-full z-0">
       {/* Glassmorphism Background Ambient Glows */}
       <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
       {/* <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div> */}
 
       {/* Header Section */}
-      <div className="flex flex-col gap-6 mb-8">
+      <div className="flex flex-col gap-4 mb-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight flex items-center gap-3"><FiPackage className='text-blue-400'/>Product List</h1>
@@ -524,14 +467,11 @@ const ProductList = () => {
                       <td className="px-4 py-3 text-center">
                         {product.images && product.images.length > 0 ? (
                           <div 
-                            onClick={() => openImageModal(product)}
-                            className="relative w-12 h-12 mx-auto rounded-lg overflow-hidden border border-white/10 cursor-pointer group bg-slate-800"
-                            title="Manage Images"
+                            onClick={() => openImageView(product)}
+                            className="relative w-12 h-12 mx-auto rounded-lg overflow-hidden border border-white/10 bg-slate-800 cursor-pointer group"
+                            title="View Images"
                           >
                             <img src={getImageUrl(product.images[0])} alt={product.name} className="w-full h-full object-contain bg-white p-1 group-hover:scale-110 transition-transform" onError={(e) => e.target.src='https://placehold.co/150x150?text=Error'} />
-                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                              <FiEdit2 className="text-white text-lg" />
-                            </div>
                             {product.images.length > 1 && (
                               <span className="absolute bottom-0 right-0 bg-blue-600/90 backdrop-blur-sm text-white text-[9px] font-bold px-1.5 py-0.5 rounded-tl-lg">
                                 +{product.images.length - 1}
@@ -539,14 +479,13 @@ const ProductList = () => {
                             )}
                           </div>
                         ) : (
-                          <button 
-                            onClick={() => openImageModal(product)} 
-                            className="w-12 h-12 bg-slate-800 text-slate-300 hover:bg-blue-900/30 hover:text-blue-400 rounded-lg transition-colors border border-white/10 cursor-pointer flex flex-col items-center justify-center mx-auto group"
-                            title="Add Images"
+                          <div 
+                            onClick={() => openImageView(product)}
+                            className="w-12 h-12 bg-slate-800 text-slate-500 hover:bg-slate-700 hover:text-white rounded-lg border border-white/10 flex flex-col items-center justify-center mx-auto transition-colors cursor-pointer"
+                            title="No Images"
                           >
-                            <FiImage className="text-lg group-hover:scale-110 transition-transform" />
-                            <span className="text-[9px] mt-0.5 font-bold opacity-70">Add</span>
-                          </button>
+                            <FiImage className="text-lg" />
+                          </div>
                         )}
                       </td>
                       <td className="px-4 py-3 text-center space-x-2">
@@ -955,119 +894,53 @@ const ProductList = () => {
         </div>
       , document.body)}
 
-      {/* Image Modal */}
-      {isImageModalOpen && currentProductForImages && createPortal(
+      {/* Image View Modal */}
+      {isImageViewOpen && currentProductForView && createPortal(
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={() => setIsImageModalOpen(false)}></div>
-          <div className="relative bg-slate-900 border border-white/10 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-slate-900/90 backdrop-blur-sm" onClick={() => setIsImageViewOpen(false)}></div>
+          <div className="relative bg-slate-900 border border-white/10 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-800/50">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-900/50 text-blue-400 flex items-center justify-center text-lg">
                   <FiImage />
                 </div>
-                <h2 className="text-xl font-bold text-white">Manage Images - {currentProductForImages.name}</h2>
+                <h2 className="text-xl font-bold text-white">Images - {currentProductForView.name}</h2>
               </div>
-              <button onClick={() => setIsImageModalOpen(false)} className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors">
+              <button onClick={() => setIsImageViewOpen(false)} className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors">
                 <FiX className="text-xl" />
               </button>
             </div>
             
-            <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
-              {/* Existing Images */}
-              <div>
-                <h3 className="text-sm font-bold text-slate-300 mb-3">Current Images</h3>
-                {existingImages.length === 0 ? (
-                  <p className="text-sm text-slate-400 bg-slate-800/50 p-4 rounded-xl border border-white/10">No images available for this product.</p>
-                ) : (
-                  <div className="flex flex-wrap gap-4">
-                    {existingImages.map((url, i) => (
-                      <div key={i} className="relative w-28 h-28 border border-white/10 rounded-xl overflow-hidden group bg-slate-800">
-                        <img src={getImageUrl(url)} alt="Product" className="w-full h-full object-contain bg-white p-2" />
-                        <button 
-                          onClick={() => {
-                            const updatedUrl = window.prompt("Edit Image URL:", url);
-                            if (updatedUrl !== null && updatedUrl.trim() !== "") {
-                              const newImages = [...existingImages];
-                              newImages[i] = updatedUrl.trim();
-                              setExistingImages(newImages);
-                            }
-                          }}
-                          className="absolute top-2 left-2 bg-slate-900/90 text-blue-400 hover:bg-blue-600 hover:text-white p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-sm cursor-pointer"
-                          title="Edit Image URL"
-                        >
-                          <FiEdit2 size={14} />
-                        </button>
-                        <button 
-                          onClick={() => setExistingImages(existingImages.filter((_, index) => index !== i))}
-                          className="absolute top-2 right-2 bg-slate-900/90 text-red-400 hover:bg-red-600 hover:text-white p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-sm cursor-pointer"
-                          title="Remove Image"
-                        >
-                          <FiTrash2 size={14} />
-                        </button>
+            <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
+              {currentProductForView.images && currentProductForView.images.length > 0 ? (
+                <div className="flex flex-col space-y-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    {currentProductForView.images.map((url, i) => (
+                      <div key={i} className="relative aspect-square border border-white/10 rounded-xl overflow-hidden bg-slate-800 flex items-center justify-center">
+                        <img src={getImageUrl(url)} alt={`Product ${i+1}`} className="max-w-full max-h-full object-contain bg-white p-2" onError={(e) => e.target.src='https://placehold.co/150x150?text=Error'} />
                       </div>
                     ))}
                   </div>
-                )}
-              </div>
-
-              {/* Image URLs Section */}
-              <div>
-                <h3 className="text-sm font-bold text-slate-300 mb-3">Add Image URLs (comma separated)</h3>
-                <input 
-                  type="text" 
-                  value={newImageUrls} 
-                  onChange={(e) => setNewImageUrls(e.target.value)} 
-                  placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg" 
-                  className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500" 
-                />
-                {newImageUrls && newImageUrls.split(',').filter(url => url.trim()).length > 0 && (
-                  <div className="flex flex-wrap gap-4 mt-4 p-4 bg-slate-800/50 border border-white/10 rounded-xl">
-                    {newImageUrls.split(',').map((url, i) => url.trim() && (
-                      <div key={`new-url-${i}`} className="relative w-28 h-28 border border-white/10 rounded-xl overflow-hidden group bg-slate-800 shadow-sm shrink-0">
-                        <img src={getImageUrl(url.trim())} alt={`Preview ${i}`} className="w-full h-full object-contain bg-white p-2" onError={(e) => e.target.src='https://placehold.co/150x150?text=Error'} />
-                      </div>
-                    ))}
+                  <div className="mt-2">
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Image URLs</label>
+                    <textarea 
+                      readOnly 
+                      rows="3"
+                      value={currentProductForView.images.map(url => getImageUrl(url)).join(', ')} 
+                      className="w-full text-sm bg-slate-900/50 border border-white/10 rounded-xl px-4 py-2.5 text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 cursor-text resize-none" 
+                      onClick={(e) => e.target.select()} 
+                    />
                   </div>
-                )}
-              </div>
-
-              {/* Upload New Images */}
-              <div>
-                <h3 className="text-sm font-bold text-slate-300 mb-3">Upload New Images</h3>
-                <div className="flex items-center gap-4">
-                  <input 
-                    type="file" 
-                    multiple 
-                    accept="image/*"
-                    onChange={(e) => setNewImageFiles([...newImageFiles, ...Array.from(e.target.files)])}
-                    className="block w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-900/50 file:text-blue-400 hover:file:bg-blue-800/50 transition-colors cursor-pointer"
-                  />
                 </div>
-                {newImageFiles.length > 0 && (
-                  <div className="flex flex-wrap gap-4 mt-4 p-4 bg-slate-800/50 border border-white/10 rounded-xl">
-                    {newImageFiles.map((file, i) => (
-                      <div key={i} className="relative w-28 h-28 border border-white/10 rounded-xl overflow-hidden group bg-slate-800 shadow-sm">
-                        <img src={URL.createObjectURL(file)} alt="Preview" className="w-full h-full object-contain bg-white p-2" />
-                        <button 
-                          onClick={() => setNewImageFiles(newImageFiles.filter((_, index) => index !== i))}
-                          className="absolute top-2 right-2 bg-slate-900/90 text-red-400 hover:bg-red-600 hover:text-white p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-sm cursor-pointer"
-                          title="Remove File"
-                        >
-                          <FiTrash2 size={14} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              ) : (
+                <div className="text-center py-10 text-slate-400">
+                  <FiImage className="text-5xl mx-auto mb-3 opacity-50" />
+                  <p>No images available for this product.</p>
+                </div>
+              )}
             </div>
-            
-            <div className="px-4 sm:px-6 py-4 border-t border-white/10 bg-slate-800/50 flex flex-col sm:flex-row justify-end gap-3 shrink-0">
-              <button onClick={() => setIsImageModalOpen(false)} className="w-full sm:w-auto px-5 py-2.5 text-slate-300 font-bold rounded-xl hover:bg-slate-800 transition-colors cursor-pointer">Cancel</button>
-              <button onClick={handleImageSave} className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 cursor-pointer">
-                <FiSave className="mr-2" />
-                Save Images
-              </button>
+            <div className="px-6 py-4 border-t border-white/10 bg-slate-800/50 flex justify-end shrink-0">
+              <button onClick={() => setIsImageViewOpen(false)} className="px-6 py-2.5 bg-slate-700 text-white font-bold rounded-xl hover:bg-slate-600 transition-colors cursor-pointer">Close</button>
             </div>
           </div>
         </div>

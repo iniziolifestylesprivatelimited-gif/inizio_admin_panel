@@ -153,13 +153,13 @@ const UsersList = () => {
   // console.log(users)
   
   return (
-    <div className="relative space-y-6 min-h-full z-0 isolate w-full">
+    <div className="relative space-y-4 min-h-full z-0 isolate w-full">
       {/* Glassmorphism Background Ambient Glows */}
       <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
       {/* <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div> */}
 
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
         <div>
           <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
             <FiUser className="text-blue-400" />
@@ -170,7 +170,7 @@ const UsersList = () => {
       </div>
 
       {/* Tabs and Search */}
-      <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-4 bg-transparent backdrop-blur-2xl shadow-lg shadow-black/20 p-4 rounded-2xl border border-white/10">
+      <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-4 bg-transparent backdrop-blur-2xl shadow-lg shadow-black/20 p-4 rounded-2xl border border-white/10 tranform-gpu">
         <div className="flex space-x-2 w-full md:w-auto">
           <button 
             onClick={() => setActiveTab('customers')}
