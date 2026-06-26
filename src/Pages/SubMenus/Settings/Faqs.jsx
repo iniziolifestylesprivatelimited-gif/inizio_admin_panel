@@ -228,7 +228,7 @@ const Faqs = () => {
               <p className="text-slate-400 italic text-center py-12">No FAQs available. Click "Add FAQ" to get started.</p>
             ) : (
               faqs.map((faq) => (
-                <div key={faq._id} className="border border-white/10 rounded-2xl bg-transparent hover:bg-white/10 transition-all overflow-hidden">
+                <div key={faq._id} className="border border-white/10 rounded-2xl bg-transparent hover:bg-white/5 transition-all overflow-hidden">
                   
                   {/* FAQ Header (Question) */}
                   <div 

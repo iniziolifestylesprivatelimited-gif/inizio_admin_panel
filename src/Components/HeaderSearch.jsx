@@ -117,7 +117,8 @@ const HeaderSearch = () => {
         title: p.name,
         subtitle: `SKU: ${p.variants?.[0]?.sku || 'N/A'}`,
         type: 'Product',
-        url: `/products/variants/${p._id}`
+        url: `/products/list`,
+        state: { viewProductId: p._id }
       })));
 
       // 3. Search Brands
@@ -154,7 +155,7 @@ const HeaderSearch = () => {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchResults.length > 0) {
-      navigate(searchResults[0].url);
+      navigate(searchResults[0].url, { state: searchResults[0].state });
       setShowSuggestions(false);
       setSearchQuery('');
     }
@@ -201,6 +202,7 @@ const HeaderSearch = () => {
                     <li key={item._id}>
                       <Link
                         to={item.url}
+                        state={item.state}
                         onClick={() => {
                           setShowSuggestions(false);
                           setSearchQuery('');

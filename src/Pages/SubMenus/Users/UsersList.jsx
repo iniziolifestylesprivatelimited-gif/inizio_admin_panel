@@ -8,15 +8,20 @@ import {
 import { useOutletContext } from 'react-router-dom';
 
 const UsersList = () => {
-  const [activeTab, setActiveTab] = useState('customers'); // 'customers' or 'rejected'
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [loggedInEmails, setLoggedInEmails] = useState(new Set());
 
   const [selectedUser, setSelectedUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
+
+  const hasLoggedIn = (user) => {
+    return (user.email && loggedInEmails.has(user.email.toLowerCase())) ||
+           (user.userId && loggedInEmails.has(user.userId.toLowerCase()));
+  };
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -26,7 +31,7 @@ const UsersList = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeTab, searchQuery]);
+  }, [searchQuery]);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -34,10 +39,11 @@ const UsersList = () => {
     try {
       const token = sessionStorage.getItem('accessToken');
       
-      // Fetch all processed users and pending users concurrently
-      const [customersResponse, pendingResponse] = await Promise.all([
+      // Fetch all processed users, pending users, and active login reports concurrently
+      const [customersResponse, pendingResponse, loginReportResponse] = await Promise.all([
         api.get('/admin/customers', { headers: { Authorization: `Bearer ${token}` } }),
-        api.get('/admin/pending', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] }))
+        api.get('/admin/pending', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] })),
+        api.get('/admin/login-report', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] }))
       ]);
       
       // Safely handle cases where the backend might wrap the array in an object
@@ -48,6 +54,21 @@ const UsersList = () => {
         allUsers = customersResponse.data.data || customersResponse.data.users || customersResponse.data.customers || [];
       }
 
+      // Handle active login reports
+      let loginReportList = [];
+      if (Array.isArray(loginReportResponse.data)) {
+        loginReportList = loginReportResponse.data;
+      } else if (loginReportResponse.data && typeof loginReportResponse.data === 'object') {
+        loginReportList = loginReportResponse.data.data || loginReportResponse.data.users || loginReportResponse.data.reports || [];
+      }
+
+      const loggedInSet = new Set();
+      loginReportList.forEach(r => {
+        if (r.email) loggedInSet.add(r.email.toLowerCase());
+        if (r.userId) loggedInSet.add(r.userId.toLowerCase());
+      });
+      setLoggedInEmails(loggedInSet);
+
       // Extract pending users to filter them out from the rejected list
       let pendingUsers = [];
       if (Array.isArray(pendingResponse.data)) {
@@ -57,12 +78,7 @@ const UsersList = () => {
       }
       const pendingIds = new Set(pendingUsers.map(user => user._id));
       
-      // Filter locally based on the approval status OR the presence of a generated userId
-      if (activeTab === 'customers') {
-        setUsers(allUsers.filter(user => user.isApproved === true || !!user.userId));
-      } else if (activeTab === 'rejected') {
-        setUsers(allUsers.filter(user => user.isApproved === false && !user.userId && !pendingIds.has(user._id)));
-      }
+      setUsers(allUsers.filter(user => user.isApproved === true || !!user.userId));
 
       // Clear the notification badge once data is viewed
       if (setUsersUnreadCount) {
@@ -78,7 +94,7 @@ const UsersList = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, [activeTab]);
+  }, []);
 
   const openModal = (user) => {
     setSelectedUser(user);
@@ -137,12 +153,17 @@ const UsersList = () => {
     return `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
   };
 
-  const filteredUsers = users.filter(user => 
-    user.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.phone?.includes(searchQuery) ||
-    user.userId?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredUsers = users.filter(user => {
+    const nameMatch = user.name?.toLowerCase().includes(searchQuery.toLowerCase());
+    const emailMatch = user.email?.toLowerCase().includes(searchQuery.toLowerCase());
+    const phoneMatch = user.phone?.includes(searchQuery);
+    const userIdMatch = user.userId?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const loggedInText = hasLoggedIn(user) ? 'logged in' : 'not logged in';
+    const loginStatusMatch = loggedInText.includes(searchQuery.toLowerCase());
+
+    return nameMatch || emailMatch || phoneMatch || userIdMatch || loginStatusMatch;
+  });
 
   // Pagination logic
   const indexOfLastUser = currentPage * usersPerPage;
@@ -165,28 +186,10 @@ const UsersList = () => {
             <FiUser className="text-blue-400" />
             Users List
           </h1>
-          <p className="text-slate-400 font-medium mt-1">View your registered customers and rejected KYC applications.</p>
-        </div>
-      </div>
-
-      {/* Tabs and Search */}
-      <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-4 bg-transparent backdrop-blur-2xl shadow-lg shadow-black/20 p-4 rounded-2xl border border-white/10 tranform-gpu">
-        <div className="flex space-x-2 w-full md:w-auto">
-          <button 
-            onClick={() => setActiveTab('customers')}
-            className={`flex-1 md:flex-none px-5 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${activeTab === 'customers' ? 'bg-blue-600/70 text-white shadow-lg shadow-blue-500/5' : 'text-slate-400 hover:bg-transparent hover:text-white'}`}
-          >
-            Approved Customers
-          </button>
-          {/* <button 
-            onClick={() => setActiveTab('rejected')}
-            className={`flex-1 md:flex-none px-5 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${activeTab === 'rejected' ? 'bg-red-600/70 text-white shadow-lg shadow-red-500/5' : 'text-slate-400 hover:bg-transparent hover:text-white'}`}
-          >
-            Rejected KYC
-          </button> */}
+          <p className="text-slate-400 font-medium mt-1">View your registered and approved users.</p>
         </div>
 
-        <div className="relative w-full md:w-64">
+        <div className="relative w-full md:w-72">
           <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input 
             type="text" 
@@ -202,14 +205,14 @@ const UsersList = () => {
       {loading ? (
         <div className="h-64 flex flex-col justify-center items-center bg-slate-900/50 border border-white/10 rounded-2xl">
           <FiLoader className="animate-spin text-3xl text-blue-400 mb-4" />
-          <p className="text-slate-400 font-medium">Loading {activeTab === 'customers' ? 'customers' : 'rejected applications'}...</p>
+          <p className="text-slate-400 font-medium">Loading customers...</p>
         </div>
       ) : error ? (
         <div className="text-red-400 bg-red-900/20 p-4 rounded-xl border border-red-500/30 flex items-center">
           <FiAlertCircle className="mr-2 text-lg shrink-0" /> {error}
         </div>
       ) : (
-        <div className="relative z-10 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full">
+        <div className="relative z-10 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full isolate will-change-transform">
           <div className="overflow-auto custom-scrollbar max-h-[70vh]">
             <table className="w-full text-left border-collapse whitespace-nowrap min-w-200">
               <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md shadow-md">
@@ -220,7 +223,8 @@ const UsersList = () => {
                   <th className="p-4 font-bold">Phone</th>
                   <th className="p-4 font-bold">Business Type</th>
                   <th className="p-4 font-bold">Status</th>
-                  {activeTab === 'customers' && <th className="p-4 font-bold">User ID</th>}
+                  <th className="p-4 font-bold text-center">Login Status</th>
+                  <th className="p-4 font-bold">User ID</th>
                   <th className="p-4 font-bold text-center">Actions</th>
                 </tr>
               </thead>
@@ -238,37 +242,30 @@ const UsersList = () => {
                         </span>
                       </td>
                       <td className="p-4 text-sm">
-                        {activeTab === 'rejected' ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold">
-                            <FiX className="text-[10px]" /> Rejected
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold">
+                          <FiCheck className="text-[10px]" /> Approved
+                        </span>
+                      </td>
+                      <td className="p-4 text-sm text-center">
+                        {hasLoggedIn(user) ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold">
+                            <FiCheck className="text-[10px]" /> Logged In
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold">
-                            <FiCheck className="text-[10px]" /> Approved
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-500/10 border border-slate-500/20 text-slate-400 text-xs font-bold">
+                            <FiX className="text-[10px]" /> Not Logged In
                           </span>
                         )}
                       </td>
-                      {activeTab === 'customers' && (
-                        <td className="p-4 text-sm text-emerald-400 font-mono font-semibold">{user.userId || 'N/A'}</td>
-                      )}
+                      <td className="p-4 text-sm text-emerald-400 font-mono font-semibold">{user.userId || 'N/A'}</td>
                       <td className="p-4 flex items-center justify-center gap-2">
-                        <button onClick={() => openModal(user)} className="p-2.5 text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all cursor-pointer" title="View Full Details">
+                        <button onClick={() => openModal(user)} className="p-2.5 text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all cursor-pointer transform-gpu" title="View Full Details">
                           <FiEye />
                         </button>
-                        {activeTab === 'rejected' && (
-                            <button 
-                              onClick={() => handleUndoReject(user._id)} 
-                              disabled={isActionLoading} 
-                              className="p-2.5 text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 rounded-lg transition-all disabled:opacity-50 cursor-pointer" 
-                              title="Undo Rejection & Move to Pending"
-                            >
-                              <FiRefreshCcw />
-                            </button>
-                        )}
                         <button 
                           onClick={() => handleDelete(user._id)} 
                           disabled={isActionLoading} 
-                          className="p-2.5 text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50 cursor-pointer" 
+                          className="p-2.5 text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50 cursor-pointer transform-gpu" 
                           title="Permanently Delete User"
                         >
                           <FiTrash2 />
@@ -278,8 +275,8 @@ const UsersList = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={activeTab === 'customers' ? 8 : 7} className="p-12 text-center text-slate-400 italic">
-                      {searchQuery ? 'No matching users found.' : `No ${activeTab === 'customers' ? 'approved customers' : 'rejected applications'} found.`}
+                    <td colSpan={8} className="p-12 text-center text-slate-400 italic">
+                      {searchQuery ? 'No matching users found.' : `No approved customers found.`}
                     </td>
                   </tr>
                 )}
@@ -291,7 +288,7 @@ const UsersList = () => {
 
       {/* Pagination Controls */}
       {!loading && !error && filteredUsers.length > 0 && (
-        <div className="relative z-10 flex flex-col md:flex-row justify-end items-center gap-4 bg-transparent backdrop-blur-2xl shadow-lg shadow-black/20 p-4 rounded-2xl border border-white/10">
+        <div className="relative z-10 flex flex-col md:flex-row justify-end items-center gap-4 bg-transparent backdrop-blur-2xl shadow-lg shadow-black/20 p-4 rounded-2xl border border-white/10 isolate will-change-transform">
           {/* <p className="text-slate-400 text-sm">
             Showing <span className="text-white font-bold">{indexOfFirstUser + 1}</span> to <span className="text-white font-bold">{Math.min(indexOfLastUser, filteredUsers.length)}</span> of <span className="text-white font-bold">{filteredUsers.length}</span> entries
           </p> */}
@@ -299,7 +296,7 @@ const UsersList = () => {
             <button 
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 bg-transparent border border-white/10 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold"
+              className="px-4 py-2 bg-transparent border border-white/10 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold transform-gpu"
             >
               Previous
             </button>
@@ -332,7 +329,7 @@ const UsersList = () => {
                       if (page !== '...') setCurrentPage(page);
                     }}
                     disabled={page === '...'}
-                    className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-sm font-medium border transition-colors shrink-0 ${
+                  className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-sm font-medium border transition-colors shrink-0 transform-gpu ${
                       page === currentPage
                         ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
                         : page === '...'
@@ -348,7 +345,7 @@ const UsersList = () => {
             <button 
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages || totalPages === 0}
-              className="px-4 py-2 bg-transparent border border-white/10 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold"
+              className="px-4 py-2 bg-transparent border border-white/10 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold transform-gpu"
             >
               Next
             </button>
@@ -375,9 +372,7 @@ const UsersList = () => {
               <div className="flex justify-between items-center bg-transparent border border-white/10 p-4 rounded-2xl">
                 <div>
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Status</p>
-                  {activeTab === 'rejected' ? (
-                    <span className="text-red-400 font-bold flex items-center gap-1.5"><FiX /> KYC Rejected</span>
-                  ) : (selectedUser.isApproved || selectedUser.userId) ? (
+                  {(selectedUser.isApproved || selectedUser.userId) ? (
                     <span className="text-emerald-400 font-bold flex items-center gap-1.5"><FiCheck /> KYC Approved</span>
                   ) : (
                     <span className="text-amber-400 font-bold flex items-center gap-1.5"><FiLoader className="animate-spin" /> Pending KYC</span>
@@ -463,16 +458,6 @@ const UsersList = () => {
                 <FiTrash2 className="mr-2 text-lg" />
                 Delete User
               </button>
-              {activeTab === 'rejected' && (
-                <button 
-                  onClick={() => handleUndoReject(selectedUser._id)}
-                  disabled={isActionLoading}
-                  className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-amber-600 text-white font-bold rounded-xl hover:bg-amber-700 shadow-lg shadow-amber-500/30 transition-all disabled:opacity-50 cursor-pointer"
-                >
-                  {isActionLoading ? <FiLoader className="mr-2 animate-spin" /> : <FiRefreshCcw className="mr-2 text-lg" />}
-                  {isActionLoading ? 'Processing...' : 'Undo Rejection'}
-                </button>
-              )}
             </div>
           </div>
         </div>

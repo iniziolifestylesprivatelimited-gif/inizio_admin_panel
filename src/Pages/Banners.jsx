@@ -30,7 +30,7 @@ const Banners = () => {
     navigationType: 'NONE',
     referenceId: '',
     externalLink: '',
-    position: 1,
+    position: '',
     isActive: true,
   });
   const [imageFile, setImageFile] = useState(null);
@@ -68,7 +68,7 @@ const Banners = () => {
         navigationType: banner.navigationType || 'NONE',
         referenceId: banner.referenceId || '',
         externalLink: banner.externalLink || '',
-        position: banner.position || 1,
+        position: banner.position || "",
         isActive: banner.isActive ?? true,
       });
       setImagePreview(getImageUrl(banner.image));
@@ -79,7 +79,7 @@ const Banners = () => {
         navigationType: 'NONE',
         referenceId: '',
         externalLink: '',
-        position: banners.length + 1, // Default to next position
+        position: "", // Default to next position
         isActive: true,
       });
       setImagePreview(null);
@@ -317,8 +317,7 @@ const Banners = () => {
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Display Position</label>
                   <input 
-                    type="number" 
-                    min="1"
+                    type="text" 
                     required
                     value={formData.position}
                     onChange={(e) => setFormData({...formData, position: e.target.value})}

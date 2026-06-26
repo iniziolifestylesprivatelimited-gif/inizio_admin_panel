@@ -55,7 +55,8 @@ const PAGES = {
     icon: FiUser,
     subMenus:[
       { path: '/users/list', name: 'Users List', icon: FiUsers },
-      { path: '/users/verify', name: 'Users Verification', icon: FiUserCheck }
+      { path: '/users/verify', name: 'Users Verification', icon: FiUserCheck },
+      { path: '/users/active', name: 'Active Users', icon: FiActivity }
     ]
   }
 };

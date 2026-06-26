@@ -3,6 +3,48 @@ import { FiSearch, FiSend, FiPaperclip, FiMoreVertical, FiPhone, FiVideo, FiSmil
 import { api } from '../api/axios';
 import { useOutletContext } from 'react-router-dom';
 
+const formatDividerDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return '';
+  const now = new Date();
+  
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  
+  const msgDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  
+  if (msgDate.getTime() === today.getTime()) {
+    return 'Today';
+  } else if (msgDate.getTime() === yesterday.getTime()) {
+    return 'Yesterday';
+  } else {
+    return date.toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' });
+  }
+};
+
+const formatLastMessageDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return '';
+  const now = new Date();
+  
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  
+  const msgDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  
+  if (msgDate.getTime() === today.getTime()) {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } else if (msgDate.getTime() === yesterday.getTime()) {
+    return 'Yesterday';
+  } else {
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  }
+};
+
 const Chat = () => {
   const [activeContact, setActiveContact] = useState(null);
   const [message, setMessage] = useState('');
@@ -98,8 +140,8 @@ const Chat = () => {
   useEffect(() => {
     if (activeContact) {
       fetchMessages(activeContact);
-      // Poll for new active chat messages every 5 seconds
-      const intervalId = setInterval(() => fetchMessages(activeContact), 5000);
+      // Poll for new active chat messages every 2 seconds
+      const intervalId = setInterval(() => fetchMessages(activeContact), 2000);
       return () => clearInterval(intervalId);
     } else {
       setMessages([]);
@@ -144,12 +186,12 @@ const Chat = () => {
   const activeContactDetails = contacts.find(c => c.userId === activeContact);
 
   return (
-    <div className="relative flex h-[calc(100dvh-6rem)] md:h-[calc(100dvh-8rem)] z-0">
+    <div className="relative flex h-[calc(70dvh-6rem)] md:h-[calc(70dvh-8rem)] z-0">
       {/* Glassmorphism Background Ambient Glows */}
       <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
       {/* <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div> */}
       
-      <div className="flex w-full h-full bg-transparent backdrop-blur-2xl border border-white/10 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl shadow-black/50">
+      <div className="flex w-full h-[75vh] bg-transparent backdrop-blur-2xl border border-white/10 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl shadow-black/50">
         {/* Sidebar - Contacts */}
         <div className={`${activeContact ? 'hidden md:flex' : 'flex'} w-full md:w-80 lg:w-96 border-r border-white/10 flex-col bg-black/20`}>
         <div className="p-4 border-b border-white/10">
@@ -182,7 +224,7 @@ const Chat = () => {
                     {contact.name || 'Unknown User'}
                   </h3>
                   <span className="text-xs text-slate-500 shrink-0 ml-2">
-                    {contact.lastMessageAt ? new Date(contact.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                    {formatLastMessageDate(contact.lastMessageAt)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -237,11 +279,7 @@ const Chat = () => {
 
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 custom-scrollbar">
-              <div className="text-center">
-                <span className="text-xs font-medium text-slate-500 bg-black/20 px-3 py-1 rounded-full border border-white/5">Today</span>
-              </div>
-              
-              {messages.map((msg) => {
+              {messages.map((msg, index) => {
                 const senderId = typeof msg.sender === 'object' ? (msg.sender?._id || msg.sender?.userId) : (msg.senderId || msg.sender || msg.from);
                 const receiverId = typeof msg.receiver === 'object' ? (msg.receiver?._id || msg.receiver?.userId) : (msg.receiverId || msg.receiver || msg.to);
                 
@@ -251,44 +289,63 @@ const Chat = () => {
                 } else if (receiverId) {
                   isMe = String(receiverId) === String(activeContact);
                 }
+
+                const currentDateStr = msg.createdAt ? formatDividerDate(msg.createdAt) : 'Today';
+                const prevMsg = index > 0 ? messages[index - 1] : null;
+                const prevDateStr = prevMsg && prevMsg.createdAt ? formatDividerDate(prevMsg.createdAt) : null;
+                const showDivider = currentDateStr !== prevDateStr;
+
+                const isSeen = msg.isRead || msg.read || msg.seen || msg.isSeen || msg.status === 'read' || msg.status === 'seen';
                 
                 return (
-                <div key={msg._id || msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`flex gap-2 sm:gap-3 max-w-[85%] sm:max-w-[75%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
-                    {!isMe && (
-                      <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white text-xs font-bold shrink-0 mt-auto">
-                        {activeContactDetails.name?.charAt(0).toUpperCase() || 'U'}
+                  <React.Fragment key={msg._id || msg.id}>
+                    {showDivider && (
+                      <div className="text-center my-4">
+                        <span className="text-xs font-medium text-slate-500 bg-black/20 px-3 py-1 rounded-full border border-white/5">
+                          {currentDateStr}
+                        </span>
                       </div>
                     )}
-                    <div className={`flex flex-col min-w-0 ${isMe ? 'items-end' : 'items-start'}`}>
-                      <div 
-                        className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl max-w-full ${
-                          isMe 
-                            ? 'bg-blue-600 text-white rounded-br-sm shadow-sm' 
-                            : 'bg-white/10 text-slate-200 border border-white/5 rounded-bl-sm shadow-sm'
-                        }`}
-                      >
-                        <p className="text-[13px] sm:text-sm leading-relaxed wrap-break-word whitespace-pre-wrap">{msg.message || msg.text}</p>
-                      </div>
-                      <div className={`flex items-center gap-1 mt-1.5 mx-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
-                        <span className="text-[10px] font-medium text-slate-500">
-                          {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (msg.time || '')}
-                        </span>
-                        {isMe && (
-                          <span className={`text-sm ${msg.isRead || msg.read || msg.status === 'read' || msg.status === 'seen' ? 'text-blue-400' : 'text-slate-500'}`} title={msg.isRead || msg.read || msg.status === 'read' || msg.status === 'seen' ? "Read" : "Sent"}>
-                            {(msg.isRead || msg.read || msg.status === 'read' || msg.status === 'seen') ? (
-                              <div className="flex -space-x-1.5">
-                                <FiCheck /><FiCheck />
-                              </div>
-                            ) : (
-                              <FiCheck />
-                            )}
-                          </span>
+                    <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`flex gap-2 sm:gap-3 max-w-[85%] sm:max-w-[75%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
+                        {!isMe && (
+                          <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white text-xs font-bold shrink-0 mt-auto">
+                            {activeContactDetails.name?.charAt(0).toUpperCase() || 'U'}
+                          </div>
                         )}
+                        <div className={`flex flex-col min-w-0 ${isMe ? 'items-end' : 'items-start'}`}>
+                          <div 
+                            className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl max-w-full ${
+                              isMe 
+                                ? 'bg-blue-600 text-white rounded-br-sm shadow-sm' 
+                                : 'bg-white/10 text-slate-200 border border-white/5 rounded-bl-sm shadow-sm'
+                            }`}
+                          >
+                            <p className="text-[13px] sm:text-sm leading-relaxed wrap-break-word whitespace-pre-wrap">{msg.message || msg.text}</p>
+                          </div>
+                          <div className={`flex items-center gap-1 mt-1.5 mx-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                            <span 
+                              className="text-[10px] font-medium text-slate-500 cursor-help"
+                              title={msg.createdAt ? new Date(msg.createdAt).toLocaleString() : ''}
+                            >
+                              {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (msg.time || '')}
+                            </span>
+                            {isMe && (
+                              <span className={`text-sm ${isSeen ? 'text-blue-400' : 'text-slate-500'}`} title={isSeen ? "Read" : "Sent"}>
+                                {isSeen ? (
+                                  <div className="flex -space-x-1.5">
+                                    <FiCheck /><FiCheck />
+                                  </div>
+                                ) : (
+                                  <FiCheck />
+                                )}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
+                  </React.Fragment>
                 );
               })}
               <div ref={messagesEndRef} />

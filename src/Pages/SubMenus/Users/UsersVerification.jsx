@@ -131,7 +131,7 @@ const UsersVerification = () => {
             <FiUser className="text-amber-400" />
             KYC Verification
           </h1>
-          <p className="text-slate-400 font-medium mt-1">Approve or reject pending KYC applications.</p>
+          <p className="text-slate-400 font-medium mt-1">Approve or reject pending applications.</p>
         </div>
         
         <div className="relative w-full md:w-72">

@@ -2,9 +2,16 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { BASE_URL } from '../api/axios';
-import { FiBox, FiLoader, FiAlertCircle, FiChevronDown, FiCalendar, FiEye, FiX, FiMapPin, FiCreditCard, FiUser, FiPhone, FiMail } from 'react-icons/fi';
+import { FiBox, FiLoader, FiAlertCircle, FiChevronDown, FiCalendar, FiEye, FiX, FiMapPin, FiCreditCard, FiUser, FiPhone, FiMail, FiFileText, FiUpload, FiDownload, FiCheckCircle } from 'react-icons/fi';
 import CustomDropdown from '../Components/CustomDropdown';
 import { useOutletContext } from 'react-router-dom';
+
+const getImageUrl = (path) => {
+  if (!path) return '';
+  if (path.startsWith('http') || path.startsWith('blob:')) return path;
+  const cleanPath = path.replace(/\\/g, '/');
+  return `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
+};
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -13,6 +20,7 @@ const Orders = () => {
   const [updatingId, setUpdatingId] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isUploadingInvoice, setIsUploadingInvoice] = useState(false);
   
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -91,6 +99,53 @@ const Orders = () => {
     setSelectedOrder(null);
   };
 
+  const handleInvoiceUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      alert('Please upload a PDF file only.');
+      return;
+    }
+
+    setIsUploadingInvoice(true);
+    try {
+      const token = sessionStorage.getItem('accessToken');
+      const formData = new FormData();
+      formData.append('invoice', file);
+      console.log(selectedOrder._id);
+      const response = await axios.post(
+        `${BASE_URL}/api/admin/orders/${selectedOrder._id}/invoice`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      const updatedInvoiceUrl = response.data.invoiceUrl;
+
+      // Update the selected order in the modal
+      const updatedOrder = { ...selectedOrder, invoiceUrl: updatedInvoiceUrl };
+      setSelectedOrder(updatedOrder);
+
+      // Update the order in the main list
+      setOrders(orders.map(order => 
+        order._id === selectedOrder._id ? { ...order, invoiceUrl: updatedInvoiceUrl } : order
+      ));
+
+      alert('✅ Invoice uploaded & email sent successfully');
+    } catch (err) {
+      console.error('Invoice upload failed', err);
+      const errorMessage = err.response?.data?.message || 'Failed to upload invoice. Please try again.';
+      alert(`Error: ${errorMessage}`);
+    } finally {
+      setIsUploadingInvoice(false);
+    }
+  };
+
   // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -160,7 +215,14 @@ const Orders = () => {
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
                     <td className="p-4 font-mono text-sm text-blue-300 font-medium" title={order._id}>
-                      #{order._id.slice(-6).toUpperCase()}
+                      <div className="flex flex-col">
+                        <span>{order._id}</span>
+                        {order.invoiceUrl && (
+                          <span className="text-[10px] text-emerald-400 font-sans mt-0.5 flex items-center gap-1">
+                            <FiFileText className="shrink-0" /> Invoiced
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="p-4 text-sm text-slate-300 whitespace-nowrap">
                       <div className="flex items-center gap-2">
@@ -480,6 +542,72 @@ const Orders = () => {
                   <div className="flex-1 flex flex-col justify-center items-end bg-black/20 p-4 rounded-xl border border-white/5">
                     <span className="text-sm text-slate-400 mb-1">Total Order Amount</span>
                     <span className="text-3xl font-black text-emerald-400">₹{(selectedOrder.totalAmount || 0).toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Invoice Section */}
+              <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5 space-y-4">
+                <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                  <FiFileText className="text-blue-400" /> Invoice Management
+                </h4>
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-black/20 p-4 rounded-xl border border-white/5">
+                  <div className="flex-1 space-y-1">
+                    {selectedOrder.invoiceUrl ? (
+                      <div>
+                        <span className="text-emerald-400 text-sm font-medium flex items-center gap-1.5">
+                          <FiCheckCircle /> Invoice is ready & sent to customer
+                        </span>
+                        <p className="text-xs text-slate-400 mt-1">
+                          You can download the invoice or upload a new one to overwrite it.
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <span className="text-amber-400 text-sm font-medium flex items-center gap-1.5">
+                          <FiAlertCircle /> No Invoice Uploaded
+                        </span>
+                        <p className="text-xs text-slate-400 mt-1">
+                          Upload the invoice (PDF) to attach it to the order and notify the customer via email.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-3 items-center w-full md:w-auto justify-end">
+                    {selectedOrder.invoiceUrl && (
+                      <a
+                        href={getImageUrl(selectedOrder.invoiceUrl)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-lg transition-colors text-sm font-medium border border-emerald-500/20 flex items-center gap-2 cursor-pointer"
+                      >
+                        <FiDownload /> Download Invoice
+                      </a>
+                    )}
+                    
+                    <label className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer ${
+                      isUploadingInvoice 
+                        ? 'bg-slate-800 text-slate-500 border border-white/5 cursor-not-allowed'
+                        : 'bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-500/20 border border-blue-500'
+                    }`}>
+                      {isUploadingInvoice ? (
+                        <>
+                          <FiLoader className="animate-spin" /> Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <FiUpload /> {selectedOrder.invoiceUrl ? 'Update Invoice' : 'Upload Invoice'}
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept=".pdf,application/pdf"
+                        onChange={handleInvoiceUpload}
+                        disabled={isUploadingInvoice}
+                        className="hidden"
+                      />
+                    </label>
                   </div>
                 </div>
               </div>

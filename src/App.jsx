@@ -14,11 +14,12 @@ import Banners from './Pages/Banners';
 import Notifications from './Pages/Notifications';
 import Maintenance from './Pages/SubMenus/Settings/Maintenance';
 import Profile from './Pages/Common/Profile';
-import Variants from './Pages/SubMenus/Products/Variants';
+import Variants from './Pages/SubMenus/Products/editProduct';
 import Cart from './Pages/Cart';
 import Chat from './Pages/Chat';
 import UsersList from './Pages/SubMenus/Users/UsersList';
 import UsersVerification from './Pages/SubMenus/Users/UsersVerification';
+import ActiveUsers from './Pages/SubMenus/Users/ActiveUsers';
 import Faqs from './Pages/SubMenus/Settings/Faqs';
 import PrivacyP from './Pages/SubMenus/Settings/PrivacyP';
 import TermsAndCo from './Pages/SubMenus/Settings/TC';
@@ -55,6 +56,7 @@ function App() {
               <Route path="/chat" element={<Chat/>} />
               <Route path='/users/list' element={<UsersList/>}/>
               <Route path='/users/verify' element={<UsersVerification/>}/>
+              <Route path='/users/active' element={<ActiveUsers/>}/>
               <Route path="/settings/maintenance" element={<Maintenance />} />
               <Route path="/settings/faqs" element={<Faqs/>} />
               <Route path="/settings/privacy-policy" element={<PrivacyP/>} />

@@ -32,10 +32,10 @@ const Layout = () => {
   };
 
   const toggleSubMenu = (menuName) => {
-    setOpenMenus(prev => ({
-      ...prev,
-      [menuName]: !prev[menuName]
-    }));
+    setOpenMenus(prev => {
+      if (prev[menuName]) return {}; // Close if it's already open
+      return { [menuName]: true }; // Open this menu, implicitly closing others
+    });
   };
 
   // Close mobile menu automatically when a route changes
@@ -186,6 +186,16 @@ const Layout = () => {
     return () => clearInterval(intervalId);
   }, [user, location.pathname]);
 
+  // Update browser tab title with total unread notification counts
+  useEffect(() => {
+    const totalNotifications = chatUnreadCount + ordersUnreadCount + usersUnreadCount;
+    if (totalNotifications > 0) {
+      document.title = `(${totalNotifications}) Inizio`;
+    } else {
+      document.title = 'Inizio';
+    }
+  }, [chatUnreadCount, ordersUnreadCount, usersUnreadCount]);
+
   if (!user) {
     return <Navigate to="/login" replace />;
   }
@@ -305,7 +315,7 @@ const Layout = () => {
           </button>
         </div>
         
-        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto custom-scrollbar">
+        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto no-scrollbar">
           <p className="px-2 mb-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
             MAIN MENU
           </p>
@@ -347,8 +357,13 @@ const Layout = () => {
                   </button>
 
                   {/* Collapsible Sub-Menus */}
-                  {isOpen && (
-                    <div className="pl-11 pr-2 py-1 space-y-1">
+                  <div 
+                    className={`grid transition-all duration-300 ease-in-out ${
+                      isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 pointer-events-none'
+                    }`}
+                  >
+                    <div className="overflow-hidden">
+                      <div className="pl-11 pr-2 py-1 space-y-1">
                       {menu.subMenus.map((sub) => {
                         const isSubActive = location.pathname === sub.path;
                         const SubIcon = sub.icon;
@@ -357,6 +372,7 @@ const Layout = () => {
                           <Link
                             key={sub.path}
                             to={sub.path}
+                            onClick={() => setIsMobileMenuOpen(false)}
                             className={`
                               flex items-center justify-between px-4 py-2 rounded-lg text-sm font-medium transition-colors
                               ${isSubActive 
@@ -377,8 +393,9 @@ const Layout = () => {
                           </Link>
                         );
                       })}
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               );
             }
@@ -391,6 +408,10 @@ const Layout = () => {
               <Link 
                 key={menu.path} 
                 to={menu.path} 
+                onClick={() => {
+                  setOpenMenus({});
+                  setIsMobileMenuOpen(false);
+                }}
                 className={`
                   flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group
                   ${isActive

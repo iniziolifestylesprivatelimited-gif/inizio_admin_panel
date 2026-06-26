@@ -228,7 +228,7 @@ const Dashboard = () => {
       <div className="relative mt-8 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 sm:p-8 overflow-hidden z-10">
         <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
         <div className="relative flex items-center justify-between mb-6 z-10">
-          <h2 className="text-lg font-bold text-white">Electronics Sales Overview</h2>
+          <h2 className="text-lg font-bold text-white">Sales Overview</h2>
         </div>
         <div className="relative h-80 w-full z-10">
           <ReactApexChart options={apexOptions} series={apexSeries} type="area" height="100%" width="100%" />
