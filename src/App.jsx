@@ -10,8 +10,11 @@ import ProductList from './Pages/SubMenus/Products/ProductList';
 import ProductMapping from './Pages/SubMenus/Products/ProductMapping';
 import Category from './Pages/SubMenus/Catalog/Category';
 import Brands from './Pages/SubMenus/Catalog/Brands';
+import HomeOrdering from './Pages/SubMenus/Catalog/HomeOrdering';
 import Banners from './Pages/Banners';
 import Notifications from './Pages/Notifications';
+import CampaignStats from './Pages/CampaignStats';
+import CampaignDetail from './Pages/CampaignDetail';
 import Maintenance from './Pages/SubMenus/Settings/Maintenance';
 import Profile from './Pages/Common/Profile';
 import Variants from './Pages/SubMenus/Products/editProduct';
@@ -48,10 +51,18 @@ function App() {
               <Route path="/products/updated-stock" element={<UpdatedStock />} />
               <Route path="/products/categories" element={<Category />} />
               <Route path="/products/brands" element={<Brands />} />
+              <Route path="/products/home-order" element={<HomeOrdering />} />
               <Route path='/banners' element={<Banners/>}/>
               <Route path='/notifications' element={<Notifications/>}/>
+              <Route path='/campaign-stats' element={<CampaignStats/>}/>
+              <Route path='/campaign-stats/:campaignId' element={<CampaignDetail/>}/>
               <Route path="/products/variants/:id" element={<Variants />} />
-              <Route path="/orders" element={<Orders />} />
+              <Route path="/orders" element={<Navigate to="/orders/all" replace />} />
+              <Route path="/orders/all" element={<Orders defaultStatus="all" />} />
+              <Route path="/orders/processing" element={<Orders defaultStatus="processing" />} />
+              <Route path="/orders/shipped" element={<Orders defaultStatus="shipped" />} />
+              <Route path="/orders/cancelled" element={<Orders defaultStatus="cancelled" />} />
+              <Route path="/orders/delivered" element={<Orders defaultStatus="delivered" />} />
               <Route path="/ledgers" element={<Ledgers />} />
               <Route path="/chat" element={<Chat/>} />
               <Route path='/users/list' element={<UsersList/>}/>

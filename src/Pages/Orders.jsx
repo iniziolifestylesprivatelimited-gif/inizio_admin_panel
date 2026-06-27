@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
-import { BASE_URL } from '../api/axios';
-import { FiBox, FiLoader, FiAlertCircle, FiChevronDown, FiCalendar, FiEye, FiX, FiMapPin, FiCreditCard, FiUser, FiPhone, FiMail, FiFileText, FiUpload, FiDownload, FiCheckCircle } from 'react-icons/fi';
+import { BASE_URL, api } from '../api/axios';
+import { 
+  FiBox, FiLoader, FiAlertCircle, FiChevronDown, FiCalendar, 
+  FiEye, FiX, FiMapPin, FiCreditCard, FiUser, FiPhone, FiMail, 
+  FiFileText, FiUpload, FiDownload, FiCheckCircle, FiTrash2, FiInfo, FiRefreshCcw, FiCheck 
+} from 'react-icons/fi';
 import CustomDropdown from '../Components/CustomDropdown';
 import { useOutletContext } from 'react-router-dom';
 
@@ -13,17 +17,32 @@ const getImageUrl = (path) => {
   return `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
 };
 
-const Orders = () => {
+const Orders = ({ defaultStatus = 'all' }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updatingId, setUpdatingId] = useState(null);
+  
+  // Modals state
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isUploadingInvoice, setIsUploadingInvoice] = useState(false);
+
+  // Delivered tab configuration
+  const [activeDeliveredTab, setActiveDeliveredTab] = useState('orders'); // 'orders' or 'returns'
   
+  // Return requests state
+  const [returnsList, setReturnsList] = useState([]);
+  const [loadingReturns, setLoadingReturns] = useState(false);
+  const [errorReturns, setErrorReturns] = useState('');
+  const [selectedReturn, setSelectedReturn] = useState(null);
+  const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
+  const [rejectionInputOpen, setRejectionInputOpen] = useState(false);
+  const [rejectionReasonText, setRejectionReasonText] = useState('');
+
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
+  const [currentReturnsPage, setCurrentReturnsPage] = useState(1);
   const itemsPerPage = 10;
 
   const { setOrdersUnreadCount } = useOutletContext() || {};
@@ -31,30 +50,54 @@ const Orders = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
+      setError('');
       const token = sessionStorage.getItem('accessToken');
       const response = await axios.get(`${BASE_URL}/api/orders/all`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      // API returns an array, or an object with an array field (handling both safely)
       const fetchedOrders = Array.isArray(response.data) ? response.data : response.data.orders || [];
-      // Sort by latest orders first
+      // Sort latest first
       setOrders(fetchedOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
       
-      // Clear the notification badge once data is viewed
       if (setOrdersUnreadCount) {
         setOrdersUnreadCount(0);
       }
-      setLoading(false);
     } catch (err) {
       console.error(err);
       setError('Failed to load orders.');
+    } finally {
       setLoading(false);
     }
   };
 
+  const fetchReturns = async () => {
+    try {
+      setLoadingReturns(true);
+      setErrorReturns('');
+      const token = sessionStorage.getItem('accessToken');
+      const response = await axios.get(`${BASE_URL}/api/returns`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const fetchedReturns = Array.isArray(response.data) ? response.data : response.data.returns || [];
+      setReturnsList(fetchedReturns.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+    } catch (err) {
+      console.error(err);
+      setErrorReturns('Failed to load return requests.');
+    } finally {
+      setLoadingReturns(false);
+    }
+  };
+
+  // console.log(returnsList)
+
   useEffect(() => {
+    setCurrentPage(1);
+    setCurrentReturnsPage(1);
     fetchOrders();
-  }, []);
+    if (defaultStatus === 'delivered') {
+      fetchReturns();
+    }
+  }, [defaultStatus]);
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
@@ -65,9 +108,7 @@ const Orders = () => {
         { orderStatus: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-        // console.log(newStatus)
 
-      // Update local state with the returned updated order
       setOrders(orders.map(order =>
         order._id === orderId ? { ...order, orderStatus: response.data.orderStatus || newStatus } : order
       ));
@@ -79,13 +120,58 @@ const Orders = () => {
     }
   };
 
+  const handleReturnStatusChange = async (returnId, newStatus, rejectionReason = '') => {
+    try {
+      setUpdatingId(returnId);
+      const token = sessionStorage.getItem('accessToken');
+      const payload = { status: newStatus };
+      if (newStatus === 'Rejected' && rejectionReason) {
+        payload.rejectionReason = rejectionReason;
+      }
+      
+      const response = await axios.put(
+        `${BASE_URL}/api/returns/${returnId}/status`,
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const updated = response.data.return || response.data;
+      setReturnsList(returnsList.map(item =>
+        (item._id === returnId || item.id === returnId) ? { ...item, status: updated.status || newStatus, rejectionReason: updated.rejectionReason || rejectionReason } : item
+      ));
+
+      if (selectedReturn && (selectedReturn._id === returnId || selectedReturn.id === returnId)) {
+        setSelectedReturn({ ...selectedReturn, status: updated.status || newStatus, rejectionReason: updated.rejectionReason || rejectionReason });
+      }
+
+      setRejectionInputOpen(false);
+      setRejectionReasonText('');
+      alert(`Return status successfully set to: ${newStatus}`);
+    } catch (err) {
+      console.error('Failed to update return status:', err);
+      alert(err.response?.data?.message || 'Failed to update return status.');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'delivered': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
       case 'shipped': return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
       case 'processing': return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
       case 'cancelled': return 'bg-red-500/20 text-red-400 border-red-500/30';
-      default: return 'bg-amber-500/20 text-amber-400 border-amber-500/30'; // For 'Pending' and others
+      default: return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
+    }
+  };
+
+  const getReturnStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'completed': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+      case 'approved': return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+      case 'rejected': return 'bg-red-500/20 text-red-400 border-red-500/30';
+      case 'requested': return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
+      default: return 'bg-amber-500/20 text-amber-400 border-amber-500/30'; // Pending/Requested
     }
   };
 
@@ -97,6 +183,13 @@ const Orders = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedOrder(null);
+  };
+
+  const closeReturnModal = () => {
+    setIsReturnModalOpen(false);
+    setSelectedReturn(null);
+    setRejectionInputOpen(false);
+    setRejectionReasonText('');
   };
 
   const handleInvoiceUpload = async (e) => {
@@ -113,7 +206,6 @@ const Orders = () => {
       const token = sessionStorage.getItem('accessToken');
       const formData = new FormData();
       formData.append('invoice', file);
-      console.log(selectedOrder._id);
       const response = await axios.post(
         `${BASE_URL}/api/admin/orders/${selectedOrder._id}/invoice`,
         formData,
@@ -127,11 +219,8 @@ const Orders = () => {
 
       const updatedInvoiceUrl = response.data.invoiceUrl;
 
-      // Update the selected order in the modal
-      const updatedOrder = { ...selectedOrder, invoiceUrl: updatedInvoiceUrl };
-      setSelectedOrder(updatedOrder);
-
-      // Update the order in the main list
+      // Update states
+      setSelectedOrder({ ...selectedOrder, invoiceUrl: updatedInvoiceUrl });
       setOrders(orders.map(order => 
         order._id === selectedOrder._id ? { ...order, invoiceUrl: updatedInvoiceUrl } : order
       ));
@@ -139,42 +228,51 @@ const Orders = () => {
       alert('✅ Invoice uploaded & email sent successfully');
     } catch (err) {
       console.error('Invoice upload failed', err);
-      const errorMessage = err.response?.data?.message || 'Failed to upload invoice. Please try again.';
-      alert(`Error: ${errorMessage}`);
+      alert(`Error: ${err.response?.data?.message || 'Failed to upload invoice.'}`);
     } finally {
       setIsUploadingInvoice(false);
     }
   };
 
-  // Pagination logic
+  // Filter orders according to sub-menu state
+  const filteredOrders = orders.filter(order => {
+    if (defaultStatus === 'all') return true;
+    return order.orderStatus?.toLowerCase() === defaultStatus.toLowerCase();
+  });
+
+  // Pagination for orders
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentOrders = orders.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(orders.length / itemsPerPage);
+  const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
 
-  const handleNextPage = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-  };
+  // Pagination for returns
+  const indexOfLastReturn = currentReturnsPage * itemsPerPage;
+  const indexOfFirstReturn = indexOfLastReturn - itemsPerPage;
+  const currentReturns = returnsList.slice(indexOfFirstReturn, indexOfLastReturn);
+  const totalReturnsPages = Math.ceil(returnsList.length / itemsPerPage);
 
-  const handlePrevPage = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
-  };
-
-  console.log(orders);
-  
   return (
     <div className="relative space-y-4 min-h-full z-0">
       {/* Glassmorphism Background Ambient Glows */}
       <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
-      {/* <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div> */}
 
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-            <FiBox className="text-blue-400" /> Orders Management
+            <FiBox className="text-blue-400" /> 
+            {defaultStatus === 'all' && 'All Orders'}
+            {defaultStatus === 'processing' && 'Processing Orders'}
+            {defaultStatus === 'shipped' && 'Shipped Orders'}
+            {defaultStatus === 'cancelled' && 'Cancelled Orders'}
+            {defaultStatus === 'delivered' && 'Delivered & Returns'}
           </h1>
-          <p className="text-slate-400 font-medium mt-1">View and manage customer order fulfillment statuses.</p>
+          <p className="text-slate-400 font-medium mt-1">
+            {defaultStatus === 'delivered' 
+              ? 'Review finished customer orders and process user product return logs.' 
+              : 'View and manage customer order fulfillment statuses.'}
+          </p>
         </div>
       </div>
 
@@ -193,186 +291,340 @@ const Orders = () => {
 
       {!loading && !error && (
         <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-2xl md:rounded-3xl overflow-hidden flex flex-col h-full">
-          <div className="overflow-auto custom-scrollbar max-h-[70vh]">
-            <table className="w-full text-left border-collapse min-w-200">
-              <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md shadow-md">
-                <tr className="border-b border-white/10 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  <th className="p-2 pl-6 w-16">S.No</th>
-                  <th className="p-4">Order ID</th>
-                  <th className="p-4">Date</th>
-                  <th className="p-4">Customer</th>
-                  <th className="p-4">Items</th>
-                  <th className="p-4">Amount</th>
-                  <th className="p-4">Payment</th>
-                  <th className="p-2 text-center">Details</th>
-                  <th className="p-4 pr-6">Status Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {currentOrders.map((order, index) => (
-                  <tr key={order._id} className="hover:bg-transparent transition-colors group align-middle">
-                    <td className="p-3 pl-6 text-sm text-slate-400 font-medium">
-                      {(currentPage - 1) * itemsPerPage + index + 1}
-                    </td>
-                    <td className="p-4 font-mono text-sm text-blue-300 font-medium" title={order._id}>
-                      <div className="flex flex-col">
-                        <span>{order._id}</span>
-                        {order.invoiceUrl && (
-                          <span className="text-[10px] text-emerald-400 font-sans mt-0.5 flex items-center gap-1">
-                            <FiFileText className="shrink-0" /> Invoiced
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="p-4 text-sm text-slate-300 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <FiCalendar className="text-slate-500 shrink-0" />
-                        {new Date(order.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </div>
-                    </td>
-                    <td className="p-4 text-sm">
-                      <div className="flex flex-col items-start gap-1">
-                        <span className="text-slate-200 font-medium capitalize line-clamp-1">{order.address?.name || 'Unknown Customer'}</span>
-                        <span className="text-slate-400 text-xs tracking-wider">{order.address?.phone || 'N/A'}</span>
-                      </div>
-                    </td>
-                    <td className="p-4 text-sm">
-                      <div className="flex items-center gap-3">
-                        {order.items && (order.items[0]?.image || order.items[0]?.variant?.images?.[0] || order.items[0]?.product?.images?.[0]) && (
-                          <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/10 shrink-0 border border-white/5">
-                            <img src={order.items[0].image || order.items[0].variant?.images?.[0] || order.items[0].product?.images?.[0]} alt="Product" className="w-full h-full object-cover bg-white" />
-                          </div>
-                        )}
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-slate-200 font-medium line-clamp-1 max-w-37.5" title={order.items?.[0]?.product?.name || order.items?.[0]?.name}>
-                            {order.items?.[0]?.product?.name || order.items?.[0]?.name || 'Product'}
-                          </span>
-                          {order.items?.[0]?.variant?.name && (
-                            <span className="text-amber-400 text-xs mt-0.5 line-clamp-1" title={order.items[0].variant.name}>
-                              Variant: {order.items[0].variant.name}
-                            </span>
-                          )}
-                          <span className="text-xs text-slate-400 mt-0.5">
-                            {order.items?.length > 1 ? `+ ${order.items.length - 1} more item(s)` : `Qty: ${order.items?.[0]?.quantity || 1}`}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-4 text-sm font-bold text-emerald-400">
-                      ₹{order.totalAmount?.toLocaleString('en-IN') || 0}
-                    </td>
-                    <td className="p-4 text-sm">
-                      <div className="flex flex-col items-start gap-1.5">
-                        <span className="text-slate-200 font-medium">{order.paymentMethod}</span>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border ${order.paymentStatus === 'Paid' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border-amber-500/30'}`}>
-                          {order.paymentStatus || 'Pending'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="p-4 text-sm text-center">
-                      <button
-                        onClick={() => handleViewDetails(order)}
-                        className="p-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 hover:text-white rounded-lg transition-colors border border-blue-500/20 cursor-pointer mx-auto block"
-                        title="View Full Details"
-                      >
-                        <FiEye className="text-lg" />
-                      </button>
-                    </td>
-                    <td className="p-4 pr-6">
-                      <div className="relative inline-block w-full min-w-35">
-                        {updatingId === order._id ? (
-                          <div className="flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold text-slate-400 bg-black/20 border border-white/5 rounded-lg w-full">
-                            <FiLoader className="animate-spin" /> Updating
-                          </div>
-                        ) : (
-                          <CustomDropdown
-                            value={order.orderStatus || 'Pending'}
-                            onChange={(newStatus) => handleStatusChange(order._id, newStatus)}
-                            options={['Processing', 'Shipped', 'Delivered', 'Cancelled']}
-                            statusColor={getStatusColor(order.orderStatus)}
-                          />
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {orders.length === 0 && (
-              <div className="p-16 flex flex-col items-center justify-center text-slate-500">
-                <FiBox className="text-5xl mb-4 opacity-50" />
-                <p className="text-lg font-medium text-slate-400">No orders found.</p>
-                <p className="text-sm mt-1">Orders placed by customers will appear here.</p>
-              </div>
-            )}
-          </div>
-
-          {orders.length > itemsPerPage && (
-            <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-black/20">
-              <span className="text-sm text-slate-400 text-center sm:text-left">
-                Showing <span className="font-bold text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastItem, orders.length)}</span> of <span className="font-bold text-white">{orders.length}</span> orders
-              </span>
-              <div className="flex space-x-2 w-full sm:w-auto justify-center sm:justify-end">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="px-4 py-2 bg-transparent hover:bg-white/10 text-slate-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium border border-white/10"
-                >
-                  Previous
-                </button>
-                <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 items-center">
-                  {(() => {
-                    const pageNumbers = [];
-                    if (totalPages <= 7) {
-                      for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
-                    } else {
-                      if (currentPage <= 4) {
-                        for (let i = 1; i <= 5; i++) pageNumbers.push(i);
-                        pageNumbers.push('...');
-                        pageNumbers.push(totalPages);
-                      } else if (currentPage >= totalPages - 3) {
-                        pageNumbers.push(1);
-                        pageNumbers.push('...');
-                        for (let i = totalPages - 4; i <= totalPages; i++) pageNumbers.push(i);
-                      } else {
-                        pageNumbers.push(1);
-                        pageNumbers.push('...');
-                        for (let i = currentPage - 1; i <= currentPage + 1; i++) pageNumbers.push(i);
-                        pageNumbers.push('...');
-                        pageNumbers.push(totalPages);
-                      }
-                    }
-                    return pageNumbers.map((page, index) => (
-                      <button
-                        key={index}
-                        onClick={() => {
-                          if (page !== '...') setCurrentPage(page);
-                        }}
-                        disabled={page === '...'}
-                        className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-sm font-medium border transition-colors shrink-0 ${
-                          page === currentPage
-                            ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
-                            : page === '...'
-                            ? 'bg-transparent text-slate-500 border-transparent cursor-default'
-                            : 'bg-slate-800 text-slate-300 border-white/10 hover:bg-slate-700 cursor-pointer'
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ));
-                  })()}
-                </div>
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages || totalPages === 0}
-                  className="px-4 py-2 bg-transparent hover:bg-white/10 text-slate-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium border border-white/10"
-                >
-                  Next
-                </button>
-              </div>
+          
+          {/* Delivered Tab Header Switching Section */}
+          {defaultStatus === 'delivered' && (
+            <div className="flex border-b border-white/10 px-6 py-4 bg-slate-900/40 gap-6">
+              <button
+                onClick={() => setActiveDeliveredTab('orders')}
+                className={`pb-2 text-sm font-bold border-b-2 transition-colors cursor-pointer ${activeDeliveredTab === 'orders' ? 'border-blue-500 text-white' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
+              >
+                Delivered Orders ({filteredOrders.length})
+              </button>
+              <button
+                onClick={() => setActiveDeliveredTab('returns')}
+                className={`pb-2 text-sm font-bold border-b-2 transition-colors relative cursor-pointer ${activeDeliveredTab === 'returns' ? 'border-blue-500 text-white' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
+              >
+                Return Requests ({returnsList.length})
+                {returnsList.filter(r => r.status?.toLowerCase() === 'pending' || r.status?.toLowerCase() === 'requested').length > 0 && (
+                  <span className="absolute -top-1 -right-3 w-2 h-2 rounded-full bg-red-500"></span>
+                )}
+              </button>
             </div>
           )}
+
+          {/* DELIVERED ORDERS VIEW TAB OR OTHER VIEWS */}
+          {(defaultStatus !== 'delivered' || activeDeliveredTab === 'orders') ? (
+            <>
+              <div className="overflow-auto custom-scrollbar max-h-[70vh]">
+                <table className="w-full text-left border-collapse min-w-200">
+                  <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md shadow-md">
+                    <tr className="border-b border-white/10 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                      <th className="p-2 pl-6 w-16">S.No</th>
+                      <th className="p-4">Order ID</th>
+                      <th className="p-4">Date</th>
+                      <th className="p-4">Customer</th>
+                      <th className="p-4">Items</th>
+                      <th className="p-4">Amount</th>
+                      <th className="p-4">Payment</th>
+                      <th className="p-2 text-center">Details</th>
+                      <th className="p-4 pr-6">Status Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {currentOrders.map((order, index) => (
+                      <tr key={order._id} className="hover:bg-white/5 transition-colors group align-middle">
+                        <td className="p-3 pl-6 text-sm text-slate-400 font-medium">
+                          {(currentPage - 1) * itemsPerPage + index + 1}
+                        </td>
+                        <td className="p-4 font-mono text-sm text-blue-300 font-medium" title={order._id}>
+                          <div className="flex flex-col">
+                            <span>{order._id}</span>
+                            {order.invoiceUrl && (
+                              <span className="text-[10px] text-emerald-400 font-sans mt-0.5 flex items-center gap-1">
+                                <FiFileText className="shrink-0" /> Invoiced
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-4 text-sm text-slate-300 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <FiCalendar className="text-slate-500 shrink-0" />
+                            {new Date(order.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </div>
+                        </td>
+                        <td className="p-4 text-sm">
+                          <div className="flex flex-col items-start gap-1">
+                            <span className="text-slate-200 font-medium capitalize line-clamp-1">{order.address?.name || 'Unknown Customer'}</span>
+                            <span className="text-slate-400 text-xs tracking-wider">{order.address?.phone || 'N/A'}</span>
+                          </div>
+                        </td>
+                        <td className="p-4 text-sm">
+                          <div className="flex items-center gap-3">
+                            {order.items && (order.items[0]?.image || order.items[0]?.variant?.images?.[0] || order.items[0]?.product?.images?.[0]) && (
+                              <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/10 shrink-0 border border-white/5">
+                                <img src={order.items[0].image || order.items[0].variant?.images?.[0] || order.items[0].product?.images?.[0]} alt="Product" className="w-full h-full object-cover bg-white" />
+                              </div>
+                            )}
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-slate-200 font-medium line-clamp-1 max-w-37.5" title={order.items?.[0]?.product?.name || order.items?.[0]?.name}>
+                                {order.items?.[0]?.product?.name || order.items?.[0]?.name || 'Product'}
+                              </span>
+                              {order.items?.[0]?.variant?.name && (
+                                <span className="text-amber-400 text-xs mt-0.5 line-clamp-1" title={order.items[0].variant.name}>
+                                  Variant: {order.items[0].variant.name}
+                                </span>
+                              )}
+                              <span className="text-xs text-slate-400 mt-0.5">
+                                {order.items?.length > 1 ? `+ ${order.items.length - 1} more item(s)` : `Qty: ${order.items?.[0]?.quantity || 1}`}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-4 text-sm font-bold text-emerald-400">
+                          ₹{order.totalAmount?.toLocaleString('en-IN') || 0}
+                        </td>
+                        <td className="p-4 text-sm">
+                          <div className="flex flex-col items-start gap-1.5">
+                            <span className="text-slate-200 font-medium">{order.paymentMethod}</span>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border ${order.paymentStatus === 'Paid' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                              {order.paymentStatus || 'Pending'}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="p-4 text-sm text-center">
+                          <button
+                            onClick={() => handleViewDetails(order)}
+                            className="p-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 hover:text-white rounded-lg transition-colors border border-blue-500/20 cursor-pointer mx-auto block"
+                            title="View Full Details"
+                          >
+                            <FiEye className="text-lg" />
+                          </button>
+                        </td>
+                        <td className="p-4 pr-6">
+                          <div className="relative inline-block w-full min-w-35">
+                            {updatingId === order._id ? (
+                              <div className="flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold text-slate-400 bg-black/20 border border-white/5 rounded-lg w-full">
+                                <FiLoader className="animate-spin" /> Updating
+                              </div>
+                            ) : (
+                              <CustomDropdown
+                                value={order.orderStatus || 'Pending'}
+                                onChange={(newStatus) => handleStatusChange(order._id, newStatus)}
+                                options={['Processing', 'Shipped', 'Delivered', 'Cancelled']}
+                                statusColor={getStatusColor(order.orderStatus)}
+                              />
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                {filteredOrders.length === 0 && (
+                  <div className="p-16 flex flex-col items-center justify-center text-slate-500">
+                    <FiBox className="text-5xl mb-4 opacity-50" />
+                    <p className="text-lg font-medium text-slate-400">No orders found.</p>
+                    <p className="text-sm mt-1">Orders placed under this category status will appear here.</p>
+                  </div>
+                )}
+              </div>
+
+              {filteredOrders.length > itemsPerPage && (
+                <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-black/20">
+                  <span className="text-sm text-slate-400 text-center sm:text-left">
+                    Showing <span className="font-bold text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastItem, filteredOrders.length)}</span> of <span className="font-bold text-white">{filteredOrders.length}</span> orders
+                  </span>
+                  <div className="flex space-x-2 w-full sm:w-auto justify-center sm:justify-end">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="px-4 py-2 bg-transparent hover:bg-white/10 text-slate-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium border border-white/10"
+                    >
+                      Previous
+                    </button>
+                    <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 items-center">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-sm font-medium border transition-colors shrink-0 ${
+                            page === currentPage
+                              ? 'bg-blue-600 text-white border-blue-500'
+                              : 'bg-slate-800 text-slate-300 border-white/10 hover:bg-slate-700'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages || totalPages === 0}
+                      className="px-4 py-2 bg-transparent hover:bg-white/10 text-slate-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium border border-white/10"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            /* RETURNS LOG VIEW TAB */
+            <>
+              <div className="overflow-auto custom-scrollbar max-h-[70vh]">
+                {loadingReturns ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                    <FiLoader className="animate-spin text-3xl mb-3 text-blue-400" />
+                    <span>Loading return requests...</span>
+                  </div>
+                ) : errorReturns ? (
+                  <div className="p-6 text-red-400 bg-red-950/20 border-b border-white/10 flex items-center gap-2">
+                    <FiAlertCircle /> {errorReturns}
+                  </div>
+                ) : (
+                  <>
+                    <table className="w-full text-left border-collapse min-w-200">
+                      <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md shadow-md">
+                        <tr className="border-b border-white/10 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                          <th className="p-2 pl-6 w-16">S.No</th>
+                          <th className="p-4">Return ID</th>
+                          {/* <th className="p-4">Order ID</th> */}
+                          <th className="p-4">Customer</th>
+                          <th className="p-4">Reason</th>
+                          <th className="p-4">Status</th>
+                          <th className="p-4 text-center">View</th>
+                          <th className="p-4 pr-6 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5 bg-transparent">
+                        {currentReturns.map((ret, index) => {
+                          const returnId = ret._id || ret.id;
+                          const orderId = ret.order?._id || ret.orderId || 'N/A';
+                          const returnReason = ret.items?.[0]?.reason || ret.reason || 'No reason provided';
+                          
+                          return (
+                            <tr key={returnId} className="hover:bg-white/5 transition-colors group align-middle">
+                              <td className="p-3 pl-6 text-sm text-slate-400 font-medium">
+                                {(currentReturnsPage - 1) * itemsPerPage + index + 1}
+                              </td>
+                              <td className="p-4 font-mono text-sm text-blue-300 font-medium">
+                                {returnId}
+                              </td>
+                              {/* <td className="p-4 font-mono text-sm text-slate-400">
+                                {orderId}
+                              </td> */}
+                              <td className="p-4 text-sm">
+                                <div className="flex flex-col">
+                                  <span className="text-slate-200 font-medium capitalize">{ret.user?.name || 'N/A'}</span>
+                                  <span className="text-slate-500 text-xs mt-0.5">{ret.user?.email || 'N/A'}</span>
+                                </div>
+                              </td>
+                              <td className="p-4 text-sm text-slate-300 truncate max-w-[200px]" title={returnReason}>
+                                {returnReason}
+                              </td>
+                              <td className="p-4 text-sm">
+                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${getReturnStatusColor(ret.status)}`}>
+                                  {ret.status || 'Pending'}
+                                </span>
+                              </td>
+                              <td className="p-4 text-sm text-center">
+                                <button
+                                  onClick={() => { setSelectedReturn(ret); setIsReturnModalOpen(true); }}
+                                  className="p-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 hover:text-white rounded-lg transition-colors border border-blue-500/20 cursor-pointer mx-auto block"
+                                  title="View Return Details"
+                                >
+                                  <FiEye className="text-lg" />
+                                </button>
+                              </td>
+                              <td className="p-4 pr-6 text-right space-x-2">
+                                {(ret.status?.toLowerCase() === 'pending' || ret.status?.toLowerCase() === 'requested') && (
+                                  <>
+                                    <button
+                                      onClick={() => handleReturnStatusChange(returnId, 'Approved')}
+                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-xl border border-emerald-500/20 hover:border-emerald-500 text-xs font-bold transition-all shadow-sm cursor-pointer"
+                                    >
+                                      <FiCheck size={14} /> Approve
+                                    </button>
+                                    <button
+                                      onClick={() => { setSelectedReturn(ret); setIsReturnModalOpen(true); setRejectionInputOpen(true); }}
+                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 hover:bg-red-600 text-red-400 hover:text-white rounded-xl border border-red-500/20 hover:border-red-500 text-xs font-bold transition-all shadow-sm cursor-pointer"
+                                    >
+                                      <FiX size={14} /> Reject
+                                    </button>
+                                  </>
+                                )}
+                                {ret.status?.toLowerCase() === 'approved' && (
+                                  <button
+                                    onClick={() => handleReturnStatusChange(returnId, 'Completed')}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 hover:bg-blue-600 text-blue-400 hover:text-white rounded-xl border border-blue-500/20 hover:border-blue-500 text-xs font-bold transition-all shadow-sm cursor-pointer"
+                                  >
+                                    <FiCheckCircle size={14} /> Complete
+                                  </button>
+                                )}
+                                {(ret.status?.toLowerCase() === 'completed' || ret.status?.toLowerCase() === 'rejected') && (
+                                  <span className="text-xs text-slate-500 italic">No actions available</span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+
+                    {returnsList.length === 0 && (
+                      <div className="p-16 flex flex-col items-center justify-center text-slate-500">
+                        <FiRefreshCcw className="text-5xl mb-4 opacity-50" />
+                        <p className="text-lg font-medium text-slate-400">No return requests found.</p>
+                        <p className="text-sm mt-1">Return request tickets raised by clients will appear here.</p>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {returnsList.length > itemsPerPage && (
+                <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-black/20">
+                  <span className="text-sm text-slate-400 text-center sm:text-left">
+                    Showing <span className="font-bold text-white">{indexOfFirstReturn + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastReturn, returnsList.length)}</span> of <span className="font-bold text-white">{returnsList.length}</span> tickets
+                  </span>
+                  <div className="flex space-x-2 w-full sm:w-auto justify-center sm:justify-end">
+                    <button
+                      onClick={() => setCurrentReturnsPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentReturnsPage === 1}
+                      className="px-4 py-2 bg-transparent hover:bg-white/10 text-slate-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium border border-white/10"
+                    >
+                      Previous
+                    </button>
+                    <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 items-center">
+                      {Array.from({ length: totalReturnsPages }, (_, i) => i + 1).map((page) => (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentReturnsPage(page)}
+                          className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-sm font-medium border transition-colors shrink-0 ${
+                            page === currentReturnsPage
+                              ? 'bg-blue-600 text-white border-blue-500'
+                              : 'bg-slate-800 text-slate-300 border-white/10 hover:bg-slate-700'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => setCurrentReturnsPage(prev => Math.min(prev + 1, totalReturnsPages))}
+                      disabled={currentReturnsPage === totalReturnsPages || totalReturnsPages === 0}
+                      className="px-4 py-2 bg-transparent hover:bg-white/10 text-slate-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium border border-white/10"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
         </div>
       )}
 
@@ -613,6 +865,210 @@ const Orders = () => {
               </div>
 
             </div>
+          </div>
+        </div>
+      , document.body)}
+
+      {/* RETURN DETAILS MODAL */}
+      {isReturnModalOpen && selectedReturn && createPortal(
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeReturnModal}></div>
+          
+          <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-4xl h-[90vh] md:h-[80vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            
+            {/* Header */}
+            <div className="px-6 py-4 sm:py-5 border-b border-white/10 flex justify-between items-center bg-slate-800/50 shrink-0">
+              <div>
+                <h3 className="font-bold text-white text-xl flex items-center gap-2">
+                  <FiRefreshCcw className="text-blue-400" />
+                  Return Request Ticket
+                </h3>
+                <p className="text-xs font-mono text-slate-400 mt-1">Ticket ID: {selectedReturn._id || selectedReturn.id}</p>
+              </div>
+              <button onClick={closeReturnModal} className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors cursor-pointer">
+                <FiX className="text-2xl" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="overflow-y-auto w-full flex-1 custom-scrollbar p-6 space-y-6 bg-black/20">
+              {/* Status Indicator */}
+              <div className="flex flex-wrap gap-3">
+                <div className="px-4 py-2 bg-slate-800 border border-white/5 rounded-xl flex items-center gap-2 text-sm">
+                  <FiCalendar className="text-slate-400" />
+                  <span className="text-slate-200">Request Date:</span>
+                  <span className="font-bold text-white">{selectedReturn.createdAt ? new Date(selectedReturn.createdAt).toLocaleString() : 'N/A'}</span>
+                </div>
+                {selectedReturn.status && (
+                  <div className={`px-4 py-2 border rounded-xl flex items-center gap-2 text-sm font-bold ${getReturnStatusColor(selectedReturn.status)}`}>
+                    Status: {selectedReturn.status}
+                  </div>
+                )}
+                {(selectedReturn.orderId || selectedReturn.order?._id) && (
+                  <div className="px-4 py-2 bg-slate-800 border border-white/5 rounded-xl flex items-center gap-2 text-sm">
+                    <FiBox className="text-slate-400" />
+                    <span className="text-slate-200">Order Ref:</span>
+                    <span className="font-bold text-white font-mono">#{selectedReturn.order?._id || selectedReturn.orderId}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Customer Info */}
+                <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5 space-y-3">
+                  <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <FiUser className="text-blue-400" /> Customer Contact
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="block text-xs text-slate-500">Name</span>
+                      <span className="font-medium text-white capitalize">{selectedReturn.user?.name || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="block text-xs text-slate-500">Email</span>
+                      <span className="font-medium text-white">{selectedReturn.user?.email || 'N/A'}</span>
+                    </div>
+                    {selectedReturn.user?.phone && (
+                      <div>
+                        <span className="block text-xs text-slate-500">Phone</span>
+                        <span className="font-medium text-white">{selectedReturn.user.phone}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Reason Info */}
+                <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5 space-y-3 flex flex-col justify-between">
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 mb-2">
+                      <FiInfo className="text-amber-400" /> Reason for Return
+                    </h4>
+                    <p className="text-sm text-slate-200 leading-relaxed italic bg-black/25 p-3 rounded-xl border border-white/5">
+                      "{selectedReturn.items?.[0]?.reason || selectedReturn.reason || 'No description provided.'}"
+                    </p>
+                  </div>
+                  {selectedReturn.rejectionReason && (
+                    <div className="mt-3">
+                      <span className="block text-xs font-bold text-red-400 uppercase tracking-wider mb-1">Rejection Remarks</span>
+                      <p className="text-xs text-red-300 leading-relaxed bg-red-950/20 border border-red-500/20 p-2.5 rounded-lg">
+                        {selectedReturn.rejectionReason}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Items */}
+              {selectedReturn.items && selectedReturn.items.length > 0 && (
+                <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5">
+                  <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <FiBox className="text-purple-400" /> Return Items ({selectedReturn.items.length})
+                  </h4>
+                  <div className="space-y-4">
+                    {selectedReturn.items.map((item, idx) => {
+                      const productName = item.product?.name || item.name || 'Unknown Product';
+                      const productImg = item.product?.images?.[0] || item.image || '';
+                      
+                      return (
+                        <div key={idx} className="flex flex-col sm:flex-row gap-4 justify-between p-4 bg-transparent rounded-xl border border-white/5">
+                          <div className="flex gap-4 items-start flex-1 min-w-0">
+                            {productImg ? (
+                              <div className="w-16 h-16 rounded-xl overflow-hidden bg-white/10 border border-white/5 shrink-0">
+                                <img src={getImageUrl(productImg)} alt={productName} className="w-full h-full object-cover bg-white" />
+                              </div>
+                            ) : (
+                              <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-800 border border-white/5 shrink-0 flex items-center justify-center">
+                                <FiBox className="text-xl text-slate-500" />
+                              </div>
+                            )}
+                            <div className="min-w-0 space-y-1">
+                              <p className="font-bold text-white truncate">{productName}</p>
+                              <p className="text-xs text-slate-400">Returned Qty: <span className="font-bold text-white">{item.quantity || 1}</span></p>
+                              {item.reason && <p className="text-xs text-amber-400">Reason: <span className="text-slate-300 font-medium">{item.reason}</span></p>}
+                              {item.note && <p className="text-xs text-slate-400 italic">Note: "{item.note}"</p>}
+                            </div>
+                          </div>
+                          <div className="text-left sm:text-right shrink-0">
+                            <p className="text-xs text-slate-400">Total Price Value</p>
+                            <p className="font-bold text-emerald-400">₹{(item.price || item.product?.basePrice || 0).toLocaleString('en-IN')}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Rejection Form Overlay */}
+              {rejectionInputOpen && (
+                <div className="p-4 bg-red-950/20 border border-red-500/20 rounded-2xl space-y-3 animate-in slide-in-from-bottom-2">
+                  <label className="block text-xs font-bold text-red-400 uppercase tracking-wider">Provide Rejection Reason</label>
+                  <textarea
+                    required
+                    rows="3"
+                    value={rejectionReasonText}
+                    onChange={(e) => setRejectionReasonText(e.target.value)}
+                    placeholder="Provide details about why the return is rejected (e.g. Item shows signs of physical damage/usage)..."
+                    className="w-full px-3 py-2 bg-slate-900 border border-red-500/30 rounded-xl focus:outline-none focus:ring-1 focus:ring-red-500 text-white text-sm"
+                  ></textarea>
+                  <div className="flex gap-2 justify-end">
+                    <button
+                      onClick={() => handleReturnStatusChange(selectedReturn._id || selectedReturn.id, 'Rejected', rejectionReasonText)}
+                      disabled={!rejectionReasonText.trim()}
+                      className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      Confirm Reject
+                    </button>
+                    <button
+                      onClick={() => { setRejectionInputOpen(false); setRejectionReasonText(''); }}
+                      className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer / Actions */}
+            <div className="px-6 py-4 border-t border-white/10 flex flex-wrap gap-2 justify-between bg-slate-800/30 shrink-0">
+              <button 
+                onClick={closeReturnModal}
+                className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors text-sm"
+              >
+                Close
+              </button>
+
+              {!rejectionInputOpen && (
+                <div className="flex gap-2">
+                  {(selectedReturn.status?.toLowerCase() === 'pending' || selectedReturn.status?.toLowerCase() === 'requested') && (
+                    <>
+                      <button
+                        onClick={() => handleReturnStatusChange(selectedReturn._id || selectedReturn.id, 'Approved')}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-500/10 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-xl border border-emerald-500/20 hover:border-emerald-500 text-sm font-bold transition-all shadow-lg shadow-emerald-500/5 cursor-pointer"
+                      >
+                        <FiCheck size={16} /> Approve Return
+                      </button>
+                      <button
+                        onClick={() => setRejectionInputOpen(true)}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-500/10 hover:bg-red-600 text-red-400 hover:text-white rounded-xl border border-red-500/20 hover:border-red-500 text-sm font-bold transition-all shadow-lg shadow-red-500/5 cursor-pointer"
+                      >
+                        <FiX size={16} /> Reject Return
+                      </button>
+                    </>
+                  )}
+                  {selectedReturn.status?.toLowerCase() === 'approved' && (
+                    <button
+                      onClick={() => handleReturnStatusChange(selectedReturn._id || selectedReturn.id, 'Completed')}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-500/10 hover:bg-blue-600 text-blue-400 hover:text-white rounded-xl border border-blue-500/20 hover:border-blue-500 text-sm font-bold transition-all shadow-lg shadow-blue-500/5 cursor-pointer"
+                    >
+                      <FiCheckCircle size={16} /> Complete Return
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
           </div>
         </div>
       , document.body)}

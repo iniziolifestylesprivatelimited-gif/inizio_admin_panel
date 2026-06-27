@@ -24,6 +24,7 @@ const Variants = () => {
   const [editProductImageFiles, setEditProductImageFiles] = useState([]);
   const [expandedVariantIndex, setExpandedVariantIndex] = useState(0);
   const [activeTab, setActiveTab] = useState('details');
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -466,14 +467,35 @@ const Variants = () => {
 
             <div>
               <h3 className="text-sm font-bold text-slate-300 mb-3">Add Additional Images</h3>
-              <div className="flex items-center gap-4">
+              <div 
+                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDragging(false);
+                  const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+                  if (files.length > 0) {
+                    setEditProductImageFiles([...editProductImageFiles, ...files]);
+                  }
+                }}
+                onClick={() => document.getElementById('product-edit-images-input').click()}
+                className={`w-full h-36 border-2 border-dashed rounded-2xl flex flex-col justify-center items-center gap-2 cursor-pointer transition-all duration-300 relative overflow-hidden group select-none ${
+                  isDragging 
+                    ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/20' 
+                    : 'border-white/10 hover:border-blue-500/40 hover:bg-white/5'
+                }`}
+              >
                 <input 
+                  id="product-edit-images-input"
                   type="file" 
                   multiple 
                   accept="image/*"
                   onChange={(e) => setEditProductImageFiles([...editProductImageFiles, ...Array.from(e.target.files)])}
-                  className="block w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-900/50 file:text-blue-400 hover:file:bg-blue-800/50 transition-colors cursor-pointer"
+                  className="hidden"
                 />
+                <FiImage size={24} className="text-slate-400 group-hover:text-blue-400 transition-colors" />
+                <span className="text-xs font-medium text-slate-300 group-hover:text-white transition-colors">Drag & drop product images here, or <span className="text-blue-400 group-hover:underline">browse</span></span>
+                <span className="text-[10px] text-slate-500">Supports multiple files (JPG, PNG, WEBP)</span>
               </div>
               {editProductImageFiles.length > 0 && (
                 <div className="flex flex-wrap gap-4 mt-4 p-4 bg-slate-800/50 border border-white/10 rounded-xl">

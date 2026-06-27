@@ -18,6 +18,11 @@ const Banners = () => {
   const [banners, setBanners] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,14 +32,14 @@ const Banners = () => {
   // Form State
   const [formData, setFormData] = useState({
     title: '',
-    navigationType: 'NONE',
-    referenceId: '',
-    externalLink: '',
+    clickAction: 'none',
+    actionId: '',
     position: '',
     isActive: true,
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Fetch Banners
   const fetchBanners = async () => {
@@ -44,8 +49,13 @@ const Banners = () => {
       const response = await axios.get(`${BASE_URL}/api/banners`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      // Sort by position automatically
-      const sortedBanners = response.data.sort((a, b) => a.position - b.position);
+      // Sort by position automatically (handle both numeric and string values)
+      const sortedBanners = response.data.sort((a, b) => {
+        if (typeof a.position === 'number' && typeof b.position === 'number') {
+          return a.position - b.position;
+        }
+        return String(a.position || '').localeCompare(String(b.position || ''));
+      });
       setBanners(sortedBanners);
       setLoading(false);
     } catch (err) {
@@ -57,17 +67,40 @@ const Banners = () => {
 
   useEffect(() => {
     fetchBanners();
+
+    // Fetch products, categories, and brands for selection
+    const fetchSelectionData = async () => {
+      try {
+        const token = sessionStorage.getItem('accessToken');
+        const headers = { Authorization: `Bearer ${token}` };
+        
+        const [prodRes, catRes, brandRes] = await Promise.all([
+          axios.get(`${BASE_URL}/api/products/`, { headers }).catch(() => ({ data: [] })),
+          axios.get(`${BASE_URL}/api/categories/`, { headers }).catch(() => ({ data: [] })),
+          axios.get(`${BASE_URL}/api/brands/`, { headers }).catch(() => ({ data: [] }))
+        ]);
+        
+        setProducts(Array.isArray(prodRes.data) ? prodRes.data : []);
+        setCategories(Array.isArray(catRes.data) ? catRes.data : []);
+        setBrands(Array.isArray(brandRes.data) ? brandRes.data : []);
+      } catch (err) {
+        console.error("Failed to load selection data for banners", err);
+      }
+    };
+    
+    fetchSelectionData();
   }, []);
 
   // Open Modal for Add or Edit
   const openModal = (banner = null) => {
+    setIsDropdownOpen(false);
+    setSearchTerm('');
     if (banner) {
       setEditingBanner(banner);
       setFormData({
         title: banner.title || '',
-        navigationType: banner.navigationType || 'NONE',
-        referenceId: banner.referenceId || '',
-        externalLink: banner.externalLink || '',
+        clickAction: banner.clickAction || 'none',
+        actionId: banner.actionId || '',
         position: banner.position || "",
         isActive: banner.isActive ?? true,
       });
@@ -76,9 +109,8 @@ const Banners = () => {
       setEditingBanner(null);
       setFormData({
         title: '',
-        navigationType: 'NONE',
-        referenceId: '',
-        externalLink: '',
+        clickAction: 'none',
+        actionId: '',
         position: "", // Default to next position
         isActive: true,
       });
@@ -93,6 +125,8 @@ const Banners = () => {
     setEditingBanner(null);
     setImageFile(null);
     setImagePreview(null);
+    setIsDropdownOpen(false);
+    setSearchTerm('');
   };
 
   // Handle Image Selection
@@ -115,16 +149,12 @@ const Banners = () => {
       // We MUST use FormData because we are uploading a file (multipart/form-data)
       const data = new FormData();
       data.append('title', formData.title);
-      data.append('navigationType', formData.navigationType);
+      data.append('clickAction', formData.clickAction);
       data.append('position', formData.position);
-      
-      // data.append('isActive', formData.isActive); // <-- Commented out because backend rejects it
+      data.append('isActive', formData.isActive);
 
-      if (['CATEGORY', 'PRODUCT', 'BRAND'].includes(formData.navigationType)) {
-        data.append('referenceId', formData.referenceId);
-      }
-      else if (formData.navigationType === 'EXTERNAL') {
-        data.append('externalLink', formData.externalLink);
+      if (formData.clickAction !== 'none') {
+        data.append('actionId', formData.actionId);
       }
 
       if (imageFile) {
@@ -176,6 +206,24 @@ const Banners = () => {
       console.error(err);
       alert('Failed to delete banner.');
     }
+  };
+
+  // Helper to look up names for products/categories/brands
+  const getActionTargetName = (clickAction, actionId) => {
+    if (!actionId) return '';
+    if (clickAction === 'product') {
+      const p = products.find(prod => prod._id === actionId);
+      return p ? p.name : actionId;
+    }
+    if (clickAction === 'category') {
+      const c = categories.find(cat => cat._id === actionId);
+      return c ? c.name : actionId;
+    }
+    if (clickAction === 'brand') {
+      const b = brands.find(br => br._id === actionId);
+      return b ? b.name : actionId;
+    }
+    return actionId;
   };
 
   return (
@@ -249,8 +297,17 @@ const Banners = () => {
                 
                 <div className="text-xs font-medium text-slate-400 flex items-center mt-1">
                   <FiLink className="mr-1.5" /> 
-                  Type: <span className="ml-1 font-bold text-slate-300">{banner.navigationType}</span>
+                  Action: <span className="ml-1 font-bold uppercase text-slate-300">{banner.clickAction}</span>
                 </div>
+
+                {banner.actionId && (
+                  <div className="text-xs font-medium text-slate-400 flex items-center mt-1">
+                    <span className="mr-1.5 font-bold">Target:</span>
+                    <span className="text-slate-300 truncate" title={banner.actionId}>
+                      {getActionTargetName(banner.clickAction, banner.actionId)}
+                    </span>
+                  </div>
+                )}
 
                 {/* Card Actions (Pushed to bottom) */}
                 <div className="mt-auto pt-4 flex gap-2">
@@ -342,41 +399,140 @@ const Banners = () => {
                   </label>
                 </div>
 
-                {/* Navigation Type */}
+                {/* Click Action */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Navigation Action</label>
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Click Action</label>
                   <select 
-                    value={formData.navigationType}
-                    onChange={(e) => setFormData({...formData, navigationType: e.target.value})}
+                    value={formData.clickAction}
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData, 
+                        clickAction: e.target.value,
+                        actionId: ''
+                      });
+                      setIsDropdownOpen(false);
+                      setSearchTerm('');
+                    }}
                     className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md font-medium text-white"
                   >
-                    <option value="NONE" className="bg-slate-800">No Action (Static Image)</option>
-                    <option value="CATEGORY" className="bg-slate-800">Link to Category</option>
-                    <option value="PRODUCT" className="bg-slate-800">Link to Specific Product</option>
-                    <option value="EXTERNAL" className="bg-slate-800">Link to External Website</option>
+                    <option value="none" className="bg-slate-800">No Action (Static Image)</option>
+                    <option value="category" className="bg-slate-800">Link to Category</option>
+                    <option value="product" className="bg-slate-800">Link to Specific Product</option>
+                    <option value="brand" className="bg-slate-800">Link to Brand</option>
+                    <option value="external" className="bg-slate-800">Link to External Website</option>
                   </select>
                 </div>
 
-                {/* Dynamic Field based on Navigation Type */}
-                {formData.navigationType !== 'NONE' && (
+                {/* Dynamic Field based on Click Action */}
+                {formData.clickAction !== 'none' && (
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
-                      {formData.navigationType === 'EXTERNAL' ? 'External URL' : 'Target ID (Ref ID)'}
-                    </label>
-                    <input 
-                      type={formData.navigationType === 'EXTERNAL' ? 'url' : 'text'} 
-                      required
-                      value={formData.navigationType === 'EXTERNAL' ? formData.externalLink : formData.referenceId}
-                      onChange={(e) => {
-                        if (formData.navigationType === 'EXTERNAL') {
-                          setFormData({...formData, externalLink: e.target.value});
-                        } else {
-                          setFormData({...formData, referenceId: e.target.value});
-                        }
-                      }}
-                      className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500"
-                      placeholder={formData.navigationType === 'EXTERNAL' ? "https://..." : "e.g. 69e88f139..."}
-                    />
+                    {formData.clickAction === 'external' && (
+                      <>
+                        <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">External URL</label>
+                        <input 
+                          type="url" 
+                          required
+                          value={formData.actionId}
+                          onChange={(e) => setFormData({...formData, actionId: e.target.value})}
+                          className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500"
+                          placeholder="https://..."
+                        />
+                      </>
+                    )}
+
+                    {formData.clickAction === 'category' && (
+                      <>
+                        <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Select Category</label>
+                        <select
+                          value={formData.actionId}
+                          onChange={(e) => setFormData({...formData, actionId: e.target.value})}
+                          required
+                          className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white font-medium"
+                        >
+                          <option value="" className="bg-slate-800">-- Select Category --</option>
+                          {categories.map(cat => (
+                            <option key={cat._id} value={cat._id} className="bg-slate-800">{cat.name}</option>
+                          ))}
+                        </select>
+                      </>
+                    )}
+
+                    {formData.clickAction === 'brand' && (
+                      <>
+                        <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Select Brand</label>
+                        <select
+                          value={formData.actionId}
+                          onChange={(e) => setFormData({...formData, actionId: e.target.value})}
+                          required
+                          className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white font-medium"
+                        >
+                          <option value="" className="bg-slate-800">-- Select Brand --</option>
+                          {brands.map(brand => (
+                            <option key={brand._id} value={brand._id} className="bg-slate-800">{brand.name}</option>
+                          ))}
+                        </select>
+                      </>
+                    )}
+
+                    {formData.clickAction === 'product' && (
+                      <div className="relative">
+                        <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Select Product</label>
+                        
+                        {/* Dropdown Display Box */}
+                        <div 
+                          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                          className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl focus-within:ring-2 focus-within:ring-blue-500/50 cursor-pointer flex justify-between items-center shadow-inner backdrop-blur-md text-white"
+                        >
+                          <span className={formData.actionId ? "text-white font-medium truncate" : "text-slate-500"}>
+                            {formData.actionId 
+                              ? (products.find(p => p._id === formData.actionId)?.name || 'Select a Product') 
+                              : 'Select a Product'}
+                          </span>
+                          <span className="text-slate-400 text-xs">▼</span>
+                        </div>
+
+                        {/* Dropdown Menu */}
+                        {isDropdownOpen && (
+                          <div className="absolute z-50 mt-2 w-full bg-slate-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-60">
+                            {/* Search Input Box */}
+                            <div className="p-2 border-b border-white/10 bg-slate-800/50">
+                              <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                placeholder="Type to search product..."
+                                className="w-full px-3 py-1.5 bg-black/40 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-slate-500"
+                                onClick={(e) => e.stopPropagation()} // Prevent closing dropdown on input click
+                                autoFocus
+                              />
+                            </div>
+                            
+                            {/* Products List */}
+                            <div className="overflow-y-auto max-h-48 custom-scrollbar">
+                              {products.filter(p => p.name?.toLowerCase().includes(searchTerm.toLowerCase())).length > 0 ? (
+                                products
+                                  .filter(p => p.name?.toLowerCase().includes(searchTerm.toLowerCase()))
+                                  .map(prod => (
+                                    <div
+                                      key={prod._id}
+                                      onClick={() => {
+                                        setFormData({...formData, actionId: prod._id});
+                                        setIsDropdownOpen(false);
+                                        setSearchTerm('');
+                                      }}
+                                      className={`px-4 py-2 text-sm cursor-pointer hover:bg-blue-600/30 hover:text-white transition-colors ${formData.actionId === prod._id ? 'bg-blue-600/50 text-white font-semibold' : 'text-slate-300'}`}
+                                    >
+                                      {prod.name}
+                                    </div>
+                                  ))
+                              ) : (
+                                <div className="px-4 py-3 text-xs text-slate-500 text-center">No products found</div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -384,27 +540,59 @@ const Banners = () => {
                 <div className="md:col-span-2">
                   <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Banner Image</label>
                   
-                  <div className="flex items-start space-x-4">
-                    {/* Preview Box */}
-                    <div className="w-32 h-20 shrink-0 bg-slate-800 rounded-xl border border-white/10 overflow-hidden flex items-center justify-center">
-                      {imagePreview ? (
-                        <img src={imagePreview} alt="Preview" className="w-full h-full object-contain bg-white p-1" />
-                      ) : (
-                        <FiImage className="text-2xl text-slate-500" />
-                      )}
-                    </div>
-                    
-                    <div className="flex-1">
-                      <input 
-                        type="file" 
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        className="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-900/50 file:text-blue-400 hover:file:bg-blue-800/50 transition-colors"
-                      />
-                      <p className="text-xs text-slate-500 mt-2">
-                        {editingBanner ? "Leave blank to keep the existing image. Recommended size: 1920x600px." : "Required. Recommended size: 1920x600px."}
-                      </p>
-                    </div>
+                  <div 
+                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setIsDragging(false);
+                      const file = e.dataTransfer.files[0];
+                      if (file && file.type.startsWith('image/')) {
+                        setImageFile(file);
+                        setImagePreview(URL.createObjectURL(file));
+                      }
+                    }}
+                    onClick={() => document.getElementById('banner-image-input').click()}
+                    className={`w-full h-40 border-2 border-dashed rounded-2xl flex flex-col justify-center items-center gap-2 cursor-pointer transition-all duration-300 relative overflow-hidden group select-none ${
+                      isDragging 
+                        ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/20' 
+                        : 'border-white/10 hover:border-blue-500/40 hover:bg-white/5'
+                    }`}
+                  >
+                    <input 
+                      id="banner-image-input"
+                      type="file" 
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
+                    {imagePreview ? (
+                      <>
+                        <button 
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setImageFile(null);
+                            setImagePreview(null);
+                          }}
+                          className="absolute top-2.5 right-2.5 p-1.5 bg-slate-900/80 hover:bg-red-600 hover:text-white rounded-lg text-slate-400 transition-colors z-30"
+                          title="Clear file"
+                        >
+                          <FiX size={14} />
+                        </button>
+                        <img src={imagePreview} alt="Preview" className="w-full h-full object-contain bg-white/5 p-2 transition-transform duration-300 group-hover:scale-105" />
+                        <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-center items-center text-xs font-bold text-white gap-2">
+                          <FiImage size={18} className="text-blue-400" />
+                          <span>Click or drag to replace image</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <FiImage size={24} className="text-slate-400 group-hover:text-blue-400 transition-colors" />
+                        <span className="text-xs font-medium text-slate-300 group-hover:text-white transition-colors">Drag & drop banner image here, or <span className="text-blue-400 group-hover:underline">browse</span></span>
+                        <span className="text-[10px] text-slate-500">Recommended size: 1920x600px. Supports JPG, PNG, WEBP</span>
+                      </>
+                    )}
                   </div>
                 </div>
 

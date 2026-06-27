@@ -28,6 +28,9 @@ export const Ledgers = () => {
   const [selectedUser, setSelectedUser] = useState('');
   const [title, setTitle] = useState('');
   const [file, setFile] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [isUserSelectOpen, setIsUserSelectOpen] = useState(false);
 
   const fetchLedgersAndUsers = async () => {
     setLoading(true);
@@ -76,6 +79,8 @@ export const Ledgers = () => {
     setTitle('');
     setSelectedUser('');
     setFile(null);
+    setUserSearchTerm('');
+    setIsUserSelectOpen(false);
   };
 
   const closeModal = () => {
@@ -142,6 +147,7 @@ export const Ledgers = () => {
     return user ? user.name : 'Unknown User';
   };
 
+  console.log(ledgers)
   return (
     <div className="relative space-y-4 min-h-full z-0 isolate w-full">
       {/* Header */}
@@ -242,19 +248,75 @@ export const Ledgers = () => {
             </div>
             
             <form onSubmit={handleSubmit} className="overflow-y-auto custom-scrollbar p-6 space-y-5">
-              <div>
+              <div className="relative">
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Customer</label>
-                <select
-                  value={selectedUser}
-                  onChange={(e) => setSelectedUser(e.target.value)}
-                  required
-                  className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 transition-all text-sm font-medium"
+                
+                {/* Selected Trigger Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsUserSelectOpen(!isUserSelectOpen)}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner text-left text-white text-sm font-medium"
                 >
-                  <option value="" disabled>Select a customer</option>
-                  {users.map(user => (
-                    <option key={user._id} value={user._id}>{user.name} ({user.email})</option>
-                  ))}
-                </select>
+                  <span className="truncate">
+                    {selectedUser 
+                      ? (() => {
+                          const u = users.find(user => user._id === selectedUser);
+                          return u ? `${u.name} (${u.email})` : 'Select a customer';
+                        })()
+                      : 'Select a customer'
+                    }
+                  </span>
+                  <span className="pointer-events-none text-slate-400 text-[10px]">▼</span>
+                </button>
+
+                {/* Dropdown Menu */}
+                {isUserSelectOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setIsUserSelectOpen(false)}></div>
+                    <div className="absolute z-50 w-full mt-2 bg-slate-950 border border-white/10 rounded-xl shadow-2xl p-3 space-y-2 animate-in fade-in duration-200">
+                      <input
+                        type="text"
+                        value={userSearchTerm}
+                        onChange={(e) => setUserSearchTerm(e.target.value)}
+                        placeholder="Search customer by name or email..."
+                        className="w-full px-3 py-2 bg-slate-900 border border-white/10 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 text-white text-xs placeholder-slate-500"
+                        autoFocus
+                      />
+                      
+                      <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-1">
+                        {users.filter(user => 
+                          (user.name || '').toLowerCase().includes(userSearchTerm.toLowerCase()) || 
+                          (user.email || '').toLowerCase().includes(userSearchTerm.toLowerCase())
+                        ).length > 0 ? (
+                          users.filter(user => 
+                            (user.name || '').toLowerCase().includes(userSearchTerm.toLowerCase()) || 
+                            (user.email || '').toLowerCase().includes(userSearchTerm.toLowerCase())
+                          ).map(user => (
+                            <button
+                              key={user._id}
+                              type="button"
+                              onClick={() => {
+                                setSelectedUser(user._id);
+                                setIsUserSelectOpen(false);
+                                setUserSearchTerm('');
+                              }}
+                              className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                                selectedUser === user._id 
+                                  ? 'bg-blue-600 text-white' 
+                                  : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                              }`}
+                            >
+                              <span className="font-bold">{user.name}</span>
+                              <span className={`block text-[10px] ${selectedUser === user._id ? 'text-blue-100' : 'text-slate-500'}`}>{user.email}</span>
+                            </button>
+                          ))
+                        ) : (
+                          <div className="px-3 py-4 text-center text-xs text-slate-500">No customers found</div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div>
@@ -269,15 +331,61 @@ export const Ledgers = () => {
                 />
               </div>
 
+              {/* Ledger File Upload Dropzone */}
               <div>
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Ledger File (PDF)</label>
-                <input
-                  type="file"
-                  onChange={handleFileChange}
-                  accept=".pdf"
-                  required
-                  className="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-900/50 file:text-blue-400 hover:file:bg-blue-800/50 transition-colors"
-                />
+                <div 
+                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragging(false);
+                    const droppedFile = e.dataTransfer.files[0];
+                    if (droppedFile && droppedFile.type === 'application/pdf') {
+                      setFile(droppedFile);
+                    } else if (droppedFile) {
+                      alert('Only PDF files are supported.');
+                    }
+                  }}
+                  onClick={() => document.getElementById('ledger-file-input').click()}
+                  className={`w-full h-36 border-2 border-dashed rounded-2xl flex flex-col justify-center items-center gap-2 cursor-pointer transition-all duration-300 relative overflow-hidden group select-none ${
+                    isDragging 
+                      ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/20' 
+                      : 'border-white/10 hover:border-blue-500/40 hover:bg-white/5'
+                  }`}
+                >
+                  <input 
+                    id="ledger-file-input"
+                    type="file" 
+                    accept=".pdf,application/pdf"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  {file ? (
+                    <>
+                      <button 
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setFile(null);
+                        }}
+                        className="absolute top-2.5 right-2.5 p-1.5 bg-slate-900/80 hover:bg-red-600 hover:text-white rounded-lg text-slate-400 transition-colors z-30"
+                        title="Clear file"
+                      >
+                        <FiX size={14} />
+                      </button>
+                      <FiFileText size={32} className="text-red-400 group-hover:scale-110 transition-transform duration-300" />
+                      <span className="text-xs font-bold text-white text-center px-4 truncate max-w-[280px]" title={file.name}>{file.name}</span>
+                      <span className="text-[10px] text-slate-400">{(file.size / 1024 / 1024).toFixed(2)} MB • Click or drag to change file</span>
+                    </>
+                  ) : (
+                    <>
+                      <FiUpload size={24} className="text-slate-400 group-hover:text-blue-400 transition-colors" />
+                      <span className="text-xs font-medium text-slate-300 group-hover:text-white transition-colors">Drag & drop PDF ledger here, or <span className="text-blue-400 group-hover:underline">browse</span></span>
+                      <span className="text-[10px] text-slate-500">Only PDF formats are supported</span>
+                    </>
+                  )}
+                </div>
               </div>
 
               <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row justify-end gap-3">

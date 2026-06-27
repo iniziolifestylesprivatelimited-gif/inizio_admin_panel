@@ -20,20 +20,41 @@ const Brands = () => {
   const itemsPerPage = 10;
 
   // Form State
-  const [formData, setFormData] = useState({ name: '', isActive: true });
+  const [formData, setFormData] = useState({ name: '', description: '', isActive: true, showOnHomeScreen: false });
   const [editingId, setEditingId] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Fetch Brands
   const fetchBrands = async () => {
     try {
       setLoading(true);
       const token = sessionStorage.getItem('accessToken');
-      const response = await axios.get(`${BASE_URL}/api/brands/`, {
-        headers: { Authorization: `Bearer ${token}` }
+      const [brandsRes, productsRes] = await Promise.all([
+        axios.get(`${BASE_URL}/api/brands/`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(`${BASE_URL}/api/products/`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).catch(() => ({ data: [] }))
+      ]);
+
+      const prodList = Array.isArray(productsRes.data) ? productsRes.data : [];
+      const brandCounts = {};
+      prodList.forEach(p => {
+        const bId = p.brand?._id || p.brand;
+        if (bId) {
+          brandCounts[bId] = (brandCounts[bId] || 0) + 1;
+        }
       });
-      setBrands(response.data);
+
+      const brandsWithCounts = (Array.isArray(brandsRes.data) ? brandsRes.data : []).map(b => ({
+        ...b,
+        productCount: brandCounts[b._id] || 0
+      }));
+
+      setBrands(brandsWithCounts);
     } catch (err) {
       console.error('Failed to load brands:', err);
     } finally {
@@ -62,7 +83,9 @@ const Brands = () => {
       const token = sessionStorage.getItem('accessToken');
       const data = new FormData();
       data.append('name', formData.name);
+      data.append('description', formData.description || '');
       data.append('isActive', formData.isActive);
+      data.append('showOnHomeScreen', formData.showOnHomeScreen);
       if (imageFile) {
         data.append('logo', imageFile);
       }
@@ -87,7 +110,12 @@ const Brands = () => {
 
   const handleEdit = (brand) => {
     setEditingId(brand._id);
-    setFormData({ name: brand.name, isActive: brand.isActive !== false });
+    setFormData({ 
+      name: brand.name, 
+      description: brand.description || '',
+      isActive: brand.isActive === true || brand.isActive === 'true',
+      showOnHomeScreen: brand.showOnHomeScreen === true || brand.showOnHomeScreen === 'true'
+    });
     setImagePreview(getImageUrl(brand.logo));
     setImageFile(null);
   };
@@ -109,7 +137,7 @@ const Brands = () => {
 
   const cancelEdit = () => {
     setEditingId(null);
-    setFormData({ name: '', isActive: true });
+    setFormData({ name: '', description: '', isActive: true, showOnHomeScreen: false });
     setImagePreview(null);
     setImageFile(null);
   };
@@ -179,47 +207,112 @@ const Brands = () => {
                   className="w-full px-4 py-2.5 bg-black/20 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md transition-all text-sm font-medium placeholder-slate-500"
                 />
               </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Description</label>
+                <input 
+                  type="text" 
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="e.g. Smart accessories brand"
+                  className="w-full px-4 py-2.5 bg-black/20 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md transition-all text-sm font-medium placeholder-slate-500"
+                />
+              </div>
 
-              {/* Brand Logo Upload */}
+              {/* Brand Logo Upload Dropzone */}
               <div>
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Brand Logo</label>
-                <div className="flex items-center space-x-4">
-                  <div className="w-16 h-16 shrink-0 bg-slate-800 rounded-xl border border-white/10 overflow-hidden flex items-center justify-center">
-                    {imagePreview ? (
-                      <img src={imagePreview} alt="Preview" className="w-full h-full object-contain bg-white p-1" />
-                    ) : (
-                      <FiImage className="text-xl text-slate-400" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <input 
-                      type="file" 
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="block w-full text-sm text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-900/50 file:text-blue-400 hover:file:bg-blue-800/50 transition-colors"
-                    />
-                  </div>
+                <div 
+                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragging(false);
+                    const file = e.dataTransfer.files[0];
+                    if (file && file.type.startsWith('image/')) {
+                      setImageFile(file);
+                      setImagePreview(URL.createObjectURL(file));
+                    }
+                  }}
+                  onClick={() => document.getElementById('brand-logo-input').click()}
+                  className={`w-full h-36 border-2 border-dashed rounded-2xl flex flex-col justify-center items-center gap-2 cursor-pointer transition-all duration-300 relative overflow-hidden group select-none ${
+                    isDragging 
+                      ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/20' 
+                      : 'border-white/10 hover:border-blue-500/40 hover:bg-white/5'
+                  }`}
+                >
+                  <input 
+                    id="brand-logo-input"
+                    type="file" 
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                  {imagePreview ? (
+                    <>
+                      <button 
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setImageFile(null);
+                          setImagePreview(null);
+                        }}
+                        className="absolute top-2.5 right-2.5 p-1.5 bg-slate-900/80 hover:bg-red-600 hover:text-white rounded-lg text-slate-400 transition-colors z-30"
+                        title="Clear file"
+                      >
+                        <FiX size={14} />
+                      </button>
+                      <img src={imagePreview} alt="Preview" className="w-full h-full object-contain bg-white/5 p-2 transition-transform duration-300 group-hover:scale-105" />
+                      <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-center items-center text-xs font-bold text-white gap-2">
+                        <FiImage size={18} className="text-blue-400" />
+                        <span>Click or drag to replace image</span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <FiImage size={24} className="text-slate-400 group-hover:text-blue-400 transition-colors" />
+                      <span className="text-xs font-medium text-slate-300 group-hover:text-white transition-colors">Drag & drop logo here, or <span className="text-blue-400 group-hover:underline">browse</span></span>
+                      <span className="text-[10px] text-slate-500">Supports JPG, PNG, WEBP</span>
+                    </>
+                  )}
                 </div>
               </div>
 
-            {/* Status Toggle (Visible when editing) */}
-            {editingId && (
+            {/* Placement Toggles */}
+            <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Brand Status</label>
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Home Screen Placement</label>
                 <label className="inline-flex items-center cursor-pointer">
                   <input 
                     type="checkbox" 
                     className="sr-only peer"
-                    checked={formData.isActive}
-                    onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
+                    checked={formData.showOnHomeScreen}
+                    onChange={(e) => setFormData({...formData, showOnHomeScreen: e.target.checked})}
                   />
-                  <div className="relative w-11 h-6 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/30 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-white after:border-slate-400 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                  <div className="relative w-11 h-6 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-500/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-white after:border-slate-400 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
                   <span className="ms-3 text-sm font-bold text-slate-300">
-                    {formData.isActive ? 'Active & Visible' : 'Hidden'}
+                    {formData.showOnHomeScreen ? 'Display on Home Screen' : 'Hide from Home Screen'}
                   </span>
                 </label>
               </div>
-            )}
+
+              {editingId && (
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Brand Status</label>
+                  <label className="inline-flex items-center cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      className="sr-only peer"
+                      checked={formData.isActive}
+                      onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
+                    />
+                    <div className="relative w-11 h-6 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-white after:border-slate-400 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                    <span className="ms-3 text-sm font-bold text-slate-300">
+                      {formData.isActive ? 'Active & Visible' : 'Hidden'}
+                    </span>
+                  </label>
+                </div>
+              )}
+            </div>
 
               <div className="pt-4 flex gap-3">
                 <button 
@@ -255,13 +348,14 @@ const Brands = () => {
                   <tr>
                     <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider w-16">S.No.</th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider">Brand Name</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider">Products Count</th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/10">
                   {loading ? (
                     <tr>
-                      <td colSpan="3" className="px-6 py-12 text-center text-slate-400 font-medium">
+                      <td colSpan="4" className="px-6 py-12 text-center text-slate-400 font-medium">
                         <FiLoader className="animate-spin text-3xl mx-auto mb-3 text-blue-400" />
                         Loading brands...
                       </td>
@@ -281,17 +375,30 @@ const Brands = () => {
                             )}
                           <div className="flex flex-col">
                             <span className="font-bold text-white">{brand.name}</span>
-                            <span className={`text-[9px] font-bold mt-1 px-2 py-0.5 rounded w-fit border ${brand.isActive !== false ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-slate-800 text-slate-400 border-white/10'}`}>
-                              {brand.isActive !== false ? 'ACTIVE' : 'HIDDEN'}
-                            </span>
+                            {brand.description && (
+                              <span className="text-slate-400 text-xs mt-0.5 line-clamp-1 max-w-[200px]" title={brand.description}>{brand.description}</span>
+                            )}
+                            <div className="flex gap-2 mt-1">
+                              <span className={`text-[9px] font-bold px-2 py-0.5 rounded border ${brand.isActive !== false ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-slate-800 text-slate-400 border-white/10'}`}>
+                                {brand.isActive !== false ? 'ACTIVE' : 'HIDDEN'}
+                              </span>
+                              {(brand.showOnHomeScreen === true || brand.showOnHomeScreen === 'true') && (
+                                <span className="text-[9px] font-bold px-2 py-0.5 rounded border bg-blue-500/10 text-blue-400 border-blue-500/20">
+                                  HOME SCREEN
+                                </span>
+                              )}
+                            </div>
                           </div>
                           </div>
                         </td>
+                        <td className="px-6 py-4 text-sm font-semibold text-slate-300">
+                          {brand.productCount || 0}
+                        </td>
                         <td className="px-6 py-4 text-right space-x-2">
-                          <button onClick={() => handleEdit(brand)} className="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-900/30 rounded-lg transition-colors" title="Edit Brand">
+                          <button onClick={() => handleEdit(brand)} className="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-900/30 rounded-lg transition-colors cursor-pointer" title="Edit Brand">
                             <FiEdit2 />
                           </button>
-                          <button onClick={() => handleDelete(brand._id)} className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-900/30 rounded-lg transition-colors" title="Delete Brand">
+                          <button onClick={() => handleDelete(brand._id)} className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-900/30 rounded-lg transition-colors cursor-pointer" title="Delete Brand">
                             <FiTrash2 />
                           </button>
                         </td>
@@ -299,7 +406,7 @@ const Brands = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="3" className="px-6 py-12 text-center text-slate-400 font-medium">
+                      <td colSpan="4" className="px-6 py-12 text-center text-slate-400 font-medium">
                         {searchTerm ? 'No brands matching your search.' : 'No brands found. Create your first brand using the form.'}
                       </td>
                     </tr>

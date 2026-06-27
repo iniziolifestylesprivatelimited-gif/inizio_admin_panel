@@ -17,7 +17,7 @@ const UsersVerification = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
 
-  const { setUsersUnreadCount } = useOutletContext() || {};
+  const { setUsersVerifyUnreadCount } = useOutletContext() || {};
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -38,8 +38,8 @@ const UsersVerification = () => {
       setUsers(fetchedUsers);
 
       // Clear the notification badge once data is viewed
-      if (setUsersUnreadCount) {
-        setUsersUnreadCount(0);
+      if (setUsersVerifyUnreadCount) {
+        setUsersVerifyUnreadCount(0);
       }
     } catch (err) {
       console.error('Fetch users error:', err);

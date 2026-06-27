@@ -19,11 +19,13 @@ const Layout = () => {
   const [chatUnreadCount, setChatUnreadCount] = useState(0);
   const [ordersUnreadCount, setOrdersUnreadCount] = useState(0);
   const [usersUnreadCount, setUsersUnreadCount] = useState(0);
+  const [usersVerifyUnreadCount, setUsersVerifyUnreadCount] = useState(0);
   const navigation = useNavigate();
   const prevContactsRef = useRef([]);
   const isInitialLoad = useRef(true);
   const prevOrdersRef = useRef(null);
   const prevUsersRef = useRef(null);
+  const prevPendingRef = useRef(null);
   const isInitialDataLoad = useRef(true);
   const [toastMsg, setToastMsg] = useState(null);
 
@@ -134,11 +136,14 @@ const Layout = () => {
 
   // Clear counts when visiting the page
   useEffect(() => {
-    if (location.pathname === '/orders') {
+    if (location.pathname.startsWith('/orders')) {
       setOrdersUnreadCount(0);
     }
     if (location.pathname === '/users/list') {
       setUsersUnreadCount(0);
+    }
+    if (location.pathname === '/users/verify') {
+      setUsersVerifyUnreadCount(0);
     }
   }, [location.pathname]);
 
@@ -150,18 +155,22 @@ const Layout = () => {
         const token = sessionStorage.getItem('accessToken');
         const headers = { Authorization: `Bearer ${token}` };
 
-        const [ordersRes, usersRes] = await Promise.all([
+        const [ordersRes, usersRes, pendingRes] = await Promise.all([
           api.get('/orders/all', { headers }).catch(() => ({ data: [] })),
-          api.get('/admin/customers', { headers }).catch(() => ({ data: [] }))
+          api.get('/admin/customers', { headers }).catch(() => ({ data: [] })),
+          api.get('/admin/pending', { headers }).catch(() => ({ data: [] }))
         ]);
 
         const orders = Array.isArray(ordersRes.data) ? ordersRes.data : ordersRes.data?.orders || [];
         const users = Array.isArray(usersRes.data) ? usersRes.data : [];
+        const pendingUsers = Array.isArray(pendingRes.data) 
+          ? pendingRes.data 
+          : pendingRes.data?.pending || pendingRes.data?.users || pendingRes.data?.data || [];
 
         if (!isInitialDataLoad.current) {
            const prevOrdersCount = prevOrdersRef.current?.length || 0;
            const currentOrdersCount = orders.length;
-           if (currentOrdersCount > prevOrdersCount && location.pathname !== '/orders') {
+           if (currentOrdersCount > prevOrdersCount && !location.pathname.startsWith('/orders')) {
              setOrdersUnreadCount(prev => prev + (currentOrdersCount - prevOrdersCount));
            }
 
@@ -170,10 +179,17 @@ const Layout = () => {
            if (currentUsersCount > prevUsersCount && location.pathname !== '/users/list') {
              setUsersUnreadCount(prev => prev + (currentUsersCount - prevUsersCount));
            }
+
+           const prevPendingCount = prevPendingRef.current?.length || 0;
+           const currentPendingCount = pendingUsers.length;
+           if (currentPendingCount > prevPendingCount && location.pathname !== '/users/verify') {
+             setUsersVerifyUnreadCount(prev => prev + (currentPendingCount - prevPendingCount));
+           }
         }
 
         prevOrdersRef.current = orders;
         prevUsersRef.current = users;
+        prevPendingRef.current = pendingUsers;
         isInitialDataLoad.current = false;
 
       } catch (error) {
@@ -188,13 +204,13 @@ const Layout = () => {
 
   // Update browser tab title with total unread notification counts
   useEffect(() => {
-    const totalNotifications = chatUnreadCount + ordersUnreadCount + usersUnreadCount;
+    const totalNotifications = chatUnreadCount + ordersUnreadCount + usersUnreadCount + usersVerifyUnreadCount;
     if (totalNotifications > 0) {
       document.title = `(${totalNotifications}) Inizio`;
     } else {
       document.title = 'Inizio';
     }
-  }, [chatUnreadCount, ordersUnreadCount, usersUnreadCount]);
+  }, [chatUnreadCount, ordersUnreadCount, usersUnreadCount, usersVerifyUnreadCount]);
 
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -202,8 +218,9 @@ const Layout = () => {
 
   const getBadgeCount = (path) => {
     if (path === '/chat') return chatUnreadCount;
-    if (path === '/orders') return ordersUnreadCount;
+    if (path === '/orders' || path === '/orders/all') return ordersUnreadCount;
     if (path === '/users/list') return usersUnreadCount;
+    if (path === '/users/verify') return usersVerifyUnreadCount;
     return 0;
   };
 
@@ -501,7 +518,7 @@ const Layout = () => {
         {/* DYNAMIC PAGE CONTENT */}
         <main className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="w-full mx-auto p-4 sm:p-6 lg:p-8 min-h-full">
-            <Outlet context={{ setChatUnreadCount, setOrdersUnreadCount, setUsersUnreadCount }} />
+            <Outlet context={{ setChatUnreadCount, setOrdersUnreadCount, setUsersUnreadCount, setUsersVerifyUnreadCount }} />
           </div>
         </main>
 

@@ -5,7 +5,8 @@ import {
   FiBookOpen, FiPercent, FiSend, FiEye, FiArchive,
   FiCreditCard, FiNavigation, FiPaperclip, FiAlertTriangle,
   FiImage, FiBell, FiPackage, FiTag, FiGrid, FiTool, FiMessageCircle,
-  FiUserCheck, FiUser, FiHelpCircle, FiFile, FiFilter
+  FiUserCheck, FiUser, FiHelpCircle, FiFile, FiFilter,
+  FiLoader, FiX, FiCheckCircle, FiSliders
 } from 'react-icons/fi';
 
 const PAGES = {
@@ -13,8 +14,19 @@ const PAGES = {
 
   BANNERS: { path: '/banners', name: 'Banners', icon: FiImage },
   NOTIFICATIONS: { path: '/notifications', name: 'Notifications', icon: FiBell },
+  CAMPAIGN_STATS: { path: '/campaign-stats', name: 'Campaign Stats', icon: FiActivity },
   CHAT: { path: '/chat', name: 'Chat', icon: FiMessageCircle },
-  ORDERS: { path: '/orders', name: 'Orders', icon: FiShoppingCart },
+  ORDERS: {
+    name: 'Orders',
+    icon: FiShoppingCart,
+    subMenus: [
+      { path: '/orders/all', name: 'All Orders', icon: FiShoppingCart },
+      { path: '/orders/processing', name: 'Processing', icon: FiLoader },
+      { path: '/orders/shipped', name: 'Shipped', icon: FiTruck },
+      { path: '/orders/cancelled', name: 'Cancelled', icon: FiX },
+      { path: '/orders/delivered', name: 'Delivered & Returns', icon: FiCheckCircle }
+    ]
+  },
   LEDGERS: {path: '/ledgers', name: 'Ledgers', icon: FiFile},
 
 
@@ -24,7 +36,8 @@ const PAGES = {
     icon: FiArchive,
     subMenus: [
       { path: '/products/brands', name: 'Brands', icon: FiTag },
-      { path: '/products/categories', name: 'Categories', icon: FiGrid }
+      { path: '/products/categories', name: 'Categories', icon: FiGrid },
+      { path: '/products/home-order', name: 'Home Ordering', icon: FiSliders }
     ]
   },
 
@@ -73,6 +86,7 @@ export const getAccessibleMenus = () => {
     PAGES.BANNERS, 
     PAGES.CHAT,
     PAGES.NOTIFICATIONS, 
+    PAGES.CAMPAIGN_STATS,
     PAGES.SETTINGS
   ];
 };
