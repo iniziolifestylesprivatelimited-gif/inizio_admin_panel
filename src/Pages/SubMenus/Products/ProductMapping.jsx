@@ -725,24 +725,14 @@ const ProductMapping = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-bold text-slate-300 mb-2">Step 2: Synchronize Products</label>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <button
-                    onClick={handleSync}
-                    disabled={!uploadSuccess || isSyncing}
-                    className="flex-1 flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isSyncing ? <FiLoader className="animate-spin mr-2" /> : <FiRefreshCcw className="mr-2" />}
-                    {isSyncing ? 'Syncing...' : 'Bulk Sync'}
-                  </button>
-                  {syncedProducts.length > 0 && (
-                    <button
-                      onClick={() => navigate('/products/updated-stock', { state: { updatedProducts: syncedProducts } })}
-                      className="flex-1 flex items-center justify-center px-6 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/30"
-                    >
-                      View Updated Stock ({syncedProducts.length})
-                    </button>
-                  )}
-                </div>
+                <button
+                  onClick={handleSync}
+                  disabled={!uploadSuccess || isSyncing}
+                  className="w-full flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSyncing ? <FiLoader className="animate-spin mr-2" /> : <FiRefreshCcw className="mr-2" />}
+                  {isSyncing ? 'Syncing...' : 'Bulk Sync'}
+                </button>
               </div>
             </div>
 
@@ -759,6 +749,25 @@ const ProductMapping = () => {
                     <p className="text-2xl font-bold text-amber-400">{syncResult.unmatchedProducts}</p>
                   </div>
                 </div>
+                {syncedProducts.length > 0 && (
+                  <div>
+                    <h4 className="text-md font-bold text-white mb-2">Successfully Synced Log</h4>
+                    <div className="max-h-60 overflow-y-auto bg-slate-900/50 p-2 rounded-lg custom-scrollbar">
+                      <ul className="text-sm text-slate-400 space-y-1">
+                        {syncedProducts.map((item, index) => (
+                          <li key={index} className="p-2 bg-slate-800/50 rounded flex justify-between">
+                            <span>{item.name}</span>
+                            <span className="font-mono text-xs">
+                              <span className="text-slate-500 font-bold">{item.oldQuantity}</span>
+                              <span className="mx-2 text-slate-500">→</span>
+                              <span className="text-emerald-400 font-bold">{item.newQuantity}</span>
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
                 {syncResult.unmatched && syncResult.unmatched.length > 0 && (
                   <div>
                     <h4 className="text-md font-bold text-white mb-2">Unmatched Products</h4>

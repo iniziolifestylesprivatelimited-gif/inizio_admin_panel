@@ -20,11 +20,19 @@ const Maintenance = () => {
 
   // App Version & Update State (Platform Specific)
   const [androidConfig, setAndroidConfig] = useState({
-    latestVersion: '1.0.0', forceUpdate: false, updateTitle: 'Update Available', updateMessage: 'A newer version of the app is available.', storeUrl: ''
+    latestVersion: '2.0.2',
+    forceUpdate: false,
+    updateTitle: 'New Update Available',
+    updateMessage: 'Critical security patches and payment flow enhancements are now live.',
+    storeUrl: 'https://play.google.com/store/apps/details?id=com.inizio.store'
   });
   
   const [iosConfig, setIosConfig] = useState({
-    latestVersion: '1.0.0', forceUpdate: false, updateTitle: 'Update Available', updateMessage: 'A newer version of the app is available.', storeUrl: ''
+    latestVersion: '2.0.2',
+    forceUpdate: false,
+    updateTitle: 'New Update Available',
+    updateMessage: 'Critical security patches and payment flow enhancements are now live.',
+    storeUrl: 'https://apps.apple.com/in/app/inizio/id6763986039'
   });
   
   const [updateLoading, setUpdateLoading] = useState(false);
@@ -343,7 +351,7 @@ const Maintenance = () => {
             <FiCalendar className="text-blue-400" /> Maintenance Logs
           </h2>
           
-          <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar flex-1 max-h-[500px]">
+          <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar flex-1 max-h-125">
             {history.length === 0 ? (
               <p className="text-slate-400 italic text-center py-12">No maintenance history available.</p>
             ) : (
@@ -428,7 +436,7 @@ const Maintenance = () => {
                       checked={androidConfig.forceUpdate}
                       onChange={(e) => handleConfigChange('android', 'forceUpdate', e.target.checked)}
                     />
-                    <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500"></div>
+                    <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500"></div>
                   </label>
                 </div>
               </div>
@@ -495,7 +503,7 @@ const Maintenance = () => {
                       checked={iosConfig.forceUpdate}
                       onChange={(e) => handleConfigChange('ios', 'forceUpdate', e.target.checked)}
                     />
-                    <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500"></div>
+                    <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500"></div>
                   </label>
                 </div>
               </div>

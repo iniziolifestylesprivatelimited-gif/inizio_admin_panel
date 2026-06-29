@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { api, BASE_URL } from '../../../api/axios';
 import { 
   FiCheck, FiX, FiEye, FiLoader, FiAlertCircle, 
-  FiSearch, FiUser, FiFileText, FiRefreshCcw, FiTrash2
+  FiSearch, FiUser, FiFileText, FiRefreshCcw, FiTrash2, FiUserMinus
 } from 'react-icons/fi';
 import { useOutletContext } from 'react-router-dom';
 
@@ -17,6 +17,15 @@ const UsersList = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
+  const [authStatus, setAuthStatus] = useState(null);
+  const [loadingAuthStatus, setLoadingAuthStatus] = useState(false);
+  const [deletingUserId, setDeletingUserId] = useState(null);
+  const [deletionReason, setDeletionReason] = useState('');
+
+  const triggerDelete = (id) => {
+    setDeletingUserId(id);
+    setDeletionReason('Uploaded GST certificate PDF is expired. Please upload the latest active certificate.');
+  };
 
   const hasLoggedIn = (user) => {
     return (user.email && loggedInEmails.has(user.email.toLowerCase())) ||
@@ -96,14 +105,28 @@ const UsersList = () => {
     fetchUsers();
   }, []);
 
-  const openModal = (user) => {
+  const openModal = async (user) => {
     setSelectedUser(user);
     setIsModalOpen(true);
+    setLoadingAuthStatus(true);
+    setAuthStatus(null);
+    try {
+      const token = sessionStorage.getItem('accessToken');
+      const response = await api.get(`/auth/status/${user.email}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAuthStatus(response.data);
+    } catch (err) {
+      console.error('Failed to fetch auth status:', err);
+    } finally {
+      setLoadingAuthStatus(false);
+    }
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedUser(null);
+    setAuthStatus(null);
   };
 
   // // Undo Rejection
@@ -125,18 +148,25 @@ const UsersList = () => {
   // };
 
   // Delete User
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to permanently delete this user? This action cannot be undone.')) return;
+  const handleDelete = async (id, reasonText) => {
+    if (!reasonText || !reasonText.trim()) {
+      alert('A deletion reason is required.');
+      return;
+    }
+
     setIsActionLoading(true);
     try {
       const token = sessionStorage.getItem('accessToken');
       // Note: Adjust the endpoint below to match your backend route for deleting users
       await api.delete(`/admin/reject/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        data: { reason: reasonText }
       });
       
       setUsers((prevUsers) => prevUsers.filter((user) => user._id !== id));
       if (selectedUser && selectedUser._id === id) closeModal();
+      setDeletingUserId(null);
+      setDeletionReason('');
       alert('User deleted successfully.');
     } catch (err) {
       console.error('Delete error:', err);
@@ -263,7 +293,7 @@ const UsersList = () => {
                           <FiEye />
                         </button>
                         <button 
-                          onClick={() => handleDelete(user._id)} 
+                          onClick={() => triggerDelete(user._id)} 
                           disabled={isActionLoading} 
                           className="p-2.5 text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50 cursor-pointer transform-gpu" 
                           title="Permanently Delete User"
@@ -411,6 +441,30 @@ const UsersList = () => {
                     <p className="text-white font-medium">{selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}</p>
                   </div>
                 </div>
+
+                {/* Auth Account Status Block */}
+                <div className="mt-4 p-4 rounded-2xl border border-white/5 bg-slate-800/40">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Auth Account status</p>
+                  {loadingAuthStatus ? (
+                    <div className="flex items-center gap-2 text-slate-400 text-xs font-medium">
+                      <FiLoader className="animate-spin text-blue-400" /> Checking system registration...
+                    </div>
+                  ) : authStatus ? (
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <span className="text-white font-semibold capitalize text-sm">{authStatus.status || authStatus.message || 'Active'}</span>
+                        {authStatus.lastLogin && <p className="text-[10px] text-slate-500">Last login: {new Date(authStatus.lastLogin).toLocaleString()}</p>}
+                      </div>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${authStatus.exists ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
+                        {authStatus.exists ? 'Registered' : 'Unregistered'}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5 text-slate-500 text-xs font-medium italic">
+                      <FiAlertCircle size={14} className="text-red-400" /> Failed to retrieve authentication status.
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Business / KYC Information */}
@@ -451,12 +505,51 @@ const UsersList = () => {
             {/* Footer Actions */}
             <div className="pt-3 pb-4 px-5 border-t border-white/10 flex flex-col sm:flex-row justify-end gap-3 bg-slate-800/30 shrink-0">
               <button 
-                onClick={() => handleDelete(selectedUser._id)}
+                onClick={() => triggerDelete(selectedUser._id)}
                 disabled={isActionLoading}
                 className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-transparent border border-red-500/30 text-red-400 font-bold rounded-xl hover:bg-red-500/10 transition-all disabled:opacity-50 cursor-pointer"
               >
                 <FiTrash2 className="mr-2 text-lg" />
                 Delete User
+              </button>
+            </div>
+          </div>
+        </div>
+      , document.body)}
+
+      {/* Delete User Reason Popup Modal */}
+      {deletingUserId && createPortal(
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={() => { setDeletingUserId(null); setDeletionReason(''); }}></div>
+          
+          <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl p-6 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+              <FiUserMinus className="text-red-400" /> Delete User Account
+            </h3>
+            <p className="text-xs text-slate-400 mb-4 font-medium font-sans">Please provide a reason to notify the customer about their account deletion.</p>
+            
+            <textarea
+              required
+              rows="4"
+              value={deletionReason}
+              onChange={(e) => setDeletionReason(e.target.value)}
+              placeholder="Provide a detailed reason..."
+              className="w-full px-3.5 py-2.5 bg-slate-950 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-white text-sm"
+            ></textarea>
+            
+            <div className="flex gap-3 justify-end mt-5">
+              <button
+                onClick={() => { setDeletingUserId(null); setDeletionReason(''); }}
+                className="px-4 py-2 bg-slate-800 text-slate-300 text-sm font-bold rounded-xl hover:bg-slate-700 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDelete(deletingUserId, deletionReason)}
+                disabled={isActionLoading || !deletionReason.trim()}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isActionLoading ? <FiLoader className="animate-spin text-xs" /> : <FiTrash2 size={14} />} Confirm Delete
               </button>
             </div>
           </div>

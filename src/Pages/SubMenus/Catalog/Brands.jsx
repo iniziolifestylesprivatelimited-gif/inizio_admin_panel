@@ -376,7 +376,7 @@ const Brands = () => {
                           <div className="flex flex-col">
                             <span className="font-bold text-white">{brand.name}</span>
                             {brand.description && (
-                              <span className="text-slate-400 text-xs mt-0.5 line-clamp-1 max-w-[200px]" title={brand.description}>{brand.description}</span>
+                              <span className="text-slate-400 text-xs mt-0.5 line-clamp-1 max-w-50" title={brand.description}>{brand.description}</span>
                             )}
                             <div className="flex gap-2 mt-1">
                               <span className={`text-[9px] font-bold px-2 py-0.5 rounded border ${brand.isActive !== false ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-slate-800 text-slate-400 border-white/10'}`}>

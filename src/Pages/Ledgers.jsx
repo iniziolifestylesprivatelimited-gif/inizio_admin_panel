@@ -375,7 +375,7 @@ export const Ledgers = () => {
                         <FiX size={14} />
                       </button>
                       <FiFileText size={32} className="text-red-400 group-hover:scale-110 transition-transform duration-300" />
-                      <span className="text-xs font-bold text-white text-center px-4 truncate max-w-[280px]" title={file.name}>{file.name}</span>
+                      <span className="text-xs font-bold text-white text-center px-4 truncate max-w-70" title={file.name}>{file.name}</span>
                       <span className="text-[10px] text-slate-400">{(file.size / 1024 / 1024).toFixed(2)} MB • Click or drag to change file</span>
                     </>
                   ) : (

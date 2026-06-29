@@ -109,9 +109,15 @@ const Orders = ({ defaultStatus = 'all' }) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      const updatedStatus = response.data.orderStatus || newStatus;
+
       setOrders(orders.map(order =>
-        order._id === orderId ? { ...order, orderStatus: response.data.orderStatus || newStatus } : order
+        order._id === orderId ? { ...order, orderStatus: updatedStatus } : order
       ));
+
+      if (selectedOrder && selectedOrder._id === orderId) {
+        setSelectedOrder(prev => ({ ...prev, orderStatus: updatedStatus }));
+      }
     } catch (err) {
       console.error('Failed to update status', err);
       alert('Failed to update order status. Please try again.');
@@ -328,7 +334,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                       <th className="p-4">Amount</th>
                       <th className="p-4">Payment</th>
                       <th className="p-2 text-center">Details</th>
-                      <th className="p-4 pr-6">Status Action</th>
+                      <th className="p-4 pr-6">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
@@ -402,20 +408,9 @@ const Orders = ({ defaultStatus = 'all' }) => {
                           </button>
                         </td>
                         <td className="p-4 pr-6">
-                          <div className="relative inline-block w-full min-w-35">
-                            {updatingId === order._id ? (
-                              <div className="flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold text-slate-400 bg-black/20 border border-white/5 rounded-lg w-full">
-                                <FiLoader className="animate-spin" /> Updating
-                              </div>
-                            ) : (
-                              <CustomDropdown
-                                value={order.orderStatus || 'Pending'}
-                                onChange={(newStatus) => handleStatusChange(order._id, newStatus)}
-                                options={['Processing', 'Shipped', 'Delivered', 'Cancelled']}
-                                statusColor={getStatusColor(order.orderStatus)}
-                              />
-                            )}
-                          </div>
+                          <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-bold border uppercase tracking-wider ${getStatusColor(order.orderStatus)}`}>
+                            {order.orderStatus || 'Pending'}
+                          </span>
                         </td>
                       </tr>
                     ))}
@@ -521,7 +516,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                                   <span className="text-slate-500 text-xs mt-0.5">{ret.user?.email || 'N/A'}</span>
                                 </div>
                               </td>
-                              <td className="p-4 text-sm text-slate-300 truncate max-w-[200px]" title={returnReason}>
+                              <td className="p-4 text-sm text-slate-300 truncate max-w-50" title={returnReason}>
                                 {returnReason}
                               </td>
                               <td className="p-4 text-sm">
@@ -659,8 +654,22 @@ const Orders = ({ defaultStatus = 'all' }) => {
                   <span className="text-slate-200">Date:</span>
                   <span className="font-bold text-white">{new Date(selectedOrder.createdAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}</span>
                 </div>
-                <div className={`px-4 py-2 border rounded-xl flex items-center gap-2 text-sm font-bold ${getStatusColor(selectedOrder.orderStatus)}`}>
-                  Status: {selectedOrder.orderStatus || 'Pending'}
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-400 text-sm font-medium">Status:</span>
+                  <div className="relative min-w-37.5">
+                    {updatingId === selectedOrder._id ? (
+                      <div className="flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold text-slate-400 bg-black/20 border border-white/5 rounded-lg w-full h-9.5">
+                        <FiLoader className="animate-spin" /> Updating
+                      </div>
+                    ) : (
+                      <CustomDropdown
+                        value={selectedOrder.orderStatus || 'Pending'}
+                        onChange={(newStatus) => handleStatusChange(selectedOrder._id, newStatus)}
+                        options={['Processing', 'Shipped', 'Delivered', 'Cancelled']}
+                        statusColor={getStatusColor(selectedOrder.orderStatus)}
+                      />
+                    )}
+                  </div>
                 </div>
                 {selectedOrder.deliveredAt && (
                   <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-2 text-sm">

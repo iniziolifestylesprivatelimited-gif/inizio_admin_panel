@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { api, BASE_URL } from '../../../api/axios';
 import { 
   FiCheck, FiX, FiEye, FiLoader, FiAlertCircle, 
-  FiSearch, FiUser, FiFileText 
+  FiSearch, FiUser, FiFileText, FiUserMinus 
 } from 'react-icons/fi';
 import { useOutletContext } from 'react-router-dom';
 
@@ -16,6 +16,15 @@ const UsersVerification = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
+  const [authStatus, setAuthStatus] = useState(null);
+  const [loadingAuthStatus, setLoadingAuthStatus] = useState(false);
+  const [rejectingUserId, setRejectingUserId] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState('');
+
+  const triggerReject = (id) => {
+    setRejectingUserId(id);
+    setRejectionReason('Uploaded GST certificate PDF is expired. Please upload the latest active certificate.');
+  };
 
   const { setUsersVerifyUnreadCount } = useOutletContext() || {};
 
@@ -79,16 +88,23 @@ const UsersVerification = () => {
   };
 
   // Reject KYC
-  const handleReject = async (id) => {
-    if (!window.confirm('Are you sure you want to reject this KYC? This action cannot be undone.')) return;
+  const handleReject = async (id, reasonText) => {
+    if (!reasonText || !reasonText.trim()) {
+      alert('A rejection reason is required.');
+      return;
+    }
+
     setIsActionLoading(true);
     try {
       const token = sessionStorage.getItem('accessToken');
-      await api.delete(`/admin/reject/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.put(`/admin/reject/${id}`, 
+        { reason: reasonText },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setUsers((prevUsers) => prevUsers.filter((user) => user._id !== id));
       if (selectedUser && selectedUser._id === id) closeModal();
+      setRejectingUserId(null);
+      setRejectionReason('');
       alert('User KYC rejected. They have been moved to the Rejected KYC list.');
     } catch (err) {
       console.error('Reject error:', err);
@@ -98,14 +114,28 @@ const UsersVerification = () => {
     }
   };
 
-  const openModal = (user) => {
+  const openModal = async (user) => {
     setSelectedUser(user);
     setIsModalOpen(true);
+    setLoadingAuthStatus(true);
+    setAuthStatus(null);
+    try {
+      const token = sessionStorage.getItem('accessToken');
+      const response = await api.get(`/auth/status/${user.email}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAuthStatus(response.data);
+    } catch (err) {
+      console.error('Failed to fetch auth status:', err);
+    } finally {
+      setLoadingAuthStatus(false);
+    }
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedUser(null);
+    setAuthStatus(null);
   };
 
   const getDocumentUrl = (path) => {
@@ -196,7 +226,7 @@ const UsersVerification = () => {
                         <button onClick={() => handleApprove(user._id)} disabled={isActionLoading} className="p-2.5 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg transition-all disabled:opacity-50" title="Approve & Generate ID">
                           <FiCheck strokeWidth={3} />
                         </button>
-                        <button onClick={() => handleReject(user._id)} disabled={isActionLoading} className="p-2.5 text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50" title="Reject KYC">
+                        <button onClick={() => triggerReject(user._id)} disabled={isActionLoading} className="p-2.5 text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50" title="Reject KYC">
                           <FiX strokeWidth={3} />
                         </button>
                       </td>
@@ -252,6 +282,30 @@ const UsersVerification = () => {
                     <p className="text-white font-medium capitalize">{selectedUser.role || 'customer'}</p>
                   </div>
                 </div>
+
+                {/* Auth Account Status Block */}
+                <div className="mt-4 p-4 rounded-2xl border border-white/5 bg-slate-800/40">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Auth Account status</p>
+                  {loadingAuthStatus ? (
+                    <div className="flex items-center gap-2 text-slate-400 text-xs font-medium">
+                      <FiLoader className="animate-spin text-amber-400" /> Checking system registration...
+                    </div>
+                  ) : authStatus ? (
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <span className="text-white font-semibold capitalize text-sm">{authStatus.status || authStatus.message || 'Active'}</span>
+                        {authStatus.lastLogin && <p className="text-[10px] text-slate-500">Last login: {new Date(authStatus.lastLogin).toLocaleString()}</p>}
+                      </div>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${authStatus.exists ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
+                        {authStatus.exists ? 'Registered' : 'Unregistered'}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5 text-slate-500 text-xs font-medium italic">
+                      <FiAlertCircle size={14} className="text-red-400" /> Failed to retrieve authentication status.
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Business / KYC Information */}
@@ -295,12 +349,51 @@ const UsersVerification = () => {
 
             {/* Footer Actions */}
             <div className="pt-3 pb-4 px-5 border-t border-white/10 flex flex-col sm:flex-row justify-end gap-3 bg-slate-800/30 shrink-0">
-              <button onClick={() => handleReject(selectedUser._id)} disabled={isActionLoading} className="w-full sm:w-auto px-6 py-2.5 bg-transparent border border-red-500/30 text-red-400 font-bold rounded-xl hover:bg-red-500/10 transition-colors disabled:opacity-50">
+              <button onClick={() => triggerReject(selectedUser._id)} disabled={isActionLoading} className="w-full sm:w-auto px-6 py-2.5 bg-transparent border border-red-500/30 text-red-400 font-bold rounded-xl hover:bg-red-500/10 transition-colors disabled:opacity-50">
                 Reject KYC
               </button>
               <button onClick={() => handleApprove(selectedUser._id)} disabled={isActionLoading} className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 shadow-lg shadow-emerald-500/30 transition-all disabled:opacity-50">
                 {isActionLoading ? <FiLoader className="mr-2 animate-spin" /> : <FiCheck className="mr-2 text-lg" />}
                 {isActionLoading ? 'Processing...' : 'Approve & Generate ID'}
+              </button>
+            </div>
+          </div>
+        </div>
+      , document.body)}
+
+      {/* Reject KYC Reason Popup Modal */}
+      {rejectingUserId && createPortal(
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={() => { setRejectingUserId(null); setRejectionReason(''); }}></div>
+          
+          <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl p-6 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+              <FiUserMinus className="text-red-400" /> Reject KYC Application
+            </h3>
+            <p className="text-xs text-slate-400 mb-4 font-medium">Please provide a reason to notify the customer about their KYC rejection.</p>
+            
+            <textarea
+              required
+              rows="4"
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              placeholder="Provide a detailed reason..."
+              className="w-full px-3.5 py-2.5 bg-slate-950 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-white text-sm"
+            ></textarea>
+            
+            <div className="flex gap-3 justify-end mt-5">
+              <button
+                onClick={() => { setRejectingUserId(null); setRejectionReason(''); }}
+                className="px-4 py-2 bg-slate-800 text-slate-300 text-sm font-bold rounded-xl hover:bg-slate-700 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleReject(rejectingUserId, rejectionReason)}
+                disabled={isActionLoading || !rejectionReason.trim()}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isActionLoading ? <FiLoader className="animate-spin text-xs" /> : <FiUserMinus size={14} />} Reject & Delete
               </button>
             </div>
           </div>

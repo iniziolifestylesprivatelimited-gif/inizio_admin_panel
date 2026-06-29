@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { FiArrowUp, FiArrowDown, FiCopy, FiTrash2, FiSave, FiArrowLeft, FiPlus, FiLoader, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { FiArrowUp, FiArrowDown, FiCopy, FiTrash2, FiSave, FiArrowLeft, FiPlus, FiLoader, FiChevronDown, FiChevronUp, FiImage } from 'react-icons/fi';
 import { BASE_URL } from '../../../api/axios';
 
 const getImageUrl = (path) => {
