@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/axios';
-import { FiTrendingUp, FiUsers, FiBox, FiDollarSign } from 'react-icons/fi';
+import { FiTrendingUp, FiUsers, FiBox, FiDollarSign, FiLayers } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import ReactApexChart from 'react-apexcharts';
 
@@ -43,7 +43,7 @@ const Dashboard = () => {
   // console.log(brands)
 
   const usernav = (index) => {
-    if(index ==1){
+    if(index == 1){
       navigate('/products/brands');
     }
     else if(index === 2){
@@ -54,6 +54,9 @@ const Dashboard = () => {
     }
     else if(index === 0){
       navigate('/orders');
+    }
+    else if(index === 4){
+      navigate('/products/list');
     }
   }
 
@@ -100,6 +103,7 @@ const Dashboard = () => {
     { title: "Total Revenue", value: `₹${totalRev.toLocaleString('en-IN')}`, icon: FiDollarSign, color: "text-emerald-400", bg: "bg-emerald-500/20" },
     { title: "No of Brands", value: brands.length, icon: FiTrendingUp, color: "text-blue-400", bg: "bg-blue-500/20" },
     { title: "No of Products", value: products.length, icon: FiBox, color: "text-amber-400", bg: "bg-amber-500/20" },
+    { title: "Total Products (with Variants)", value: products.reduce((sum, p) => sum + (Array.isArray(p.variants) && p.variants.length > 1 ? p.variants.length : 1), 0), icon: FiLayers, color: "text-purple-400", bg: "bg-purple-500/20" },
     { title: "Total Users", value: users.length, icon: FiUsers, color: "text-indigo-400", bg: "bg-indigo-500/20" },
   ];
 
@@ -203,7 +207,7 @@ const Dashboard = () => {
       </div>
 
       {/* Metric Cards Grid */}
-      <div className="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 z-10">
+      <div className="relative grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 z-10">
         {metrics.map((metric, index) => (
           <div 
             key={index} 

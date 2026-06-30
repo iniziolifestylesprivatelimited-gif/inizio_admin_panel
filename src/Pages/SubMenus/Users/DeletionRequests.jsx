@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { api } from '../../../api/axios';
 import { 
   FiRefreshCw, FiLoader, FiAlertCircle, 
@@ -11,6 +12,8 @@ const DeletionRequests = () => {
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [isActionLoading, setIsActionLoading] = useState(false);
+
+  const { setUsersDeletionUnreadCount } = useOutletContext() || {};
 
   const fetchDeletionRequests = async () => {
     setLoading(true);
@@ -29,6 +32,10 @@ const DeletionRequests = () => {
         fetchedUsers = response.data.users || response.data.data || [];
       }
       setUsers(fetchedUsers);
+
+      if (setUsersDeletionUnreadCount) {
+        setUsersDeletionUnreadCount(0);
+      }
     } catch (err) {
       console.error('Fetch deletion requests error:', err);
       setError(err.response?.data?.message || 'Failed to load deletion requests.');

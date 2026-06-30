@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { FiEdit2, FiTrash2, FiPlus, FiLoader, FiSearch, FiUpload, FiX, FiSave, FiImage, FiPackage, FiEye, FiChevronDown, FiChevronUp, FiArrowUp, FiArrowDown, FiCopy, FiDownload } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiPlus, FiLoader, FiSearch, FiUpload, FiX, FiSave, FiImage, FiPackage, FiEye, FiChevronDown, FiChevronUp, FiArrowUp, FiArrowDown, FiCopy, FiDownload, FiFileText } from 'react-icons/fi';
 import { api, BASE_URL } from '../../../api/axios';
 import * as XLSX from 'xlsx';
 
@@ -59,6 +59,19 @@ const ProductList = () => {
   const [isTogglingActive, setIsTogglingActive] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const excelDropdownRef = useRef(null);
+  const [isExcelDropdownOpen, setIsExcelDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (excelDropdownRef.current && !excelDropdownRef.current.contains(event.target)) {
+        setIsExcelDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const initialFormState = {
     name: '', description: '', details: '', expertNotes: '',
@@ -594,29 +607,73 @@ const ProductList = () => {
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row justify-end gap-3 w-full">
-          {selectedProducts.length > 0 && (
-            <button 
-              onClick={handleBulkDelete}
-              className="flex items-center justify-center px-4 py-2.5 bg-red-600/50 text-white font-bold rounded-xl hover:bg-red-100 hover:text-red-600 transition-all border border-red-600 shadow-sm cursor-pointer"
-            >
-              <FiTrash2 className="mr-2" />
-              Delete ({selectedProducts.length})
+        {/* Action & Metrics Row */}
+        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 w-full border-t border-white/5 pt-4 mt-2">
+          {/* Left part: Total products info */}
+          <div className="flex flex-wrap gap-2 text-xs font-semibold text-slate-400 order-2 xl:order-1 w-full xl:w-auto">
+            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
+              Total Products: <strong className="text-white">{products.length}</strong>
+            </span>
+            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
+              Products with Variants: <strong className="text-white">{products.filter(p => p.variants && p.variants.length > 0).length}</strong>
+            </span>
+            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
+              Total Items (incl. Variants): <strong className="text-white">{products.reduce((sum, p) => sum + (Array.isArray(p.variants) && p.variants.length > 1 ? p.variants.length : 1), 0)}</strong>
+            </span>
+            {searchTerm && (
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full">
+                Found: <strong>{filteredProducts.length}</strong>
+              </span>
+            )}
+          </div>
+
+          {/* Right part: Action Buttons */}
+          <div className="flex flex-col sm:flex-row justify-end items-center gap-3 w-full xl:w-auto order-1 xl:order-2">
+            {selectedProducts.length > 0 && (
+              <button 
+                onClick={handleBulkDelete}
+                className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-red-600/50 text-white font-bold rounded-xl hover:bg-red-100 hover:text-red-600 transition-all border border-red-600 shadow-sm cursor-pointer"
+              >
+                <FiTrash2 className="mr-2" />
+                Delete ({selectedProducts.length})
+              </button>
+            )}
+            
+            {/* Excel Actions Dropdown */}
+            <div className="relative w-full sm:w-auto" ref={excelDropdownRef}>
+              <button 
+                onClick={() => setIsExcelDropdownOpen(!isExcelDropdownOpen)} 
+                className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl hover:bg-slate-700 hover:text-white transition-all border border-white/10 shadow-sm cursor-pointer gap-2"
+              >
+                <FiFileText />
+                <span>Excel Actions</span>
+                <FiChevronDown className={`transition-transform duration-300 ${isExcelDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {isExcelDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-slate-900 border border-white/10 rounded-xl shadow-2xl shadow-black/80 py-1.5 z-50 animate-in fade-in slide-in-from-top-2">
+                  <button 
+                    onClick={() => { handleExportToExcel(); setIsExcelDropdownOpen(false); }} 
+                    className="w-full flex items-center px-4 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors cursor-pointer text-left font-medium"
+                  >
+                    <FiDownload className="mr-2 text-amber-400" />
+                    Export to Excel
+                  </button>
+                  <button 
+                    onClick={() => { navigate('/products/mapping'); setIsExcelDropdownOpen(false); }} 
+                    className="w-full flex items-center px-4 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors cursor-pointer text-left font-medium"
+                  >
+                    <FiUpload className="mr-2 text-emerald-400" />
+                    Upload Excel / CSV
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <button onClick={openAddModal} className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-blue-600/50 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/5 cursor-pointer">
+              <FiPlus className="mr-2" />
+              Add Product
             </button>
-          )}
-          <button onClick={handleExportToExcel} className="flex items-center justify-center px-4 py-2.5 bg-amber-600/50 text-white font-bold rounded-xl hover:bg-amber-700 transition-all shadow-lg shadow-amber-500/5 cursor-pointer">
-            <FiDownload className="mr-2" />
-            Export to Excel
-          </button>
-          <button onClick={() => navigate('/products/mapping')} className="flex items-center justify-center px-4 py-2.5 bg-emerald-600/50 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/5 cursor-pointer">
-            <FiUpload className="mr-2" />
-            Upload Excel / CSV
-          </button>
-          <button onClick={openAddModal} className="flex items-center justify-center px-4 py-2.5 bg-blue-600/50 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/5 cursor-pointer">
-            <FiPlus className="mr-2" />
-            Add Product
-          </button>
+          </div>
         </div>
       </div>
 
@@ -641,7 +698,7 @@ const ProductList = () => {
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">Base Price</th>
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">Offer Price</th>
                 {/* <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">Total Qty</th> */}
-                {/* <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">Variants</th> */}
+                <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">Variants</th>
                 {/* <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">EAN</th> */}
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs text-center">Images</th>
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs text-center">Action</th>
@@ -674,7 +731,7 @@ const ProductList = () => {
                       <td className="px-4 py-3 text-sm text-slate-400 font-bold">{product.basePrice ?? '-'}</td>
                       <td className="px-4 py-3 text-sm text-emerald-400 font-bold">{product.offerPrice ?? '-'}</td>
                       {/* <td className="px-4 py-3 text-sm text-slate-400">{product.totalQuantity ?? '-'}</td> */}
-                      {/* <td className="px-4 py-3 text-sm text-slate-400">{product.variants ? product.variants.length : '-'}</td> */}
+                      <td className="px-4 py-3 text-sm text-slate-400 text-center">{product.variants ? product.variants.length>1 ? `${product.variants.length}`: `0` : '-'}</td>
                       {/* <td className="px-4 py-3 text-sm text-slate-400">{product.eanNumber ?? '-'}</td> */}
                       <td className="px-4 py-3 text-center">
                         {product.images && product.images.length > 0 ? (

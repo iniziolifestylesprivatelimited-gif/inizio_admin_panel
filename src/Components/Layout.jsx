@@ -20,12 +20,14 @@ const Layout = () => {
   const [ordersUnreadCount, setOrdersUnreadCount] = useState(0);
   const [usersUnreadCount, setUsersUnreadCount] = useState(0);
   const [usersVerifyUnreadCount, setUsersVerifyUnreadCount] = useState(0);
+  const [usersDeletionUnreadCount, setUsersDeletionUnreadCount] = useState(0);
   const navigation = useNavigate();
   const prevContactsRef = useRef([]);
   const isInitialLoad = useRef(true);
   const prevOrdersRef = useRef(null);
   const prevUsersRef = useRef(null);
   const prevPendingRef = useRef(null);
+  const prevDeletionRef = useRef(null);
   const isInitialDataLoad = useRef(true);
   const [toastMsg, setToastMsg] = useState(null);
 
@@ -145,6 +147,9 @@ const Layout = () => {
     if (location.pathname === '/users/verify') {
       setUsersVerifyUnreadCount(0);
     }
+    if (location.pathname === '/users/deletion-requests') {
+      setUsersDeletionUnreadCount(0);
+    }
   }, [location.pathname]);
 
   // Poll orders and users
@@ -155,10 +160,11 @@ const Layout = () => {
         const token = sessionStorage.getItem('accessToken');
         const headers = { Authorization: `Bearer ${token}` };
 
-        const [ordersRes, usersRes, pendingRes] = await Promise.all([
+        const [ordersRes, usersRes, pendingRes, deletionRes] = await Promise.all([
           api.get('/orders/all', { headers }).catch(() => ({ data: [] })),
           api.get('/admin/customers', { headers }).catch(() => ({ data: [] })),
-          api.get('/admin/pending', { headers }).catch(() => ({ data: [] }))
+          api.get('/admin/pending', { headers }).catch(() => ({ data: [] })),
+          api.get('/admin/deletion-requests', { headers }).catch(() => ({ data: [] }))
         ]);
 
         const orders = Array.isArray(ordersRes.data) ? ordersRes.data : ordersRes.data?.orders || [];
@@ -166,6 +172,14 @@ const Layout = () => {
         const pendingUsers = Array.isArray(pendingRes.data) 
           ? pendingRes.data 
           : pendingRes.data?.pending || pendingRes.data?.users || pendingRes.data?.data || [];
+
+        const deletionsData = deletionRes.data;
+        let deletionUsers = [];
+        if (Array.isArray(deletionsData)) {
+          deletionUsers = deletionsData;
+        } else if (deletionsData && typeof deletionsData === 'object') {
+          deletionUsers = deletionsData.users || deletionsData.data || [];
+        }
 
         if (!isInitialDataLoad.current) {
            const prevOrdersCount = prevOrdersRef.current?.length || 0;
@@ -185,11 +199,18 @@ const Layout = () => {
            if (currentPendingCount > prevPendingCount && location.pathname !== '/users/verify') {
              setUsersVerifyUnreadCount(prev => prev + (currentPendingCount - prevPendingCount));
            }
+
+           const prevDeletionCount = prevDeletionRef.current?.length || 0;
+           const currentDeletionCount = deletionUsers.length;
+           if (currentDeletionCount > prevDeletionCount && location.pathname !== '/users/deletion-requests') {
+             setUsersDeletionUnreadCount(prev => prev + (currentDeletionCount - prevDeletionCount));
+           }
         }
 
         prevOrdersRef.current = orders;
         prevUsersRef.current = users;
         prevPendingRef.current = pendingUsers;
+        prevDeletionRef.current = deletionUsers;
         isInitialDataLoad.current = false;
 
       } catch (error) {
@@ -204,13 +225,13 @@ const Layout = () => {
 
   // Update browser tab title with total unread notification counts
   useEffect(() => {
-    const totalNotifications = chatUnreadCount + ordersUnreadCount + usersUnreadCount + usersVerifyUnreadCount;
+    const totalNotifications = chatUnreadCount + ordersUnreadCount + usersUnreadCount + usersVerifyUnreadCount + usersDeletionUnreadCount;
     if (totalNotifications > 0) {
       document.title = `(${totalNotifications}) Inizio`;
     } else {
       document.title = 'Inizio';
     }
-  }, [chatUnreadCount, ordersUnreadCount, usersUnreadCount, usersVerifyUnreadCount]);
+  }, [chatUnreadCount, ordersUnreadCount, usersUnreadCount, usersVerifyUnreadCount, usersDeletionUnreadCount]);
 
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -221,6 +242,7 @@ const Layout = () => {
     if (path === '/orders' || path === '/orders/all') return ordersUnreadCount;
     if (path === '/users/list') return usersUnreadCount;
     if (path === '/users/verify') return usersVerifyUnreadCount;
+    if (path === '/users/deletion-requests') return usersDeletionUnreadCount;
     return 0;
   };
 
@@ -518,7 +540,7 @@ const Layout = () => {
         {/* DYNAMIC PAGE CONTENT */}
         <main className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="w-full mx-auto p-4 sm:p-6 lg:p-8 min-h-full">
-            <Outlet context={{ setChatUnreadCount, setOrdersUnreadCount, setUsersUnreadCount, setUsersVerifyUnreadCount }} />
+            <Outlet context={{ setChatUnreadCount, setOrdersUnreadCount, setUsersUnreadCount, setUsersVerifyUnreadCount, setUsersDeletionUnreadCount }} />
           </div>
         </main>
 
