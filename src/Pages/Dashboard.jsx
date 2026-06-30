@@ -49,13 +49,13 @@ const Dashboard = () => {
     else if(index === 2){
       navigate('/products/list');
     }
-    else if(index === 3) {
+    else if(index === 4) {
       navigate('/users/list');
     }
     else if(index === 0){
       navigate('/orders');
     }
-    else if(index === 4){
+    else if(index === 3){
       navigate('/products/list');
     }
   }
