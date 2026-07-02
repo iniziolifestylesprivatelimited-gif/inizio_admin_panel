@@ -71,7 +71,9 @@ const PAGES = {
       { path: '/users/active', name: 'Active Users', icon: FiActivity },
       { path: '/users/deletion-requests', name: 'Deletion Requests', icon: FiUserMinus }
     ]
-  }
+  },
+
+  COUPONS: { path: '/coupons', name: 'Coupons', icon: FiPercent }
 };
 
   
@@ -83,6 +85,7 @@ export const getAccessibleMenus = () => {
     PAGES.PRODUCTS_CATALOG, 
     PAGES.ORDERS,
     PAGES.LEDGERS,
+    PAGES.COUPONS,
     PAGES.BANNERS, 
     PAGES.CHAT,
     PAGES.NOTIFICATIONS, 

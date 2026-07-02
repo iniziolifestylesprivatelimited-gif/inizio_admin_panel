@@ -29,6 +29,7 @@ import PrivacyP from './Pages/SubMenus/Settings/PrivacyP';
 import TermsAndCo from './Pages/SubMenus/Settings/TC';
 import Orders from './Pages/Orders';
 import { Ledgers } from './Pages/Ledgers';
+import Coupons from './Pages/Coupons';
 
 function App() {
   return (
@@ -63,6 +64,7 @@ function App() {
               <Route path="/orders/cancelled" element={<Orders defaultStatus="cancelled" />} />
               <Route path="/orders/delivered" element={<Orders defaultStatus="delivered" />} />
               <Route path="/ledgers" element={<Ledgers />} />
+              <Route path="/coupons" element={<Coupons />} />
               <Route path="/chat" element={<Chat/>} />
               <Route path='/users/list' element={<UsersList/>}/>
               <Route path='/users/verify' element={<UsersVerification/>}/>

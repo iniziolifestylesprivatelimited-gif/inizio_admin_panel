@@ -207,11 +207,11 @@ const Dashboard = () => {
       </div>
 
       {/* Metric Cards Grid */}
-      <div className="relative grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 z-10">
+      <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 xl:gap-6 z-10">
         {metrics.map((metric, index) => (
           <div 
             key={index} 
-            className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/50 cursor-pointer relative overflow-hidden group" 
+            className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-4 sm:p-5 xl:p-6 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/50 cursor-pointer relative overflow-hidden group" 
             onClick={() => usernav(index)}
           >
             <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
@@ -222,7 +222,12 @@ const Dashboard = () => {
             </div>
             <div className="relative z-10">
               <h3 className="text-slate-400 text-sm font-bold tracking-wide">{metric.title}</h3>
-              <p className="text-3xl font-extrabold text-white mt-1 tracking-tight">{metric.value}</p>
+              <p 
+                className="text-2xl xl:text-xl 2xl:text-3xl font-extrabold text-white mt-1 tracking-tight truncate" 
+                title={metric.value.toString()}
+              >
+                {metric.value}
+              </p>
             </div>
           </div>
         ))}

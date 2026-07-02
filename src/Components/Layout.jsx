@@ -16,6 +16,11 @@ const Layout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [openMenus, setOpenMenus] = useState({});
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isNotificationsDropdownOpen, setIsNotificationsDropdownOpen] = useState(false);
+  const notificationsDropdownRef = useRef(null);
+  const mobileNotificationsDropdownRef = useRef(null);
+  const profileDropdownRef = useRef(null);
+  const mobileProfileDropdownRef = useRef(null);
   const [chatUnreadCount, setChatUnreadCount] = useState(0);
   const [ordersUnreadCount, setOrdersUnreadCount] = useState(0);
   const [usersUnreadCount, setUsersUnreadCount] = useState(0);
@@ -31,8 +36,9 @@ const Layout = () => {
   const isInitialDataLoad = useRef(true);
   const [toastMsg, setToastMsg] = useState(null);
 
-  const chatNavigate = () => {
-    navigation('/chat');
+  const handleNotificationClick = (path) => {
+    setIsNotificationsDropdownOpen(false);
+    navigation(path);
   };
 
   const toggleSubMenu = (menuName) => {
@@ -46,7 +52,88 @@ const Layout = () => {
   useEffect(() => {
     setIsMobileMenuOpen(false);
     setIsProfileDropdownOpen(false);
+    setIsNotificationsDropdownOpen(false);
   }, [location.pathname]);
+
+  // Click outside handler for dropdowns
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (
+        notificationsDropdownRef.current && 
+        !notificationsDropdownRef.current.contains(event.target) &&
+        (!mobileNotificationsDropdownRef.current || !mobileNotificationsDropdownRef.current.contains(event.target))
+      ) {
+        setIsNotificationsDropdownOpen(false);
+      }
+      if (
+        profileDropdownRef.current && 
+        !profileDropdownRef.current.contains(event.target) &&
+        (!mobileProfileDropdownRef.current || !mobileProfileDropdownRef.current.contains(event.target))
+      ) {
+        setIsProfileDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
+
+  const getNotificationsList = () => {
+    const list = [];
+    if (chatUnreadCount > 0) {
+      list.push({
+        id: 'chat',
+        title: 'New Chat Messages',
+        description: `You have ${chatUnreadCount} unread message${chatUnreadCount > 1 ? 's' : ''} from customers.`,
+        path: '/chat',
+        icon: '💬',
+        color: 'text-blue-400 bg-blue-500/10'
+      });
+    }
+    if (ordersUnreadCount > 0) {
+      list.push({
+        id: 'orders',
+        title: 'New Orders Received',
+        description: `You have ${ordersUnreadCount} new order${ordersUnreadCount > 1 ? 's' : ''} to process.`,
+        path: '/orders/all',
+        icon: '📦',
+        color: 'text-emerald-400 bg-emerald-500/10'
+      });
+    }
+    if (usersVerifyUnreadCount > 0) {
+      list.push({
+        id: 'verify',
+        title: 'Pending Verifications',
+        description: `${usersVerifyUnreadCount} user${usersVerifyUnreadCount > 1 ? 's are' : ' is'} pending verification.`,
+        path: '/users/verify',
+        icon: '👤',
+        color: 'text-amber-400 bg-amber-500/10'
+      });
+    }
+    if (usersDeletionUnreadCount > 0) {
+      list.push({
+        id: 'deletion',
+        title: 'Deletion Requests',
+        description: `${usersDeletionUnreadCount} account deletion request${usersDeletionUnreadCount > 1 ? 's' : ''} pending.`,
+        path: '/users/deletion-requests',
+        icon: '⚠️',
+        color: 'text-red-400 bg-red-500/10'
+      });
+    }
+    if (usersUnreadCount > 0) {
+      list.push({
+        id: 'users',
+        title: 'New User Registrations',
+        description: `${usersUnreadCount} new user${usersUnreadCount > 1 ? 's' : ''} registered recently.`,
+        path: '/users/list',
+        icon: '👥',
+        color: 'text-indigo-400 bg-indigo-500/10'
+      });
+    }
+    return list;
+  };
+
+  const notificationsList = getNotificationsList();
+  const totalUnreadCount = chatUnreadCount + ordersUnreadCount + usersUnreadCount + usersVerifyUnreadCount + usersDeletionUnreadCount;
 
   // Request Browser Notification Permission on load
   useEffect(() => {
@@ -274,17 +361,66 @@ const Layout = () => {
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-transparent backdrop-blur-2xl border-b border-white/10 z-30 flex items-center justify-between px-4 shadow-xl shadow-black/50">
         <img src={logoImg} alt="logo" className="h-14 w-auto object-contain scale-200 origin-left mt-1.5" />
         <div className="flex items-center gap-4">
-          <button className="text-slate-300 hover:text-white relative transition-colors mt-1">
-            <FiBell className="text-xl" />
-            {chatUnreadCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-1 bg-red-500 text-white text-[9px] font-bold flex items-center justify-center rounded-full border border-slate-900 shadow-sm">
-                {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
-              </span>
+          {/* Mobile Notifications Dropdown */}
+          <div className="relative" ref={mobileNotificationsDropdownRef}>
+            <button 
+              onClick={() => setIsNotificationsDropdownOpen(!isNotificationsDropdownOpen)}
+              className="text-slate-300 hover:text-white relative transition-colors mt-1 focus:outline-none"
+            >
+              <FiBell className="text-xl cursor-pointer" />
+              {totalUnreadCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-1 bg-red-500 text-white text-[9px] font-bold flex items-center justify-center rounded-full border border-slate-900 shadow-sm animate-pulse">
+                  {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
+                </span>
+              )}
+            </button>
+
+            {isNotificationsDropdownOpen && (
+              <div className="absolute right-0 mt-3 w-72 bg-slate-900/90 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl shadow-black/50 py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                <div className="px-4 py-2 border-b border-white/10 flex justify-between items-center mb-1">
+                  <span className="text-[10px] font-bold text-white uppercase tracking-wider">System Notifications</span>
+                  {totalUnreadCount > 0 && (
+                    <span className="text-[9px] bg-blue-500/20 text-blue-400 font-bold px-2 py-0.5 rounded-full border border-blue-500/20">
+                      {totalUnreadCount}
+                    </span>
+                  )}
+                </div>
+                
+                <div className="max-h-60 overflow-y-auto divide-y divide-white/5 no-scrollbar">
+                  {notificationsList.length === 0 ? (
+                    <div className="py-6 text-center text-slate-500 text-xs">
+                      <FiBell className="mx-auto text-xl mb-1 text-slate-600 animate-bounce" />
+                      <p className="font-semibold text-white">All caught up!</p>
+                      <p className="text-[9px] text-slate-600 mt-0.5">No new system updates.</p>
+                    </div>
+                  ) : (
+                    notificationsList.map((notif) => (
+                      <div 
+                        key={notif.id}
+                        onClick={() => handleNotificationClick(notif.path)}
+                        className="flex items-start gap-2.5 p-2.5 hover:bg-white/5 transition-all cursor-pointer group"
+                      >
+                        <div className={`p-1.5 rounded-lg text-sm shrink-0 ${notif.color}`}>
+                          {notif.icon}
+                        </div>
+                        <div className="flex-1 min-w-0 space-y-0.5">
+                          <p className="text-[11px] font-bold text-white group-hover:text-blue-400 transition-colors">
+                            {notif.title}
+                          </p>
+                          <p className="text-[9px] text-slate-400 leading-normal line-clamp-2">
+                            {notif.description}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
             )}
-          </button>
+          </div>
 
           {/* Mobile Profile Dropdown */}
-          <div className="relative">
+          <div className="relative" ref={mobileProfileDropdownRef}>
             <div 
               className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-inner cursor-pointer"
               onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
@@ -485,19 +621,68 @@ const Layout = () => {
 
           {/* Right Side: Profile & Notifications */}
           <div className="flex items-center space-x-6">
-            <button className="text-slate-400 hover:text-blue-500 relative transition-colors mt-1">
-              <FiBell className="text-xl cursor-pointer" onClick={chatNavigate} />
-              {chatUnreadCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-1 bg-red-500 text-white text-[9px] font-bold flex items-center justify-center rounded-full border-2 border-slate-900 shadow-sm">
-                  {chatUnreadCount > 9 ? '9+' : chatUnreadCount}
-                </span>
+            {/* Desktop Notifications Dropdown */}
+            <div className="relative" ref={notificationsDropdownRef}>
+              <button 
+                onClick={() => setIsNotificationsDropdownOpen(!isNotificationsDropdownOpen)}
+                className="text-slate-400 hover:text-blue-500 relative transition-colors mt-1 focus:outline-none"
+              >
+                <FiBell className="text-xl cursor-pointer" />
+                {totalUnreadCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-1 bg-red-500 text-white text-[9px] font-bold flex items-center justify-center rounded-full border-2 border-slate-900 shadow-sm animate-pulse">
+                    {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
+                  </span>
+                )}
+              </button>
+
+              {isNotificationsDropdownOpen && (
+                <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-slate-900/90 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl shadow-black/50 py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                  <div className="px-4 py-2.5 border-b border-white/10 flex justify-between items-center mb-1">
+                    <span className="text-xs font-bold text-white uppercase tracking-wider">System Notifications</span>
+                    {totalUnreadCount > 0 && (
+                      <span className="text-[10px] bg-blue-500/20 text-blue-400 font-bold px-2 py-0.5 rounded-full border border-blue-500/20">
+                        {totalUnreadCount} New
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div className="max-h-72 overflow-y-auto divide-y divide-white/5 no-scrollbar">
+                    {notificationsList.length === 0 ? (
+                      <div className="py-8 text-center text-slate-500 text-xs">
+                        <FiBell className="mx-auto text-2xl mb-2 text-slate-600 animate-bounce" />
+                        <p className="font-semibold text-white">All caught up!</p>
+                        <p className="text-[10px] text-slate-600 mt-0.5">No new system updates.</p>
+                      </div>
+                    ) : (
+                      notificationsList.map((notif) => (
+                        <div 
+                          key={notif.id}
+                          onClick={() => handleNotificationClick(notif.path)}
+                          className="flex items-start gap-3 p-3 hover:bg-white/5 transition-all cursor-pointer group"
+                        >
+                          <div className={`p-2 rounded-xl text-base shrink-0 ${notif.color}`}>
+                            {notif.icon}
+                          </div>
+                          <div className="flex-1 min-w-0 space-y-0.5">
+                            <p className="text-xs font-bold text-white group-hover:text-blue-400 transition-colors">
+                              {notif.title}
+                            </p>
+                            <p className="text-[10px] text-slate-400 leading-relaxed line-clamp-2">
+                              {notif.description}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
               )}
-            </button>
+            </div>
             
             <div className="h-8 w-px bg-white/10"></div>
-
+ 
             {/* Profile Dropdown Trigger */}
-            <div className="relative">
+            <div className="relative" ref={profileDropdownRef}>
               <div 
                 className="flex items-center cursor-pointer group"
                 onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
@@ -511,7 +696,7 @@ const Layout = () => {
                 </div>
                 <FiChevronDown className="ml-2 text-slate-400 group-hover:text-white transition-colors" />
               </div>
-
+ 
               {/* Dropdown Menu */}
               {isProfileDropdownOpen && (
                 <div className="absolute right-0 mt-3 w-48 bg-slate-900/80 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl shadow-black/50 py-2 z-50 animate-in fade-in slide-in-from-top-2">
