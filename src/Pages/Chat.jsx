@@ -211,17 +211,25 @@ const Chat = () => {
             <div 
               key={contact.userId} 
               onClick={() => setActiveContact(contact.userId)}
-              className={`flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-all mb-1 ${activeContact === contact.userId ? 'bg-blue-600/20 border border-blue-500/30' : 'hover:bg-blue-600/5 border border-transparent'}`}
+              className={`flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-all mb-1 ${activeContact === contact.userId ? 'bg-blue-600/20 border border-blue-500/30' : 'hover:bg-white/5 border border-transparent'}`}
             >
               <div className="relative shrink-0">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-inner ${activeContact === contact.userId ? 'bg-blue-600' : 'bg-slate-700'}`}>
                   {contact.name?.charAt(0).toUpperCase() || 'U'}
                 </div>
+                {contact.isOnline && (
+                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-slate-900 rounded-full"></span>
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-baseline mb-0.5">
-                  <h3 className={`font-bold truncate ${activeContact === contact.userId ? 'text-white' : 'text-slate-200'}`}>
-                    {contact.name || 'Unknown User'}
+                  <h3 className={`font-bold truncate flex items-center gap-1.5 ${activeContact === contact.userId ? 'text-white' : 'text-slate-200'}`}>
+                    <span>{contact.name || 'Unknown User'}</span>
+                    {contact.businessType && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20 font-bold shrink-0">
+                        {contact.businessType}
+                      </span>
+                    )}
                   </h3>
                   <span className="text-xs text-slate-500 shrink-0 ml-2">
                     {formatLastMessageDate(contact.lastMessageAt)}
@@ -260,11 +268,24 @@ const Chat = () => {
                   <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold shadow-inner">
                     {activeContactDetails.name?.charAt(0).toUpperCase() || 'U'}
                   </div>
+                  {activeContactDetails.isOnline && (
+                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-slate-900 rounded-full"></span>
+                  )}
                 </div>
                 <div className="overflow-hidden min-w-0">
-                  <h2 className="font-bold text-white truncate max-w-37.5 sm:max-w-xs">{activeContactDetails.name || 'Unknown User'}</h2>
-                  <p className="text-xs text-slate-400 font-medium capitalize truncate">
-                    {activeContactDetails.businessType || 'Customer'}
+                  <div className="flex items-center gap-2">
+                    <h2 className="font-bold text-white truncate max-w-37.5 sm:max-w-xs">{activeContactDetails.name || 'Unknown User'}</h2>
+                    {activeContactDetails.businessType && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20 font-bold shrink-0">
+                        {activeContactDetails.businessType}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-400 truncate mt-0.5 font-medium">
+                    {activeContactDetails.phone ? `Phone: ${activeContactDetails.phone}` : ''}
+                    {activeContactDetails.phone && activeContactDetails.email ? ' • ' : ''}
+                    {activeContactDetails.email ? `Email: ${activeContactDetails.email}` : ''}
+                    {activeContactDetails.isOnline ? ' • Online' : activeContactDetails.lastActive ? ` • Last active: ${new Date(activeContactDetails.lastActive).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}` : ''}
                   </p>
                 </div>
               </div>

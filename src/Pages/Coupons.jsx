@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { api } from '../api/axios';
 import { 
   FiPercent, FiTrash2, FiPlus, FiTag, FiShoppingBag, 
   FiLayers, FiList, FiTrendingUp, FiSearch, FiX, 
-  FiCheckCircle, FiInfo, FiLoader, FiPlayCircle, FiCopy 
+  FiCheckCircle, FiInfo, FiLoader, FiPlayCircle, FiCopy,
+  FiChevronDown, FiSliders, FiUsers
 } from 'react-icons/fi';
 
 const Coupons = () => {
@@ -287,8 +288,8 @@ const Coupons = () => {
   return (
     <div className="relative space-y-6 min-h-full z-0 isolate w-full">
       {/* Background glow effects */}
-      <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/10 rounded-full mix-blend-screen filter blur-[80px] opacity-40 pointer-events-none -z-10 transform-gpu"></div>
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-500/10 rounded-full mix-blend-screen filter blur-[100px] opacity-40 pointer-events-none -z-10 transform-gpu"></div>
+      <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/10 rounded-full mix-blend-screen filter blur-[80px] opacity-45 pointer-events-none -z-10 transform-gpu"></div>
+      <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-500/10 rounded-full mix-blend-screen filter blur-[100px] opacity-45 pointer-events-none -z-10 transform-gpu"></div>
 
       {/* Header */}
       <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-4 z-10">
@@ -304,15 +305,15 @@ const Coupons = () => {
 
       {/* Status Messages */}
       {successMsg && (
-        <div className="bg-emerald-500/10 border border-emerald-500/50 text-emerald-200 p-4 rounded-2xl flex items-center gap-3 animate-in fade-in">
+        <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 p-4 rounded-2xl flex items-center gap-3 animate-in fade-in">
           <FiCheckCircle className="text-emerald-400 text-xl shrink-0" />
-          <span className="font-medium text-sm">{successMsg}</span>
+          <span className="font-semibold text-sm">{successMsg}</span>
         </div>
       )}
       {error && (
-        <div className="bg-red-500/10 border border-red-500/50 text-red-200 p-4 rounded-2xl flex items-center gap-3 animate-in fade-in">
+        <div className="bg-red-500/10 border border-red-500/30 text-red-300 p-4 rounded-2xl flex items-center gap-3 animate-in fade-in">
           <FiInfo className="text-red-400 text-xl shrink-0" />
-          <span className="font-medium text-sm">{error}</span>
+          <span className="font-semibold text-sm">{error}</span>
         </div>
       )}
 
@@ -382,8 +383,8 @@ const Coupons = () => {
                 </button>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+              <div className="overflow-x-auto custom-scrollbar">
+                <table className="w-full text-left border-collapse whitespace-nowrap">
                   <thead>
                     <tr className="border-b border-white/10 text-slate-400 text-xs font-bold uppercase tracking-wider">
                       <th className="py-4 px-4">Name</th>
@@ -413,38 +414,38 @@ const Coupons = () => {
                             {rule.isAutomatic ? '⚡ Auto-applied' : '🔑 Manual Coupon'}
                           </div>
                         </td>
-                        <td className="py-4 px-4 capitalize text-slate-300">
+                        <td className="py-4 px-4 capitalize text-slate-300 font-medium">
                           {rule.discountType}
                         </td>
                         <td className="py-4 px-4 font-bold text-white">
                           {rule.discountType === 'flat' ? `₹${rule.discountValue.toLocaleString()}` : `${rule.discountValue}%`}
                         </td>
                         <td className="py-4 px-4">
-                          <span className="capitalize text-xs px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-slate-400">
+                          <span className="capitalize text-xs px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-slate-300 font-semibold">
                             {rule.applicability}
                           </span>
                           {rule.applicableIds && rule.applicableIds.length > 0 && (
-                            <div className="text-xs text-slate-500 mt-1">
+                            <div className="text-xs text-slate-500 mt-1.5 font-medium">
                               {rule.applicableIds.length} items targeted
                             </div>
                           )}
                         </td>
-                        <td className="py-4 px-4 text-xs text-slate-400 space-y-1">
+                        <td className="py-4 px-4 text-xs text-slate-400 space-y-1 font-medium">
                           {rule.minOrderValue ? (
-                            <div>Min Order: <strong className="text-white">₹{rule.minOrderValue}</strong></div>
+                            <div>Min Order: <strong className="text-white">₹{rule.minOrderValue.toLocaleString()}</strong></div>
                           ) : null}
                           {rule.minQuantity ? (
                             <div>Min Qty: <strong className="text-white">{rule.minQuantity}</strong> ({rule.quantityMatching})</div>
                           ) : null}
                           {rule.maxDiscount ? (
-                            <div>Max Cap: <strong className="text-white">₹{rule.maxDiscount}</strong></div>
+                            <div>Max Cap: <strong className="text-white">₹{rule.maxDiscount.toLocaleString()}</strong></div>
                           ) : null}
                           {!rule.minOrderValue && !rule.minQuantity && !rule.maxDiscount ? (
                             <span className="text-slate-600">-</span>
                           ) : null}
                         </td>
                         <td className="py-4 px-4 text-center">
-                          <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-full font-semibold border ${
+                          <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full font-bold border ${
                             rule.isActive 
                               ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
                               : 'bg-slate-500/10 border-slate-500/20 text-slate-400'
@@ -456,7 +457,7 @@ const Coupons = () => {
                         <td className="py-4 px-4 text-center">
                           <button
                             onClick={() => handleReuseRule(rule)}
-                            className="p-2 text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors cursor-pointer mr-2"
+                            className="p-2 text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors cursor-pointer mr-1"
                             title="Reuse / Duplicate Rule"
                           >
                             <FiCopy />
@@ -480,216 +481,270 @@ const Coupons = () => {
 
         {/* Tab 2: Create Form */}
         {activeTab === 'create' && (
-          <div className="bg-slate-900/40 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl p-6 md:p-8">
-            <h2 className="text-lg font-bold text-white mb-6">Create New Discount Rule</h2>
+          <div className="bg-slate-900/40 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl p-6 md:p-8 space-y-6">
+            <div className="border-b border-white/10 pb-4">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <FiPlus className="text-blue-400" /> Create New Discount Rule
+              </h2>
+              <p className="text-slate-400 text-xs mt-1">Configure parameters for automatic or coupon discount rates.</p>
+            </div>
             
-            <form onSubmit={handleCreateRule} className="space-y-6">
+            <form onSubmit={handleCreateRule} className="space-y-8">
               
-              {/* Primary Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-white">Rule Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={form.name}
-                    onChange={handleFormChange}
-                    placeholder="e.g. B2B Auto 100K Flat Promo"
-                    className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/50 text-white placeholder-slate-500 transition-all"
-                    required
-                  />
-                  <p className="text-xs text-slate-500">Internal descriptive name for this promo rule.</p>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-white">Promo Code</label>
-                  <input
-                    type="text"
-                    name="code"
-                    value={form.code}
-                    onChange={handleFormChange}
-                    placeholder="e.g. AUTO_B2B_100K"
-                    className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/50 text-white placeholder-slate-500 transition-all font-mono"
-                    required={!form.isAutomatic}
-                  />
-                  <p className="text-xs text-slate-500">Required if code is manual. Enter coupon key code.</p>
-                </div>
-              </div>
-
-              {/* Toggles */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white/2 p-4 rounded-2xl border border-white/5">
-                <label className="flex items-center justify-between cursor-pointer p-2">
-                  <div>
-                    <span className="block text-sm font-semibold text-white">Is Automatic Application?</span>
-                    <span className="block text-xs text-slate-500 mt-0.5">Rule will be auto-applied when requirements are met.</span>
+              {/* Section 1: Basic Details */}
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-2">
+                  <FiTag className="text-base" /> Basic Details
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-950/20 p-6 rounded-2xl border border-white/5">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Rule Name</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={form.name}
+                      onChange={handleFormChange}
+                      placeholder="e.g. B2B Auto 100K Flat Promo"
+                      className="w-full px-4 py-3 bg-slate-950/40 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 text-white placeholder-slate-600 transition-all text-sm font-medium hover:border-white/20"
+                      required
+                    />
+                    <p className="text-[10px] text-slate-500">Internal descriptive name for this promo rule.</p>
                   </div>
-                  <input
-                    type="checkbox"
-                    name="isAutomatic"
-                    checked={form.isAutomatic}
-                    onChange={handleFormChange}
-                    className="w-5 h-5 rounded border-white/10 text-blue-600 focus:ring-0 focus:ring-offset-0 bg-transparent cursor-pointer"
-                  />
-                </label>
 
-                <label className="flex items-center justify-between cursor-pointer p-2">
-                  <div>
-                    <span className="block text-sm font-semibold text-white">Is Active & Enabled?</span>
-                    <span className="block text-xs text-slate-500 mt-0.5">Toggle live status of this rule.</span>
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Promo Code</label>
+                    <input
+                      type="text"
+                      name="code"
+                      value={form.code}
+                      onChange={handleFormChange}
+                      placeholder="e.g. AUTO_B2B_100K"
+                      className="w-full px-4 py-3 bg-slate-950/40 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 text-white placeholder-slate-600 transition-all font-mono text-sm font-medium hover:border-white/20"
+                      required={!form.isAutomatic}
+                    />
+                    <p className="text-[10px] text-slate-500">Required if code is manual. Enter coupon key code.</p>
                   </div>
-                  <input
-                    type="checkbox"
-                    name="isActive"
-                    checked={form.isActive}
-                    onChange={handleFormChange}
-                    className="w-5 h-5 rounded border-white/10 text-blue-600 focus:ring-0 focus:ring-offset-0 bg-transparent cursor-pointer"
-                  />
-                </label>
-              </div>
-
-              {/* Type, Value and Limits */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-white">Discount Type</label>
-                  <select
-                    name="discountType"
-                    value={form.discountType}
-                    onChange={handleFormChange}
-                    className="w-full px-4 py-3 bg-slate-900 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/50 text-white cursor-pointer"
-                  >
-                    <option value="flat">Flat Amount (₹)</option>
-                    <option value="percentage">Percentage (%)</option>
-                  </select>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-white">Discount Value</label>
-                  <input
-                    type="number"
-                    name="discountValue"
-                    value={form.discountValue}
-                    onChange={handleFormChange}
-                    placeholder="e.g. 10000 or 10"
-                    className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/50 text-white placeholder-slate-500 transition-all"
-                    required
-                  />
-                </div>
+                {/* Switches Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-950/20 p-4 rounded-2xl border border-white/5">
+                  {/* Automatic Application Switch */}
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-black/20 border border-white/5 hover:border-white/10 transition-all">
+                    <div className="space-y-0.5">
+                      <span className="block text-sm font-bold text-white">Is Automatic Application?</span>
+                      <span className="block text-xs text-slate-400">Rule will be auto-applied when requirements are met.</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setForm(prev => ({ ...prev, isAutomatic: !prev.isAutomatic }))}
+                      className={`w-11 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 focus:outline-none ${
+                        form.isAutomatic ? 'bg-blue-600' : 'bg-slate-700'
+                      }`}
+                    >
+                      <div
+                        className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
+                          form.isAutomatic ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      ></div>
+                    </button>
+                  </div>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-white">
-                    Max Discount Limit {form.discountType === 'flat' && <span className="text-xs text-slate-500">(Optional)</span>}
-                  </label>
-                  <input
-                    type="number"
-                    name="maxDiscount"
-                    value={form.maxDiscount}
-                    onChange={handleFormChange}
-                    placeholder="e.g. 50000"
-                    className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/50 text-white placeholder-slate-500 transition-all"
-                    disabled={form.discountType === 'flat'}
-                  />
-                  <p className="text-xs text-slate-500">Only applicable for percentage discounts.</p>
+                  {/* Active & Enabled Switch */}
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-black/20 border border-white/5 hover:border-white/10 transition-all">
+                    <div className="space-y-0.5">
+                      <span className="block text-sm font-bold text-white">Is Active & Enabled?</span>
+                      <span className="block text-xs text-slate-400">Toggle live status of this rule.</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setForm(prev => ({ ...prev, isActive: !prev.isActive }))}
+                      className={`w-11 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 focus:outline-none ${
+                        form.isActive ? 'bg-blue-600' : 'bg-slate-700'
+                      }`}
+                    >
+                      <div
+                        className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
+                          form.isActive ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      ></div>
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              {/* Threshold constraints */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 bg-white/2 p-4 rounded-2xl border border-white/5">
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-white">Min Order Value (₹)</label>
-                  <input
-                    type="number"
-                    name="minOrderValue"
-                    value={form.minOrderValue}
-                    onChange={handleFormChange}
-                    placeholder="e.g. 200000"
-                    className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/50 text-white placeholder-slate-500 transition-all"
-                  />
-                </div>
+              {/* Section 2: Discount Configuration */}
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-2">
+                  <FiPercent className="text-base" /> Discount Configuration
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-950/20 p-6 rounded-2xl border border-white/5">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Discount Type</label>
+                    <div className="relative">
+                      <select
+                        name="discountType"
+                        value={form.discountType}
+                        onChange={handleFormChange}
+                        className="w-full pl-4 pr-10 py-3 bg-slate-950/40 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 text-white cursor-pointer appearance-none text-sm font-medium hover:border-white/20 transition-all"
+                      >
+                        <option value="flat" className="bg-slate-900 text-white">Flat Amount (₹)</option>
+                        <option value="percentage" className="bg-slate-900 text-white">Percentage (%)</option>
+                      </select>
+                      <FiChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm" />
+                    </div>
+                  </div>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-white">Min Quantity threshold</label>
-                  <input
-                    type="number"
-                    name="minQuantity"
-                    value={form.minQuantity}
-                    onChange={handleFormChange}
-                    placeholder="e.g. 1000"
-                    className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/50 text-white placeholder-slate-500 transition-all"
-                  />
-                </div>
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Discount Value</label>
+                    <input
+                      type="number"
+                      name="discountValue"
+                      value={form.discountValue}
+                      onChange={handleFormChange}
+                      placeholder="e.g. 10000 or 10"
+                      className="w-full px-4 py-3 bg-slate-950/40 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 text-white placeholder-slate-600 transition-all text-sm font-medium hover:border-white/20"
+                      required
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-white">Quantity Matching Scope</label>
-                  <select
-                    name="quantityMatching"
-                    value={form.quantityMatching}
-                    onChange={handleFormChange}
-                    className="w-full px-4 py-3 bg-slate-900 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/50 text-white cursor-pointer"
-                  >
-                    <option value="">None / Cart Total</option>
-                    <option value="per_category">Per Category (Category volume)</option>
-                    <option value="per_product">Per Product (Product volume)</option>
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-white">Max Uses per User</label>
-                  <input
-                    type="number"
-                    name="maxUsesPerUser"
-                    value={form.maxUsesPerUser}
-                    onChange={handleFormChange}
-                    placeholder="e.g. 1"
-                    className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/50 text-white placeholder-slate-500 transition-all"
-                  />
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                      Max Discount Limit {form.discountType === 'flat' && <span className="text-[10px] text-slate-500 lowercase">(Optional)</span>}
+                    </label>
+                    <input
+                      type="number"
+                      name="maxDiscount"
+                      value={form.maxDiscount}
+                      onChange={handleFormChange}
+                      placeholder="e.g. 50000"
+                      className="w-full px-4 py-3 bg-slate-950/40 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 text-white placeholder-slate-600 transition-all text-sm font-medium hover:border-white/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                      disabled={form.discountType === 'flat'}
+                    />
+                    <p className="text-[10px] text-slate-500">Only applicable for percentage discounts.</p>
+                  </div>
                 </div>
               </div>
 
-              {/* Applicability Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-white">Applicability Scope</label>
-                  <select
-                    name="applicability"
-                    value={form.applicability}
-                    onChange={handleFormChange}
-                    className="w-full px-4 py-3 bg-slate-900 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/50 text-white cursor-pointer"
-                  >
-                    <option value="global">Global (All items)</option>
-                    <option value="category">Category-specific</option>
-                    <option value="product">Product-specific</option>
-                  </select>
-                </div>
+              {/* Section 3: Usage Constraints */}
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-2">
+                  <FiSliders className="text-base" /> Usage Constraints
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 bg-slate-950/20 p-6 rounded-2xl border border-white/5">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Min Order Value (₹)</label>
+                    <input
+                      type="number"
+                      name="minOrderValue"
+                      value={form.minOrderValue}
+                      onChange={handleFormChange}
+                      placeholder="e.g. 200000"
+                      className="w-full px-4 py-3 bg-slate-950/40 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 text-white placeholder-slate-600 transition-all text-sm font-medium hover:border-white/20"
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-white">Apply Discount To</label>
-                  <select
-                    name="discountApplyTo"
-                    value={form.discountApplyTo}
-                    onChange={handleFormChange}
-                    className="w-full px-4 py-3 bg-slate-900 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/50 text-white cursor-pointer"
-                  >
-                    <option value="entire_cart">Entire Cart</option>
-                    <option value="matching_items">Matching Items Only</option>
-                  </select>
-                </div>
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Min Quantity threshold</label>
+                    <input
+                      type="number"
+                      name="minQuantity"
+                      value={form.minQuantity}
+                      onChange={handleFormChange}
+                      placeholder="e.g. 1000"
+                      className="w-full px-4 py-3 bg-slate-950/40 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 text-white placeholder-slate-600 transition-all text-sm font-medium hover:border-white/20"
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-white">Customer Eligibility</label>
-                  <select
-                    name="customerEligibility"
-                    value={form.customerEligibility}
-                    onChange={handleFormChange}
-                    className="w-full px-4 py-3 bg-slate-900 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/50 text-white cursor-pointer"
-                  >
-                    <option value="all">All Customers</option>
-                  </select>
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Quantity Matching Scope</label>
+                    <div className="relative">
+                      <select
+                        name="quantityMatching"
+                        value={form.quantityMatching}
+                        onChange={handleFormChange}
+                        className="w-full pl-4 pr-10 py-3 bg-slate-950/40 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 text-white cursor-pointer appearance-none text-sm font-medium hover:border-white/20 transition-all"
+                      >
+                        <option value="" className="bg-slate-900 text-white">None / Cart Total</option>
+                        <option value="per_category" className="bg-slate-900 text-white">Per Category (Category volume)</option>
+                        <option value="per_product" className="bg-slate-900 text-white">Per Product (Product volume)</option>
+                      </select>
+                      <FiChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Max Uses per User</label>
+                    <input
+                      type="number"
+                      name="maxUsesPerUser"
+                      value={form.maxUsesPerUser}
+                      onChange={handleFormChange}
+                      placeholder="e.g. 1"
+                      className="w-full px-4 py-3 bg-slate-950/40 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 text-white placeholder-slate-600 transition-all text-sm font-medium hover:border-white/20"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 4: Targeting & Applicability */}
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-2">
+                  <FiUsers className="text-base" /> Targeting & Applicability
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-950/20 p-6 rounded-2xl border border-white/5">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Applicability Scope</label>
+                    <div className="relative">
+                      <select
+                        name="applicability"
+                        value={form.applicability}
+                        onChange={handleFormChange}
+                        className="w-full pl-4 pr-10 py-3 bg-slate-950/40 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 text-white cursor-pointer appearance-none text-sm font-medium hover:border-white/20 transition-all"
+                      >
+                        <option value="global" className="bg-slate-900 text-white">Global (All items)</option>
+                        <option value="category" className="bg-slate-900 text-white">Category-specific</option>
+                        <option value="product" className="bg-slate-900 text-white">Product-specific</option>
+                      </select>
+                      <FiChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Apply Discount To</label>
+                    <div className="relative">
+                      <select
+                        name="discountApplyTo"
+                        value={form.discountApplyTo}
+                        onChange={handleFormChange}
+                        className="w-full pl-4 pr-10 py-3 bg-slate-950/40 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 text-white cursor-pointer appearance-none text-sm font-medium hover:border-white/20 transition-all"
+                      >
+                        <option value="entire_cart" className="bg-slate-900 text-white">Entire Cart</option>
+                        <option value="matching_items" className="bg-slate-900 text-white">Matching Items Only</option>
+                      </select>
+                      <FiChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Customer Eligibility</label>
+                    <div className="relative">
+                      <select
+                        name="customerEligibility"
+                        value={form.customerEligibility}
+                        onChange={handleFormChange}
+                        className="w-full pl-4 pr-10 py-3 bg-slate-950/40 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 text-white cursor-pointer appearance-none text-sm font-medium hover:border-white/20 transition-all"
+                      >
+                        <option value="all" className="bg-slate-900 text-white">All Customers</option>
+                      </select>
+                      <FiChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm" />
+                    </div>
+                  </div>
                 </div>
               </div>
 
               {/* Dynamic Applicability Selector */}
               {form.applicability !== 'global' && (
-                <div className="space-y-4 border border-white/10 p-5 rounded-3xl bg-black/10">
+                <div className="space-y-4 border border-white/10 p-5 rounded-2xl bg-black/10">
                   <h3 className="text-sm font-bold text-white">
                     Select Applicable {form.applicability === 'category' ? 'Categories' : 'Products'}
                   </h3>
@@ -704,13 +759,13 @@ const Coupons = () => {
                           placeholder={`Search ${form.applicability}...`}
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
-                          className="w-full pl-10 pr-4 py-2 bg-black/40 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/50 text-white"
+                          className="w-full pl-10 pr-4 py-2.5 bg-black/40 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 text-white placeholder-slate-500 text-sm font-medium"
                         />
                       </div>
                     </div>
 
                     {searchQuery.trim() !== '' && (
-                      <div className="absolute left-0 right-0 mt-2 max-h-60 overflow-y-auto bg-slate-950/95 border border-white/15 rounded-xl shadow-2xl z-50 divide-y divide-white/5">
+                      <div className="absolute left-0 right-0 mt-2 max-h-60 overflow-y-auto bg-slate-950/95 border border-white/15 rounded-xl shadow-2xl z-50 divide-y divide-white/5 custom-scrollbar">
                         {filteredOptions.length === 0 ? (
                           <div className="p-3 text-slate-500 text-xs">No items match search queries.</div>
                         ) : (
@@ -736,7 +791,7 @@ const Coupons = () => {
                   {/* Selected Tags list */}
                   <div className="flex flex-wrap gap-2 pt-2">
                     {selectedIds.length === 0 ? (
-                      <span className="text-slate-500 text-xs">No targeted items selected. Default is empty (won't trigger any discount).</span>
+                      <span className="text-slate-500 text-xs italic">No targeted items selected. Default is empty (won't trigger any discount).</span>
                     ) : (
                       selectedIds.map(id => (
                         <span 
@@ -783,12 +838,17 @@ const Coupons = () => {
 
         {/* Tab 3: Active Promotions */}
         {activeTab === 'promotions' && (
-          <div className="bg-slate-900/40 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold text-white">Active Promotions Feed</h2>
+          <div className="bg-slate-900/40 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl p-6 space-y-6">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div>
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <FiTrendingUp className="text-blue-400" /> Active Promotions Feed
+                </h2>
+                <p className="text-xs text-slate-400 mt-1">Live active discount items as presented to buyers.</p>
+              </div>
               <button
                 onClick={fetchPromotions}
-                className="text-xs text-blue-400 hover:text-white transition-colors flex items-center gap-1 font-semibold cursor-pointer"
+                className="text-xs text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1 font-semibold cursor-pointer"
               >
                 Refresh Feed
               </button>
@@ -808,7 +868,7 @@ const Coupons = () => {
                 {activePromotions.map((promo, idx) => (
                   <div 
                     key={promo._id || idx} 
-                    className="p-5 bg-white/2 rounded-2xl border border-white/10 flex items-start gap-4 hover:border-blue-500/30 transition-all"
+                    className="p-5 bg-slate-950/20 rounded-2xl border border-white/10 flex items-start gap-4 hover:border-blue-500/30 transition-all hover:bg-slate-955/30"
                   >
                     <div className="p-3 bg-blue-500/10 rounded-xl text-blue-400">
                       <FiTag className="text-xl" />
@@ -817,16 +877,16 @@ const Coupons = () => {
                       <div className="flex justify-between items-center">
                         <span className="font-bold text-white">{promo.name}</span>
                         {promo.code && (
-                          <span className="font-mono text-xs font-semibold bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded border border-blue-500/30">
+                          <span className="font-mono text-xs font-semibold bg-blue-500/20 text-blue-300 px-2.5 py-1 rounded border border-blue-500/30">
                             {promo.code}
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-400 capitalize">
+                      <p className="text-xs text-slate-400 capitalize font-medium">
                         Scope: {promo.applicability} • Type: {promo.discountType} ({promo.discountValue}{promo.discountType === 'percentage' ? '%' : ' ₹'})
                       </p>
                       {promo.minOrderValue && (
-                        <p className="text-[11px] text-slate-500">
+                        <p className="text-[11px] text-slate-500 font-medium">
                           Requires min order value of ₹{promo.minOrderValue.toLocaleString()}
                         </p>
                       )}
@@ -852,34 +912,40 @@ const Coupons = () => {
                   
                   <div className="space-y-1.5 md:col-span-2">
                     <label className="block text-xs font-semibold text-slate-300">Select Product</label>
-                    <select
-                      value={selectedTestProduct}
-                      onChange={(e) => {
-                        setSelectedTestProduct(e.target.value);
-                        setSelectedTestVariant('');
-                      }}
-                      className="w-full px-3 py-2 bg-slate-950 border border-white/10 rounded-xl focus:outline-none text-white text-xs cursor-pointer"
-                    >
-                      <option value="">-- Choose Product --</option>
-                      {products.map(p => (
-                        <option key={p._id} value={p._id}>{p.name}</option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={selectedTestProduct}
+                        onChange={(e) => {
+                          setSelectedTestProduct(e.target.value);
+                          setSelectedTestVariant('');
+                        }}
+                        className="w-full pl-3 pr-8 py-2 bg-slate-950 border border-white/10 rounded-xl focus:outline-none text-white text-xs cursor-pointer appearance-none"
+                      >
+                        <option value="">-- Choose Product --</option>
+                        {products.map(p => (
+                          <option key={p._id} value={p._id} className="bg-slate-900">{p.name}</option>
+                        ))}
+                      </select>
+                      <FiChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs" />
+                    </div>
                   </div>
 
                   {selectedTestProductObj?.variants && selectedTestProductObj.variants.length > 0 ? (
                     <div className="space-y-1.5">
                       <label className="block text-xs font-semibold text-slate-300">Select Variant</label>
-                      <select
-                        value={selectedTestVariant}
-                        onChange={(e) => setSelectedTestVariant(e.target.value)}
-                        className="w-full px-3 py-2 bg-slate-950 border border-white/10 rounded-xl focus:outline-none text-white text-xs cursor-pointer"
-                      >
-                        <option value="">-- Default --</option>
-                        {selectedTestProductObj.variants.map(v => (
-                          <option key={v._id} value={v._id}>{v.name}</option>
-                        ))}
-                      </select>
+                      <div className="relative">
+                        <select
+                          value={selectedTestVariant}
+                          onChange={(e) => setSelectedTestVariant(e.target.value)}
+                          className="w-full pl-3 pr-8 py-2 bg-slate-950 border border-white/10 rounded-xl focus:outline-none text-white text-xs cursor-pointer appearance-none"
+                        >
+                          <option value="">-- Default --</option>
+                          {selectedTestProductObj.variants.map(v => (
+                            <option key={v._id} value={v._id} className="bg-slate-900">{v.name}</option>
+                          ))}
+                        </select>
+                        <FiChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs" />
+                      </div>
                     </div>
                   ) : (
                     <div className="space-y-1.5 text-slate-500 text-xs italic pb-2">
@@ -995,7 +1061,7 @@ const Coupons = () => {
 
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Discount TypeApplied:</span>
+                        <span className="text-slate-500">Discount Type Applied:</span>
                         <span className="font-semibold text-white capitalize">{validationResult.discountType || 'N/A'}</span>
                       </div>
                       <div className="flex justify-between">

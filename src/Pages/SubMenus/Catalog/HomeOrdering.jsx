@@ -199,7 +199,7 @@ const HomeOrdering = () => {
         <div className="flex border-b border-white/10 bg-slate-900/50">
           <button
             onClick={() => setActiveTab('categories')}
-            className={`flex items-center gap-2 px-6 py-4 text-sm font-bold transition-all relative ${
+            className={`flex items-center gap-2 px-6 py-4 text-sm font-bold transition-all relative cursor-pointer ${
               activeTab === 'categories' 
                 ? 'text-blue-400 border-b-2 border-blue-400 bg-white/5' 
                 : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
@@ -209,7 +209,7 @@ const HomeOrdering = () => {
           </button>
           <button
             onClick={() => setActiveTab('brands')}
-            className={`flex items-center gap-2 px-6 py-4 text-sm font-bold transition-all relative ${
+            className={`flex items-center gap-2 px-6 py-4 text-sm font-bold transition-all relative cursor-pointer ${
               activeTab === 'brands' 
                 ? 'text-blue-400 border-b-2 border-blue-400 bg-white/5' 
                 : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
@@ -251,7 +251,7 @@ const HomeOrdering = () => {
                 return (
                   <div 
                     key={item._id}
-                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white/5 border border-white/5 hover:border-white/10 rounded-2xl transition-all duration-300 gap-4 group"
+                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-transparent border border-white/20 hover:border-white/10 rounded-2xl transition-all duration-300 gap-4 group"
                   >
                     <div className="flex items-center gap-4 flex-1">
                       {/* Avatar/Preview */}

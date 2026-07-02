@@ -5,7 +5,8 @@ import { BASE_URL, api } from '../api/axios';
 import { 
   FiBox, FiLoader, FiAlertCircle, FiChevronDown, FiCalendar, 
   FiEye, FiX, FiMapPin, FiCreditCard, FiUser, FiPhone, FiMail, 
-  FiFileText, FiUpload, FiDownload, FiCheckCircle, FiTrash2, FiInfo, FiRefreshCcw, FiCheck 
+  FiFileText, FiUpload, FiDownload, FiCheckCircle, FiTrash2, FiInfo, FiRefreshCcw, FiCheck,
+  FiTruck
 } from 'react-icons/fi';
 import CustomDropdown from '../Components/CustomDropdown';
 import { useOutletContext } from 'react-router-dom';
@@ -27,6 +28,16 @@ const Orders = ({ defaultStatus = 'all' }) => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isUploadingInvoice, setIsUploadingInvoice] = useState(false);
+
+  // Shipping details state for 'Shipped' status
+  const [shippingInputOpen, setShippingInputOpen] = useState(false);
+  const [awbNumberText, setAwbNumberText] = useState('');
+  const [courierNameText, setCourierNameText] = useState('');
+
+  // Tracking details state
+  const [trackingData, setTrackingData] = useState(null);
+  const [loadingTracking, setLoadingTracking] = useState(false);
+  const [trackingError, setTrackingError] = useState('');
 
   // Delivered tab configuration
   const [activeDeliveredTab, setActiveDeliveredTab] = useState('orders'); // 'orders' or 'returns'
@@ -99,28 +110,53 @@ const Orders = ({ defaultStatus = 'all' }) => {
     }
   }, [defaultStatus]);
 
-  const handleStatusChange = async (orderId, newStatus) => {
+  const fetchTrackingInfo = async (orderId) => {
+    try {
+      setLoadingTracking(true);
+      setTrackingError('');
+      const token = sessionStorage.getItem('accessToken');
+      const response = await axios.get(`${BASE_URL}/api/orders/${orderId}/track`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setTrackingData(response.data);
+    } catch (err) {
+      console.error('Failed to fetch tracking data', err);
+      setTrackingError('Failed to fetch live tracking details.');
+    } finally {
+      setLoadingTracking(false);
+    }
+  };
+
+  const handleStatusChange = async (orderId, newStatus, shippingInfo = {}) => {
     try {
       setUpdatingId(orderId);
       const token = sessionStorage.getItem('accessToken');
+      const payload = { 
+        orderStatus: newStatus,
+        ...shippingInfo
+      };
       const response = await axios.put(
         `${BASE_URL}/api/orders/${orderId}/status`,
-        { orderStatus: newStatus },
+        payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      const updatedStatus = response.data.orderStatus || newStatus;
+      const updatedOrder = response.data.order || response.data;
 
       setOrders(orders.map(order =>
-        order._id === orderId ? { ...order, orderStatus: updatedStatus } : order
+        order._id === orderId ? { ...order, ...updatedOrder } : order
       ));
 
       if (selectedOrder && selectedOrder._id === orderId) {
-        setSelectedOrder(prev => ({ ...prev, orderStatus: updatedStatus }));
+        setSelectedOrder(prev => ({ ...prev, ...updatedOrder }));
+        if (updatedOrder.awbNumber) {
+          fetchTrackingInfo(orderId);
+        }
       }
+      setShippingInputOpen(false);
     } catch (err) {
       console.error('Failed to update status', err);
-      alert('Failed to update order status. Please try again.');
+      alert(err.response?.data?.message || err.response?.data?.error || 'Failed to update order status. Please try again.');
     } finally {
       setUpdatingId(null);
     }
@@ -184,11 +220,21 @@ const Orders = ({ defaultStatus = 'all' }) => {
   const handleViewDetails = (order) => {
     setSelectedOrder(order);
     setIsModalOpen(true);
+    setTrackingData(null);
+    setTrackingError('');
+    if (order.awbNumber) {
+      fetchTrackingInfo(order._id);
+    }
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedOrder(null);
+    setShippingInputOpen(false);
+    setAwbNumberText('');
+    setCourierNameText('');
+    setTrackingData(null);
+    setTrackingError('');
   };
 
   const closeReturnModal = () => {
@@ -664,7 +710,15 @@ const Orders = ({ defaultStatus = 'all' }) => {
                     ) : (
                       <CustomDropdown
                         value={selectedOrder.orderStatus || 'Pending'}
-                        onChange={(newStatus) => handleStatusChange(selectedOrder._id, newStatus)}
+                        onChange={(newStatus) => {
+                          if (newStatus === 'Shipped') {
+                            setShippingInputOpen(true);
+                            setAwbNumberText(selectedOrder.awbNumber || '');
+                            setCourierNameText(selectedOrder.courierName || '');
+                          } else {
+                            handleStatusChange(selectedOrder._id, newStatus);
+                          }
+                        }}
                         options={['Processing', 'Shipped', 'Delivered', 'Cancelled']}
                         statusColor={getStatusColor(selectedOrder.orderStatus)}
                       />
@@ -679,6 +733,54 @@ const Orders = ({ defaultStatus = 'all' }) => {
                   </div>
                 )}
               </div>
+
+              {/* Shipping Details Form Overlay */}
+              {shippingInputOpen && (
+                <div className="p-5 bg-blue-950/20 border border-blue-500/20 rounded-2xl space-y-4 animate-in slide-in-from-bottom-2">
+                  <h4 className="text-sm font-bold text-blue-400 uppercase tracking-wider flex items-center gap-2">
+                    <FiBox /> Enter Shipping details for Shipped status
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Courier Name</label>
+                      <input
+                        type="text"
+                        required
+                        value={courierNameText}
+                        onChange={(e) => setCourierNameText(e.target.value)}
+                        placeholder="e.g. Blue Dart Surface"
+                        className="w-full px-4 py-2.5 bg-slate-900 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm font-medium placeholder-slate-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">AWB Number</label>
+                      <input
+                        type="text"
+                        required
+                        value={awbNumberText}
+                        onChange={(e) => setAwbNumberText(e.target.value)}
+                        placeholder="e.g. 77030714471"
+                        className="w-full px-4 py-2.5 bg-slate-900 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm font-medium placeholder-slate-500"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <button
+                      onClick={() => handleStatusChange(selectedOrder._id, 'Shipped', { awbNumber: awbNumberText, courierName: courierNameText })}
+                      disabled={!courierNameText.trim() || !awbNumberText.trim()}
+                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      Confirm Shipped Status
+                    </button>
+                    <button
+                      onClick={() => { setShippingInputOpen(false); setAwbNumberText(''); setCourierNameText(''); }}
+                      className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
@@ -706,19 +808,108 @@ const Orders = ({ defaultStatus = 'all' }) => {
                 </div>
 
                 {/* Shipping Address */}
-                <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5 space-y-4">
-                  <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                    <FiMapPin className="text-emerald-400" /> Shipping Address
-                  </h4>
-                  <div className="text-sm text-slate-300 leading-relaxed">
-                    <p className="font-medium text-white mb-1">{selectedOrder.address?.addressLine1 || 'N/A'}</p>
-                    {selectedOrder.address?.addressLine2 && <p>{selectedOrder.address.addressLine2}</p>}
-                    <p>{selectedOrder.address?.city}, {selectedOrder.address?.state}</p>
-                    <p>{selectedOrder.address?.country} - <span className="font-mono text-slate-400">{selectedOrder.address?.pincode}</span></p>
+                <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5 space-y-4 flex flex-col justify-between">
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                      <FiMapPin className="text-emerald-400" /> Shipping Address
+                    </h4>
+                    <div className="text-sm text-slate-300 leading-relaxed">
+                      <p className="font-medium text-white mb-1">{selectedOrder.address?.addressLine1 || 'N/A'}</p>
+                      {selectedOrder.address?.addressLine2 && <p>{selectedOrder.address.addressLine2}</p>}
+                      <p>{selectedOrder.address?.city}, {selectedOrder.address?.state}</p>
+                      <p>{selectedOrder.address?.country} - <span className="font-mono text-slate-400">{selectedOrder.address?.pincode}</span></p>
+                    </div>
                   </div>
+                  
+                  {(selectedOrder.awbNumber || selectedOrder.courierName) && (
+                    <div className="border-t border-white/10 pt-3 mt-3 space-y-2">
+                      <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <FiBox className="text-purple-400" /> Tracking & Delivery
+                      </h5>
+                      <div className="grid grid-cols-2 gap-4 text-xs">
+                        <div>
+                          <span className="block text-slate-500">Courier Partner</span>
+                          <span className="font-semibold text-slate-200">{selectedOrder.courierName || 'N/A'}</span>
+                        </div>
+                        <div>
+                          <span className="block text-slate-500">AWB Tracking No.</span>
+                          <span className="font-semibold text-slate-200 font-mono select-all">{selectedOrder.awbNumber || 'N/A'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
               </div>
+
+              {/* Shipment Tracking Timeline */}
+              {selectedOrder.awbNumber && (
+                <div className="bg-slate-800/50 p-5 rounded-2xl border border-white/5 space-y-4">
+                  <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <FiTruck className="text-blue-400" /> Shipment Tracking Details
+                  </h4>
+                  
+                  {loadingTracking ? (
+                    <div className="py-6 flex flex-col justify-center items-center">
+                      <FiLoader className="animate-spin text-2xl text-blue-400 mb-2" />
+                      <span className="text-xs text-slate-400">Fetching live tracking information...</span>
+                    </div>
+                  ) : trackingError ? (
+                    <div className="text-red-400 bg-red-900/10 p-3 rounded-xl border border-red-500/20 text-xs flex items-center gap-2">
+                      <FiAlertCircle /> {trackingError}
+                    </div>
+                  ) : trackingData ? (
+                    <div className="space-y-4">
+                      {/* Tracking Meta */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-black/25 p-4 rounded-xl border border-white/5 text-sm">
+                        <div>
+                          <span className="block text-xs text-slate-500 mb-0.5">Courier Status</span>
+                          <span className="font-bold text-white capitalize">{trackingData.status || 'In Transit'}</span>
+                        </div>
+                        <div>
+                          <span className="block text-xs text-slate-500 mb-0.5">Expected Delivery</span>
+                          <span className="font-bold text-white">
+                            {trackingData.expectedDeliveryDate 
+                              ? new Date(trackingData.expectedDeliveryDate).toLocaleDateString(undefined, { dateStyle: 'medium' }) 
+                              : 'Pending Courier Update'}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="block text-xs text-slate-500 mb-0.5">Awb Number</span>
+                          <span className="font-mono font-bold text-blue-300">{trackingData.awbNumber}</span>
+                        </div>
+                      </div>
+
+                      {/* Activities Timeline */}
+                      {trackingData.activities && trackingData.activities.length > 0 ? (
+                        <div className="relative pl-6 border-l-2 border-slate-700/60 space-y-6 ml-3 py-2">
+                          {trackingData.activities.map((act, i) => (
+                            <div key={i} className="relative">
+                              {/* Timeline dot */}
+                              <span className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-blue-500 ring-4 ring-slate-900 flex items-center justify-center">
+                                <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
+                              </span>
+                              <div className="text-sm">
+                                <p className="font-bold text-white">{act.activity}</p>
+                                <div className="flex flex-wrap gap-x-4 text-xs text-slate-400 mt-1">
+                                  {act.location && (
+                                    <span>Location: <strong className="text-slate-300">{act.location}</strong></span>
+                                  )}
+                                  <span>Time: <strong className="text-slate-300">{new Date(act.timestamp).toLocaleString()}</strong></span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-slate-500 italic pl-1">No shipment tracking history recorded yet.</p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-500 italic pl-1">No tracking details returned.</p>
+                  )}
+                </div>
+              )}
 
               {/* Order Items */}
               <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5">

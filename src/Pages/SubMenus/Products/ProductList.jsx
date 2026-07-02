@@ -554,6 +554,54 @@ const ProductList = () => {
     return c ? c.name : '-';
   };
 
+  const getQuantityBadge = (product) => {
+    if (product.variants && product.variants.length > 0) {
+      return (
+        <span className="text-slate-400 font-bold text-sm tracking-wide">
+          {product.variants.map((v, i) => {
+            const qty = Number(v.quantity) || 0;
+            let colorClass = '';
+            if (qty <= 0) {
+              colorClass = 'text-rose-400';
+            } else if (qty <= 10) {
+              colorClass = 'text-amber-400';
+            } else {
+              colorClass = 'text-emerald-400';
+            }
+            return (
+              <React.Fragment key={i}>
+                <span className={colorClass}>{qty}</span>
+                {i < product.variants.length - 1 && ', '}
+              </React.Fragment>
+            );
+          })}
+        </span>
+      );
+    }
+
+    const qty = product.totalQuantity !== undefined && product.totalQuantity !== null && product.totalQuantity !== ''
+      ? Number(product.totalQuantity)
+      : null;
+
+    if (qty === null) {
+      return <span className="text-slate-500 font-bold">-</span>;
+    }
+
+    let colorClass = '';
+    if (qty <= 0) {
+      colorClass = 'bg-rose-500/10 text-rose-400 border border-rose-500/20';
+    } else if (qty <= 10) {
+      colorClass = 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+    } else {
+      colorClass = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+    }
+    return (
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${colorClass}`}>
+        {qty}
+      </span>
+    );
+  };
+
   // Filter products based on search term
   const filteredProducts = products.filter(product => {
     const term = searchTerm.toLowerCase();
@@ -697,7 +745,7 @@ const ProductList = () => {
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">Product Name</th>
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">Base Price</th>
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">Offer Price</th>
-                {/* <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">Total Qty</th> */}
+                <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs text-center">Total Qty</th>
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">Variants</th>
                 {/* <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">EAN</th> */}
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs text-center">Images</th>
@@ -730,7 +778,7 @@ const ProductList = () => {
                       <td className="px-4 py-3 text-sm text-white font-bold">{product.name || '-'}</td>
                       <td className="px-4 py-3 text-sm text-slate-400 font-bold">{product.basePrice ?? '-'}</td>
                       <td className="px-4 py-3 text-sm text-emerald-400 font-bold">{product.offerPrice ?? '-'}</td>
-                      {/* <td className="px-4 py-3 text-sm text-slate-400">{product.totalQuantity ?? '-'}</td> */}
+                      <td className="px-4 py-3 text-center">{getQuantityBadge(product)}</td>
                       <td className="px-4 py-3 text-sm text-slate-400 text-center">{product.variants ? product.variants.length>1 ? `${product.variants.length}`: `0` : '-'}</td>
                       {/* <td className="px-4 py-3 text-sm text-slate-400">{product.eanNumber ?? '-'}</td> */}
                       <td className="px-4 py-3 text-center">

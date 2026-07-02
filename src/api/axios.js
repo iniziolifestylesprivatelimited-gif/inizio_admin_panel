@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const BASE_URL = 'https://api.inizio.in';
-// export const BASE_URL = 'http://192.168.40.134:5046';
+// export const BASE_URL = 'http://192.168.1.4:5046';
 
 
 const api = axios.create({
