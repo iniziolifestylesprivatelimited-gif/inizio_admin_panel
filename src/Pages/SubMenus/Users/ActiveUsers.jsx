@@ -5,6 +5,18 @@ import {
   FiActivity, FiKey, FiUsers, FiClock, FiMail, FiCheck, FiX
 } from 'react-icons/fi';
 
+const checkAppStatus = (u) => {
+  if (!u.installedAt && !u.uninstalledAt) {
+    if (u.isAppInstalled) return 'installed';
+    return 'pending';
+  }
+  const instTime = u.installedAt ? new Date(u.installedAt).getTime() : 0;
+  const uninstTime = u.uninstalledAt ? new Date(u.uninstalledAt).getTime() : 0;
+  if (instTime > uninstTime) return 'installed';
+  if (uninstTime > instTime) return 'uninstalled';
+  return 'pending';
+};
+
 const ActiveUsers = () => {
   const [activeTab, setActiveTab] = useState('login');
   const [reportData, setReportData] = useState([]);
@@ -304,7 +316,18 @@ const ActiveUsers = () => {
                         {item.userId || 'N/A'}
                       </td>
                       <td className="p-4 text-sm text-white font-medium text-left">
-                        {item.name}
+                        <div className="flex items-center gap-2">
+                          <span>{item.name}</span>
+                          {checkAppStatus(item) === 'uninstalled' ? (
+                            <span className="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 text-[9px] font-extrabold border border-rose-500/20 shrink-0">
+                              Uninstalled
+                            </span>
+                          ) : checkAppStatus(item) === 'installed' ? (
+                            <span className="px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-400 text-[9px] font-extrabold border border-teal-500/20 shrink-0">
+                              Installed
+                            </span>
+                          ) : null}
+                        </div>
                       </td>
                       <td className="p-4 text-sm text-slate-300 text-left">
                         {item.email}

@@ -133,7 +133,7 @@ const Chat = () => {
   useEffect(() => {
     fetchContacts();
     // Poll for new contacts/messages every 10 seconds
-    const intervalId = setInterval(fetchContacts, 10000);
+    const intervalId = setInterval(fetchContacts, 5000);
     return () => clearInterval(intervalId);
   }, [fetchContacts]);
 

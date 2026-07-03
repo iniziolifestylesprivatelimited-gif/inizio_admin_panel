@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { FiEdit2, FiTrash2, FiPlus, FiLoader, FiSearch, FiUpload, FiX, FiSave, FiImage, FiPackage, FiEye, FiChevronDown, FiChevronUp, FiArrowUp, FiArrowDown, FiCopy, FiDownload, FiFileText } from 'react-icons/fi';
 import { api, BASE_URL } from '../../../api/axios';
+import CustomDropdown from '../../../Components/CustomDropdown';
 import * as XLSX from 'xlsx';
 
 const getImageUrl = (path) => {
@@ -57,11 +58,22 @@ const ProductList = () => {
   const [isVariantsExpanded, setIsVariantsExpanded] = useState(false);
   const [currentProductForView, setCurrentProductForView] = useState(null);
   const [isTogglingActive, setIsTogglingActive] = useState(false);
+  const [togglingVariantId, setTogglingVariantId] = useState(null);
+  const [catalogTab, setCatalogTab] = useState('active');
+  const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
+  const [deactivateCondition, setDeactivateCondition] = useState('quantity');
+  const [deactivateQuantityOperator, setDeactivateQuantityOperator] = useState('lte');
+  const [deactivateQuantityValue, setDeactivateQuantityValue] = useState('0');
+  const [deactivateScope, setDeactivateScope] = useState('product');
+  const [selectedDeactivateBrand, setSelectedDeactivateBrand] = useState('');
+  const [selectedDeactivateCategory, setSelectedDeactivateCategory] = useState('');
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
   const excelDropdownRef = useRef(null);
   const [isExcelDropdownOpen, setIsExcelDropdownOpen] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -192,29 +204,29 @@ const ProductList = () => {
     }
   }, [location.state, products, navigate, location.pathname]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const token = sessionStorage.getItem('accessToken');
-        const headers = { Authorization: `Bearer ${token}` };
-        
-        const [prodRes, brandRes, catRes] = await Promise.all([
-          axios.get(`${BASE_URL}/api/products/`, { headers }),
-          axios.get(`${BASE_URL}/api/brands/`, { headers }).catch(() => ({ data: [] })),
-          axios.get(`${BASE_URL}/api/categories/`, { headers }).catch(() => ({ data: [] }))
-        ]);
-        
-        setProducts(prodRes.data);
-        setBrands(brandRes.data);
-        setCategories(catRes.data);
-      } catch (error) {
-        console.error('Failed to load data', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const token = sessionStorage.getItem('accessToken');
+      const headers = { Authorization: `Bearer ${token}` };
+      
+      const [prodRes, brandRes, catRes] = await Promise.all([
+        axios.get(`${BASE_URL}/api/products/`, { headers }),
+        axios.get(`${BASE_URL}/api/brands/`, { headers }).catch(() => ({ data: [] })),
+        axios.get(`${BASE_URL}/api/categories/`, { headers }).catch(() => ({ data: [] }))
+      ]);
+      
+      setProducts(prodRes.data);
+      setBrands(brandRes.data);
+      setCategories(catRes.data);
+    } catch (error) {
+      console.error('Failed to load data', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -311,6 +323,84 @@ const ProductList = () => {
       alert(error.response?.data?.message || error.response?.data?.error || 'Failed to update product status');
     } finally {
       setIsTogglingActive(false);
+    }
+  };
+
+  const handleToggleVariantActive = async (variantId, currentActiveState) => {
+    if (togglingVariantId) return;
+    setTogglingVariantId(variantId);
+    try {
+      const token = sessionStorage.getItem('accessToken');
+      const formData = new FormData();
+      
+      formData.append('name', currentProductForView.name || '');
+      formData.append('description', currentProductForView.description || '');
+      formData.append('details', currentProductForView.details || '');
+      formData.append('expertNotes', currentProductForView.expertNotes || '');
+      formData.append('basePrice', currentProductForView.basePrice || 0);
+      formData.append('offerPrice', currentProductForView.offerPrice || 0);
+      formData.append('l1Price', currentProductForView.l1Price || 0);
+      formData.append('l2Price', currentProductForView.l2Price || 0);
+      formData.append('l3Price', currentProductForView.l3Price || 0);
+      formData.append('quantityPricing', JSON.stringify(currentProductForView.quantityPricing || []));
+      formData.append('eanNumber', currentProductForView.eanNumber || '');
+      formData.append('totalQuantity', currentProductForView.totalQuantity || 0);
+      formData.append('cancellationPolicy', currentProductForView.cancellationPolicy || '');
+      formData.append('sevenDaysReturn', currentProductForView.sevenDaysReturn || '');
+      formData.append('warranty', currentProductForView.warranty || '');
+      formData.append('isActive', currentProductForView.isActive !== false);
+
+      const brandId = currentProductForView.brand?._id || currentProductForView.brand;
+      if (brandId) formData.append('brand', brandId);
+      
+      const categoryId = currentProductForView.category?._id || currentProductForView.category;
+      if (categoryId) formData.append('category', categoryId);
+
+      const payloadVariants = (currentProductForView.variants || []).map(v => {
+        const parsedQP = (v.quantityPricing || [])
+          .map(qp => ({ minQty: Number(qp.minQty) || 0, price: Number(qp.price) || 0 }))
+          .filter(qp => qp.minQty > 0 || qp.price > 0);
+        
+        return {
+          _id: v._id,
+          name: v.name,
+          sku: v.sku,
+          quantity: Number(v.quantity) || 0,
+          price: Number(v.price) || 0,
+          offerPrice: Number(v.offerPrice) || 0,
+          l1Price: Number(v.l1Price) || 0,
+          l2Price: Number(v.l2Price) || 0,
+          l3Price: Number(v.l3Price) || 0,
+          quantityPricing: parsedQP,
+          images: v.images || [],
+          isActive: v._id === variantId ? !currentActiveState : (v.isActive !== false)
+        };
+      });
+      formData.append('variants', JSON.stringify(payloadVariants));
+
+      if (currentProductForView.images && currentProductForView.images.length > 0) {
+        formData.append('images', JSON.stringify(currentProductForView.images));
+      }
+
+      await axios.put(`${BASE_URL}/api/products/${currentProductForView._id}`, formData, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      // Update local states
+      const updatedVariants = (currentProductForView.variants || []).map(v => 
+        v._id === variantId ? { ...v, isActive: !currentActiveState } : v
+      );
+
+      setProducts(prev => prev.map(p => p._id === currentProductForView._id ? { ...p, variants: updatedVariants } : p));
+      setCurrentProductForView(prev => ({ ...prev, variants: updatedVariants }));
+    } catch (error) {
+      console.error('Failed to toggle variant status', error);
+      alert(error.response?.data?.message || error.response?.data?.error || 'Failed to update variant status');
+    } finally {
+      setTogglingVariantId(null);
     }
   };
 
@@ -456,88 +546,308 @@ const ProductList = () => {
     }
   };
 
+  const handleBulkDeactivate = async () => {
+    let targets = [];
+    const token = sessionStorage.getItem('accessToken');
+    
+    const valueThreshold = Number(deactivateQuantityValue);
+    if (deactivateCondition === 'quantity' && isNaN(valueThreshold)) {
+      alert('Please enter a valid number for quantity threshold.');
+      return;
+    }
+
+    const checkQuantityMatches = (qty) => {
+      const q = Number(qty) || 0;
+      switch (deactivateQuantityOperator) {
+        case 'gt': return q > valueThreshold;
+        case 'gte': return q >= valueThreshold;
+        case 'lt': return q < valueThreshold;
+        case 'lte': return q <= valueThreshold;
+        case 'eq': return q === valueThreshold;
+        case 'neq': return q !== valueThreshold;
+        default: return false;
+      }
+    };
+
+    // 1. Find the target products and construct their updated payload
+    if (deactivateCondition === 'quantity') {
+      if (deactivateScope === 'product') {
+        // Evaluate products based on aggregated quantity
+        targets = products.filter(p => {
+          if (p.isActive === false) return false;
+          const totalQty = p.variants && p.variants.length > 0 
+            ? p.variants.reduce((sum, v) => sum + (Number(v.quantity) || 0), 0) 
+            : (Number(p.totalQuantity) || 0);
+          return checkQuantityMatches(totalQty);
+        }).map(p => ({
+          product: p,
+          updates: {
+            isActive: false, // Deactivate product
+            variants: p.variants || []
+          }
+        }));
+      } else {
+        // Evaluate individual variants and/or single products
+        targets = products.filter(p => p.isActive !== false).map(p => {
+          if (p.variants && p.variants.length > 0) {
+            // Check if any variant matches the condition and is active
+            const hasMatchingVariant = p.variants.some(v => v.isActive !== false && checkQuantityMatches(v.quantity));
+            if (!hasMatchingVariant) return null;
+            
+            // Map variants to set isActive to false for those matching
+            const updatedVariants = p.variants.map(v => 
+              checkQuantityMatches(v.quantity) ? { ...v, isActive: false } : v
+            );
+            return {
+              product: p,
+              updates: {
+                isActive: true, // Keep parent product active
+                variants: updatedVariants
+              }
+            };
+          } else {
+            // Product with no variants
+            if (checkQuantityMatches(p.totalQuantity)) {
+              return {
+                product: p,
+                updates: {
+                  isActive: false, // Deactivate product itself
+                  variants: []
+                }
+              };
+            }
+          }
+          return null;
+        }).filter(Boolean);
+      }
+    } else if (deactivateCondition === 'brand') {
+      if (!selectedDeactivateBrand) {
+        alert('Please select a Brand.');
+        return;
+      }
+      targets = products.filter(p => {
+        if (p.isActive === false) return false;
+        const brandId = p.brand?._id || p.brand;
+        return brandId === selectedDeactivateBrand;
+      }).map(p => ({
+        product: p,
+        updates: { isActive: false, variants: p.variants || [] }
+      }));
+    } else if (deactivateCondition === 'category') {
+      if (!selectedDeactivateCategory) {
+        alert('Please select a Category.');
+        return;
+      }
+      targets = products.filter(p => {
+        if (p.isActive === false) return false;
+        const categoryId = p.category?._id || p.category;
+        return categoryId === selectedDeactivateCategory;
+      }).map(p => ({
+        product: p,
+        updates: { isActive: false, variants: p.variants || [] }
+      }));
+    } else if (deactivateCondition === 'all') {
+      targets = products.filter(p => p.isActive !== false).map(p => ({
+        product: p,
+        updates: { isActive: false, variants: p.variants || [] }
+      }));
+    }
+
+    if (targets.length === 0) {
+      alert('No active items match the selected condition.');
+      return;
+    }
+
+    const confirmMsg = deactivateCondition === 'quantity' && deactivateScope === 'variants'
+      ? `This will deactivate matching variants in ${targets.length} product(s). Are you sure you want to proceed?`
+      : `This will deactivate ${targets.length} product(s). Are you sure you want to proceed?`;
+
+    if (!window.confirm(confirmMsg)) {
+      return;
+    }
+
+    setIsBulkUpdating(true);
+    try {
+      await Promise.all(targets.map(async ({ product: p, updates }) => {
+        const formData = new FormData();
+        formData.append('name', p.name || '');
+        formData.append('description', p.description || '');
+        formData.append('details', p.details || '');
+        formData.append('expertNotes', p.expertNotes || '');
+        formData.append('basePrice', p.basePrice || 0);
+        formData.append('offerPrice', p.offerPrice || 0);
+        formData.append('l1Price', p.l1Price || 0);
+        formData.append('l2Price', p.l2Price || 0);
+        formData.append('l3Price', p.l3Price || 0);
+        formData.append('quantityPricing', JSON.stringify(p.quantityPricing || []));
+        formData.append('eanNumber', p.eanNumber || '');
+        formData.append('totalQuantity', p.totalQuantity || 0);
+        formData.append('cancellationPolicy', p.cancellationPolicy || '');
+        formData.append('sevenDaysReturn', p.sevenDaysReturn || '');
+        formData.append('warranty', p.warranty || '');
+        formData.append('isActive', updates.isActive);
+
+        const brandId = p.brand?._id || p.brand;
+        if (brandId) formData.append('brand', brandId);
+        
+        const categoryId = p.category?._id || p.category;
+        if (categoryId) formData.append('category', categoryId);
+
+        const payloadVariants = updates.variants.map(v => {
+          const parsedQP = (v.quantityPricing || [])
+            .map(qp => ({ minQty: Number(qp.minQty) || 0, price: Number(qp.price) || 0 }))
+            .filter(qp => qp.minQty > 0 || qp.price > 0);
+          
+          return {
+            _id: v._id,
+            name: v.name,
+            sku: v.sku,
+            quantity: Number(v.quantity) || 0,
+            price: Number(v.price) || 0,
+            offerPrice: Number(v.offerPrice) || 0,
+            l1Price: Number(v.l1Price) || 0,
+            l2Price: Number(v.l2Price) || 0,
+            l3Price: Number(v.l3Price) || 0,
+            quantityPricing: parsedQP,
+            images: v.images || [],
+            isActive: v.isActive !== false
+          };
+        });
+        formData.append('variants', JSON.stringify(payloadVariants));
+
+        if (p.images && p.images.length > 0) {
+          formData.append('images', JSON.stringify(p.images));
+        }
+
+        await axios.put(`${BASE_URL}/api/products/${p._id}`, formData, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+      }));
+
+      // Update local state
+      setProducts(prev => prev.map(p => {
+        const target = targets.find(t => t.product._id === p._id);
+        if (target) {
+          return {
+            ...p,
+            isActive: target.updates.isActive,
+            variants: target.updates.variants
+          };
+        }
+        return p;
+      }));
+      
+      alert('Items updated successfully.');
+      setIsDeactivateModalOpen(false);
+    } catch (error) {
+      console.error('Failed to bulk deactivate products/variants', error);
+      alert('Failed to deactivate some items.');
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
   const openImageView = (product) => {
     setCurrentProductForView(product);
     setIsImageViewOpen(true);
   };
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // console.log('CSV file selected:', file.name);
-      // Implement CSV parsing or upload logic here (e.g., using FormData or PapaParse)
+  const handleDownloadSampleExcel = async () => {
+    setLoading(true);
+    try {
+      const token = sessionStorage.getItem('accessToken');
+      const response = await axios.get(`${BASE_URL}/api/products/excel/sample`, {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob'
+      });
+      const blob = new Blob([response.data], { type: response.headers['content-type'] });
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = 'Products_Sample_Template.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Failed to download sample excel', error);
+      alert('Failed to download sample Excel template.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleExportToExcel = () => {
-    if (filteredProducts.length === 0) {
-      alert('No data available to export.');
+  const handleExportToExcel = async () => {
+    setLoading(true);
+    try {
+      const token = sessionStorage.getItem('accessToken');
+      const response = await axios.get(`${BASE_URL}/api/products/excel/export`, {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob'
+      });
+      const blob = new Blob([response.data], { type: response.headers['content-type'] });
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = 'Products_Export.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Failed to export excel', error);
+      alert('Failed to export product data.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUploadExcel = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    e.target.value = ''; // Reset select state
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    setLoading(true);
+    try {
+      const token = sessionStorage.getItem('accessToken');
+      await axios.post(`${BASE_URL}/api/products/bulk-upload`, formData, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      alert('Bulk products uploaded successfully.');
+      await fetchData();
+    } catch (error) {
+      console.error('Failed bulk upload products', error);
+      alert(error.response?.data?.message || error.response?.data?.error || 'Failed to complete bulk upload.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRollbackBulkUpload = async () => {
+    if (!window.confirm('Are you sure you want to rollback the last bulk upload? This action cannot be undone.')) {
       return;
     }
 
-    const exportData = [];
-    let serialNo = 1;
-
-    filteredProducts.forEach((product) => {
-      const brandName = getBrandName(product.brand);
-      const categoryName = getCategoryName(product.category);
-
-      if (product.variants && product.variants.length > 0) {
-        // Export each variant as a row
-        product.variants.forEach((variant) => {
-          exportData.push({
-            'S.No': serialNo++,
-            'Brand': brandName,
-            'Category': categoryName,
-            'Product Name': `${product.name} (${variant.name})` || '-',
-            'Description': product.description || '-',
-            'EAN Number': product.eanNumber || '-',
-            'Warranty': product.warranty || '-',
-            'Has Variants': 'Yes',
-            'Variant Name': variant.name || '-',
-            'Variant SKU': variant.sku || '-',
-            'Price': variant.price != null ? Number(variant.price) : 0,
-            'Offer Price': variant.offerPrice != null ? Number(variant.offerPrice) : 0,
-            'L1 Price': variant.l1Price != null ? Number(variant.l1Price) : 0,
-            'L2 Price': variant.l2Price != null ? Number(variant.l2Price) : 0,
-            'L3 Price': variant.l3Price != null ? Number(variant.l3Price) : 0,
-            'Stock / Qty': variant.quantity != null ? Number(variant.quantity) : 0,
-          });
-        });
-      } else {
-        // Export the main product as a single row
-        exportData.push({
-          'S.No': serialNo++,
-          'Brand': brandName,
-          'Category': categoryName,
-          'Product Name': product.name || '-',
-          'Description': product.description || '-',
-          'EAN Number': product.eanNumber || '-',
-          'Warranty': product.warranty || '-',
-          'Has Variants': 'No',
-          'Variant Name': '-',
-          'Variant SKU': '-',
-          'Price': product.basePrice != null ? Number(product.basePrice) : 0,
-          'Offer Price': product.offerPrice != null ? Number(product.offerPrice) : 0,
-          'L1 Price': product.l1Price != null ? Number(product.l1Price) : 0,
-          'L2 Price': product.l2Price != null ? Number(product.l2Price) : 0,
-          'L3 Price': product.l3Price != null ? Number(product.l3Price) : 0,
-          'Stock / Qty': product.totalQuantity != null ? Number(product.totalQuantity) : 0,
-        });
-      }
-    });
-
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Products & Variants');
-
-    // Auto-adjust column widths for better readability
-    const maxKeys = Object.keys(exportData[0] || {});
-    worksheet['!cols'] = maxKeys.map(key => ({
-      wch: Math.max(...exportData.map(row => String(row[key] || '').length), key.length) + 2
-    }));
-
-    XLSX.writeFile(workbook, 'Inizio_Products_Variants_Export.xlsx');
+    setLoading(true);
+    try {
+      const token = sessionStorage.getItem('accessToken');
+      await axios.post(`${BASE_URL}/api/products/bulk-upload/rollback`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert('Bulk upload rolled back successfully.');
+      await fetchData();
+    } catch (error) {
+      console.error('Failed rollback bulk upload', error);
+      alert(error.response?.data?.message || error.response?.data?.error || 'Failed to rollback last bulk upload.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getBrandName = (brandId) => {
@@ -602,8 +912,17 @@ const ProductList = () => {
     );
   };
 
-  // Filter products based on search term
+  // Filter products based on catalog tab and search term
   const filteredProducts = products.filter(product => {
+    // 1. Tab filter
+    if (catalogTab === 'active') {
+      if (product.isActive === false) return false;
+    } else if (catalogTab === 'deactivated') {
+      const hasDeactivatedVariant = product.variants && product.variants.some(v => v.isActive === false);
+      if (product.isActive !== false && !hasDeactivatedVariant) return false;
+    }
+
+    // 2. Search term filter
     const term = searchTerm.toLowerCase();
     const ean = product.eanNumber?.toString() || '';
     return (
@@ -687,34 +1006,38 @@ const ProductList = () => {
               </button>
             )}
             
-            {/* Excel Actions Dropdown */}
-            <div className="relative w-full sm:w-auto" ref={excelDropdownRef}>
-              <button 
-                onClick={() => setIsExcelDropdownOpen(!isExcelDropdownOpen)} 
-                className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl hover:bg-slate-700 hover:text-white transition-all border border-white/10 shadow-sm cursor-pointer gap-2"
-              >
-                <FiFileText />
-                <span>Excel Actions</span>
-                <FiChevronDown className={`transition-transform duration-300 ${isExcelDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-              {isExcelDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-slate-900 border border-white/10 rounded-xl shadow-2xl shadow-black/80 py-1.5 z-50 animate-in fade-in slide-in-from-top-2">
-                  <button 
-                    onClick={() => { handleExportToExcel(); setIsExcelDropdownOpen(false); }} 
-                    className="w-full flex items-center px-4 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors cursor-pointer text-left font-medium"
-                  >
-                    <FiDownload className="mr-2 text-amber-400" />
-                    Export to Excel
-                  </button>
-                  <button 
-                    onClick={() => { navigate('/products/mapping'); setIsExcelDropdownOpen(false); }} 
-                    className="w-full flex items-center px-4 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors cursor-pointer text-left font-medium"
-                  >
-                    <FiUpload className="mr-2 text-emerald-400" />
-                    Upload Excel / CSV
-                  </button>
-                </div>
-              )}
+            <div className="w-full sm:w-48">
+              <CustomDropdown
+                value="Actions"
+                options={[
+                  'Download Sample Excel',
+                  'Export to Excel',
+                  'Bulk Upload Excel',
+                  'Rollback Bulk Upload',
+                  'Deactivate Products'
+                ]}
+                onChange={(option) => {
+                  if (option === 'Download Sample Excel') {
+                    handleDownloadSampleExcel();
+                  } else if (option === 'Export to Excel') {
+                    handleExportToExcel();
+                  } else if (option === 'Bulk Upload Excel') {
+                    fileInputRef.current?.click();
+                  } else if (option === 'Rollback Bulk Upload') {
+                    handleRollbackBulkUpload();
+                  } else if (option === 'Deactivate Products') {
+                    setIsDeactivateModalOpen(true);
+                  }
+                }}
+                statusColor="bg-slate-800 text-slate-300 border-white/10 hover:bg-slate-700 hover:text-white"
+              />
+              <input 
+                type="file"
+                ref={fileInputRef}
+                onChange={handleUploadExcel}
+                accept=".xlsx, .xls"
+                className="hidden"
+              />
             </div>
 
             <button onClick={openAddModal} className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-blue-600/50 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/5 cursor-pointer">
@@ -723,6 +1046,30 @@ const ProductList = () => {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Catalog Tabs */}
+      <div className="flex border-b border-white/10 gap-6 mb-2">
+        <button
+          onClick={() => { setCatalogTab('active'); setSearchParams(prev => { prev.set('page', '1'); return prev; }); }}
+          className={`pb-3 font-bold text-sm transition-all cursor-pointer ${
+            catalogTab === 'active' 
+              ? 'text-blue-400 border-b-2 border-blue-400 font-extrabold' 
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          Active Catalog ({products.filter(p => p.isActive !== false).length})
+        </button>
+        <button
+          onClick={() => { setCatalogTab('deactivated'); setSearchParams(prev => { prev.set('page', '1'); return prev; }); }}
+          className={`pb-3 font-bold text-sm transition-all cursor-pointer ${
+            catalogTab === 'deactivated' 
+              ? 'text-rose-400 border-b-2 border-rose-400 font-extrabold' 
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          Deactivated Items ({products.filter(p => p.isActive === false || (p.variants && p.variants.some(v => v.isActive === false))).length})
+        </button>
       </div>
 
       {/* Table Section */}
@@ -775,7 +1122,18 @@ const ProductList = () => {
                       <td className="px-4 py-3 text-sm font-medium text-slate-400">{indexOfFirstItem + index + 1}</td>
                       <td className="px-4 py-3 text-sm text-slate-300 font-medium">{getBrandName(product.brand)}</td>
                       <td className="px-4 py-3 text-sm text-slate-300 font-medium">{getCategoryName(product.category)}</td>
-                      <td className="px-4 py-3 text-sm text-white font-bold">{product.name || '-'}</td>
+                      <td className="px-4 py-3 text-sm text-white font-bold">
+                        <div>{product.name || '-'}</div>
+                        {product.isActive === false ? (
+                          <span className="inline-block text-[9px] font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-1.5 py-0.5 rounded mt-1">
+                            Deactivated Product
+                          </span>
+                        ) : product.variants && product.variants.some(v => v.isActive === false) ? (
+                          <span className="inline-block text-[9px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded mt-1">
+                            {product.variants.filter(v => v.isActive === false).length} Variant(s) Inactive
+                          </span>
+                        ) : null}
+                      </td>
                       <td className="px-4 py-3 text-sm text-slate-400 font-bold">{product.basePrice ?? '-'}</td>
                       <td className="px-4 py-3 text-sm text-emerald-400 font-bold">{product.offerPrice ?? '-'}</td>
                       <td className="px-4 py-3 text-center">{getQuantityBadge(product)}</td>
@@ -1072,6 +1430,26 @@ const ProductList = () => {
                     {currentProductForView.variants && currentProductForView.variants.length > 0 ? (
                       currentProductForView.variants.map((variant, idx) => (
                         <div key={idx} className="p-5 bg-slate-800/40 border border-white/5 rounded-2xl space-y-4">
+                          <div className="flex justify-between items-center border-b border-white/5 pb-2 mb-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-bold text-white uppercase tracking-wider">Variant #{idx + 1}</span>
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${variant.isActive !== false ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
+                                {variant.isActive !== false ? 'Active' : 'Inactive'}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleToggleVariantActive(variant._id, variant.isActive !== false)}
+                              disabled={togglingVariantId !== null}
+                              className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                                variant.isActive !== false
+                                  ? 'bg-rose-600/20 text-rose-400 border-rose-500/30 hover:bg-rose-600/30'
+                                  : 'bg-emerald-600/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-600/30'
+                              }`}
+                            >
+                              {togglingVariantId === variant._id ? 'Updating...' : (variant.isActive !== false ? 'Deactivate' : 'Activate')}
+                            </button>
+                          </div>
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
                             <div>
                               <p className="text-xs text-slate-500 uppercase tracking-wider mb-1 font-bold">Variant Name</p>
@@ -1475,6 +1853,169 @@ const ProductList = () => {
               <button type="submit" form="addProductForm" className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30">
                 <FiPlus className="mr-2" />
                 Add Product
+              </button>
+            </div>
+          </div>
+        </div>
+      , document.body)}
+
+      {/* Deactivate Products Conditions Modal */}
+      {isDeactivateModalOpen && createPortal(
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={() => !isBulkUpdating && setIsDeactivateModalOpen(false)}></div>
+          
+          <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-800/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-red-900/50 text-red-400 flex items-center justify-center text-lg">
+                  <FiTrash2 />
+                </div>
+                <h2 className="text-xl font-bold text-white">Deactivate Products</h2>
+              </div>
+              <button 
+                onClick={() => setIsDeactivateModalOpen(false)} 
+                disabled={isBulkUpdating}
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors"
+              >
+                <FiX className="text-xl" />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Condition</label>
+                <select
+                  value={deactivateCondition}
+                  onChange={(e) => setDeactivateCondition(e.target.value)}
+                  disabled={isBulkUpdating}
+                  className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium"
+                >
+                  <option value="quantity" className="bg-slate-800">By Product/Variant Quantity</option>
+                  <option value="brand" className="bg-slate-800">Specific Brand</option>
+                  <option value="category" className="bg-slate-800">Specific Category</option>
+                  <option value="all" className="bg-slate-800">All Products</option>
+                </select>
+              </div>
+
+              {deactivateCondition === 'quantity' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Quantity Condition</label>
+                    <select
+                      value={deactivateQuantityOperator}
+                      onChange={(e) => setDeactivateQuantityOperator(e.target.value)}
+                      disabled={isBulkUpdating}
+                      className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium"
+                    >
+                      <option value="gt" className="bg-slate-800">Greater than</option>
+                      <option value="gte" className="bg-slate-800">Greater than or equal to</option>
+                      <option value="lt" className="bg-slate-800">Less than</option>
+                      <option value="lte" className="bg-slate-800">Less than or equal to</option>
+                      <option value="eq" className="bg-slate-800">Is equal to</option>
+                      <option value="neq" className="bg-slate-800">Is not equal to</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Quantity Threshold</label>
+                    <input
+                      type="number"
+                      value={deactivateQuantityValue}
+                      onChange={(e) => setDeactivateQuantityValue(e.target.value)}
+                      disabled={isBulkUpdating}
+                      required
+                      placeholder="e.g. 10"
+                      className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Deactivation Scope</label>
+                    <div className="flex items-center gap-6 mt-1">
+                      <label className="flex items-center gap-2 text-sm text-slate-300 font-bold cursor-pointer select-none">
+                        <input
+                          type="radio"
+                          name="deactivateScope"
+                          value="product"
+                          checked={deactivateScope === 'product'}
+                          onChange={() => setDeactivateScope('product')}
+                          disabled={isBulkUpdating}
+                          className="w-4 h-4 text-blue-500 bg-slate-800 border-white/10 focus:ring-blue-500 accent-blue-500"
+                        />
+                        Entire Product
+                      </label>
+                      <label className="flex items-center gap-2 text-sm text-slate-300 font-bold cursor-pointer select-none">
+                        <input
+                          type="radio"
+                          name="deactivateScope"
+                          value="variants"
+                          checked={deactivateScope === 'variants'}
+                          onChange={() => setDeactivateScope('variants')}
+                          disabled={isBulkUpdating}
+                          className="w-4 h-4 text-blue-500 bg-slate-800 border-white/10 focus:ring-blue-500 accent-blue-500"
+                        />
+                        Variants Only
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {deactivateCondition === 'brand' && (
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Brand</label>
+                  <select
+                    value={selectedDeactivateBrand}
+                    onChange={(e) => setSelectedDeactivateBrand(e.target.value)}
+                    disabled={isBulkUpdating}
+                    required
+                    className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium"
+                  >
+                    <option value="" className="bg-slate-800">Choose a Brand</option>
+                    {brands.map(b => <option key={b._id} value={b._id} className="bg-slate-800">{b.name}</option>)}
+                  </select>
+                </div>
+              )}
+
+              {deactivateCondition === 'category' && (
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Category</label>
+                  <select
+                    value={selectedDeactivateCategory}
+                    onChange={(e) => setSelectedDeactivateCategory(e.target.value)}
+                    disabled={isBulkUpdating}
+                    required
+                    className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium"
+                  >
+                    <option value="" className="bg-slate-800">Choose a Category</option>
+                    {categories.map(c => <option key={c._id} value={c._id} className="bg-slate-800">{c.name}</option>)}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 py-4 border-t border-white/10 bg-slate-800/50 flex flex-col sm:flex-row justify-end gap-3">
+              <button 
+                onClick={() => setIsDeactivateModalOpen(false)} 
+                disabled={isBulkUpdating}
+                className="w-full sm:w-auto px-5 py-2.5 text-slate-300 font-bold rounded-xl hover:bg-slate-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleBulkDeactivate}
+                disabled={isBulkUpdating}
+                className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-red-500/30 cursor-pointer"
+              >
+                {isBulkUpdating ? (
+                  <>
+                    <FiLoader className="animate-spin mr-2" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <FiTrash2 className="mr-2" />
+                    Deactivate Products
+                  </>
+                )}
               </button>
             </div>
           </div>

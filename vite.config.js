@@ -12,6 +12,18 @@ export default defineConfig({
     watch: {
       usePolling: true,
     },
+    proxy: {
+      '/api': {
+        target: 'https://api.inizio.in',
+        changeOrigin: true,
+        secure: false
+      },
+      '/uploads': {
+        target: 'https://api.inizio.in',
+        changeOrigin: true,
+        secure: false
+      }
+    }
   },
 
   build: {

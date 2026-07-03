@@ -64,7 +64,8 @@ const Variants = () => {
         l2Price: v.l2Price || '',
         l3Price: v.l3Price || '',
         quantityPricing: Array.isArray(v.quantityPricing) ? v.quantityPricing : [],
-        image_urls: v.images ? v.images.join(', ') : ''
+        image_urls: v.images ? v.images.join(', ') : '',
+        isActive: v.isActive !== false
       })) || [];
       
       setVariants(existingVariants);
@@ -85,7 +86,8 @@ const Variants = () => {
     l2Price: '',
     l3Price: '',
     quantityPricing: [],
-    image_urls: ''
+    image_urls: '',
+    isActive: true
   });
 
   const handleAdd = () => {
@@ -216,7 +218,8 @@ const Variants = () => {
             l2Price: Number(v.l2Price) || 0,
             l3Price: Number(v.l3Price) || 0,
             quantityPricing: parsedQP,
-            images
+            images,
+            isActive: v.isActive !== false
           };
         });
       } catch (err) {
@@ -567,6 +570,17 @@ const Variants = () => {
                   <div><label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">L1 Price</label><input type="number" value={variant.l1Price} onChange={e => handleChange(index, 'l1Price', e.target.value)} className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500 text-white scheme-dark" /></div>
                   <div><label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">L2 Price</label><input type="number" value={variant.l2Price} onChange={e => handleChange(index, 'l2Price', e.target.value)} className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500 text-white scheme-dark" /></div>
                   <div><label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">L3 Price</label><input type="number" value={variant.l3Price} onChange={e => handleChange(index, 'l3Price', e.target.value)} className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500 text-white scheme-dark" /></div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Active Status</label>
+                    <select 
+                      value={variant.isActive !== false ? 'active' : 'inactive'} 
+                      onChange={e => handleChange(index, 'isActive', e.target.value === 'active')}
+                      className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium"
+                    >
+                      <option value="active" className="bg-slate-800">Active</option>
+                      <option value="inactive" className="bg-slate-800">Inactive</option>
+                    </select>
+                  </div>
                   
                   <div className="sm:col-span-2 md:col-span-3 lg:col-span-4">
                     <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Quantity Pricing Slabs</label>

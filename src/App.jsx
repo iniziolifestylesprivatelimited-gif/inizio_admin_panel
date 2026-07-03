@@ -21,6 +21,7 @@ import Variants from './Pages/SubMenus/Products/editProduct';
 import Cart from './Pages/Cart';
 import Chat from './Pages/Chat';
 import UsersList from './Pages/SubMenus/Users/UsersList';
+import UserDetails from './Pages/SubMenus/Users/UserDetails';
 import UsersVerification from './Pages/SubMenus/Users/UsersVerification';
 import ActiveUsers from './Pages/SubMenus/Users/ActiveUsers';
 import DeletionRequests from './Pages/SubMenus/Users/DeletionRequests';
@@ -30,6 +31,7 @@ import TermsAndCo from './Pages/SubMenus/Settings/TC';
 import Orders from './Pages/Orders';
 import { Ledgers } from './Pages/Ledgers';
 import Coupons from './Pages/Coupons';
+import ActivityDetails from './Pages/ActivityDetails';
 
 function App() {
   return (
@@ -46,6 +48,7 @@ function App() {
             <Route element={<Layout />}>
               
               <Route path="/" element={<Dashboard />} />
+              <Route path="/dashboard/details/:type" element={<ActivityDetails />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/products/list" element={<ProductList />} />
               <Route path="/products/mapping" element={<ProductMapping />} />
@@ -67,6 +70,7 @@ function App() {
               <Route path="/coupons" element={<Coupons />} />
               <Route path="/chat" element={<Chat/>} />
               <Route path='/users/list' element={<UsersList/>}/>
+              <Route path='/users/list/:id' element={<UserDetails/>}/>
               <Route path='/users/verify' element={<UsersVerification/>}/>
               <Route path='/users/active' element={<ActiveUsers/>}/>
               <Route path='/users/deletion-requests' element={<DeletionRequests/>}/>

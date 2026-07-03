@@ -2,10 +2,40 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { api, BASE_URL } from '../../../api/axios';
 import { 
-  FiCheck, FiX, FiEye, FiLoader, FiAlertCircle, 
+  FiCheck, FiEye, FiLoader, FiAlertCircle, 
   FiSearch, FiUser, FiFileText, FiRefreshCcw, FiTrash2, FiUserMinus
 } from 'react-icons/fi';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
+
+const formatRelativeTime = (dateString) => {
+  if (!dateString) return 'Never';
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now - date;
+  if (isNaN(diffMs) || diffMs < 0) return 'Just now';
+  
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+  
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 30) return `${diffDays}d ago`;
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
+const checkAppStatus = (u) => {
+  if (!u.installedAt && !u.uninstalledAt) {
+    if (u.isAppInstalled) return 'installed';
+    return 'pending';
+  }
+  const instTime = u.installedAt ? new Date(u.installedAt).getTime() : 0;
+  const uninstTime = u.uninstalledAt ? new Date(u.uninstalledAt).getTime() : 0;
+  if (instTime > uninstTime) return 'installed';
+  if (uninstTime > instTime) return 'uninstalled';
+  return 'pending';
+};
 
 const UsersList = () => {
   const [users, setUsers] = useState([]);
@@ -14,11 +44,8 @@ const UsersList = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [loggedInEmails, setLoggedInEmails] = useState(new Set());
 
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
   const [isActionLoading, setIsActionLoading] = useState(false);
-  const [authStatus, setAuthStatus] = useState(null);
-  const [loadingAuthStatus, setLoadingAuthStatus] = useState(false);
   const [deletingUserId, setDeletingUserId] = useState(null);
   const [deletionReason, setDeletionReason] = useState('');
 
@@ -42,8 +69,8 @@ const UsersList = () => {
     setCurrentPage(1);
   }, [searchQuery]);
 
-  const fetchUsers = async () => {
-    setLoading(true);
+  const fetchUsers = async (isPoll = false) => {
+    if (!isPoll) setLoading(true);
     setError('');
     try {
       const token = sessionStorage.getItem('accessToken');
@@ -95,39 +122,26 @@ const UsersList = () => {
       }
     } catch (err) {
       console.error('Fetch users error:', err);
-      setError(err.response?.data?.message || 'Failed to load users data.');
+      if (!isPoll) {
+        setError(err.response?.data?.message || 'Failed to load users data.');
+      }
     } finally {
-      setLoading(false);
+      if (!isPoll) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchUsers(false);
+
+    // Setup polling every 5 seconds to keep activity status in sync
+    const intervalId = setInterval(() => {
+      fetchUsers(true);
+    }, 1000);
+
+    return () => clearInterval(intervalId);
   }, []);
 
-  const openModal = async (user) => {
-    setSelectedUser(user);
-    setIsModalOpen(true);
-    setLoadingAuthStatus(true);
-    setAuthStatus(null);
-    try {
-      const token = sessionStorage.getItem('accessToken');
-      const response = await api.get(`/auth/status/${user.email}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setAuthStatus(response.data);
-    } catch (err) {
-      console.error('Failed to fetch auth status:', err);
-    } finally {
-      setLoadingAuthStatus(false);
-    }
-  };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedUser(null);
-    setAuthStatus(null);
-  };
 
   // // Undo Rejection
   // const handleUndoReject = async (id) => {
@@ -164,7 +178,6 @@ const UsersList = () => {
       });
       
       setUsers((prevUsers) => prevUsers.filter((user) => user._id !== id));
-      if (selectedUser && selectedUser._id === id) closeModal();
       setDeletingUserId(null);
       setDeletionReason('');
       alert('User deleted successfully.');
@@ -189,10 +202,13 @@ const UsersList = () => {
     const phoneMatch = user.phone?.includes(searchQuery);
     const userIdMatch = user.userId?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const loggedInText = hasLoggedIn(user) ? 'logged in' : 'not logged in';
-    const loginStatusMatch = loggedInText.includes(searchQuery.toLowerCase());
+    const onlineText = user.isOnline ? 'online' : 'offline';
+    const onlineMatch = onlineText.includes(searchQuery.toLowerCase());
+    
+    const appVersionMatch = user.appVersion?.toLowerCase().includes(searchQuery.toLowerCase());
+    const loginMethodMatch = user.lastLoginMethod?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    return nameMatch || emailMatch || phoneMatch || userIdMatch || loginStatusMatch;
+    return nameMatch || emailMatch || phoneMatch || userIdMatch || onlineMatch || appVersionMatch || loginMethodMatch;
   });
 
   // Pagination logic
@@ -253,7 +269,7 @@ const UsersList = () => {
                   <th className="p-4 font-bold">Phone</th>
                   <th className="p-4 font-bold">Business Type</th>
                   <th className="p-4 font-bold">Status</th>
-                  <th className="p-4 font-bold text-center">Login Status</th>
+                  <th className="p-4 font-bold text-center">Activity & Logins</th>
                   <th className="p-4 font-bold">User ID</th>
                   <th className="p-4 font-bold text-center">Actions</th>
                 </tr>
@@ -263,7 +279,27 @@ const UsersList = () => {
                   currentUsers.map((user, index) => (
                     <tr key={user._id} className="hover:bg-transparent transition-colors">
                       <td className="p-2 text-sm text-slate-400 text-center font-medium">{indexOfFirstUser + index + 1}</td>
-                      <td className="p-4 text-sm text-white font-medium">{user.name}</td>
+                      <td className="p-4 text-sm text-white font-medium">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span>{user.name}</span>
+                            {checkAppStatus(user) === 'uninstalled' ? (
+                              <span className="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 text-[9px] font-extrabold border border-rose-500/20 shrink-0">
+                                Uninstalled
+                              </span>
+                            ) : checkAppStatus(user) === 'installed' ? (
+                              <span className="px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-400 text-[9px] font-extrabold border border-teal-500/20 shrink-0">
+                                Installed
+                              </span>
+                            ) : null}
+                          </div>
+                          {user.appVersion && (
+                            <span className="block text-[10px] text-slate-500 font-bold mt-0.5">
+                              App v{user.appVersion}
+                            </span>
+                          )}
+                        </div>
+                      </td>
                       <td className="p-4 text-sm text-slate-300">{user.email}</td>
                       <td className="p-4 text-sm text-slate-300">{user.phone || 'N/A'}</td>
                       <td className="p-4 text-sm text-center">
@@ -277,19 +313,31 @@ const UsersList = () => {
                         </span>
                       </td>
                       <td className="p-4 text-sm text-center">
-                        {hasLoggedIn(user) ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold">
-                            <FiCheck className="text-[10px]" /> Logged In
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-500/10 border border-slate-500/20 text-slate-400 text-xs font-bold">
-                            <FiX className="text-[10px]" /> Not Logged In
-                          </span>
-                        )}
+                        <div className="flex flex-col items-center gap-1">
+                          {user.isOnline ? (
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-bold animate-pulse">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Online
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-500/10 border border-white/5 text-slate-400 text-xs font-semibold">
+                              <span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span> Offline
+                            </span>
+                          )}
+                          {user.lastActive && (
+                            <span className="text-[10px] text-slate-500 font-medium">
+                              Active: {formatRelativeTime(user.lastActive)}
+                            </span>
+                          )}
+                          {user.loginCount > 0 && (
+                            <span className="text-[9px] text-blue-400 font-bold bg-blue-500/5 px-1.5 py-0.5 rounded border border-blue-500/10 block mt-0.5">
+                              {user.loginCount} logins
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="p-4 text-sm text-emerald-400 font-mono font-semibold">{user.userId || 'N/A'}</td>
                       <td className="p-4 flex items-center justify-center gap-2">
-                        <button onClick={() => openModal(user)} className="p-2.5 text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all cursor-pointer transform-gpu" title="View Full Details">
+                        <button onClick={() => navigate(`/users/list/${user._id}`)} className="p-2.5 text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all cursor-pointer transform-gpu" title="View Full Details">
                           <FiEye />
                         </button>
                         <button 
@@ -383,139 +431,7 @@ const UsersList = () => {
         </div>
       )}
 
-      {/* User Details Modal (Imported similarly from previous code but without Action controls) */}
-      {isModalOpen && selectedUser && createPortal(
-        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeModal}></div>
-          <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-2xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-5 py-3 border-b border-white/10 flex justify-between items-center bg-slate-800/50">
-              <h3 className="font-bold text-white text-lg flex items-center gap-2">
-                <FiUser className="text-blue-400" /> User Details
-              </h3>
-              <button onClick={closeModal} className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors">
-                <FiX className="text-xl" />
-              </button>
-            </div>
-            
-            <div className="overflow-y-auto custom-scrollbar p-5 space-y-4">
-              {/* Status Header */}
-              <div className="flex justify-between items-center bg-transparent border border-white/10 p-4 rounded-2xl">
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Status</p>
-                  {(selectedUser.isApproved || selectedUser.userId) ? (
-                    <span className="text-emerald-400 font-bold flex items-center gap-1.5"><FiCheck /> KYC Approved</span>
-                  ) : (
-                    <span className="text-amber-400 font-bold flex items-center gap-1.5"><FiLoader className="animate-spin" /> Pending KYC</span>
-                  )}
-                </div>
-                {(selectedUser.isApproved || selectedUser.userId) && selectedUser.userId && (
-                  <div className="text-right">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Generated User ID</p>
-                    <p className="text-emerald-400 font-mono text-lg font-bold">{selectedUser.userId}</p>
-                  </div>
-                )}
-              </div>
 
-              {/* Personal Information */}
-              <div>
-                <h4 className="text-sm font-bold text-white mb-3 uppercase tracking-wider border-b border-white/10 pb-2">Personal Information</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Full Name</p>
-                    <p className="text-white font-medium">{selectedUser.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Email Address</p>
-                    <p className="text-white font-medium">{selectedUser.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Phone Number</p>
-                    <p className="text-white font-medium">{selectedUser.phone || 'Not Provided'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Role</p>
-                    <p className="text-white font-medium capitalize">{selectedUser.role || 'customer'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Registration Date</p>
-                    <p className="text-white font-medium">{selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}</p>
-                  </div>
-                </div>
-
-                {/* Auth Account Status Block */}
-                <div className="mt-4 p-4 rounded-2xl border border-white/5 bg-slate-800/40">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Auth Account status</p>
-                  {loadingAuthStatus ? (
-                    <div className="flex items-center gap-2 text-slate-400 text-xs font-medium">
-                      <FiLoader className="animate-spin text-blue-400" /> Checking system registration...
-                    </div>
-                  ) : authStatus ? (
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <span className="text-white font-semibold capitalize text-sm">{authStatus.status || authStatus.message || 'Active'}</span>
-                        {authStatus.lastLogin && <p className="text-[10px] text-slate-500">Last login: {new Date(authStatus.lastLogin).toLocaleString()}</p>}
-                      </div>
-                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${authStatus.exists ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
-                        {authStatus.exists ? 'Registered' : 'Unregistered'}
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1.5 text-slate-500 text-xs font-medium italic">
-                      <FiAlertCircle size={14} className="text-red-400" /> Failed to retrieve authentication status.
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Business / KYC Information */}
-              <div>
-                <h4 className="text-sm font-bold text-white mb-3 uppercase tracking-wider border-b border-white/10 pb-2">Business & KYC Details</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Business Type</p>
-                    <span className="bg-slate-700 border border-slate-600 text-slate-200 px-3 py-1 rounded-md text-xs font-bold shadow-sm">
-                      {selectedUser.businessType || 'L1'}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">GST Number</p>
-                    <p className="text-white font-medium font-mono tracking-wide">{selectedUser.gstNumber || 'Not Provided'}</p>
-                  </div>
-                  <div className="sm:col-span-2">
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">GST Document</p>
-                    {selectedUser.gstDocument ? (
-                      <a 
-                        href={getDocumentUrl(selectedUser.gstDocument)} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-3 bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 text-blue-400 rounded-xl font-medium text-sm transition-all"
-                      >
-                        <FiFileText className="text-lg" /> View Uploaded Document
-                      </a>
-                    ) : (
-                      <div className="inline-flex items-center gap-2 px-4 py-3 bg-transparent border border-dashed border-white/10 text-slate-500 rounded-xl text-sm italic">
-                        <FiFileText className="text-lg" /> No document uploaded
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer Actions */}
-            <div className="pt-3 pb-4 px-5 border-t border-white/10 flex flex-col sm:flex-row justify-end gap-3 bg-slate-800/30 shrink-0">
-              <button 
-                onClick={() => triggerDelete(selectedUser._id)}
-                disabled={isActionLoading}
-                className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-transparent border border-red-500/30 text-red-400 font-bold rounded-xl hover:bg-red-500/10 transition-all disabled:opacity-50 cursor-pointer"
-              >
-                <FiTrash2 className="mr-2 text-lg" />
-                Delete User
-              </button>
-            </div>
-          </div>
-        </div>
-      , document.body)}
 
       {/* Delete User Reason Popup Modal */}
       {deletingUserId && createPortal(

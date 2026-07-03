@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-export const BASE_URL = 'https://api.inizio.in';
-// export const BASE_URL = 'http://192.168.1.4:5046';
+export const BASE_URL = import.meta.env.DEV ? '' : 'https://api.inizio.in';
+// export const BASE_URL_DEV = 'http://192.168.1.4:5046';
 
 
 const api = axios.create({

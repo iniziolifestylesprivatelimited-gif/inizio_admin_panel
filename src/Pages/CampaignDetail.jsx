@@ -251,7 +251,7 @@ const CampaignDetail = () => {
             </div>
 
             {/* Recipients Data Table */}
-            <div className="overflow-x-auto custom-scrollbar">
+            <div className="overflow-auto custom-scrollbar max-h-[60vh]">
               <table className="w-full text-left border-collapse whitespace-nowrap min-w-125">
                 <thead className="bg-slate-900/60 border-b border-white/10 text-slate-300">
                   <tr>
