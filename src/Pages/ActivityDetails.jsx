@@ -338,6 +338,52 @@ const ActivityDetails = () => {
     }
   };
 
+  const getModalHeader = (action) => {
+    const actionUpper = (action || '').toUpperCase();
+    if (actionUpper === 'PRODUCT_VIEW') {
+      return {
+        title: 'Product Views History',
+        icon: FiEye,
+        color: 'text-blue-400',
+        label: 'Total Product Views',
+        unit: 'views',
+        viewHeader: 'Product',
+        isViewType: true
+      };
+    }
+    if (actionUpper === 'BRAND_VIEW') {
+      return {
+        title: 'Brand Views History',
+        icon: FiTrendingUp,
+        color: 'text-indigo-400',
+        label: 'Total Brand Views',
+        unit: 'views',
+        viewHeader: 'Brand',
+        isViewType: true
+      };
+    }
+    if (actionUpper === 'CATEGORY_VIEW') {
+      return {
+        title: 'Category Views History',
+        icon: FiLayers,
+        color: 'text-purple-400',
+        label: 'Total Category Views',
+        unit: 'views',
+        viewHeader: 'Category',
+        isViewType: true
+      };
+    }
+    return {
+      title: 'Session Login History',
+      icon: FiLogIn,
+      color: 'text-emerald-400',
+      label: 'Total Login Count',
+      unit: 'logins',
+      viewHeader: 'Method',
+      isViewType: false
+    };
+  };
+
   // Render proper dynamic columns and row values for tables
   const renderTableContent = () => {
     if (currentItems.length === 0) {
@@ -817,108 +863,104 @@ const ActivityDetails = () => {
       </div>
 
       {/* Grouped Logins Modal */}
-      {/* Grouped Logins Modal */}
-      {isModalOpen && selectedRowLogins && createPortal(
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
-          <div className="bg-slate-900/95 border border-white/10 shadow-2xl rounded-3xl p-6 max-w-md w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
-            
-            <div className="flex justify-between items-start mb-5 relative z-1000">
-              <div>
-                <h3 className="text-lg font-black text-white flex items-center gap-2">
-                  {selectedRowLogins.action?.toUpperCase() === 'PRODUCT_VIEW' ? (
-                    <><FiEye className="text-blue-400" /> Product Views History</>
-                  ) : (
-                    <><FiLogIn className="text-emerald-400" /> Session Login History</>
-                  )}
-                </h3>
-                <p className="text-xs text-slate-400 mt-1 font-semibold">{selectedRowLogins.user?.name || 'Unknown User'}</p>
+      {isModalOpen && selectedRowLogins && (() => {
+        const modalConfig = getModalHeader(selectedRowLogins.action);
+        const ModalIcon = modalConfig.icon;
+        
+        return createPortal(
+          <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
+            <div className="bg-slate-900/95 border border-white/10 shadow-2xl rounded-3xl p-6 max-w-md w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
+              <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+              
+              <div className="flex justify-between items-start mb-5 relative z-1000">
+                <div>
+                  <h3 className="text-lg font-black text-white flex items-center gap-2">
+                    <ModalIcon className={modalConfig.color} /> {modalConfig.title}
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-1 font-semibold">{selectedRowLogins.user?.name || 'Unknown User'}</p>
+                </div>
+                <button 
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setSelectedRowLogins(null);
+                  }}
+                  className="p-1.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer"
+                >
+                  <FiX size={16} />
+                </button>
               </div>
+
+              {/* User Meta Card */}
+              <div className="bg-slate-950/40 border border-white/5 rounded-2xl p-4 mb-5 space-y-2 text-xs relative z-10">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px]">Email Address</span>
+                  <span className="text-slate-200 font-bold select-all font-mono">{selectedRowLogins.user?.email || '-'}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px]">
+                    {modalConfig.label}
+                  </span>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${modalConfig.color.replace('text-', 'bg-').replace('400', '500/10')} ${modalConfig.color} ${modalConfig.color.replace('text-', 'border-').replace('400', '500/20')}`}>
+                    {selectedRowLogins.count} {modalConfig.unit}
+                  </span>
+                </div>
+              </div>
+
+              {/* List of individual entries */}
+              {modalConfig.isViewType ? (
+                <div className="space-y-2 max-h-[240px] overflow-y-auto custom-scrollbar pr-1 relative z-10">
+                  <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Viewed Items</span>
+                  {selectedRowLogins.views?.map((view, index) => (
+                    <div 
+                      key={view._id || index}
+                      className="flex justify-between items-center bg-slate-950/30 border border-white/5 p-3 rounded-xl hover:border-white/10 transition-colors animate-in fade-in duration-150"
+                    >
+                      <div className="text-left flex-1 min-w-0 pr-2">
+                        <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider">{modalConfig.viewHeader}</span>
+                        <span className="text-xs text-white font-bold mt-0.5 block truncate" title={view.productName || view.name}>{view.productName || view.name}</span>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider">Viewed At</span>
+                        <span className="text-xs text-slate-300 font-medium font-mono mt-0.5 block">{formatDateTime(view.createdAt)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-[240px] overflow-y-auto custom-scrollbar pr-1 relative z-10">
+                  <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Detailed Logs</span>
+                  {selectedRowLogins.logins?.map((login, index) => (
+                    <div 
+                      key={login._id || index}
+                      className="flex justify-between items-center bg-slate-950/30 border border-white/5 p-3 rounded-xl hover:border-white/10 transition-colors"
+                    >
+                      <div className="text-left">
+                        <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider">Method</span>
+                        <span className="text-xs text-white font-bold capitalize mt-0.5 block">{login.method}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider">Logged At</span>
+                        <span className="text-xs text-slate-300 font-medium font-mono mt-0.5 block">{formatDateTime(login.createdAt)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
               <button 
                 onClick={() => {
                   setIsModalOpen(false);
                   setSelectedRowLogins(null);
                 }}
-                className="p-1.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer"
+                className="w-full mt-6 py-2.5 bg-slate-800 border border-white/10 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md"
               >
-                <FiX size={16} />
+                Close History
               </button>
             </div>
-
-            {/* User Meta Card */}
-            <div className="bg-slate-950/40 border border-white/5 rounded-2xl p-4 mb-5 space-y-2 text-xs relative z-10">
-              <div className="flex justify-between items-center">
-                <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px]">Email Address</span>
-                <span className="text-slate-200 font-bold select-all font-mono">{selectedRowLogins.user?.email || '-'}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px]">
-                  {selectedRowLogins.action?.toUpperCase() === 'PRODUCT_VIEW' ? 'Total Product Views' : 'Total Login Count'}
-                </span>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${
-                  selectedRowLogins.action?.toUpperCase() === 'PRODUCT_VIEW' 
-                    ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' 
-                    : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                }`}>
-                  {selectedRowLogins.count} {selectedRowLogins.action?.toUpperCase() === 'PRODUCT_VIEW' ? 'views' : 'logins'}
-                </span>
-              </div>
-            </div>
-
-            {/* List of individual entries */}
-            {selectedRowLogins.action?.toUpperCase() === 'PRODUCT_VIEW' ? (
-              <div className="space-y-2 max-h-[240px] overflow-y-auto custom-scrollbar pr-1 relative z-10">
-                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Viewed Products</span>
-                {selectedRowLogins.views?.map((view, index) => (
-                  <div 
-                    key={view._id || index}
-                    className="flex justify-between items-center bg-slate-950/30 border border-white/5 p-3 rounded-xl hover:border-white/10 transition-colors animate-in fade-in duration-150"
-                  >
-                    <div className="text-left flex-1 min-w-0 pr-2">
-                      <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider">Product</span>
-                      <span className="text-xs text-white font-bold mt-0.5 block truncate" title={view.productName}>{view.productName}</span>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider">Viewed At</span>
-                      <span className="text-xs text-slate-300 font-medium font-mono mt-0.5 block">{formatDateTime(view.createdAt)}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-2 max-h-[240px] overflow-y-auto custom-scrollbar pr-1 relative z-10">
-                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Detailed Logs</span>
-                {selectedRowLogins.logins?.map((login, index) => (
-                  <div 
-                    key={login._id || index}
-                    className="flex justify-between items-center bg-slate-950/30 border border-white/5 p-3 rounded-xl hover:border-white/10 transition-colors"
-                  >
-                    <div className="text-left">
-                      <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider">Method</span>
-                      <span className="text-xs text-white font-bold capitalize mt-0.5 block">{login.method}</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider">Logged At</span>
-                      <span className="text-xs text-slate-300 font-medium font-mono mt-0.5 block">{formatDateTime(login.createdAt)}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-            
-            <button 
-              onClick={() => {
-                setIsModalOpen(false);
-                setSelectedRowLogins(null);
-              }}
-              className="w-full mt-6 py-2.5 bg-slate-800 border border-white/10 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md"
-            >
-              Close History
-            </button>
-          </div>
-        </div>,
-        document.body
-      )}
+          </div>,
+          document.body
+        );
+      })()}
     </div>
   );
 };

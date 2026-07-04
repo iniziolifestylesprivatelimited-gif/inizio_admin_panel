@@ -342,8 +342,8 @@ const Brands = () => {
         {/* Right Column: Brands List Table */}
         <div className="lg:col-span-2">
           <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full">
-            <div className="overflow-auto custom-scrollbar max-h-[70vh]">
-              <table className="w-full text-left border-collapse whitespace-nowrap min-w-125">
+            <div className="overflow-auto custom-scrollbar flex-1 min-h-0">
+              <table className="w-full text-left border-collapse whitespace-nowrap min-w-full">
                 <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md border-b border-white/10 shadow-md">
                   <tr>
                     <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider w-16">S.No.</th>
@@ -376,7 +376,7 @@ const Brands = () => {
                           <div className="flex flex-col">
                             <span className="font-bold text-white">{brand.name}</span>
                             {brand.description && (
-                              <span className="text-slate-400 text-xs mt-0.5 line-clamp-1 max-w-50" title={brand.description}>{brand.description}</span>
+                              <span className="text-slate-400 text-xs mt-0.5 line-clamp-1 max-w-[200px]" title={brand.description}>{brand.description}</span>
                             )}
                             <div className="flex gap-2 mt-1">
                               <span className={`text-[9px] font-bold px-2 py-0.5 rounded border ${brand.isActive !== false ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-slate-800 text-slate-400 border-white/10'}`}>

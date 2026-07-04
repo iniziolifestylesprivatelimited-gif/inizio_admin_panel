@@ -328,8 +328,8 @@ const Category = () => {
         {/* Right Column: Categories List Table */}
         <div className="lg:col-span-2">
           <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full">
-            <div className="overflow-auto custom-scrollbar max-h-[70vh]">
-              <table className="w-full text-left border-collapse whitespace-nowrap min-w-125">
+            <div className="overflow-auto custom-scrollbar flex-1 min-h-0">
+              <table className="w-full text-left border-collapse whitespace-nowrap min-w-full">
                 <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md border-b border-white/10 shadow-md">
                   <tr>
                     <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider w-16">S.No.</th>

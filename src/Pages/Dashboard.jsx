@@ -51,7 +51,6 @@ const Dashboard = () => {
   const [orders, setOrders] = useState([]);
   const [activityStats, setActivityStats] = useState(null);
   const [activeActivityTab, setActiveActivityTab] = useState('ALL');
-  const [selectedChartTab, setSelectedChartTab] = useState('sales');
   const [selectedProductViews, setSelectedProductViews] = useState(null);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const navigate = useNavigate();
@@ -92,7 +91,7 @@ const Dashboard = () => {
     // Setup polling every 30 seconds
     const intervalId = setInterval(() => {
       fetchData(true);
-    }, 1000);
+    }, 30000);
 
     return () => clearInterval(intervalId);
   }, []);
@@ -212,64 +211,58 @@ const Dashboard = () => {
 
   const { labels: chartLabels, salesData, orderCountData, brandShare, totalRev } = processChartData();
 
-  const getChartConfig = () => {
-    if (selectedChartTab === 'sales') {
-      return {
-        series: [{ name: 'Revenue', data: salesData }],
-        options: {
-          chart: { type: 'area', toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit' },
-          colors: ['#3b82f6'],
-          fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0, stops: [0, 100] } },
-          dataLabels: { enabled: false },
-          stroke: { curve: 'smooth', width: 3 },
-          xaxis: { categories: chartLabels, axisBorder: { show: false }, axisTicks: { show: false }, labels: { style: { colors: '#94a3b8', fontWeight: 600 } } },
-          yaxis: { labels: { style: { colors: '#94a3b8', fontWeight: 600 }, formatter: (value) => `₹${value.toLocaleString('en-IN')}` } },
-          grid: { borderColor: 'rgba(255, 255, 255, 0.1)', strokeDashArray: 3, xaxis: { lines: { show: false } }, yaxis: { lines: { show: true } } },
-          markers: {
-            size: 0,
-            colors: ['#3b82f6'],
-            strokeColors: 'rgba(255, 255, 255, 0.8)',
-            strokeWidth: 2,
-            hover: { size: 8 }
-          },
-          tooltip: { theme: 'dark', y: { formatter: (val) => `₹${val.toLocaleString('en-IN')}` } }
-        },
-        type: 'area'
-      };
-    } else if (selectedChartTab === 'orders') {
-      return {
-        series: [{ name: 'Orders Count', data: orderCountData }],
-        options: {
-          chart: { type: 'bar', toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit' },
-          colors: ['#60a5fa'],
-          plotOptions: { bar: { borderRadius: 8, columnWidth: '55%' } },
-          dataLabels: { enabled: false },
-          xaxis: { categories: chartLabels, axisBorder: { show: false }, axisTicks: { show: false }, labels: { style: { colors: '#94a3b8', fontWeight: 600 } } },
-          yaxis: { labels: { style: { colors: '#94a3b8', fontWeight: 600 }, formatter: (val) => Math.round(val) } },
-          grid: { borderColor: 'rgba(255, 255, 255, 0.1)', strokeDashArray: 3, yaxis: { lines: { show: true } } },
-          tooltip: { theme: 'dark', y: { formatter: (val) => `${val} orders` } }
-        },
-        type: 'bar'
-      };
-    } else {
-      return {
-        series: brandShare.map(b => b.value),
-        options: {
-          chart: { type: 'donut', background: 'transparent', fontFamily: 'inherit' },
-          labels: brandShare.map(b => b.name),
-          colors: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#6366f1', '#f43f5e'],
-          dataLabels: { enabled: true, formatter: (val) => `${Math.round(val)}%` },
-          legend: { position: 'bottom', labels: { colors: '#94a3b8' } },
-          stroke: { colors: ['rgba(255,255,255,0.05)'], width: 1 },
-          theme: { mode: 'dark' },
-          tooltip: { theme: 'dark', y: { formatter: (val) => `${val} products` } }
-        },
-        type: 'donut'
-      };
-    }
+  const salesChartConfig = {
+    series: [{ name: 'Revenue', data: salesData }],
+    options: {
+      chart: { type: 'area', toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit' },
+      colors: ['#3b82f6'],
+      fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0, stops: [0, 100] } },
+      dataLabels: { enabled: false },
+      stroke: { curve: 'smooth', width: 3 },
+      xaxis: { categories: chartLabels, axisBorder: { show: false }, axisTicks: { show: false }, labels: { style: { colors: '#94a3b8', fontWeight: 600 } } },
+      yaxis: { labels: { style: { colors: '#94a3b8', fontWeight: 600 }, formatter: (value) => `₹${value.toLocaleString('en-IN')}` } },
+      grid: { borderColor: 'rgba(255, 255, 255, 0.1)', strokeDashArray: 3, xaxis: { lines: { show: false } }, yaxis: { lines: { show: true } } },
+      markers: {
+        size: 0,
+        colors: ['#3b82f6'],
+        strokeColors: 'rgba(255, 255, 255, 0.8)',
+        strokeWidth: 2,
+        hover: { size: 8 }
+      },
+      tooltip: { theme: 'dark', y: { formatter: (val) => `₹${val.toLocaleString('en-IN')}` } }
+    },
+    type: 'area'
   };
 
-  const currentChartConfig = getChartConfig();
+  const ordersChartConfig = {
+    series: [{ name: 'Orders Count', data: orderCountData }],
+    options: {
+      chart: { type: 'bar', toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit' },
+      colors: ['#60a5fa'],
+      plotOptions: { bar: { borderRadius: 8, columnWidth: '55%' } },
+      dataLabels: { enabled: false },
+      xaxis: { categories: chartLabels, axisBorder: { show: false }, axisTicks: { show: false }, labels: { style: { colors: '#94a3b8', fontWeight: 600 } } },
+      yaxis: { labels: { style: { colors: '#94a3b8', fontWeight: 600 }, formatter: (val) => Math.round(val) } },
+      grid: { borderColor: 'rgba(255, 255, 255, 0.1)', strokeDashArray: 3, yaxis: { lines: { show: true } } },
+      tooltip: { theme: 'dark', y: { formatter: (val) => `${val} orders` } }
+    },
+    type: 'bar'
+  };
+
+  const brandsChartConfig = {
+    series: brandShare.map(b => b.value),
+    options: {
+      chart: { type: 'donut', background: 'transparent', fontFamily: 'inherit' },
+      labels: brandShare.map(b => b.name),
+      colors: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#6366f1', '#f43f5e'],
+      dataLabels: { enabled: true, formatter: (val) => `${Math.round(val)}%` },
+      legend: { position: 'bottom', labels: { colors: '#94a3b8' } },
+      stroke: { colors: ['rgba(255,255,255,0.05)'], width: 1 },
+      theme: { mode: 'dark' },
+      tooltip: { theme: 'dark', y: { formatter: (val) => `${val} products` } }
+    },
+    type: 'donut'
+  };
 
   // Calculate activity-related values
   const totalProductViews = activityStats?.mostViewedProducts?.reduce((sum, item) => sum + (item.views || 0), 0) || 0;
@@ -312,7 +305,12 @@ const Dashboard = () => {
     const prodB = products.find(p => p._id === prodBId) || b.product || {};
     const nameA = prodA.name || '';
     const nameB = prodB.name || '';
-    return nameA.localeCompare(nameB);
+    const nameCompare = nameA.localeCompare(nameB);
+    if (nameCompare !== 0) return nameCompare;
+    // Fallback to stable comparison of product IDs if names are identical/missing
+    const idA = String(prodAId || '');
+    const idB = String(prodBId || '');
+    return idA.localeCompare(idB);
   });
  
   // Dynamic data metrics
@@ -449,7 +447,7 @@ const Dashboard = () => {
     {
       title: "App Installed",
       value: users.filter(u => checkAppStatus(u) === 'installed').length,
-      desc: "Active app installations count",
+      desc: "Active Installations count",
       path: "/dashboard/details/installed",
       icon: FiCheck,
       color: "text-emerald-400",
@@ -562,7 +560,7 @@ const Dashboard = () => {
           </div>
           <div>
             <h3 className="text-white font-extrabold text-base tracking-tight">Initializing Dashboard</h3>
-            <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">Fetching live catalog statistics, transactions, and session activity logs...</p>
+            <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">Fetching live catalog statistics and session activity logs...</p>
           </div>
         </div>
       </div>
@@ -659,7 +657,7 @@ const Dashboard = () => {
           {/* Main Activity Details Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column: Engagement Categories Grid */}
-            <div className="lg:col-span-2 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 relative overflow-hidden flex flex-col justify-between h-[480px]">
+            <div className="lg:col-span-2 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 relative overflow-hidden flex flex-col justify-between h-[580px]">
               <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
               {/* <div className="relative z-10 mb-6">
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
@@ -695,7 +693,7 @@ const Dashboard = () => {
             </div>
  
             {/* Right Column: Most Viewed Products */}
-            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-2 relative overflow-hidden flex flex-col min-h-[480px]">
+            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-2 relative overflow-hidden flex flex-col min-h-[580px]">
               <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
               
               <div className="relative border-b border-white/5 pb-4 mb-6 z-10">
@@ -773,51 +771,69 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Main Content Area (Sales Chart) */}
-      <div className="relative mt-10 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 sm:p-8 overflow-hidden z-10">
-        <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-        <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-white/5 pb-4 z-10">
-          <div>
-            <h2 className="text-lg font-bold text-white">Analytics Overview</h2>
-            <p className="text-xs text-slate-400 mt-0.5">Toggle between metrics to view catalog distribution & historical trends</p>
+      {/* Main Content Area (Analytics Charts Grid) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-10 relative z-10">
+        
+        {/* Sales Revenue Chart */}
+        <div className="relative bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 overflow-hidden flex flex-col h-[380px]">
+          <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
+          <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider">Sales Revenue</h3>
+            <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Historical sales trends & revenue growth</p>
           </div>
-          
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-            {[
-              { id: 'sales', label: 'Sales Revenue', colorClass: 'bg-emerald-500 text-white' },
-              { id: 'orders', label: 'Order Volume', colorClass: 'bg-blue-500 text-white' },
-              { id: 'brands', label: 'Brand Share', colorClass: 'bg-indigo-500 text-white' }
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setSelectedChartTab(tab.id)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-                  selectedChartTab === tab.id
-                    ? tab.colorClass
-                    : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="relative h-80 w-full z-10 flex items-center justify-center">
-          {selectedChartTab === 'brands' && brandShare.length === 0 ? (
-            <div className="text-center text-slate-500 text-xs py-10 italic">
-              No brand data available for distribution.
-            </div>
-          ) : (
+          <div className="relative flex-1 w-full z-10">
             <ReactApexChart 
-              key={selectedChartTab}
-              options={currentChartConfig.options} 
-              series={currentChartConfig.series} 
-              type={currentChartConfig.type} 
+              options={salesChartConfig.options} 
+              series={salesChartConfig.series} 
+              type={salesChartConfig.type} 
               height="100%" 
               width="100%" 
             />
-          )}
+          </div>
         </div>
+
+        {/* Order Volume Chart */}
+        <div className="relative bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 overflow-hidden flex flex-col h-[380px]">
+          <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
+          <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider">Order Volume</h3>
+            <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Number of orders received over time</p>
+          </div>
+          <div className="relative flex-1 w-full z-10">
+            <ReactApexChart 
+              options={ordersChartConfig.options} 
+              series={ordersChartConfig.series} 
+              type={ordersChartConfig.type} 
+              height="100%" 
+              width="100%" 
+            />
+          </div>
+        </div>
+
+        {/* Brand Share Chart */}
+        <div className="relative bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 overflow-hidden flex flex-col h-[380px]">
+          <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
+          <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider">Brand Share</h3>
+            <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Product distribution across brands</p>
+          </div>
+          <div className="relative flex-1 w-full z-10 flex items-center justify-center">
+            {brandShare.length === 0 ? (
+              <div className="text-center text-slate-500 text-xs py-10 italic">
+                No brand data available for distribution.
+              </div>
+            ) : (
+              <ReactApexChart 
+                options={brandsChartConfig.options} 
+                series={brandsChartConfig.series} 
+                type={brandsChartConfig.type} 
+                height="100%" 
+                width="100%" 
+              />
+            )}
+          </div>
+        </div>
+
       </div>
 
       {/* Product Views Details Modal */}
