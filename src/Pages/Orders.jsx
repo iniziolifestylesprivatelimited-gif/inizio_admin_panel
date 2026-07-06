@@ -725,6 +725,8 @@ const Orders = ({ defaultStatus = 'all' }) => {
                     )}
                   </div>
                 </div>
+
+
                 {selectedOrder.deliveredAt && (
                   <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-2 text-sm">
                     <FiCalendar className="text-emerald-400" />

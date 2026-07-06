@@ -1,26 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../Context/AuthContext';
-import { FiUser, FiLock, FiSave, FiEdit2 } from 'react-icons/fi';
+import { FiUser, FiLock, FiSave, FiEdit2, FiHelpCircle } from 'react-icons/fi';
+import { api } from '../../api/axios';
 
 const Profile = () => {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    name: 'Admin User',
+    name: user?.name || 'Admin User',
     email: user?.email || '',
     currentPassword: '',
-    newPassword: ''
+    newPassword: '',
+    supportNumber: '',
+    supportEmail: ''
   });
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const response = await api.get('/app-config');
+        if (response.data) {
+          setFormData(prev => ({
+            ...prev,
+            supportNumber: response.data.supportNumber || '',
+            supportEmail: response.data.supportEmail || ''
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching app config:', error);
+      }
+    };
+    fetchConfig();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Placeholder for actual API update call
-    setIsEditing(false);
-    alert('Profile updated successfully!');
+    try {
+      await api.put('/app-config/update', {
+        supportNumber: formData.supportNumber,
+        supportEmail: formData.supportEmail
+      });
+      setIsEditing(false);
+      alert('Profile and Support Configuration updated successfully!');
+    } catch (error) {
+      alert('Failed to update configuration: ' + (error.response?.data?.message || error.message));
+    }
   };
 
   return (
@@ -122,6 +150,38 @@ const Profile = () => {
                       onChange={handleChange}
                       disabled={!isEditing}
                       placeholder="••••••••"
+                      className="w-full px-4 py-3 bg-black/20 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed placeholder-slate-500 shadow-inner backdrop-blur-md"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-white/10 pt-6">
+                <h3 className="text-xl font-bold text-white flex items-center gap-2 mb-6">
+                  <FiHelpCircle className="text-blue-400" /> App Support Configuration
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Support Number</label>
+                    <input 
+                      type="text" 
+                      name="supportNumber"
+                      value={formData.supportNumber}
+                      onChange={handleChange}
+                      disabled={!isEditing}
+                      placeholder="e.g. 9876543210"
+                      className="w-full px-4 py-3 bg-black/20 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed placeholder-slate-500 shadow-inner backdrop-blur-md"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Support Email</label>
+                    <input 
+                      type="email" 
+                      name="supportEmail"
+                      value={formData.supportEmail}
+                      onChange={handleChange}
+                      disabled={!isEditing}
+                      placeholder="e.g. support@inizio.in"
                       className="w-full px-4 py-3 bg-black/20 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed placeholder-slate-500 shadow-inner backdrop-blur-md"
                     />
                   </div>

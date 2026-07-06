@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { api, BASE_URL } from '../api/axios';
 import { 
   FiTrendingUp, FiUsers, FiBox, FiDollarSign, FiLayers,
@@ -91,7 +91,7 @@ const Dashboard = () => {
     // Setup polling every 30 seconds
     const intervalId = setInterval(() => {
       fetchData(true);
-    }, 30000);
+    }, 5000);
 
     return () => clearInterval(intervalId);
   }, []);
@@ -147,7 +147,7 @@ const Dashboard = () => {
     setSelectedProductViews({
       product: prod,
       viewsList: uniqueUsers,
-      totalViews: productItem.views || 0
+      totalViews: uniqueUsers.reduce((sum, u) => sum + u.count, 0)
     });
     setIsProductModalOpen(true);
   }
@@ -159,7 +159,9 @@ const Dashboard = () => {
     
     const labels = [];
     const salesData = [0, 0, 0, 0, 0, 0];
-    const orderCountData = [0, 0, 0, 0, 0, 0];
+    const deliveredCountData = [0, 0, 0, 0, 0, 0];
+    const processingCountData = [0, 0, 0, 0, 0, 0];
+    const cancelledCountData = [0, 0, 0, 0, 0, 0];
     
     for (let i = 5; i >= 0; i--) {
       const d = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
@@ -169,20 +171,29 @@ const Dashboard = () => {
     let totalRev = 0;
 
     orders.forEach(order => {
-      const isCancelled = order.orderStatus?.toLowerCase() === 'cancelled';
+      const isPaid = order.paymentStatus?.toLowerCase() === 'paid';
+      const status = order.orderStatus?.toLowerCase() || 'pending';
       
-      if (order.totalAmount && !isCancelled) {
+      if (order.totalAmount && isPaid) {
          totalRev += order.totalAmount;
       }
       
-      if (order.createdAt && !isCancelled) {
+      if (order.createdAt) {
         const orderDate = new Date(order.createdAt);
         const monthsDiff = (currentDate.getFullYear() - orderDate.getFullYear()) * 12 + (currentDate.getMonth() - orderDate.getMonth());
         
         if (monthsDiff >= 0 && monthsDiff <= 5) {
           const index = 5 - monthsDiff;
-          salesData[index] += order.totalAmount || 0;
-          orderCountData[index] += 1;
+          if (isPaid) {
+            salesData[index] += order.totalAmount || 0;
+          }
+          if (status === 'delivered') {
+            deliveredCountData[index] += 1;
+          } else if (status === 'cancelled') {
+            cancelledCountData[index] += 1;
+          } else {
+            processingCountData[index] += 1;
+          }
         }
       }
     });
@@ -206,10 +217,10 @@ const Dashboard = () => {
       brandShare = [{ name: 'Other Brands', value: products.length }];
     }
 
-    return { labels, salesData, orderCountData, brandShare, totalRev };
+    return { labels, salesData, deliveredCountData, processingCountData, cancelledCountData, brandShare, totalRev };
   };
 
-  const { labels: chartLabels, salesData, orderCountData, brandShare, totalRev } = processChartData();
+  const { labels: chartLabels, salesData, deliveredCountData, processingCountData, cancelledCountData, brandShare, totalRev } = processChartData();
 
   const salesChartConfig = {
     series: [{ name: 'Revenue', data: salesData }],
@@ -235,15 +246,20 @@ const Dashboard = () => {
   };
 
   const ordersChartConfig = {
-    series: [{ name: 'Orders Count', data: orderCountData }],
+    series: [
+      { name: 'Delivered', data: deliveredCountData },
+      { name: 'Processing', data: processingCountData },
+      { name: 'Cancelled', data: cancelledCountData }
+    ],
     options: {
-      chart: { type: 'bar', toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit' },
-      colors: ['#60a5fa'],
-      plotOptions: { bar: { borderRadius: 8, columnWidth: '55%' } },
+      chart: { type: 'bar', stacked: true, toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit' },
+      colors: ['#10b981', '#3b82f6', '#f43f5e'],
+      plotOptions: { bar: { borderRadius: 6, columnWidth: '55%' } },
       dataLabels: { enabled: false },
       xaxis: { categories: chartLabels, axisBorder: { show: false }, axisTicks: { show: false }, labels: { style: { colors: '#94a3b8', fontWeight: 600 } } },
       yaxis: { labels: { style: { colors: '#94a3b8', fontWeight: 600 }, formatter: (val) => Math.round(val) } },
       grid: { borderColor: 'rgba(255, 255, 255, 0.1)', strokeDashArray: 3, yaxis: { lines: { show: true } } },
+      legend: { show: true, position: 'top', horizontalAlign: 'right', labels: { colors: '#94a3b8', fontWeight: 600 } },
       tooltip: { theme: 'dark', y: { formatter: (val) => `${val} orders` } }
     },
     type: 'bar'
@@ -265,7 +281,10 @@ const Dashboard = () => {
   };
 
   // Calculate activity-related values
-  const totalProductViews = activityStats?.mostViewedProducts?.reduce((sum, item) => sum + (item.views || 0), 0) || 0;
+  const totalProductViews = activityStats?.recentActivities?.filter(act => {
+    const action = (act.action || '').toUpperCase();
+    return action === 'PRODUCT_VIEW' || action === 'PRODUCTVIEW' || action === 'PRODUCT';
+  }).length || 0;
   const recentActivitiesCount = activityStats?.recentActivities?.length || 0;
 
   const getFilteredActivities = () => {
@@ -295,23 +314,33 @@ const Dashboard = () => {
   };
   const filteredActivities = getFilteredActivities();
  
-  const sortedMostViewedProducts = [...(activityStats?.mostViewedProducts || [])].sort((a, b) => {
-    const viewsA = Number(a.views) || 0;
-    const viewsB = Number(b.views) || 0;
-    if (viewsB !== viewsA) return viewsB - viewsA;
-    const prodAId = a.productId || a.product?._id || a.product;
-    const prodBId = b.productId || b.product?._id || b.product;
-    const prodA = products.find(p => p._id === prodAId) || a.product || {};
-    const prodB = products.find(p => p._id === prodBId) || b.product || {};
-    const nameA = prodA.name || '';
-    const nameB = prodB.name || '';
-    const nameCompare = nameA.localeCompare(nameB);
-    if (nameCompare !== 0) return nameCompare;
-    // Fallback to stable comparison of product IDs if names are identical/missing
-    const idA = String(prodAId || '');
-    const idB = String(prodBId || '');
-    return idA.localeCompare(idB);
-  });
+  const sortedMostViewedProducts = React.useMemo(() => {
+    if (!activityStats?.recentActivities) return [];
+    const counts = {};
+    activityStats.recentActivities.forEach(act => {
+      const action = (act.action || '').toUpperCase();
+      if (action === 'PRODUCT_VIEW' || action === 'PRODUCTVIEW' || action === 'PRODUCT') {
+        const prodId = act.details?.productId;
+        if (prodId) {
+          if (!counts[prodId]) {
+            counts[prodId] = {
+              productId: prodId,
+              views: 0
+            };
+          }
+          counts[prodId].views += 1;
+        }
+      }
+    });
+    return Object.values(counts).sort((a, b) => {
+      const viewsA = Number(a.views) || 0;
+      const viewsB = Number(b.views) || 0;
+      if (viewsB !== viewsA) return viewsB - viewsA;
+      const prodA = products.find(p => p._id === a.productId) || {};
+      const prodB = products.find(p => p._id === b.productId) || {};
+      return (prodA.name || '').localeCompare(prodB.name || '');
+    });
+  }, [activityStats?.recentActivities, products]);
  
   // Dynamic data metrics
   const metrics = [
@@ -376,7 +405,7 @@ const Dashboard = () => {
   const activityMetricCards = [
     {
       title: "Total Logins",
-      value: activityStats?.summary?.totalLogins || 0,
+      value: activityStats?.recentActivities?.filter(act => (act.action || '').toUpperCase() === 'LOGIN').length || 0,
       desc: "Active user logins log",
       path: "/dashboard/details/logins",
       icon: FiLogIn,
@@ -386,7 +415,7 @@ const Dashboard = () => {
     },
     {
       title: "Total Logouts",
-      value: activityStats?.summary?.totalLogouts || 0,
+      value: activityStats?.recentActivities?.filter(act => (act.action || '').toUpperCase() === 'LOGOUT').length || 0,
       desc: "Active user logouts log",
       path: "/dashboard/details/logouts",
       icon: FiLogOut,
@@ -426,7 +455,7 @@ const Dashboard = () => {
     },
     {
       title: "Search Queries",
-      value: activityStats?.mostSearched?.length || 0,
+      value: activityStats?.recentActivities?.filter(act => (act.action || '').toUpperCase() === 'SEARCH').length || 0,
       desc: "Catalog searches made",
       path: "/dashboard/details/search-queries",
       icon: FiSearch,
@@ -648,16 +677,22 @@ const Dashboard = () => {
       {!loading && activityStats && (
         <div className="mt-8 space-y-6 relative z-10">
           {/* Section Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h2 className="text-2xl font-bold text-white tracking-tight flex items-center gap-3">
               <FiActivity className="text-blue-400" /> Activity & Engagement Analytics
             </h2>
+            <button 
+              onClick={() => navigate('/dashboard/details/all')}
+              className="flex items-center px-4 py-2 bg-blue-600/20 hover:bg-blue-600/35 border border-blue-500/30 text-blue-300 font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md hover:scale-[1.02] active:scale-[0.98] w-fit"
+            >
+              <FiActivity className="mr-1.5" /> View Detailed Log Feed
+            </button>
           </div>
 
           {/* Main Activity Details Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column: Engagement Categories Grid */}
-            <div className="lg:col-span-2 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 relative overflow-hidden flex flex-col justify-between h-[580px]">
+            <div className="lg:col-span-2 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 relative overflow-hidden flex flex-col lg:justify-between lg:h-[580px] h-auto gap-6">
               <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
               {/* <div className="relative z-10 mb-6">
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
@@ -668,7 +703,7 @@ const Dashboard = () => {
                 </p>
               </div> */}
               
-              <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 z-10 my-auto">
+              <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 z-10 lg:my-auto">
                 {activityMetricCards.map((card, idx) => (
                   <div
                     key={idx}
@@ -693,7 +728,7 @@ const Dashboard = () => {
             </div>
  
             {/* Right Column: Most Viewed Products */}
-            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-2 relative overflow-hidden flex flex-col min-h-[580px]">
+            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 relative overflow-hidden flex flex-col lg:min-h-[580px] min-h-fit">
               <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
               
               <div className="relative border-b border-white/5 pb-4 mb-6 z-10">
@@ -702,7 +737,7 @@ const Dashboard = () => {
                 </h3>
               </div>
               
-              <div className="relative z-10 flex-1 overflow-y-auto max-h-[380px] space-y-3 custom-scrollbar pr-1">
+              <div className="relative z-10 flex-1 overflow-y-auto max-h-[470px] space-y-3 custom-scrollbar pr-1">
                 {!sortedMostViewedProducts || sortedMostViewedProducts.length === 0 ? (
                   <p className="text-xs text-slate-500 italic py-4">No product views recorded yet.</p>
                 ) : (
@@ -733,7 +768,7 @@ const Dashboard = () => {
                       <div 
                         key={prod._id || idx} 
                         onClick={() => handleProductViewsClick(item)}
-                        className={`flex items-center gap-3 p-3 rounded-2xl border transition-all duration-300 group cursor-pointer hover:scale-[1.01] ${itemBorder}`}
+                        className={`flex items-center gap-3 p-2 rounded-2xl border transition-all duration-300 group cursor-pointer hover:scale-[1.01] ${itemBorder}`}
                       >
                         {/* Rank Badge */}
                         <div className={`flex items-center justify-center shrink-0 w-8 h-8 rounded-xl text-[10px] font-black border uppercase tracking-wider ${rankBg}`}>
@@ -778,8 +813,10 @@ const Dashboard = () => {
         <div className="relative bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 overflow-hidden flex flex-col h-[380px]">
           <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
           <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider">Sales Revenue</h3>
-            <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Historical sales trends & revenue growth</p>
+            <div>
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Sales Revenue</h3>
+              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Historical sales trends & revenue growth</p>
+            </div>
           </div>
           <div className="relative flex-1 w-full z-10">
             <ReactApexChart 
@@ -796,8 +833,10 @@ const Dashboard = () => {
         <div className="relative bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 overflow-hidden flex flex-col h-[380px]">
           <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
           <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider">Order Volume</h3>
-            <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Number of orders received over time</p>
+            <div>
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Order Volume</h3>
+              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Number of orders received over time</p>
+            </div>
           </div>
           <div className="relative flex-1 w-full z-10">
             <ReactApexChart 
@@ -814,8 +853,10 @@ const Dashboard = () => {
         <div className="relative bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 overflow-hidden flex flex-col h-[380px]">
           <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
           <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider">Brand Share</h3>
-            <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Product distribution across brands</p>
+            <div>
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Brand Share</h3>
+              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Product distribution across brands</p>
+            </div>
           </div>
           <div className="relative flex-1 w-full z-10 flex items-center justify-center">
             {brandShare.length === 0 ? (
@@ -868,9 +909,15 @@ const Dashboard = () => {
             {/* Total Metric Highlight Banner */}
             <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4.5 mb-5 flex justify-between items-center text-xs relative z-10">
               <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Total System Views</span>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] bg-blue-500/25 text-blue-400 font-black border border-blue-500/30">
-                {selectedProductViews.totalViews} views
-              </span>
+              <button
+                onClick={() => {
+                  setIsProductModalOpen(false);
+                  navigate('/dashboard/details/product-views');
+                }}
+                className="px-2.5 py-0.5 rounded-full text-[10px] bg-blue-500/25 hover:bg-blue-500/40 text-blue-400 font-black border border-blue-500/30 transition-all cursor-pointer hover:scale-105 active:scale-95"
+              >
+                {selectedProductViews.totalViews} views &rarr;
+              </button>
             </div>
 
             {/* Scrollable list of user view metrics */}

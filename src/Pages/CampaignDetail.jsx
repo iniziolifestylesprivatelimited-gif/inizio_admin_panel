@@ -158,7 +158,7 @@ const CampaignDetail = () => {
             <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{campaignDetail.message}</p>
             
             {campaignDetail.imageUrl && (
-              <div className="relative w-full rounded-2xl overflow-hidden border border-white/10 bg-slate-800/50 flex items-center justify-center p-2">
+              <div className="relative w-full rounded-2xl overflow-hidden border border-white/10 bg-white flex items-center justify-center p-2">
                 <img 
                   src={getImageUrl(campaignDetail.imageUrl)} 
                   alt="Campaign media" 

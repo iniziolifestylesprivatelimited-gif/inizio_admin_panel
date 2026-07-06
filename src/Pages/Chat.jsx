@@ -52,6 +52,23 @@ const Chat = () => {
   const [contacts, setContacts] = useState([]);
   const [messages, setMessages] = useState([]);
   const { setChatUnreadCount } = useOutletContext() || {};
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const emojiPickerRef = useRef(null);
+
+  const popularEmojis = [
+    '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥸', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🫣', '🤭', '🫢', '🫡', '🤫', '🫠', '🤥', '😶', '🫥', '😐', '😑', '😬', '🫨', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '😵‍💫', '🫵', '👍', '👎', '👊', '✊', '🤛', '🤜', '🤞', '✌️', '🤟', '🤘', '👌', '🤌', '🤏', '👈', '👉', '👆', '👇', '✋', '🤚', '🖐️', '🖖', '👋', '🤙', '💪', '🦾', '🖕', '✍️', '🙏', '🤝', '👏', '🙌', '🫶', '👐', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '💬', '💭', '✉️', '📦', '🎁', '🎈', '🎉', '🌟', '✨', '🔥', '💯', '🚀'
+  ];
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
+        setShowEmojiPicker(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const fetchContacts = useCallback(async () => {
     try {
@@ -186,12 +203,12 @@ const Chat = () => {
   const activeContactDetails = contacts.find(c => c.userId === activeContact);
 
   return (
-    <div className="relative flex h-[calc(70dvh-6rem)] md:h-[calc(70dvh-8rem)] z-0">
+    <div className="relative flex h-[calc(100dvh-12rem)] md:h-[calc(85dvh-6rem)] z-0 w-full">
       {/* Glassmorphism Background Ambient Glows */}
       <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
       {/* <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div> */}
       
-      <div className="flex w-full h-[75vh] bg-transparent backdrop-blur-2xl border border-white/10 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl shadow-black/50">
+      <div className="flex w-full h-full bg-transparent backdrop-blur-2xl border border-white/10 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl shadow-black/50 min-w-0">
         {/* Sidebar - Contacts */}
         <div className={`${activeContact ? 'hidden md:flex' : 'flex'} w-full md:w-80 lg:w-96 border-r border-white/10 flex-col bg-black/20`}>
         <div className="p-4 border-b border-white/10">
@@ -252,12 +269,12 @@ const Chat = () => {
       </div>
 
       {/* Main Chat Area */}
-      <div className={`${activeContact ? 'flex' : 'hidden md:flex'} flex-1 flex-col bg-black/10`}>
+      <div className={`${activeContact ? 'flex' : 'hidden md:flex'} flex-1 flex-col bg-black/10 min-w-0`}>
         {activeContactDetails ? (
           <>
             {/* Chat Header */}
-            <div className="h-16 px-4 sm:px-6 border-b border-white/10 flex items-center justify-between bg-black/20 shrink-0">
-              <div className="flex items-center gap-3">
+            <div className="h-16 px-4 sm:px-6 border-b border-white/10 flex items-center justify-between bg-black/20 shrink-0 min-w-0">
+              <div className="flex items-center gap-3 min-w-0">
                 <button 
                   onClick={() => setActiveContact(null)} 
                   className="md:hidden p-2 -ml-2 text-slate-400 hover:text-white transition-colors"
@@ -376,9 +393,32 @@ const Chat = () => {
             <div className="p-3 sm:p-4 border-t border-white/10 bg-black/20 shrink-0">
               <form onSubmit={handleSend} className="flex items-end gap-2">
                 <div className="flex-1 bg-black/20 border border-white/10 rounded-2xl flex items-end p-1 focus-within:border-blue-500/50 focus-within:bg-black/40 shadow-inner backdrop-blur-md transition-all min-w-0">
-                  <button type="button" className="p-2.5 text-slate-400 hover:text-blue-400 transition-colors shrink-0" title="Emoji">
-                    <FiSmile className="text-xl" />
-                  </button>
+                  <div className="relative shrink-0 flex items-center" ref={emojiPickerRef}>
+                    <button 
+                      type="button" 
+                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                      className={`p-2.5 transition-colors rounded-xl ${showEmojiPicker ? 'text-blue-400 bg-white/5' : 'text-slate-400 hover:text-blue-400'}`}
+                      title="Emoji"
+                    >
+                      <FiSmile className="text-xl cursor-pointer" />
+                    </button>
+                    {showEmojiPicker && (
+                      <div className="absolute bottom-full left-0 mb-3 w-64 sm:w-80 h-48 bg-slate-900/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl p-3 z-50 overflow-y-auto no-scrollbar animate-in fade-in slide-in-from-bottom-2">
+                        <div className="grid grid-cols-8 gap-2">
+                          {popularEmojis.map((emoji) => (
+                            <button
+                              key={emoji}
+                              type="button"
+                              onClick={() => setMessage(prev => prev + emoji)}
+                              className="text-xl p-1.5 hover:bg-white/10 rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center select-none"
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   <textarea 
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}

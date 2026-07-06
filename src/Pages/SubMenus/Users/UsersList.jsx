@@ -8,11 +8,12 @@ import {
 import { useOutletContext, useNavigate } from 'react-router-dom';
 
 const formatRelativeTime = (dateString) => {
-  if (!dateString) return 'Never';
+  if (!dateString || dateString === 'null' || dateString === 'undefined') return 'Not Active';
   const date = new Date(dateString);
+  if (isNaN(date.getTime())) return 'Not Active';
   const now = new Date();
   const diffMs = now - date;
-  if (isNaN(diffMs) || diffMs < 0) return 'Just now';
+  if (diffMs < 0) return 'Just now';
   
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMins / 60);
@@ -323,11 +324,9 @@ const UsersList = () => {
                               <span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span> Offline
                             </span>
                           )}
-                          {user.lastActive && (
-                            <span className="text-[10px] text-slate-500 font-medium">
-                              Active: {formatRelativeTime(user.lastActive)}
-                            </span>
-                          )}
+                          <span className="text-[10px] text-slate-500 font-medium">
+                            Active: {user.lastActive && user.lastActive !== 'null' && user.lastActive !== 'undefined' ? formatRelativeTime(user.lastActive) : 'Not Active'}
+                          </span>
                           {user.loginCount > 0 && (
                             <span className="text-[9px] text-blue-400 font-bold bg-blue-500/5 px-1.5 py-0.5 rounded border border-blue-500/10 block mt-0.5">
                               {user.loginCount} logins

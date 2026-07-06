@@ -580,7 +580,7 @@ const Banners = () => {
                         >
                           <FiX size={14} />
                         </button>
-                        <img src={imagePreview} alt="Preview" className="w-full h-full object-contain bg-white/5 p-2 transition-transform duration-300 group-hover:scale-105" />
+                        <img src={imagePreview} alt="Preview" className="w-full h-full object-contain bg-white p-2 transition-transform duration-300 group-hover:scale-105" />
                         <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-center items-center text-xs font-bold text-white gap-2">
                           <FiImage size={18} className="text-blue-400" />
                           <span>Click or drag to replace image</span>

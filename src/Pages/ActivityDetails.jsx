@@ -5,7 +5,7 @@ import { api, BASE_URL } from '../api/axios';
 import {
   FiArrowLeft, FiSearch, FiActivity, FiUsers, FiBox,
   FiDollarSign, FiLayers, FiTrendingUp, FiEye, FiLogIn,
-  FiLogOut, FiClock, FiSettings, FiCheck, FiX
+  FiLogOut, FiClock, FiSettings, FiCheck, FiX, FiPhone, FiMail, FiSmartphone, FiBell, FiShield, FiCalendar
 } from 'react-icons/fi';
 
 const checkAppStatus = (u) => {
@@ -35,8 +35,8 @@ const ActivityDetails = () => {
   const itemsPerPage = 10;
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
+    const fetchData = async (isPoll = false) => {
+      if (!isPoll) setLoading(true);
       setError(null);
       try {
         const token = sessionStorage.getItem('accessToken');
@@ -59,14 +59,29 @@ const ActivityDetails = () => {
         if (type === 'revenue') {
           const res = await api.get('/orders/all', { headers });
           const fetchedOrders = Array.isArray(res.data) ? res.data : res.data?.orders || [];
-          setData(fetchedOrders);
+          const paidOrders = fetchedOrders.filter(order => order.paymentStatus?.toLowerCase() === 'paid');
+          setData(paidOrders);
         } else if (type === 'brands') {
           setData(brandRes.data);
         } else if (type === 'products' || type === 'variants') {
           setData(prodRes.data);
         } else if (type === 'users' || type === 'users-status' || type === 'installed' || type === 'uninstalled') {
-          const res = await api.get('/admin/customers', { headers });
-          let userList = Array.isArray(res.data) ? res.data : [];
+          const [custRes, actRes] = await Promise.all([
+            api.get('/admin/customers', { headers }),
+            api.get('/activity/stats', { headers }).catch(() => ({ data: { users: [] } }))
+          ]);
+          let userList = Array.isArray(custRes.data) ? custRes.data : [];
+          const actUsers = actRes.data?.users || [];
+
+          // Merge dynamic lastActive from activity stats users list
+          userList = userList.map(u => {
+            const match = actUsers.find(au => au.userId === u._id || (au.email && u.email && au.email.toLowerCase() === u.email.toLowerCase()));
+            return {
+              ...u,
+              lastActive: match ? match.lastActive : u.lastActive
+            };
+          });
+
           if (type === 'installed') {
             userList = userList.filter(u => checkAppStatus(u) === 'installed');
           } else if (type === 'uninstalled') {
@@ -87,49 +102,30 @@ const ActivityDetails = () => {
 
           let filtered = [];
           if (type === 'logins') {
-            const loginActivities = activities.filter(act => (act.action || '').toUpperCase() === 'LOGIN');
-            const groupedLogins = [];
-            const userMap = {};
-
-            loginActivities.forEach(act => {
-              const uId = act.user?._id || act.user?.email || 'unknown';
-              if (!userMap[uId]) {
-                userMap[uId] = {
-                  _id: act._id || uId,
-                  user: act.user,
-                  action: act.action,
-                  count: 0,
-                  logins: [],
-                  createdAt: act.createdAt
-                };
-                groupedLogins.push(userMap[uId]);
-              }
-              userMap[uId].count += 1;
-              userMap[uId].logins.push({
-                _id: act._id,
-                method: act.details?.method || 'N/A',
-                createdAt: act.createdAt
-              });
-            });
-            groupedLogins.sort((a, b) => b.count - a.count);
-            filtered = groupedLogins;
+            filtered = activities.filter(act => (act.action || '').toUpperCase() === 'LOGIN');
           } else if (type === 'logouts') {
             filtered = activities.filter(act => (act.action || '').toUpperCase() === 'LOGOUT');
           } else if (type === 'product-views') {
-            const pvActivities = activities.filter(act => (act.action || '').toUpperCase() === 'PRODUCT_VIEW');
+            const pvActivities = activities.filter(act => {
+              const action = (act.action || '').toUpperCase();
+              return action === 'PRODUCT_VIEW' || action === 'PRODUCTVIEW' || action === 'PRODUCT';
+            });
             const groupedPV = [];
             const userMap = {};
 
             pvActivities.forEach(act => {
               const uId = act.user?._id || act.user?.email || 'unknown';
               if (!userMap[uId]) {
+                const productId = act.details?.productId;
+                const prod = lookup.products?.find(p => p._id === productId);
                 userMap[uId] = {
                   _id: act._id || uId,
                   user: act.user,
-                  action: act.action,
+                  action: 'PRODUCT_VIEW',
                   count: 0,
                   views: [],
-                  createdAt: act.createdAt
+                  createdAt: act.createdAt,
+                  latestProduct: prod?.name || productId || 'a product'
                 };
                 groupedPV.push(userMap[uId]);
               }
@@ -143,7 +139,6 @@ const ActivityDetails = () => {
                 createdAt: act.createdAt
               });
             });
-            groupedPV.sort((a, b) => b.count - a.count);
             filtered = groupedPV;
           } else if (type === 'brand-views') {
             const bvActivities = activities.filter(act => {
@@ -155,6 +150,8 @@ const ActivityDetails = () => {
 
             bvActivities.forEach(act => {
               const uId = act.user?._id || act.user?.email || 'unknown';
+              const brandId = act.details?.brandId || act.details?.id;
+              const brand = lookup.brands?.find(b => b._id === brandId);
               if (!userMap[uId]) {
                 userMap[uId] = {
                   _id: act._id || uId,
@@ -162,22 +159,19 @@ const ActivityDetails = () => {
                   action: 'BRAND_VIEW',
                   count: 0,
                   views: [],
-                  createdAt: act.createdAt
+                  createdAt: act.createdAt,
+                  latestBrand: brand?.name || brandId || 'a brand'
                 };
                 groupedBV.push(userMap[uId]);
               }
               userMap[uId].count += 1;
 
-              const brandId = act.details?.brandId;
-              const brand = lookup.brands?.find(b => b._id === brandId);
               userMap[uId].views.push({
                 _id: act._id,
                 name: brand?.name || brandId || 'a brand',
                 createdAt: act.createdAt
               });
             });
-            // Sort grouped brand views descending by view count
-            groupedBV.sort((a, b) => b.count - a.count);
             filtered = groupedBV;
           } else if (type === 'category-views') {
             const cvActivities = activities.filter(act => {
@@ -189,6 +183,8 @@ const ActivityDetails = () => {
 
             cvActivities.forEach(act => {
               const uId = act.user?._id || act.user?.email || 'unknown';
+              const catId = act.details?.categoryId || act.details?.id;
+              const cat = lookup.categories?.find(c => c._id === catId);
               if (!userMap[uId]) {
                 userMap[uId] = {
                   _id: act._id || uId,
@@ -196,22 +192,19 @@ const ActivityDetails = () => {
                   action: 'CATEGORY_VIEW',
                   count: 0,
                   views: [],
-                  createdAt: act.createdAt
+                  createdAt: act.createdAt,
+                  latestCategory: cat?.name || catId || 'a category'
                 };
                 groupedCV.push(userMap[uId]);
               }
               userMap[uId].count += 1;
 
-              const catId = act.details?.categoryId;
-              const cat = lookup.categories?.find(c => c._id === catId);
               userMap[uId].views.push({
                 _id: act._id,
                 name: cat?.name || catId || 'a category',
                 createdAt: act.createdAt
               });
             });
-            // Sort grouped category views descending by view count
-            groupedCV.sort((a, b) => b.count - a.count);
             filtered = groupedCV;
           } else if (type === 'search-queries') {
             filtered = activities.filter(act => (act.action || '').toUpperCase() === 'SEARCH');
@@ -222,13 +215,18 @@ const ActivityDetails = () => {
         }
       } catch (err) {
         console.error('Failed to load detail logs:', err);
-        setError('Failed to fetch records. Please try again.');
+        if (!isPoll) setError('Failed to fetch records. Please try again.');
       } finally {
-        setLoading(false);
+        if (!isPoll) setLoading(false);
       }
     };
 
-    fetchData();
+    fetchData(false);
+    const intervalId = setInterval(() => {
+      fetchData(true);
+    }, 5000);
+
+    return () => clearInterval(intervalId);
   }, [type]);
 
   // Derived Title & Details Configurations
@@ -302,11 +300,29 @@ const ActivityDetails = () => {
           detailMatch = JSON.stringify(item.details).toLowerCase().includes(query);
         }
 
+        let viewsMatch = false;
+        if (Array.isArray(item.views)) {
+          viewsMatch = item.views.some(v => 
+            (v.productName || '').toLowerCase().includes(query) || 
+            (v.name || '').toLowerCase().includes(query)
+          );
+        }
+        if (item.latestProduct) {
+          viewsMatch = viewsMatch || item.latestProduct.toLowerCase().includes(query);
+        }
+        if (item.latestBrand) {
+          viewsMatch = viewsMatch || item.latestBrand.toLowerCase().includes(query);
+        }
+        if (item.latestCategory) {
+          viewsMatch = viewsMatch || item.latestCategory.toLowerCase().includes(query);
+        }
+
         return (
           actUser.toLowerCase().includes(query) ||
           actEmail.toLowerCase().includes(query) ||
           actionStr.toLowerCase().includes(query) ||
-          detailMatch
+          detailMatch ||
+          viewsMatch
         );
       }
     });
@@ -397,8 +413,9 @@ const ActivityDetails = () => {
     }
 
     if (type === 'revenue') {
-      return currentItems.map((item) => (
+      return currentItems.map((item, index) => (
         <tr key={item._id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+          <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
           <td className="py-4 px-5 text-xs font-mono text-blue-400 select-all font-semibold">#{item._id}</td>
           <td className="py-4 px-5 text-sm font-bold text-white">{item.customerName || 'Walk-in Customer'}</td>
           <td className="py-4 px-5 text-sm text-slate-300 font-medium">{formatDateTime(item.createdAt)}</td>
@@ -424,15 +441,16 @@ const ActivityDetails = () => {
     }
 
     if (type === 'brands') {
-      return currentItems.map((item) => {
+      return currentItems.map((item, index) => {
         const cleanPath = (item.logo || '').replace(/\\/g, '/');
         const logoUrl = item.logo ? `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}` : '';
         return (
           <tr key={item._id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+            <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td className="py-4 px-5 text-xs font-mono text-slate-500">#{item._id}</td>
             <td className="py-4 px-5">
               {item.logo ? (
-                <img src={logoUrl} alt={item.name} className="w-10 h-10 object-contain rounded-xl bg-slate-900 border border-white/10 p-1" />
+                <img src={logoUrl} alt={item.name} className="w-10 h-10 object-contain rounded-xl bg-white border border-white/10 p-1" />
               ) : (
                 <div className="w-10 h-10 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center text-slate-500 text-xs font-bold font-mono">
                   {item.name?.substring(0, 2).toUpperCase()}
@@ -452,10 +470,11 @@ const ActivityDetails = () => {
     }
 
     if (type === 'products' || type === 'variants') {
-      return currentItems.map((item) => {
+      return currentItems.map((item, index) => {
         const variantCount = Array.isArray(item.variants) ? item.variants.length : 1;
         return (
           <tr key={item._id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+            <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td className="py-4 px-5 text-xs font-mono text-slate-500">#{item._id}</td>
             <td className="py-4 px-5 text-sm font-bold text-white truncate max-w-[200px]" title={item.name}>{item.name}</td>
             <td className="py-4 px-5 text-sm text-emerald-400 font-extrabold">₹{(item.basePrice || 0).toLocaleString('en-IN')}</td>
@@ -471,9 +490,10 @@ const ActivityDetails = () => {
       });
     }
 
-    if (type === 'users' || type === 'users-status' || type === 'installed' || type === 'uninstalled') {
-      return currentItems.map((item) => (
+    if (type === 'users' || type === 'users-status') {
+      return currentItems.map((item, index) => (
         <tr key={item._id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+          <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
           <td className="py-4 px-5 text-sm font-bold text-white">
             <div className="flex items-center gap-2">
               <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${item.isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-600'}`}></div>
@@ -494,41 +514,127 @@ const ActivityDetails = () => {
               {item.isAppLockEnabled ? 'secured' : 'inactive'}
             </span>
           </td>
-          {type === 'installed' && (
-            <td className="py-4 px-5 text-sm text-slate-300 font-medium">
-              {formatDateTime(item.installedAt)}
-            </td>
-          )}
-          {type === 'uninstalled' && (
-            <td className="py-4 px-5 text-sm text-slate-300 font-medium">
-              {formatDateTime(item.uninstalledAt)}
-            </td>
-          )}
-          <td className="py-4 px-5 text-sm text-slate-400 font-medium">{formatDateTime(item.lastActive)}</td>
+          <td className="py-4 px-5 text-sm text-slate-400 font-medium">
+            {item.lastActive ? formatDateTime(item.lastActive) : 'Not Active'}
+          </td>
         </tr>
       ));
     }
 
+    if (type === 'installed' || type === 'uninstalled') {
+      return currentItems.map((item, index) => {
+        const initials = (item.name || 'U').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        return (
+          <tr key={item._id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
+            <td className="py-6 px-3 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+            <td className="py-6 px-3">
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <div className={`w-8 h-8 rounded-lg border flex items-center justify-center font-bold text-xs tracking-wider shadow-inner ${
+                    type === 'installed' 
+                      ? 'bg-gradient-to-tr from-emerald-500/20 to-teal-500/20 border-emerald-500/30 text-emerald-300' 
+                      : 'bg-gradient-to-tr from-rose-500/20 to-orange-500/20 border-rose-500/30 text-rose-300'
+                  }`}>
+                    {initials}
+                  </div>
+                  {type === 'installed' && (
+                    <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-slate-950 ${item.isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-600'}`} title={item.isOnline ? 'Online' : 'Offline'}></div>
+                  )}
+                  {type === 'uninstalled' && (
+                    <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-slate-950 bg-slate-600" title="Offline"></div>
+                  )}
+                </div>
+                <div>
+                  <div className={`text-xs font-bold text-white transition-colors flex items-center gap-1 ${
+                    type === 'installed' ? 'group-hover:text-emerald-400' : 'group-hover:text-rose-400'
+                  }`}>
+                    {item.name || 'Unknown User'}
+                  </div>
+                  {item.phone && (
+                    <div className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1">
+                      <FiPhone className="text-slate-500 text-[8px]" />
+                      <span>{item.phone}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </td>
+            <td className="py-6 px-3">
+              <div className="flex items-center gap-1 text-xs text-slate-300 font-medium select-all truncate max-w-[140px]" title={item.email}>
+                <FiMail className="text-slate-500 shrink-0" size={11} />
+                {item.email}
+              </div>
+            </td>
+            <td className="py-6 px-3">
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-bold font-mono">
+                <FiSmartphone className="text-blue-400/80 text-[9px]" />
+                {item.appVersion || 'v0.0.0'}
+              </span>
+            </td>
+            <td className="py-6 px-3">
+              <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                type === 'installed' && item.notificationsEnabled 
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                  : 'bg-slate-800 text-slate-500 border border-white/5'
+              }`}>
+                <FiBell className={type === 'installed' && item.notificationsEnabled ? 'text-emerald-400' : 'text-slate-500'} size={10} />
+                {type === 'installed' && item.notificationsEnabled ? 'Enabled' : 'Disabled'}
+              </span>
+            </td>
+            <td className="py-6 px-3">
+              <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                type === 'installed' && item.isAppLockEnabled 
+                  ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20' 
+                  : 'bg-slate-800 text-slate-500 border border-white/5'
+              }`}>
+                <FiShield className={type === 'installed' && item.isAppLockEnabled ? 'text-teal-400' : 'text-slate-500'} size={10} />
+                {type === 'installed' && item.isAppLockEnabled ? 'Secured' : 'Inactive'}
+              </span>
+            </td>
+            {type === 'installed' && (
+              <td className="py-6 px-3">
+                <div className="flex items-center gap-1 text-xs text-emerald-400 font-semibold">
+                  <FiCalendar className="text-emerald-500/70" size={12} />
+                  {formatDateTime(item.installedAt)}
+                </div>
+              </td>
+            )}
+            {type === 'uninstalled' && (
+              <td className="py-6 px-3">
+                <div className="flex items-center gap-1 text-xs text-rose-400 font-semibold">
+                  <FiCalendar className="text-rose-500/70" size={12} />
+                  {formatDateTime(item.uninstalledAt)}
+                </div>
+              </td>
+            )}
+            <td className="py-6 px-3">
+              <div className="flex items-center gap-1 text-xs text-slate-400 font-medium">
+                <FiClock className="text-slate-500" size={12} />
+                {item.lastActive ? formatDateTime(item.lastActive) : 'Not Active'}
+              </div>
+            </td>
+          </tr>
+        );
+      });
+    }
+
     if (type === 'logins') {
-      return currentItems.map((item) => (
+      return currentItems.map((item, index) => (
         <tr
           key={item._id}
-          onClick={() => {
-            setSelectedRowLogins(item);
-            setIsModalOpen(true);
-          }}
-          className="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer group/row"
+          className="border-b border-white/5 hover:bg-white/5 transition-colors group/row"
         >
+          <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
           <td className="py-4 px-5 text-sm font-bold text-white">
-            <div className="flex items-center gap-2 group-hover/row:text-blue-400 transition-colors">
+            <div className="flex items-center gap-2">
               {item.user?.name || 'Unknown User'}
             </div>
           </td>
           <td className="py-4 px-5 text-sm text-slate-300 select-all font-medium">{item.user?.email || '-'}</td>
           <td className="py-4 px-5 text-xs font-extrabold text-emerald-400 font-mono tracking-wider">LOGIN</td>
           <td className="py-4 px-5">
-            <span className="px-2.5 py-1 rounded-full font-extrabold text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              {item.count} log{item.count > 1 ? 's' : ''}
+            <span className="px-3 py-1 rounded-full font-bold text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              {item.details?.method || 'N/A'}
             </span>
           </td>
           <td className="py-4 px-5 text-sm text-slate-400 font-medium">{formatDateTime(item.createdAt)}</td>
@@ -536,15 +642,8 @@ const ActivityDetails = () => {
       ));
     }
 
-    if (type === 'product-views' || type === 'brand-views' || type === 'category-views') {
-      const badgeColor = type === 'product-views' 
-        ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' 
-        : type === 'brand-views' 
-        ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' 
-        : 'bg-purple-500/10 text-purple-400 border-purple-500/20';
-      const actionLabel = type === 'product-views' ? 'PRODUCT_VIEW' : type === 'brand-views' ? 'BRAND_VIEW' : 'CATEGORY_VIEW';
-
-      return currentItems.map((item) => (
+    if (type === 'product-views') {
+      return currentItems.map((item, index) => (
         <tr
           key={item._id}
           onClick={() => {
@@ -553,17 +652,72 @@ const ActivityDetails = () => {
           }}
           className="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer group/row"
         >
+          <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
           <td className="py-4 px-5 text-sm font-bold text-white">
             <div className="flex items-center gap-2 group-hover/row:text-blue-400 transition-colors">
               {item.user?.name || 'Unknown User'}
             </div>
           </td>
           <td className="py-4 px-5 text-sm text-slate-300 select-all font-medium">{item.user?.email || '-'}</td>
-          <td className={`py-4 px-5 text-xs font-extrabold font-mono tracking-wider ${
-            type === 'product-views' ? 'text-blue-400' : type === 'brand-views' ? 'text-indigo-400' : 'text-purple-400'
-          }`}>{actionLabel}</td>
+          <td className="py-4 px-5 text-sm font-bold text-blue-400 truncate max-w-[200px]" title={item.latestProduct}>{item.latestProduct}</td>
           <td className="py-4 px-5">
-            <span className={`px-2.5 py-1 rounded-full font-extrabold text-xs border ${badgeColor}`}>
+            <span className="px-3 py-1 rounded-full font-bold text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20">
+              {item.count} view{item.count > 1 ? 's' : ''}
+            </span>
+          </td>
+          <td className="py-4 px-5 text-sm text-slate-400 font-medium">{formatDateTime(item.createdAt)}</td>
+        </tr>
+      ));
+    }
+
+    if (type === 'brand-views') {
+      return currentItems.map((item, index) => (
+        <tr
+          key={item._id}
+          onClick={() => {
+            setSelectedRowLogins(item);
+            setIsModalOpen(true);
+          }}
+          className="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer group/row"
+        >
+          <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+          <td className="py-4 px-5 text-sm font-bold text-white">
+            <div className="flex items-center gap-2 group-hover/row:text-indigo-400 transition-colors">
+              {item.user?.name || 'Unknown User'}
+            </div>
+          </td>
+          <td className="py-4 px-5 text-sm text-slate-300 select-all font-medium">{item.user?.email || '-'}</td>
+          <td className="py-4 px-5 text-sm font-bold text-indigo-400 truncate max-w-[200px]" title={item.latestBrand}>{item.latestBrand}</td>
+          <td className="py-4 px-5">
+            <span className="px-3 py-1 rounded-full font-bold text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+              {item.count} view{item.count > 1 ? 's' : ''}
+            </span>
+          </td>
+          <td className="py-4 px-5 text-sm text-slate-400 font-medium">{formatDateTime(item.createdAt)}</td>
+        </tr>
+      ));
+    }
+
+    if (type === 'category-views') {
+      return currentItems.map((item, index) => (
+        <tr
+          key={item._id}
+          onClick={() => {
+            setSelectedRowLogins(item);
+            setIsModalOpen(true);
+          }}
+          className="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer group/row"
+        >
+          <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+          <td className="py-4 px-5 text-sm font-bold text-white">
+            <div className="flex items-center gap-2 group-hover/row:text-purple-400 transition-colors">
+              {item.user?.name || 'Unknown User'}
+            </div>
+          </td>
+          <td className="py-4 px-5 text-sm text-slate-300 select-all font-medium">{item.user?.email || '-'}</td>
+          <td className="py-4 px-5 text-sm font-bold text-purple-400 truncate max-w-[200px]" title={item.latestCategory}>{item.latestCategory}</td>
+          <td className="py-4 px-5">
+            <span className="px-3 py-1 rounded-full font-bold text-xs bg-purple-500/10 text-purple-400 border border-purple-500/20">
               {item.count} view{item.count > 1 ? 's' : ''}
             </span>
           </td>
@@ -573,7 +727,7 @@ const ActivityDetails = () => {
     }
 
     // It's an activity logs list
-    return currentItems.map((item) => {
+    return currentItems.map((item, index) => {
       let resolvedText = '';
       const actionUpper = (item.action || '').toUpperCase();
 
@@ -600,6 +754,7 @@ const ActivityDetails = () => {
 
       return (
         <tr key={item._id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+          <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
           <td className="py-4 px-5 text-xs font-mono text-slate-500">#{item._id}</td>
           <td className="py-4 px-5 text-sm font-bold text-white">{item.user?.name || 'Unknown User'}</td>
           <td className="py-4 px-5 text-sm text-slate-300 font-mono select-all font-medium">{item.user?.email || '-'}</td>
@@ -615,6 +770,7 @@ const ActivityDetails = () => {
     if (type === 'revenue') {
       return (
         <>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Order ID</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Customer Name</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Order Date</th>
@@ -627,6 +783,7 @@ const ActivityDetails = () => {
     if (type === 'brands') {
       return (
         <>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Brand ID</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Logo</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Brand Name</th>
@@ -637,6 +794,7 @@ const ActivityDetails = () => {
     if (type === 'products' || type === 'variants') {
       return (
         <>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Product ID</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Product Name</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Base Price</th>
@@ -648,6 +806,7 @@ const ActivityDetails = () => {
     if (type === 'users' || type === 'users-status' || type === 'installed' || type === 'uninstalled') {
       return (
         <>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Name</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Email Address</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">App Version</th>
@@ -666,29 +825,59 @@ const ActivityDetails = () => {
     if (type === 'logins') {
       return (
         <>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Name</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Email</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Action</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Login Count</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Latest Login</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Method</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Timestamp</th>
         </>
       );
     }
-    if (type === 'product-views' || type === 'brand-views' || type === 'category-views') {
+
+    if (type === 'product-views') {
       return (
         <>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Name</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Email</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Action</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Latest Product Viewed</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Views Count</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Latest View</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Latest View Time</th>
         </>
       );
     }
+
+    if (type === 'brand-views') {
+      return (
+        <>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Email</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Latest Brand Viewed</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Views Count</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Latest View Time</th>
+        </>
+      );
+    }
+    if (type === 'category-views') {
+      return (
+        <>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Email</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Latest Category Viewed</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Views Count</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Latest View Time</th>
+        </>
+      );
+    }
+
     // Activity logs
     return (
       <>
-        <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Log ID</th>
+        <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
+        <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">Log ID</th>
         <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Name</th>
         <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Email</th>
         <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Action Type</th>

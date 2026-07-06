@@ -8,12 +8,14 @@ import {
 import { getAccessibleMenus } from '../config/menus';
 import HeaderSearch from './HeaderSearch';
 import logoImg from '../assets/logos.png';
+import appIconImg from '../assets/app-icon-png.png';
 import { api } from '../api/axios';
 
 const Layout = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const [openMenus, setOpenMenus] = useState({});
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isNotificationsDropdownOpen, setIsNotificationsDropdownOpen] = useState(false);
@@ -26,6 +28,7 @@ const Layout = () => {
   const [usersUnreadCount, setUsersUnreadCount] = useState(0);
   const [usersVerifyUnreadCount, setUsersVerifyUnreadCount] = useState(0);
   const [usersDeletionUnreadCount, setUsersDeletionUnreadCount] = useState(0);
+  const [showPermissionBanner, setShowPermissionBanner] = useState(false);
   const navigation = useNavigate();
   const prevContactsRef = useRef([]);
   const isInitialLoad = useRef(true);
@@ -135,12 +138,33 @@ const Layout = () => {
   const notificationsList = getNotificationsList();
   const totalUnreadCount = chatUnreadCount + ordersUnreadCount + usersUnreadCount + usersVerifyUnreadCount + usersDeletionUnreadCount;
 
-  // Request Browser Notification Permission on load
+  // Request Browser Notification Permission on load / show banner
   useEffect(() => {
     if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
+      setShowPermissionBanner(true);
     }
   }, []);
+
+  const requestNotificationPermission = () => {
+    if ('Notification' in window) {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          console.log('Notification permission granted.');
+          // Show test notification via service worker
+          if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+            navigator.serviceWorker.ready.then(registration => {
+              registration.showNotification('Inizio Notifications', {
+                body: 'Mobile alerts are now active!',
+                icon: logoImg,
+                vibrate: [100, 50, 100]
+              });
+            });
+          }
+        }
+        setShowPermissionBanner(false);
+      });
+    }
+  };
 
   // Poll chat unread count
   useEffect(() => {
@@ -189,20 +213,40 @@ const Layout = () => {
               setTimeout(() => setToastMsg(null), 5000);
             }
 
-            // 3. System Push Notification (Desktop / Supported Browsers)
+            // 3. System Push Notification (Desktop / Mobile ServiceWorker)
             if ('Notification' in window && Notification.permission === 'granted' && (document.hidden || isNotOnChatPage)) {
               try {
-                const notification = new Notification(`New message from ${contact.name || 'Customer'}`, {
-                  body: contact.lastMessage || 'You received a new message.',
-                  icon: logoImg
-                });
-                
-                notification.onclick = () => {
-                  window.focus();
-                  navigation('/chat');
-                };
+                if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+                  navigator.serviceWorker.ready.then(registration => {
+                    registration.showNotification(`New message from ${contact.name || 'Customer'}`, {
+                      body: contact.lastMessage || 'You received a new message.',
+                      icon: logoImg,
+                      vibrate: [200, 100, 200],
+                      tag: `chat-${contact.userId}`
+                    });
+                  }).catch(() => {
+                    // Fallback to standard constructor
+                    const notification = new Notification(`New message from ${contact.name || 'Customer'}`, {
+                      body: contact.lastMessage || 'You received a new message.',
+                      icon: logoImg
+                    });
+                    notification.onclick = () => {
+                      window.focus();
+                      navigation('/chat');
+                    };
+                  });
+                } else {
+                  const notification = new Notification(`New message from ${contact.name || 'Customer'}`, {
+                    body: contact.lastMessage || 'You received a new message.',
+                    icon: logoImg
+                  });
+                  notification.onclick = () => {
+                    window.focus();
+                    navigation('/chat');
+                  };
+                }
               } catch (e) {
-                console.log('System notification failed (often requires ServiceWorker on mobile):', e);
+                console.log('System notification failed:', e);
               }
             }
           }
@@ -334,6 +378,7 @@ const Layout = () => {
   };
 
   const userMenus = getAccessibleMenus();
+  const isExpanded = isHovered || isMobileMenuOpen;
 
   return (
     <div className="flex h-dvh bg-linear-to-br from-black via-slate-950 to-blue-950 font-sans overflow-hidden text-slate-300 relative z-0">
@@ -357,9 +402,40 @@ const Layout = () => {
         </div>
       )}
 
+      {/* Notification Permission Request Banner */}
+      {showPermissionBanner && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-100 animate-in fade-in slide-in-from-top-4 w-[90%] max-w-md">
+          <div className="bg-slate-900 border border-white/10 text-white p-4 rounded-2xl shadow-2xl flex items-center justify-between gap-4 backdrop-blur-xl">
+            <div className="flex items-center gap-3 text-left">
+              <div className="p-2 bg-blue-500/10 rounded-xl text-blue-400 shrink-0">
+                <FiBell className="text-lg animate-bounce" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-white">Enable Push Notifications</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">Stay updated with instant message alerts on mobile.</p>
+              </div>
+            </div>
+            <div className="flex gap-2 shrink-0">
+               <button 
+                 onClick={requestNotificationPermission}
+                 className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-bold cursor-pointer transition-colors"
+               >
+                 Enable
+               </button>
+               <button 
+                 onClick={() => setShowPermissionBanner(false)}
+                 className="px-2 py-1.5 bg-white/5 hover:bg-white/10 text-slate-400 rounded-lg text-[10px] font-bold cursor-pointer transition-colors"
+               >
+                 Later
+               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* MOBILE TOP BAR (Visible only on small screens) */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-transparent backdrop-blur-2xl border-b border-white/10 z-30 flex items-center justify-between px-4 shadow-xl shadow-black/50">
-        <img src={logoImg} alt="logo" className="h-14 w-auto object-contain scale-200 origin-left mt-1.5" />
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-slate-950/80 backdrop-blur-2xl border-b border-white/10 z-30 flex items-center justify-between px-4 shadow-xl shadow-black/50">
+        <img src={logoImg} alt="logo" className="h-8 w-auto object-contain" />
         <div className="flex items-center gap-4">
           {/* Mobile Notifications Dropdown */}
           <div className="relative" ref={mobileNotificationsDropdownRef}>
@@ -468,30 +544,51 @@ const Layout = () => {
         />
       )}
 
-      {/* SIDEBAR */}
-      <aside className={`
-        fixed inset-y-0 left-0 z-50 w-72 bg-transparent backdrop-blur-2xl border-r border-white/10 flex flex-col shadow-2xl shadow-black/50 lg:shadow-none
-        transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 overflow-hidden
-        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
+      <aside 
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={`
+          fixed inset-y-0 left-0 z-50 bg-transparent backdrop-blur-2xl border-r border-white/10 flex flex-col shadow-2xl shadow-black/50 lg:shadow-none
+          transform transition-all duration-300 ease-in-out lg:relative lg:translate-x-0 overflow-hidden
+          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+          ${isExpanded ? 'w-72' : 'lg:w-20 w-72'}
+        `}
+      >
         {/* Sidebar Ambient Glows */}
         <div className="absolute top-0 left-0 w-full h-full pointer-events-none -z-10 transform-gpu">
           <div className="absolute top-[10%] left-[-20%] w-64 h-64 bg-blue-600/20 rounded-full mix-blend-screen filter blur-[80px] opacity-60 transform-gpu"></div>
           <div className="absolute bottom-[20%] right-[-20%] w-72 h-72 bg-blue-600/50 rounded-full mix-blend-screen filter blur-[100px] opacity-50 transform-gpu"></div>
         </div>
 
-        <div className="h-16 flex items-center justify-center px-6 border-b border-white/10 bg-transparent shrink-0">
-          <img src={logoImg} alt="logo" className="h-14 w-auto object-contain scale-200 mt-1.5" />
+        <div className="h-16 flex items-center justify-center border-b border-white/10 bg-transparent shrink-0 relative overflow-hidden">
+          {/* Full Logo (logos.png) */}
+          <div className={`absolute transition-all duration-300 ease-in-out flex items-center justify-center ${
+            isExpanded ? 'opacity-100 scale-100 rotate-0' : 'opacity-0 scale-75 rotate-[-12deg] pointer-events-none'
+          }`}>
+            <img src={logoImg} alt="logo" className="h-14 w-auto object-contain scale-200 mt-1.5" />
+          </div>
+
+          {/* Collapsed App Icon (app-icon-png.png) */}
+          <div className={`absolute transition-all duration-300 ease-in-out flex items-center justify-center ${
+            isExpanded ? 'opacity-0 scale-75 rotate-[12deg] pointer-events-none' : 'opacity-100 scale-100 rotate-0'
+          }`}>
+            <img src={appIconImg} alt="logo" className="lg:h-10 lg:w-10 h-14 w-auto object-contain lg:scale-100 scale-200 lg:mt-0 mt-1.5" />
+          </div>
+
+          {/* Mobile Close Button */}
           <button 
-            className="lg:hidden text-slate-400 hover:text-red-400"
+            className="lg:hidden absolute right-4 p-1.5 text-slate-400 hover:text-white bg-white/5 border border-white/10 rounded-xl transition-all cursor-pointer hover:bg-white/15"
             onClick={() => setIsMobileMenuOpen(false)}
+            title="Close Menu"
           >
-            <FiX className="text-2xl" />
+            <FiX className="text-lg" />
           </button>
         </div>
         
-        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto no-scrollbar">
-          <p className="px-2 mb-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
+        <nav className="flex-1 px-4 py-3 overflow-y-auto no-scrollbar space-y-2">
+          <p className={`px-2 mb-4 text-xs font-bold text-slate-500 uppercase tracking-wider transition-all duration-300 ${
+            isExpanded ? 'opacity-100' : 'lg:opacity-0'
+          }`}>
             MAIN MENU
           </p>
           
@@ -512,16 +609,27 @@ const Layout = () => {
                   {/* Parent Toggle Button */}
                   <button 
                     onClick={() => toggleSubMenu(menu.name)}
+                    title={!isExpanded ? menu.name : undefined}
                     className={`
-                      w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group
-                      ${isChildActive && !isOpen ? 'bg-blue-600/20 text-blue-500' : 'text-slate-300 hover:bg-white/10 hover:text-white cursor-pointer'}
+                      w-full h-12 flex items-center justify-between px-4 transition-all duration-300 group
+                      ${isChildActive && !isOpen 
+                        ? 'bg-blue-600/20 text-blue-500 border border-blue-600/50 shadow-sm rounded-xl' 
+                        : isExpanded 
+                          ? 'text-slate-300 hover:bg-white/10 hover:text-white border border-transparent cursor-pointer rounded-xl'
+                          : 'bg-white/[0.03] backdrop-blur-md border border-white/5 text-slate-300 hover:bg-white/10 hover:border-white/10 cursor-pointer shadow-xs rounded-xl'
+                      }
                     `}
                   >
-                    <div className="flex items-center">
-                      {Icon && <Icon className="text-lg mr-3 group-hover:scale-110 transition-transform" />}
-                      <span className="font-medium text-sm">{menu.name}</span>
+                    <div className="flex items-center min-w-0">
+                      {Icon && <Icon className={`shrink-0 transition-all duration-300 ${isExpanded ? 'text-lg text-slate-300 group-hover:text-white' : 'text-base lg:mr-0 group-hover:scale-105'}`} />}
+                      <span className={`font-medium text-sm whitespace-nowrap transition-all duration-300 ease-in-out ${
+                        isExpanded ? 'opacity-100 max-w-[150px] ml-3' : 'opacity-0 max-w-0 overflow-hidden ml-0'
+                      }`}>{menu.name}</span>
                     </div>
-                    <div className="flex items-center">
+
+                    <div className={`flex items-center shrink-0 transition-all duration-300 ease-in-out ${
+                      isExpanded ? 'opacity-100 max-w-[50px] ml-2' : 'opacity-0 max-w-0 overflow-hidden ml-0'
+                    }`}>
                       {!isOpen && parentBadgeCount > 0 && (
                         <span className="mr-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shrink-0">
                           {parentBadgeCount > 9 ? '9+' : parentBadgeCount}
@@ -532,45 +640,47 @@ const Layout = () => {
                   </button>
 
                   {/* Collapsible Sub-Menus */}
-                  <div 
-                    className={`grid transition-all duration-300 ease-in-out ${
-                      isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 pointer-events-none'
-                    }`}
-                  >
-                    <div className="overflow-hidden">
-                      <div className="pl-11 pr-2 py-1 space-y-1">
-                      {menu.subMenus.map((sub) => {
-                        const isSubActive = location.pathname === sub.path;
-                        const SubIcon = sub.icon;
-                        const badgeCount = getBadgeCount(sub.path);
-                        return (
-                          <Link
-                            key={sub.path}
-                            to={sub.path}
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className={`
-                              flex items-center justify-between px-4 py-2 rounded-lg text-sm font-medium transition-colors
-                              ${isSubActive 
-                                ? 'bg-blue-600/20 text-white shadow-md shadow-blue-600/20'
-                                : 'text-slate-400 hover:bg-white/10 hover:text-white'
-                              }
-                            `}
-                          >
-                            <div className="flex items-center">
-                              {SubIcon && <SubIcon className="text-base mr-3" />}
-                              <span>{sub.name}</span>
-                            </div>
-                            {badgeCount > 0 && (
-                              <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shrink-0">
-                                {badgeCount > 9 ? '9+' : badgeCount}
-                              </span>
-                            )}
-                          </Link>
-                        );
-                      })}
+                  {isExpanded && (
+                    <div 
+                      className={`grid transition-all duration-300 ease-in-out ${
+                        isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 pointer-events-none'
+                      }`}
+                    >
+                      <div className="overflow-hidden">
+                        <div className="pl-11 pr-2 py-1 space-y-1">
+                        {menu.subMenus.map((sub) => {
+                          const isSubActive = location.pathname === sub.path;
+                          const SubIcon = sub.icon;
+                          const badgeCount = getBadgeCount(sub.path);
+                          return (
+                            <Link
+                              key={sub.path}
+                              to={sub.path}
+                              onClick={() => setIsMobileMenuOpen(false)}
+                              className={`
+                                flex items-center justify-between px-4 py-2 rounded-lg text-sm font-medium transition-colors
+                                ${isSubActive 
+                                  ? 'bg-blue-600/20 text-white shadow-md shadow-blue-600/20'
+                                  : 'text-slate-400 hover:bg-white/10 hover:text-white'
+                                }
+                              `}
+                            >
+                              <div className="flex items-center">
+                                {SubIcon && <SubIcon className="text-base mr-3" />}
+                                <span className="transition-all duration-300 opacity-100">{sub.name}</span>
+                              </div>
+                              {badgeCount > 0 && (
+                                <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shrink-0 transition-opacity duration-300 opacity-100">
+                                  {badgeCount > 9 ? '9+' : badgeCount}
+                                </span>
+                              )}
+                            </Link>
+                          );
+                        })}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               );
             }
@@ -587,20 +697,27 @@ const Layout = () => {
                   setOpenMenus({});
                   setIsMobileMenuOpen(false);
                 }}
+                title={!isExpanded ? menu.name : undefined}
                 className={`
-                  flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group
+                  w-full h-12 flex items-center justify-between px-4 transition-all duration-300 group
                   ${isActive
-                    ? 'bg-blue-600/20 text-blue-500 shadow-sm border border-blue-600/50' 
-                    : 'text-slate-300 hover:bg-white/10 hover:text-white border border-transparent'
+                    ? 'bg-blue-600/20 text-blue-500 shadow-sm border border-blue-600/50 rounded-xl' 
+                    : isExpanded 
+                      ? 'text-slate-300 hover:bg-white/10 hover:text-white border border-transparent rounded-xl'
+                      : 'bg-white/[0.03] backdrop-blur-md border border-white/5 text-slate-300 hover:bg-white/10 hover:border-white/10 shadow-xs rounded-xl'
                   }
                 `}
               >
-                <div className="flex items-center">
-                  {Icon && <Icon className={`text-lg mr-3 transition-transform ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />}
-                  <span className="font-medium text-sm">{menu.name}</span>
+                <div className="flex items-center min-w-0">
+                  {Icon && <Icon className={`shrink-0 transition-all duration-300 ${isActive ? 'scale-105' : 'group-hover:scale-105'} ${isExpanded ? 'text-lg text-slate-300 group-hover:text-white' : 'text-base lg:mr-0'}`} />}
+                  <span className={`font-medium text-sm whitespace-nowrap transition-all duration-300 ease-in-out ${
+                    isExpanded ? 'opacity-100 max-w-[150px] ml-3' : 'opacity-0 max-w-0 overflow-hidden ml-0'
+                  }`}>{menu.name}</span>
                 </div>
                 {badgeCount > 0 && (
-                  <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shrink-0">
+                  <span className={`ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shrink-0 transition-all duration-300 ease-in-out ${
+                    isExpanded ? 'opacity-100 max-w-[50px] ml-2' : 'opacity-0 max-w-0 overflow-hidden ml-0'
+                  }`}>
                     {badgeCount > 9 ? '9+' : badgeCount}
                   </span>
                 )}

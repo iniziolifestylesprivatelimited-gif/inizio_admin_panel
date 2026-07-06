@@ -5,15 +5,16 @@ import { api, BASE_URL } from '../../../api/axios';
 import { 
   FiArrowLeft, FiCheck, FiX, FiLoader, FiAlertCircle, 
   FiUser, FiFileText, FiTrash2, FiUserMinus,
-  FiSmartphone, FiTablet, FiBell, FiBellOff, FiClock, FiActivity
+  FiSmartphone, FiTablet, FiBell, FiBellOff, FiClock, FiActivity, FiTag
 } from 'react-icons/fi';
 
 const formatRelativeTime = (dateString) => {
-  if (!dateString) return 'Never';
+  if (!dateString || dateString === 'null' || dateString === 'undefined') return 'Not Active';
   const date = new Date(dateString);
+  if (isNaN(date.getTime())) return 'Not Active';
   const now = new Date();
   const diffMs = now - date;
-  if (isNaN(diffMs) || diffMs < 0) return 'Just now';
+  if (diffMs < 0) return 'Just now';
   
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMins / 60);
@@ -52,14 +53,148 @@ const UserDetails = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deletionReason, setDeletionReason] = useState('Uploaded GST certificate PDF is expired. Please upload the latest active certificate.');
   const [isActionLoading, setIsActionLoading] = useState(false);
+  
+  // Browsing Activities State
+  const [userActivities, setUserActivities] = useState({ products: [], brands: [], categories: [] });
+  const [loadingActivities, setLoadingActivities] = useState(false);
+  const [activeActivityTab, setActiveActivityTab] = useState('products');
+
+  // Fetch browsing activities for the user
+  useEffect(() => {
+    if (!user) return;
+    
+    const fetchActivitiesData = async (isPoll = false) => {
+      if (!isPoll) setLoadingActivities(true);
+      try {
+        const token = sessionStorage.getItem('accessToken');
+        const headers = { Authorization: `Bearer ${token}` };
+        
+        const [prodRes, brandRes, catRes, actRes] = await Promise.all([
+          api.get('/products/', { headers }).catch(() => ({ data: [] })),
+          api.get('/brands/', { headers }).catch(() => ({ data: [] })),
+          api.get('/categories', { headers }).catch(() => ({ data: [] })),
+          api.get('/activity/stats', { headers }).catch(() => ({ data: { recentActivities: [] } }))
+        ]);
+        
+        const productsList = prodRes.data || [];
+        const brandsList = brandRes.data || [];
+        const categoriesList = catRes.data || [];
+        const activities = actRes.data?.recentActivities || [];
+        
+        // Filter activities for this user
+        const userLogs = activities.filter(act => {
+          const actUserId = act.user?._id || (typeof act.user === 'string' ? act.user : null);
+          const actUserEmail = act.user?.email;
+          
+          return (actUserId && (actUserId === user._id || actUserId === user.userId || actUserId === id)) ||
+                 (actUserEmail && user.email && actUserEmail.toLowerCase() === user.email.toLowerCase());
+        });
+        
+        // 1. Process Product Views
+        const pvLogs = userLogs.filter(act => {
+          const action = (act.action || '').toUpperCase();
+          return action === 'PRODUCT_VIEW' || action === 'PRODUCTVIEW' || action === 'PRODUCT';
+        });
+        const productViewsMap = {};
+        pvLogs.forEach(log => {
+          const productId = log.details?.productId;
+          if (!productId) return;
+          const prod = productsList.find(p => p._id === productId);
+          if (!productViewsMap[productId]) {
+            productViewsMap[productId] = {
+              id: productId,
+              name: prod?.name || productId || 'a product',
+              image: prod?.images?.[0] || '',
+              brand: prod?.brand?.name || (prod?.brand ? (brandsList.find(b => b._id === prod.brand)?.name) : '') || 'N/A',
+              count: 0,
+              latestView: log.createdAt
+            };
+          }
+          productViewsMap[productId].count += 1;
+          if (new Date(log.createdAt) > new Date(productViewsMap[productId].latestView)) {
+            productViewsMap[productId].latestView = log.createdAt;
+          }
+        });
+        
+        // 2. Process Brand Views
+        const bvLogs = userLogs.filter(act => {
+          const action = (act.action || '').toUpperCase();
+          return action === 'BRAND_VIEW' || action === 'BRAND';
+        });
+        const brandViewsMap = {};
+        bvLogs.forEach(log => {
+          const brandId = log.details?.brandId || log.details?.id;
+          if (!brandId) return;
+          const brand = brandsList.find(b => b._id === brandId);
+          if (!brandViewsMap[brandId]) {
+            brandViewsMap[brandId] = {
+              id: brandId,
+              name: brand?.name || brandId || 'a brand',
+              logo: brand?.logo || '',
+              count: 0,
+              latestView: log.createdAt
+            };
+          }
+          brandViewsMap[brandId].count += 1;
+          if (new Date(log.createdAt) > new Date(brandViewsMap[brandId].latestView)) {
+            brandViewsMap[brandId].latestView = log.createdAt;
+          }
+        });
+        
+        // 3. Process Category Views
+        const cvLogs = userLogs.filter(act => {
+          const action = (act.action || '').toUpperCase();
+          return action === 'CATEGORY_VIEW' || action === 'CATEGORY';
+        });
+        const categoryViewsMap = {};
+        cvLogs.forEach(log => {
+          const catId = log.details?.categoryId || log.details?.id;
+          if (!catId) return;
+          const cat = categoriesList.find(c => c._id === catId);
+          if (!categoryViewsMap[catId]) {
+            categoryViewsMap[catId] = {
+              id: catId,
+              name: cat?.name || catId || 'a category',
+              image: cat?.image || '',
+              count: 0,
+              latestView: log.createdAt
+            };
+          }
+          categoryViewsMap[catId].count += 1;
+          if (new Date(log.createdAt) > new Date(categoryViewsMap[catId].latestView)) {
+            categoryViewsMap[catId].latestView = log.createdAt;
+          }
+        });
+        
+        setUserActivities({
+          products: Object.values(productViewsMap).sort((a, b) => b.count - a.count),
+          brands: Object.values(brandViewsMap).sort((a, b) => b.count - a.count),
+          categories: Object.values(categoryViewsMap).sort((a, b) => b.count - a.count)
+        });
+      } catch (err) {
+        console.error('Failed to process user activities:', err);
+      } finally {
+        if (!isPoll) setLoadingActivities(false);
+      }
+    };
+    
+    fetchActivitiesData(false);
+    const intervalId = setInterval(() => {
+      fetchActivitiesData(true);
+    }, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [user?._id, user?.email]);
 
   const fetchUserDetails = async (isPoll = false) => {
     if (!isPoll) setLoading(true);
     try {
       const token = sessionStorage.getItem('accessToken');
-      const customersResponse = await api.get('/admin/customers', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const headers = { Authorization: `Bearer ${token}` };
+      const [customersResponse, actResponse] = await Promise.all([
+        api.get('/admin/customers', { headers }),
+        api.get('/activity/stats', { headers }).catch(() => ({ data: { users: [] } }))
+      ]);
 
       let allUsers = [];
       if (Array.isArray(customersResponse.data)) {
@@ -68,8 +203,17 @@ const UserDetails = () => {
         allUsers = customersResponse.data.data || customersResponse.data.users || customersResponse.data.customers || [];
       }
 
-      const foundUser = allUsers.find(u => u._id === id);
+      const actUsers = actResponse.data?.users || [];
+
+      let foundUser = allUsers.find(u => u._id === id);
       if (foundUser) {
+        const match = actUsers.find(au => au.userId === foundUser._id || (au.email && foundUser.email && au.email.toLowerCase() === foundUser.email.toLowerCase()));
+        if (match) {
+          foundUser = {
+            ...foundUser,
+            lastActive: match.lastActive !== undefined ? match.lastActive : foundUser.lastActive
+          };
+        }
         setUser(foundUser);
         setError('');
       } else {
@@ -196,7 +340,7 @@ const UserDetails = () => {
             <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 relative overflow-hidden">
               <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
               
-              <div className="flex justify-between items-center bg-black/20 border border-white/5 p-4 rounded-2xl mb-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-black/20 border border-white/5 p-4 rounded-2xl mb-6">
                 <div>
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Status</p>
                   {(user.isApproved || user.userId) ? (
@@ -206,7 +350,7 @@ const UserDetails = () => {
                   )}
                 </div>
                 {(user.isApproved || user.userId) && user.userId && (
-                  <div className="text-right">
+                  <div className="sm:text-right text-left">
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Generated User ID</p>
                     <p className="text-emerald-400 font-mono text-lg font-bold">{user.userId}</p>
                   </div>
@@ -295,6 +439,165 @@ const UserDetails = () => {
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* User View Activities (Products, Brands, Categories) */}
+            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 relative overflow-hidden space-y-6">
+              <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
+              
+              <div className="border-b border-white/10 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <h4 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <FiActivity className="text-blue-400" /> Customer Browsing Activity
+                </h4>
+                
+                {/* Tabs */}
+                <div className="flex gap-2 bg-slate-900/60 p-1 rounded-xl border border-white/5 self-stretch sm:self-auto justify-between sm:justify-start">
+                  {['products', 'brands', 'categories'].map(tab => (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveActivityTab(tab)}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-lg capitalize transition-all cursor-pointer ${
+                        activeActivityTab === tab 
+                          ? 'bg-blue-600 text-white shadow-md' 
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      {tab}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {loadingActivities ? (
+                <div className="py-12 flex flex-col items-center justify-center text-slate-400">
+                  <FiLoader className="animate-spin text-2xl text-blue-400 mb-2" />
+                  <span className="text-xs">Processing activity logs...</span>
+                </div>
+              ) : (
+                <div className="overflow-x-auto custom-scrollbar">
+                  {activeActivityTab === 'products' && (
+                    <table className="w-full text-left border-collapse min-w-[500px]">
+                      <thead>
+                        <tr className="border-b border-white/10 text-xs font-bold text-slate-400 uppercase tracking-wider pb-2">
+                          <th className="pb-3 text-left">Product Name</th>
+                          <th className="pb-3 text-left">Brand</th>
+                          <th className="pb-3 text-center">Views Count</th>
+                          <th className="pb-3 text-right">Latest View</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {userActivities.products.length === 0 ? (
+                          <tr>
+                            <td colSpan="4" className="py-6 text-center text-xs text-slate-500 italic">No products viewed by this user.</td>
+                          </tr>
+                        ) : (
+                          userActivities.products.map(item => (
+                            <tr key={item.id} className="hover:bg-white/5 transition-colors">
+                              <td className="py-3 pr-4">
+                                <div className="flex items-center gap-3">
+                                  {item.image ? (
+                                    <div className="w-9 h-9 rounded-lg overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center p-0.5">
+                                      <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
+                                    </div>
+                                  ) : (
+                                    <div className="w-9 h-9 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center text-slate-500 shrink-0">
+                                      <FiFileText />
+                                    </div>
+                                  )}
+                                  <span className="font-semibold text-sm text-white line-clamp-1 max-w-[200px]" title={item.name}>{item.name}</span>
+                                </div>
+                              </td>
+                              <td className="py-3 text-sm text-slate-300 font-medium">{item.brand}</td>
+                              <td className="py-3 text-center font-bold text-sm text-blue-400">{item.count}</td>
+                              <td className="py-3 text-right text-xs text-slate-400 font-medium">{new Date(item.latestView).toLocaleString()}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  )}
+
+                  {activeActivityTab === 'brands' && (
+                    <table className="w-full text-left border-collapse min-w-[500px]">
+                      <thead>
+                        <tr className="border-b border-white/10 text-xs font-bold text-slate-400 uppercase tracking-wider pb-2">
+                          <th className="pb-3 text-left">Brand Name</th>
+                          <th className="pb-3 text-center">Views Count</th>
+                          <th className="pb-3 text-right">Latest View</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {userActivities.brands.length === 0 ? (
+                          <tr>
+                            <td colSpan="3" className="py-6 text-center text-xs text-slate-500 italic">No brands viewed by this user.</td>
+                          </tr>
+                        ) : (
+                          userActivities.brands.map(item => (
+                            <tr key={item.id} className="hover:bg-white/5 transition-colors">
+                              <td className="py-3 pr-4">
+                                <div className="flex items-center gap-3">
+                                  {item.logo ? (
+                                    <div className="w-9 h-9 rounded-lg overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center p-0.5">
+                                      <img src={getDocumentUrl(item.logo)} alt={item.name} className="w-full h-full object-contain animate-in fade-in" />
+                                    </div>
+                                  ) : (
+                                    <div className="w-9 h-9 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center text-slate-500 shrink-0">
+                                      <FiTag />
+                                    </div>
+                                  )}
+                                  <span className="font-semibold text-sm text-white">{item.name}</span>
+                                </div>
+                              </td>
+                              <td className="py-3 text-center font-bold text-sm text-blue-400">{item.count}</td>
+                              <td className="py-3 text-right text-xs text-slate-400 font-medium">{new Date(item.latestView).toLocaleString()}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  )}
+
+                  {activeActivityTab === 'categories' && (
+                    <table className="w-full text-left border-collapse min-w-[500px]">
+                      <thead>
+                        <tr className="border-b border-white/10 text-xs font-bold text-slate-400 uppercase tracking-wider pb-2">
+                          <th className="pb-3 text-left">Category Name</th>
+                          <th className="pb-3 text-center">Views Count</th>
+                          <th className="pb-3 text-right">Latest View</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {userActivities.categories.length === 0 ? (
+                          <tr>
+                            <td colSpan="3" className="py-6 text-center text-xs text-slate-500 italic">No categories viewed by this user.</td>
+                          </tr>
+                        ) : (
+                          userActivities.categories.map(item => (
+                            <tr key={item.id} className="hover:bg-white/5 transition-colors">
+                              <td className="py-3 pr-4">
+                                <div className="flex items-center gap-3">
+                                  {item.image ? (
+                                    <div className="w-9 h-9 rounded-lg overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center p-0.5">
+                                      <img src={getDocumentUrl(item.image)} alt={item.name} className="w-full h-full object-contain animate-in fade-in" />
+                                    </div>
+                                  ) : (
+                                    <div className="w-9 h-9 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center text-slate-500 shrink-0">
+                                      <FiFileText />
+                                    </div>
+                                  )}
+                                  <span className="font-semibold text-sm text-white">{item.name}</span>
+                                </div>
+                              </td>
+                              <td className="py-3 text-center font-bold text-sm text-blue-400">{item.count}</td>
+                              <td className="py-3 text-right text-xs text-slate-400 font-medium">{new Date(item.latestView).toLocaleString()}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Profile Deletion Danger Zone */}
@@ -407,11 +710,19 @@ const UserDetails = () => {
                 <div className="sm:col-span-2 bg-slate-950/30 border border-white/5 p-4 rounded-2xl flex justify-between items-center gap-3">
                   <div>
                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Last Active Connection</p>
-                    <p className="text-xs font-bold text-white mt-1 select-all">{user.lastActive ? new Date(user.lastActive).toLocaleString() : 'N/A'}</p>
+                    <p className="text-xs font-bold text-white mt-1 select-all">
+                      {user.lastActive && user.lastActive !== 'null' && user.lastActive !== 'undefined' && !isNaN(new Date(user.lastActive).getTime())
+                        ? new Date(user.lastActive).toLocaleString()
+                        : 'Not Active'}
+                    </p>
                   </div>
-                  {user.lastActive && (
+                  {user.lastActive && user.lastActive !== 'null' && user.lastActive !== 'undefined' && !isNaN(new Date(user.lastActive).getTime()) ? (
                     <span className="text-[10px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2.5 py-0.5 rounded-md font-extrabold shrink-0">
                       {formatRelativeTime(user.lastActive)}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] bg-slate-800 text-slate-500 border border-white/5 px-2.5 py-0.5 rounded-md font-extrabold shrink-0">
+                      Not Active
                     </span>
                   )}
                 </div>
