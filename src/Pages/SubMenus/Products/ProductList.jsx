@@ -24,6 +24,34 @@ const ProductList = () => {
   const searchTerm = searchParams.get('search') || '';
   const currentPage = parseInt(searchParams.get('page') || '1', 10);
 
+  const selectedBrand = searchParams.get('brand') || '';
+  const selectedCategory = searchParams.get('category') || '';
+  const selectedStockStatus = searchParams.get('stock') || '';
+
+  const handleFilterChange = (key, value) => {
+    setSearchParams(prev => {
+      if (value) {
+        prev.set(key, value);
+      } else {
+        prev.delete(key);
+      }
+      prev.set('page', '1');
+      return prev;
+    });
+  };
+
+  const handleClearFilters = () => {
+    setSearchInput('');
+    setSearchParams(prev => {
+      prev.delete('search');
+      prev.delete('brand');
+      prev.delete('category');
+      prev.delete('stock');
+      prev.set('page', '1');
+      return prev;
+    });
+  };
+
   // Sync local input with URL search param changes (e.g. back navigation or reset)
   useEffect(() => {
     setSearchInput(searchParams.get('search') || '');
@@ -50,6 +78,7 @@ const ProductList = () => {
   }, [searchInput, setSearchParams]);
   const itemsPerPage = 10;
   const [selectedProducts, setSelectedProducts] = useState([]);
+  const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addProductImageFiles, setAddProductImageFiles] = useState([]);
@@ -539,11 +568,14 @@ const ProductList = () => {
         ));
         setProducts(products.filter(p => !selectedProducts.includes(p._id)));
         setSelectedProducts([]);
+        return true;
       } catch (error) {
         console.error('Failed to bulk delete products', error);
         alert('Failed to delete some or all selected products.');
+        return false;
       }
     }
+    return false;
   };
 
   const handleBulkDeactivate = async () => {
@@ -947,9 +979,22 @@ const ProductList = () => {
 
   const getQuantityBadge = (product) => {
     if (product.variants && product.variants.length > 0) {
+      const visibleVariants = product.variants.filter(v => {
+        if (!selectedStockStatus) return true;
+        const qty = Number(v.quantity) || 0;
+        if (selectedStockStatus === 'in_stock') return qty > 0;
+        if (selectedStockStatus === 'low_stock') return qty > 0 && qty <= 10;
+        if (selectedStockStatus === 'out_of_stock') return qty <= 0;
+        return true;
+      });
+
+      if (visibleVariants.length === 0) {
+        return <span className="text-slate-500 font-bold">-</span>;
+      }
+
       return (
-        <span className="text-slate-400 font-bold text-sm tracking-wide">
-          {product.variants.map((v, i) => {
+        <span className="text-slate-400 font-bold text-xs tracking-wide flex flex-col items-center gap-1.5 py-1">
+          {visibleVariants.map((v, i) => {
             const qty = Number(v.quantity) || 0;
             let colorClass = '';
             if (qty <= 0) {
@@ -959,11 +1004,11 @@ const ProductList = () => {
             } else {
               colorClass = 'text-emerald-400';
             }
+            const variantLabel = v.name ? `${v.name}: ` : '';
             return (
-              <React.Fragment key={i}>
-                <span className={colorClass}>{qty}</span>
-                {i < product.variants.length - 1 && ', '}
-              </React.Fragment>
+              <span key={v._id || i} className={`inline-flex items-center px-2 py-0.5 rounded bg-white/5 border border-white/5 ${colorClass}`}>
+                {variantLabel}{qty}
+              </span>
             );
           })}
         </span>
@@ -993,7 +1038,7 @@ const ProductList = () => {
     );
   };
 
-  // Filter products based on catalog tab and search term
+  // Filter products based on catalog tab, filters, and search term
   const filteredProducts = products.filter(product => {
     // 1. Tab filter
     if (catalogTab === 'active') {
@@ -1003,7 +1048,53 @@ const ProductList = () => {
       if (product.isActive !== false && !hasDeactivatedVariant) return false;
     }
 
-    // 2. Search term filter
+    // 2. Brand filter
+    if (selectedBrand) {
+      const pBrandId = product.brand?._id || product.brand;
+      if (pBrandId !== selectedBrand) return false;
+    }
+
+    // 3. Category filter
+    if (selectedCategory) {
+      const pCategoryId = product.category?._id || product.category;
+      if (pCategoryId !== selectedCategory) return false;
+    }
+
+    // 4. Stock status filter
+    if (selectedStockStatus) {
+      const hasVariants = product.variants && product.variants.length > 0;
+      
+      if (selectedStockStatus === 'in_stock') {
+        if (hasVariants) {
+          const hasInStockVariant = product.variants.some(v => (Number(v.quantity) || 0) > 0);
+          if (!hasInStockVariant) return false;
+        } else {
+          const qty = Number(product.totalQuantity) || 0;
+          if (qty <= 0) return false;
+        }
+      } else if (selectedStockStatus === 'low_stock') {
+        if (hasVariants) {
+          const hasLowStockVariant = product.variants.some(v => {
+            const qty = Number(v.quantity) || 0;
+            return qty > 0 && qty <= 10;
+          });
+          if (!hasLowStockVariant) return false;
+        } else {
+          const qty = Number(product.totalQuantity) || 0;
+          if (qty <= 0 || qty > 10) return false;
+        }
+      } else if (selectedStockStatus === 'out_of_stock') {
+        if (hasVariants) {
+          const hasOutOfStockVariant = product.variants.some(v => (Number(v.quantity) || 0) <= 0);
+          if (!hasOutOfStockVariant) return false;
+        } else {
+          const qty = Number(product.totalQuantity) || 0;
+          if (qty > 0) return false;
+        }
+      }
+    }
+
+    // 5. Search term filter
     const term = searchTerm.toLowerCase();
     const ean = product.eanNumber?.toString() || '';
     return (
@@ -1055,6 +1146,66 @@ const ProductList = () => {
           </div>
         </div>
 
+        {/* Filters Section */}
+        <div className="relative z-30 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 items-center gap-3 bg-white/[0.02] border border-white/5 p-3 rounded-2xl backdrop-blur-md">
+          <div>
+            <CustomDropdown
+              value={selectedBrand ? (brands.find(b => b._id === selectedBrand)?.name || 'All Brands') : 'All Brands'}
+              options={['All Brands', ...brands.map(b => b.name)]}
+              onChange={(option) => {
+                if (option === 'All Brands') {
+                  handleFilterChange('brand', '');
+                } else {
+                  const found = brands.find(b => b.name === option);
+                  if (found) handleFilterChange('brand', found._id);
+                }
+              }}
+              statusColor="bg-slate-900/60 text-slate-300 border-white/10 hover:bg-slate-800/60 hover:text-white"
+            />
+          </div>
+          <div>
+            <CustomDropdown
+              value={selectedCategory ? (categories.find(c => c._id === selectedCategory)?.name || 'All Categories') : 'All Categories'}
+              options={['All Categories', ...categories.map(c => c.name)]}
+              onChange={(option) => {
+                if (option === 'All Categories') {
+                  handleFilterChange('category', '');
+                } else {
+                  const found = categories.find(c => c.name === option);
+                  if (found) handleFilterChange('category', found._id);
+                }
+              }}
+              statusColor="bg-slate-900/60 text-slate-300 border-white/10 hover:bg-slate-800/60 hover:text-white"
+            />
+          </div>
+          <div>
+            <CustomDropdown
+              value={selectedStockStatus === 'in_stock' ? 'In Stock' : selectedStockStatus === 'low_stock' ? 'Low Stock' : selectedStockStatus === 'out_of_stock' ? 'Out of Stock' : 'All Stock Statuses'}
+              options={['All Stock Statuses', 'In Stock', 'Low Stock', 'Out of Stock']}
+              onChange={(option) => {
+                let val = '';
+                if (option === 'In Stock') val = 'in_stock';
+                else if (option === 'Low Stock') val = 'low_stock';
+                else if (option === 'Out of Stock') val = 'out_of_stock';
+                handleFilterChange('stock', val);
+              }}
+              statusColor="bg-slate-900/60 text-slate-300 border-white/10 hover:bg-slate-800/60 hover:text-white"
+            />
+          </div>
+          <div className="flex justify-end sm:justify-start">
+            {(selectedBrand || selectedCategory || selectedStockStatus || searchTerm) ? (
+              <button
+                onClick={handleClearFilters}
+                className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl transition-all border border-white/10 cursor-pointer text-sm shadow-md"
+              >
+                <FiX className="text-slate-400" /> Clear Filters
+              </button>
+            ) : (
+              <span className="text-xs text-slate-500 font-medium italic pl-1 hidden md:inline">No active filters</span>
+            )}
+          </div>
+        </div>
+
         {/* Action & Metrics Row */}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 w-full border-t border-white/5 pt-4 mt-2">
           {/* Left part: Total products info */}
@@ -1068,75 +1219,101 @@ const ProductList = () => {
             <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
               Total Items (incl. Variants): <strong className="text-white">{products.reduce((sum, p) => sum + (Array.isArray(p.variants) && p.variants.length > 1 ? p.variants.length : 1), 0)}</strong>
             </span>
-            {searchTerm && (
+            {(searchTerm || selectedBrand || selectedCategory || selectedStockStatus) && (
               <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full">
                 Found: <strong>{filteredProducts.length}</strong>
               </span>
             )}
           </div>
-
           {/* Right part: Action Buttons */}
           <div className="flex flex-col sm:flex-row justify-end items-center gap-3 w-full xl:w-auto order-1 xl:order-2">
-            {selectedProducts.length > 0 && (
-              <button 
-                onClick={handleBulkDelete}
-                className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-red-600/50 text-white font-bold rounded-xl hover:bg-red-100 hover:text-red-600 transition-all border border-red-600 shadow-sm cursor-pointer"
-              >
-                <FiTrash2 className="mr-2" />
-                Delete ({selectedProducts.length})
-              </button>
+            {isDeleteMode ? (
+              <>
+                <button 
+                  onClick={async () => {
+                    if (selectedProducts.length === 0) {
+                      alert('Please select products to delete.');
+                      return;
+                    }
+                    const deleted = await handleBulkDelete();
+                    if (deleted) {
+                      setIsDeleteMode(false);
+                    }
+                  }}
+                  className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-rose-500/10 cursor-pointer text-sm"
+                >
+                  <FiTrash2 className="mr-2" />
+                  Confirm Delete ({selectedProducts.length})
+                </button>
+                <button 
+                  onClick={() => {
+                    setIsDeleteMode(false);
+                    setSelectedProducts([]);
+                  }}
+                  className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl transition-all border border-white/10 cursor-pointer text-sm shadow-md"
+                >
+                  <FiX className="mr-2" />
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="w-full sm:w-48">
+                  <CustomDropdown
+                    value="Actions"
+                    options={[
+                      'Download Sample Excel',
+                      'Export to Excel',
+                      'Export Product Details (Local)',
+                      'Bulk Upload Excel',
+                      'Rollback Bulk Upload',
+                      'Deactivate Products',
+                      'Delete Products'
+                    ]}
+                    onChange={(option) => {
+                      if (option === 'Download Sample Excel') {
+                        handleDownloadSampleExcel();
+                      } else if (option === 'Export to Excel') {
+                        handleExportToExcel();
+                      } else if (option === 'Export Product Details (Local)') {
+                        handleExportCustomDetails();
+                      } else if (option === 'Bulk Upload Excel') {
+                        fileInputRef.current?.click();
+                      } else if (option === 'Rollback Bulk Upload') {
+                        handleRollbackBulkUpload();
+                      } else if (option === 'Deactivate Products') {
+                        setIsDeactivateModalOpen(true);
+                      } else if (option === 'Delete Products') {
+                        setIsDeleteMode(true);
+                        setSelectedProducts([]);
+                      }
+                    }}
+                    statusColor="bg-slate-800 text-slate-300 border-white/10 hover:bg-slate-700 hover:text-white"
+                  />
+                  <input 
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleUploadExcel}
+                    accept=".xlsx, .xls"
+                    className="hidden"
+                  />
+                </div>
+
+                <button 
+                  onClick={handleExportCustomDetails} 
+                  className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-emerald-600/50 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/5 cursor-pointer"
+                  title="Export Product Details with Variants"
+                >
+                  <FiDownload className="mr-2" />
+                  Export Details
+                </button>
+
+                <button onClick={openAddModal} className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-blue-600/50 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/5 cursor-pointer">
+                  <FiPlus className="mr-2" />
+                  Add Product
+                </button>
+              </>
             )}
-            
-            <div className="w-full sm:w-48">
-              <CustomDropdown
-                value="Actions"
-                options={[
-                  'Download Sample Excel',
-                  'Export to Excel',
-                  'Export Product Details (Local)',
-                  'Bulk Upload Excel',
-                  'Rollback Bulk Upload',
-                  'Deactivate Products'
-                ]}
-                onChange={(option) => {
-                  if (option === 'Download Sample Excel') {
-                    handleDownloadSampleExcel();
-                  } else if (option === 'Export to Excel') {
-                    handleExportToExcel();
-                  } else if (option === 'Export Product Details (Local)') {
-                    handleExportCustomDetails();
-                  } else if (option === 'Bulk Upload Excel') {
-                    fileInputRef.current?.click();
-                  } else if (option === 'Rollback Bulk Upload') {
-                    handleRollbackBulkUpload();
-                  } else if (option === 'Deactivate Products') {
-                    setIsDeactivateModalOpen(true);
-                  }
-                }}
-                statusColor="bg-slate-800 text-slate-300 border-white/10 hover:bg-slate-700 hover:text-white"
-              />
-              <input 
-                type="file"
-                ref={fileInputRef}
-                onChange={handleUploadExcel}
-                accept=".xlsx, .xls"
-                className="hidden"
-              />
-            </div>
-
-            <button 
-              onClick={handleExportCustomDetails} 
-              className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-emerald-600/50 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/5 cursor-pointer"
-              title="Export Product Details with Variants"
-            >
-              <FiDownload className="mr-2" />
-              Export Details
-            </button>
-
-            <button onClick={openAddModal} className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-blue-600/50 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/5 cursor-pointer">
-              <FiPlus className="mr-2" />
-              Add Product
-            </button>
           </div>
         </div>
       </div>
@@ -1171,14 +1348,16 @@ const ProductList = () => {
           <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md border-b border-white/10 text-slate-300 text-sm shadow-md">
               <tr>
-                <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs w-10 text-center">
-                  <input 
-                    type="checkbox" 
-                    className="w-4 h-4 rounded border-slate-500 bg-slate-800 text-blue-500 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-slate-900 transition-all cursor-pointer accent-blue-500 scheme-dark"
-                    checked={currentProducts.length > 0 && currentProducts.every(p => selectedProducts.includes(p._id))}
-                    onChange={handleSelectAll}
-                  />
-                </th>
+                {isDeleteMode && (
+                  <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs w-10 text-center animate-in fade-in slide-in-from-left-2 duration-200">
+                    <input 
+                      type="checkbox" 
+                      className="w-4 h-4 rounded border-slate-500 bg-slate-800 text-blue-500 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-slate-900 transition-all cursor-pointer accent-blue-500 scheme-dark"
+                      checked={currentProducts.length > 0 && currentProducts.every(p => selectedProducts.includes(p._id))}
+                      onChange={handleSelectAll}
+                    />
+                  </th>
+                )}
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">S.No</th>
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">Brand</th>
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">Category</th>
@@ -1195,7 +1374,7 @@ const ProductList = () => {
             <tbody className="divide-y divide-white/10">
               {loading ? (
                 <tr>
-                  <td colSpan="16" className="px-6 py-12 text-center text-slate-400 font-medium">
+                  <td colSpan={isDeleteMode ? 11 : 10} className="px-6 py-12 text-center text-slate-400 font-medium">
                     <FiLoader className="animate-spin text-3xl mx-auto mb-3 text-blue-400" />
                     Loading products...
                   </td>
@@ -1204,14 +1383,16 @@ const ProductList = () => {
                 currentProducts.map((product, index) => {
                   return (
                     <tr key={product._id || index} className="hover:bg-transparent transition-colors group">
-                      <td className="px-4 py-3 text-center">
-                        <input 
-                          type="checkbox" 
-                          className="w-4 h-4 rounded border-slate-500 bg-slate-800 text-blue-500 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-slate-900 transition-all cursor-pointer accent-blue-500 scheme-dark"
-                          checked={selectedProducts.includes(product._id)}
-                          onChange={() => handleSelectProduct(product._id)}
-                        />
-                      </td>
+                      {isDeleteMode && (
+                        <td className="px-4 py-3 text-center animate-in fade-in slide-in-from-left-2 duration-200">
+                          <input 
+                            type="checkbox" 
+                            className="w-4 h-4 rounded border-slate-500 bg-slate-800 text-blue-500 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-slate-900 transition-all cursor-pointer accent-blue-500 scheme-dark"
+                            checked={selectedProducts.includes(product._id)}
+                            onChange={() => handleSelectProduct(product._id)}
+                          />
+                        </td>
+                      )}
                       <td className="px-4 py-3 text-sm font-medium text-slate-400">{indexOfFirstItem + index + 1}</td>
                       <td className="px-4 py-3 text-sm text-slate-300 font-medium">{getBrandName(product.brand)}</td>
                       <td className="px-4 py-3 text-sm text-slate-300 font-medium">{getCategoryName(product.category)}</td>
@@ -1269,7 +1450,7 @@ const ProductList = () => {
                 })
               ) : (
                 <tr>
-                  <td colSpan="16" className="px-6 py-12 text-center text-slate-400 font-medium">
+                  <td colSpan={isDeleteMode ? 11 : 10} className="px-6 py-12 text-center text-slate-400 font-medium">
                     {searchTerm ? 'No products matching your search.' : 'No products found. Add your first product.'}
                   </td>
                 </tr>

@@ -5,7 +5,7 @@ import { api, BASE_URL } from '../../../api/axios';
 import { 
   FiArrowLeft, FiCheck, FiX, FiLoader, FiAlertCircle, 
   FiUser, FiFileText, FiTrash2, FiUserMinus,
-  FiSmartphone, FiTablet, FiBell, FiBellOff, FiClock, FiActivity, FiTag
+  FiSmartphone, FiTablet, FiBell, FiBellOff, FiClock, FiActivity, FiTag, FiSearch
 } from 'react-icons/fi';
 
 const isLastActiveValid = (lastActive) => {
@@ -62,7 +62,7 @@ const UserDetails = () => {
   const [isActionLoading, setIsActionLoading] = useState(false);
   
   // Browsing Activities State
-  const [userActivities, setUserActivities] = useState({ products: [], brands: [], categories: [] });
+  const [userActivities, setUserActivities] = useState({ products: [], brands: [], categories: [], searches: [] });
   const [loadingActivities, setLoadingActivities] = useState(false);
   const [activeActivityTab, setActiveActivityTab] = useState('products');
 
@@ -173,10 +173,35 @@ const UserDetails = () => {
           }
         });
         
+        // 4. Process Search Queries
+        const sqLogs = userLogs.filter(act => {
+          const action = (act.action || '').toUpperCase();
+          return action === 'SEARCH';
+        });
+        const searchQueriesMap = {};
+        sqLogs.forEach(log => {
+          const query = log.details?.query;
+          if (!query) return;
+          const queryKey = query.trim().toLowerCase();
+          if (!searchQueriesMap[queryKey]) {
+            searchQueriesMap[queryKey] = {
+              id: queryKey,
+              query: query,
+              count: 0,
+              latestSearch: log.createdAt
+            };
+          }
+          searchQueriesMap[queryKey].count += 1;
+          if (new Date(log.createdAt) > new Date(searchQueriesMap[queryKey].latestSearch)) {
+            searchQueriesMap[queryKey].latestSearch = log.createdAt;
+          }
+        });
+        
         setUserActivities({
           products: Object.values(productViewsMap).sort((a, b) => b.count - a.count),
           brands: Object.values(brandViewsMap).sort((a, b) => b.count - a.count),
-          categories: Object.values(categoryViewsMap).sort((a, b) => b.count - a.count)
+          categories: Object.values(categoryViewsMap).sort((a, b) => b.count - a.count),
+          searches: Object.values(searchQueriesMap).sort((a, b) => b.count - a.count)
         });
       } catch (err) {
         console.error('Failed to process user activities:', err);
@@ -459,7 +484,7 @@ const UserDetails = () => {
                 
                 {/* Tabs */}
                 <div className="flex gap-2 bg-slate-900/60 p-1 rounded-xl border border-white/5 self-stretch sm:self-auto justify-between sm:justify-start">
-                  {['products', 'brands', 'categories'].map(tab => (
+                  {['products', 'brands', 'categories', 'searches'].map(tab => (
                     <button
                       key={tab}
                       onClick={() => setActiveActivityTab(tab)}
@@ -469,7 +494,7 @@ const UserDetails = () => {
                           : 'text-slate-400 hover:text-slate-200'
                       }`}
                     >
-                      {tab}
+                      {tab === 'searches' ? 'Search Queries' : tab}
                     </button>
                   ))}
                 </div>
@@ -481,26 +506,26 @@ const UserDetails = () => {
                   <span className="text-xs">Processing activity logs...</span>
                 </div>
               ) : (
-                <div className="max-h-[350px] overflow-y-auto overflow-x-auto custom-scrollbar">
+                <div className="max-h-[350px] overflow-y-auto overflow-x-auto custom-scrollbar rounded-2xl border border-white/10 bg-slate-950/20">
                   {activeActivityTab === 'products' && (
                     <table className="w-full text-left border-collapse min-w-[500px]">
                       <thead>
                         <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                          <th className="pb-3 text-left sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Product Name</th>
-                          <th className="pb-3 text-left sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Brand</th>
-                          <th className="pb-3 text-center sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Views Count</th>
-                          <th className="pb-3 text-right sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Latest View</th>
+                          <th className="p-3 text-left sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Product Name</th>
+                          <th className="p-3 text-left sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Brand</th>
+                          <th className="p-3 text-center sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Views Count</th>
+                          <th className="p-3 text-right sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Latest View</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
                         {userActivities.products.length === 0 ? (
                           <tr>
-                            <td colSpan="4" className="py-6 text-center text-xs text-slate-500 italic">No products viewed by this user.</td>
+                            <td colSpan="4" className="p-6 text-center text-xs text-slate-500 italic">No products viewed by this user.</td>
                           </tr>
                         ) : (
                           userActivities.products.map(item => (
                             <tr key={item.id} className="hover:bg-white/5 transition-colors">
-                              <td className="py-3 pr-4">
+                              <td className="p-3">
                                 <div className="flex items-center gap-3">
                                   {item.image ? (
                                     <div className="w-9 h-9 rounded-lg overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center p-0.5">
@@ -514,9 +539,9 @@ const UserDetails = () => {
                                   <span className="font-semibold text-sm text-white line-clamp-1 max-w-[200px]" title={item.name}>{item.name}</span>
                                 </div>
                               </td>
-                              <td className="py-3 text-sm text-slate-300 font-medium">{item.brand}</td>
-                              <td className="py-3 text-center font-bold text-sm text-blue-400">{item.count}</td>
-                              <td className="py-3 text-right text-xs text-slate-400 font-medium">{new Date(item.latestView).toLocaleString()}</td>
+                              <td className="p-3 text-sm text-slate-300 font-medium">{item.brand}</td>
+                              <td className="p-3 text-center font-bold text-sm text-blue-400">{item.count}</td>
+                              <td className="p-3 text-right text-xs text-slate-400 font-medium">{new Date(item.latestView).toLocaleString()}</td>
                             </tr>
                           ))
                         )}
@@ -528,20 +553,20 @@ const UserDetails = () => {
                     <table className="w-full text-left border-collapse min-w-[500px]">
                       <thead>
                         <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                          <th className="pb-3 text-left sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Brand Name</th>
-                          <th className="pb-3 text-center sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Views Count</th>
-                          <th className="pb-3 text-right sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Latest View</th>
+                          <th className="p-3 text-left sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Brand Name</th>
+                          <th className="p-3 text-center sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Views Count</th>
+                          <th className="p-3 text-right sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Latest View</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
                         {userActivities.brands.length === 0 ? (
                           <tr>
-                            <td colSpan="3" className="py-6 text-center text-xs text-slate-500 italic">No brands viewed by this user.</td>
+                            <td colSpan="3" className="p-6 text-center text-xs text-slate-500 italic">No brands viewed by this user.</td>
                           </tr>
                         ) : (
                           userActivities.brands.map(item => (
                             <tr key={item.id} className="hover:bg-white/5 transition-colors">
-                              <td className="py-3 pr-4">
+                              <td className="p-3">
                                 <div className="flex items-center gap-3">
                                   {item.logo ? (
                                     <div className="w-9 h-9 rounded-lg overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center p-0.5">
@@ -555,8 +580,8 @@ const UserDetails = () => {
                                   <span className="font-semibold text-sm text-white">{item.name}</span>
                                 </div>
                               </td>
-                              <td className="py-3 text-center font-bold text-sm text-blue-400">{item.count}</td>
-                              <td className="py-3 text-right text-xs text-slate-400 font-medium">{new Date(item.latestView).toLocaleString()}</td>
+                              <td className="p-3 text-center font-bold text-sm text-blue-400">{item.count}</td>
+                              <td className="p-3 text-right text-xs text-slate-400 font-medium">{new Date(item.latestView).toLocaleString()}</td>
                             </tr>
                           ))
                         )}
@@ -568,20 +593,20 @@ const UserDetails = () => {
                     <table className="w-full text-left border-collapse min-w-[500px]">
                       <thead>
                         <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                          <th className="pb-3 text-left sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Category Name</th>
-                          <th className="pb-3 text-center sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Views Count</th>
-                          <th className="pb-3 text-right sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Latest View</th>
+                          <th className="p-3 text-left sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Category Name</th>
+                          <th className="p-3 text-center sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Views Count</th>
+                          <th className="p-3 text-right sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Latest View</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
                         {userActivities.categories.length === 0 ? (
                           <tr>
-                            <td colSpan="3" className="py-6 text-center text-xs text-slate-500 italic">No categories viewed by this user.</td>
+                            <td colSpan="3" className="p-6 text-center text-xs text-slate-500 italic">No categories viewed by this user.</td>
                           </tr>
                         ) : (
                           userActivities.categories.map(item => (
                             <tr key={item.id} className="hover:bg-white/5 transition-colors">
-                              <td className="py-3 pr-4">
+                              <td className="p-3">
                                 <div className="flex items-center gap-3">
                                   {item.image ? (
                                     <div className="w-9 h-9 rounded-lg overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center p-0.5">
@@ -595,8 +620,42 @@ const UserDetails = () => {
                                   <span className="font-semibold text-sm text-white">{item.name}</span>
                                 </div>
                               </td>
-                              <td className="py-3 text-center font-bold text-sm text-blue-400">{item.count}</td>
-                              <td className="py-3 text-right text-xs text-slate-400 font-medium">{new Date(item.latestView).toLocaleString()}</td>
+                              <td className="p-3 text-center font-bold text-sm text-blue-400">{item.count}</td>
+                              <td className="p-3 text-right text-xs text-slate-400 font-medium">{new Date(item.latestView).toLocaleString()}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  )}
+
+                  {activeActivityTab === 'searches' && (
+                    <table className="w-full text-left border-collapse min-w-[500px]">
+                      <thead>
+                        <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                          <th className="p-3 text-left sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Search Query</th>
+                          <th className="p-3 text-center sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Search Count</th>
+                          <th className="p-3 text-right sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Latest Search</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {userActivities.searches.length === 0 ? (
+                          <tr>
+                            <td colSpan="3" className="p-6 text-center text-xs text-slate-500 italic">No search queries logged by this user.</td>
+                          </tr>
+                        ) : (
+                          userActivities.searches.map(item => (
+                            <tr key={item.id} className="hover:bg-white/5 transition-colors">
+                              <td className="p-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-9 h-9 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center text-slate-500 shrink-0">
+                                    <FiSearch />
+                                  </div>
+                                  <span className="font-semibold text-sm text-white">{item.query}</span>
+                                </div>
+                              </td>
+                              <td className="p-3 text-center font-bold text-sm text-blue-400">{item.count}</td>
+                              <td className="p-3 text-right text-xs text-slate-400 font-medium">{new Date(item.latestSearch).toLocaleString()}</td>
                             </tr>
                           ))
                         )}

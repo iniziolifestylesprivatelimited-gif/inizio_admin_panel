@@ -147,7 +147,7 @@ const Dashboard = () => {
     setSelectedProductViews({
       product: prod,
       viewsList: uniqueUsers,
-      totalViews: uniqueUsers.reduce((sum, u) => sum + u.count, 0)
+      totalViews: productItem.views || uniqueUsers.reduce((sum, u) => sum + u.count, 0)
     });
     setIsProductModalOpen(true);
   }
@@ -315,32 +315,8 @@ const Dashboard = () => {
   const filteredActivities = getFilteredActivities();
  
   const sortedMostViewedProducts = React.useMemo(() => {
-    if (!activityStats?.recentActivities) return [];
-    const counts = {};
-    activityStats.recentActivities.forEach(act => {
-      const action = (act.action || '').toUpperCase();
-      if (action === 'PRODUCT_VIEW' || action === 'PRODUCTVIEW' || action === 'PRODUCT') {
-        const prodId = act.details?.productId;
-        if (prodId) {
-          if (!counts[prodId]) {
-            counts[prodId] = {
-              productId: prodId,
-              views: 0
-            };
-          }
-          counts[prodId].views += 1;
-        }
-      }
-    });
-    return Object.values(counts).sort((a, b) => {
-      const viewsA = Number(a.views) || 0;
-      const viewsB = Number(b.views) || 0;
-      if (viewsB !== viewsA) return viewsB - viewsA;
-      const prodA = products.find(p => p._id === a.productId) || {};
-      const prodB = products.find(p => p._id === b.productId) || {};
-      return (prodA.name || '').localeCompare(prodB.name || '');
-    });
-  }, [activityStats?.recentActivities, products]);
+    return activityStats?.mostViewedProducts || [];
+  }, [activityStats]);
  
   // Dynamic data metrics
   const metrics = [
@@ -405,7 +381,7 @@ const Dashboard = () => {
   const activityMetricCards = [
     {
       title: "Total Logins",
-      value: activityStats?.recentActivities?.filter(act => (act.action || '').toUpperCase() === 'LOGIN').length || 0,
+      value: activityStats?.summary?.totalLogins ?? (activityStats?.recentActivities?.filter(act => (act.action || '').toUpperCase() === 'LOGIN').length || 0),
       desc: "Active user logins log",
       path: "/dashboard/details/logins",
       icon: FiLogIn,
@@ -415,7 +391,7 @@ const Dashboard = () => {
     },
     {
       title: "Total Logouts",
-      value: activityStats?.recentActivities?.filter(act => (act.action || '').toUpperCase() === 'LOGOUT').length || 0,
+      value: activityStats?.summary?.totalLogouts ?? (activityStats?.recentActivities?.filter(act => (act.action || '').toUpperCase() === 'LOGOUT').length || 0),
       desc: "Active user logouts log",
       path: "/dashboard/details/logouts",
       icon: FiLogOut,
