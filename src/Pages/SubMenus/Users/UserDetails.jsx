@@ -8,10 +8,17 @@ import {
   FiSmartphone, FiTablet, FiBell, FiBellOff, FiClock, FiActivity, FiTag
 } from 'react-icons/fi';
 
+const isLastActiveValid = (lastActive) => {
+  if (!lastActive) return false;
+  const str = String(lastActive).trim().toLowerCase();
+  if (str === 'null' || str === 'undefined' || str === '' || str === 'not active') return false;
+  const date = new Date(lastActive);
+  return !isNaN(date.getTime()) && date.getTime() !== 0;
+};
+
 const formatRelativeTime = (dateString) => {
-  if (!dateString || dateString === 'null' || dateString === 'undefined') return 'Not Active';
+  if (!isLastActiveValid(dateString)) return 'Not Active';
   const date = new Date(dateString);
-  if (isNaN(date.getTime())) return 'Not Active';
   const now = new Date();
   const diffMs = now - date;
   if (diffMs < 0) return 'Just now';
@@ -474,15 +481,15 @@ const UserDetails = () => {
                   <span className="text-xs">Processing activity logs...</span>
                 </div>
               ) : (
-                <div className="overflow-x-auto custom-scrollbar">
+                <div className="max-h-[350px] overflow-y-auto overflow-x-auto custom-scrollbar">
                   {activeActivityTab === 'products' && (
                     <table className="w-full text-left border-collapse min-w-[500px]">
                       <thead>
-                        <tr className="border-b border-white/10 text-xs font-bold text-slate-400 uppercase tracking-wider pb-2">
-                          <th className="pb-3 text-left">Product Name</th>
-                          <th className="pb-3 text-left">Brand</th>
-                          <th className="pb-3 text-center">Views Count</th>
-                          <th className="pb-3 text-right">Latest View</th>
+                        <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                          <th className="pb-3 text-left sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Product Name</th>
+                          <th className="pb-3 text-left sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Brand</th>
+                          <th className="pb-3 text-center sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Views Count</th>
+                          <th className="pb-3 text-right sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Latest View</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
@@ -520,10 +527,10 @@ const UserDetails = () => {
                   {activeActivityTab === 'brands' && (
                     <table className="w-full text-left border-collapse min-w-[500px]">
                       <thead>
-                        <tr className="border-b border-white/10 text-xs font-bold text-slate-400 uppercase tracking-wider pb-2">
-                          <th className="pb-3 text-left">Brand Name</th>
-                          <th className="pb-3 text-center">Views Count</th>
-                          <th className="pb-3 text-right">Latest View</th>
+                        <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                          <th className="pb-3 text-left sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Brand Name</th>
+                          <th className="pb-3 text-center sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Views Count</th>
+                          <th className="pb-3 text-right sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Latest View</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
@@ -560,10 +567,10 @@ const UserDetails = () => {
                   {activeActivityTab === 'categories' && (
                     <table className="w-full text-left border-collapse min-w-[500px]">
                       <thead>
-                        <tr className="border-b border-white/10 text-xs font-bold text-slate-400 uppercase tracking-wider pb-2">
-                          <th className="pb-3 text-left">Category Name</th>
-                          <th className="pb-3 text-center">Views Count</th>
-                          <th className="pb-3 text-right">Latest View</th>
+                        <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                          <th className="pb-3 text-left sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Category Name</th>
+                          <th className="pb-3 text-center sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Views Count</th>
+                          <th className="pb-3 text-right sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Latest View</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
@@ -711,12 +718,12 @@ const UserDetails = () => {
                   <div>
                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Last Active Connection</p>
                     <p className="text-xs font-bold text-white mt-1 select-all">
-                      {user.lastActive && user.lastActive !== 'null' && user.lastActive !== 'undefined' && !isNaN(new Date(user.lastActive).getTime())
+                      {isLastActiveValid(user.lastActive)
                         ? new Date(user.lastActive).toLocaleString()
                         : 'Not Active'}
                     </p>
                   </div>
-                  {user.lastActive && user.lastActive !== 'null' && user.lastActive !== 'undefined' && !isNaN(new Date(user.lastActive).getTime()) ? (
+                  {isLastActiveValid(user.lastActive) ? (
                     <span className="text-[10px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2.5 py-0.5 rounded-md font-extrabold shrink-0">
                       {formatRelativeTime(user.lastActive)}
                     </span>

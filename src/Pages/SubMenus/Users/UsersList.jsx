@@ -8,9 +8,13 @@ import {
 import { useOutletContext, useNavigate } from 'react-router-dom';
 
 const formatRelativeTime = (dateString) => {
-  if (!dateString || dateString === 'null' || dateString === 'undefined') return 'Not Active';
+  if (!dateString) return 'Not Active';
+  const str = String(dateString).trim().toLowerCase();
+  if (str === 'null' || str === 'undefined' || str === '' || str === 'not active') return 'Not Active';
+  
   const date = new Date(dateString);
-  if (isNaN(date.getTime())) return 'Not Active';
+  if (isNaN(date.getTime()) || date.getTime() === 0) return 'Not Active';
+  
   const now = new Date();
   const diffMs = now - date;
   if (diffMs < 0) return 'Just now';
@@ -76,11 +80,12 @@ const UsersList = () => {
     try {
       const token = sessionStorage.getItem('accessToken');
       
-      // Fetch all processed users, pending users, and active login reports concurrently
-      const [customersResponse, pendingResponse, loginReportResponse] = await Promise.all([
+      // Fetch all processed users, pending users, active login reports, and activity stats concurrently
+      const [customersResponse, pendingResponse, loginReportResponse, activityStatsResponse] = await Promise.all([
         api.get('/admin/customers', { headers: { Authorization: `Bearer ${token}` } }),
         api.get('/admin/pending', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] })),
-        api.get('/admin/login-report', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] }))
+        api.get('/admin/login-report', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] })),
+        api.get('/activity/stats', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: { users: [] } }))
       ]);
       
       // Safely handle cases where the backend might wrap the array in an object
@@ -90,6 +95,22 @@ const UsersList = () => {
       } else if (customersResponse.data && typeof customersResponse.data === 'object') {
         allUsers = customersResponse.data.data || customersResponse.data.users || customersResponse.data.customers || [];
       }
+
+      // Merge dynamic lastActive from activity stats users list
+      let actUsers = [];
+      if (activityStatsResponse.data && Array.isArray(activityStatsResponse.data.users)) {
+        actUsers = activityStatsResponse.data.users;
+      } else if (Array.isArray(activityStatsResponse.data)) {
+        actUsers = activityStatsResponse.data;
+      }
+      
+      allUsers = allUsers.map(u => {
+        const match = actUsers.find(au => au.userId === u._id || (au.email && u.email && au.email.toLowerCase() === u.email.toLowerCase()));
+        return {
+          ...u,
+          lastActive: match ? match.lastActive : u.lastActive
+        };
+      });
 
       // Handle active login reports
       let loginReportList = [];
@@ -218,7 +239,7 @@ const UsersList = () => {
   const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
 
-  // console.log(users)
+  console.log(users)
   
   return (
     <div className="relative space-y-4 min-h-full z-0 isolate w-full">
@@ -324,9 +345,10 @@ const UsersList = () => {
                               <span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span> Offline
                             </span>
                           )}
-                          <span className="text-[10px] text-slate-500 font-medium">
-                            Active: {user.lastActive && user.lastActive !== 'null' && user.lastActive !== 'undefined' ? formatRelativeTime(user.lastActive) : 'Not Active'}
+                          <span className="text-[10px] text-slate-500 font-medium" title={`Raw lastActive: ${user.lastActive}`}>
+                            Active: {formatRelativeTime(user.lastActive)}
                           </span>
+                          {console.log(`[DEBUG UsersList] User: ${user.name}, lastActive: ${user.lastActive}, type: ${typeof user.lastActive}`)}
                           {user.loginCount > 0 && (
                             <span className="text-[9px] text-blue-400 font-bold bg-blue-500/5 px-1.5 py-0.5 rounded border border-blue-500/10 block mt-0.5">
                               {user.loginCount} logins

@@ -801,6 +801,87 @@ const ProductList = () => {
     }
   };
 
+  const handleExportCustomDetails = () => {
+    const productsToExport = selectedProducts.length > 0
+      ? products.filter(p => selectedProducts.includes(p._id))
+      : products;
+
+    if (productsToExport.length === 0) {
+      alert('No products to export.');
+      return;
+    }
+
+    const formatQuantityPricing = (qpList) => {
+      if (!qpList || !Array.isArray(qpList)) return '';
+      return qpList
+        .map(qp => `Qty: ${qp.minQty}+ -> ₹${qp.price}`)
+        .join(', ');
+    };
+
+    const exportData = [];
+
+    productsToExport.forEach(product => {
+      const hasVariants = product.variants && product.variants.length > 0;
+
+      if (!hasVariants) {
+        exportData.push({
+          'Product/Variant Name': product.name || '',
+          'Brand': getBrandName(product.brand),
+          'Category': getCategoryName(product.category),
+          'EAN Number': product.eanNumber || '',
+          'SKU': '',
+          'Base Price': product.basePrice ?? '',
+          'Offer Price': product.offerPrice ?? '',
+          'L1 Price': product.l1Price ?? '',
+          'L2 Price': product.l2Price ?? '',
+          'L3 Price': product.l3Price ?? '',
+          'Quantity': product.totalQuantity ?? '',
+          'Description': product.description || '',
+          'Details': product.details || '',
+          'Expert Notes': product.expertNotes || '',
+          'Warranty': product.warranty || '',
+          'Return Policy': product.sevenDaysReturn || '',
+          'Cancellation Policy': product.cancellationPolicy || '',
+          'Quantity Pricing': formatQuantityPricing(product.quantityPricing),
+          'Images': (product.images || []).join(', '),
+          'Status': product.isActive !== false ? 'Active' : 'Inactive'
+        });
+      } else {
+        product.variants.forEach(variant => {
+          exportData.push({
+            'Product/Variant Name': `${product.name || ''}${variant.name ? ` (${variant.name})` : ''}`,
+            'Brand': getBrandName(product.brand),
+            'Category': getCategoryName(product.category),
+            'EAN Number': product.eanNumber || '',
+            'SKU': variant.sku || '',
+            'Base Price': variant.price ?? '',
+            'Offer Price': variant.offerPrice ?? '',
+            'L1 Price': variant.l1Price ?? '',
+            'L2 Price': variant.l2Price ?? '',
+            'L3 Price': variant.l3Price ?? '',
+            'Quantity': variant.quantity ?? '',
+            'Description': product.description || '',
+            'Details': product.details || '',
+            'Expert Notes': product.expertNotes || '',
+            'Warranty': product.warranty || '',
+            'Return Policy': product.sevenDaysReturn || '',
+            'Cancellation Policy': product.cancellationPolicy || '',
+            'Quantity Pricing': formatQuantityPricing(variant.quantityPricing),
+            'Images': (variant.images || []).length > 0 
+              ? variant.images.join(', ') 
+              : (product.images || []).join(', '),
+            'Status': variant.isActive !== false ? 'Active' : 'Inactive'
+          });
+        });
+      }
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Product Details');
+    XLSX.writeFile(workbook, 'Product_Details_Export.xlsx');
+  };
+
   const handleUploadExcel = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -1012,6 +1093,7 @@ const ProductList = () => {
                 options={[
                   'Download Sample Excel',
                   'Export to Excel',
+                  'Export Product Details (Local)',
                   'Bulk Upload Excel',
                   'Rollback Bulk Upload',
                   'Deactivate Products'
@@ -1021,6 +1103,8 @@ const ProductList = () => {
                     handleDownloadSampleExcel();
                   } else if (option === 'Export to Excel') {
                     handleExportToExcel();
+                  } else if (option === 'Export Product Details (Local)') {
+                    handleExportCustomDetails();
                   } else if (option === 'Bulk Upload Excel') {
                     fileInputRef.current?.click();
                   } else if (option === 'Rollback Bulk Upload') {
@@ -1039,6 +1123,15 @@ const ProductList = () => {
                 className="hidden"
               />
             </div>
+
+            <button 
+              onClick={handleExportCustomDetails} 
+              className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-emerald-600/50 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/5 cursor-pointer"
+              title="Export Product Details with Variants"
+            >
+              <FiDownload className="mr-2" />
+              Export Details
+            </button>
 
             <button onClick={openAddModal} className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-blue-600/50 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/5 cursor-pointer">
               <FiPlus className="mr-2" />
