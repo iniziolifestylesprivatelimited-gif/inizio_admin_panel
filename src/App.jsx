@@ -25,6 +25,7 @@ import UserDetails from './Pages/SubMenus/Users/UserDetails';
 import UsersVerification from './Pages/SubMenus/Users/UsersVerification';
 import ActiveUsers from './Pages/SubMenus/Users/ActiveUsers';
 import DeletionRequests from './Pages/SubMenus/Users/DeletionRequests';
+import RolesPermissions from './Pages/SubMenus/Users/RolesPermissions';
 import Faqs from './Pages/SubMenus/Settings/Faqs';
 import PrivacyP from './Pages/SubMenus/Settings/PrivacyP';
 import TermsAndCo from './Pages/SubMenus/Settings/TC';
@@ -74,6 +75,8 @@ function App() {
               <Route path='/users/verify' element={<UsersVerification/>}/>
               <Route path='/users/active' element={<ActiveUsers/>}/>
               <Route path='/users/deletion-requests' element={<DeletionRequests/>}/>
+              <Route path='/users/roles-permissions' element={<RolesPermissions/>}/>
+              <Route path='/users/create' element={<RolesPermissions/>}/>
               <Route path="/settings/maintenance" element={<Maintenance />} />
               <Route path="/settings/faqs" element={<Faqs/>} />
               <Route path="/settings/privacy-policy" element={<PrivacyP/>} />

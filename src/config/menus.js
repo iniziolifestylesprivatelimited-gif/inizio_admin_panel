@@ -6,7 +6,8 @@ import {
   FiCreditCard, FiNavigation, FiPaperclip, FiAlertTriangle,
   FiImage, FiBell, FiPackage, FiTag, FiGrid, FiTool, FiMessageCircle,
   FiUserCheck, FiUser, FiHelpCircle, FiFile, FiFilter,
-  FiLoader, FiX, FiCheckCircle, FiSliders, FiUserMinus
+  FiLoader, FiX, FiCheckCircle, FiSliders, FiUserMinus,
+  FiUserPlus
 } from 'react-icons/fi';
 
 const PAGES = {
@@ -69,11 +70,12 @@ const PAGES = {
       { path: '/users/list', name: 'Users List', icon: FiUsers },
       { path: '/users/verify', name: 'Users Verification', icon: FiUserCheck },
       { path: '/users/active', name: 'Active Users', icon: FiActivity },
-      { path: '/users/deletion-requests', name: 'Deletion Requests', icon: FiUserMinus }
+      { path: '/users/deletion-requests', name: 'Deletion Requests', icon: FiUserMinus },
+      { path: '/users/roles-permissions', name: 'Roles & Permissions', icon: FiShield }
     ]
   },
 
-  COUPONS: { path: '/coupons', name: 'Coupons', icon: FiPercent }
+  COUPONS: { path: '/coupons', name: 'Coupons', icon: FiPercent },
 };
 
   

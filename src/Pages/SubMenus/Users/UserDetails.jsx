@@ -5,7 +5,8 @@ import { api, BASE_URL } from '../../../api/axios';
 import { 
   FiArrowLeft, FiCheck, FiX, FiLoader, FiAlertCircle, 
   FiUser, FiFileText, FiTrash2, FiUserMinus, FiEye, FiLayers,
-  FiSmartphone, FiTablet, FiBell, FiBellOff, FiClock, FiActivity, FiTag, FiSearch
+  FiSmartphone, FiTablet, FiBell, FiBellOff, FiClock, FiActivity, FiTag, FiSearch,
+  FiRefreshCcw
 } from 'react-icons/fi';
 
 const isLastActiveValid = (lastActive) => {
@@ -241,13 +242,15 @@ const UserDetails = () => {
       let foundUser = allUsers.find(u => u._id === id);
       if (foundUser) {
         const match = actUsers.find(au => au.userId === foundUser._id || (au.email && foundUser.email && au.email.toLowerCase() === foundUser.email.toLowerCase()));
+        const lastActive = foundUser.lastActive || match?.lastActive;
+        const isOnline = foundUser.isOnline !== undefined ? foundUser.isOnline : (lastActive ? (new Date() - new Date(lastActive) < 5 * 60 * 1000) : false);
         foundUser = {
           ...foundUser,
-          lastActive: foundUser.lastActive || match?.lastActive,
+          lastActive,
+          isOnline,
           lastLoginAt: foundUser.lastLoginAt || match?.lastLoginAt,
           appVersion: foundUser.appVersion || match?.appVersion,
           notificationsEnabled: foundUser.notificationsEnabled !== undefined ? foundUser.notificationsEnabled : match?.notificationsEnabled,
-          isOnline: foundUser.isOnline !== undefined ? foundUser.isOnline : match?.isOnline,
           isAppInstalled: foundUser.isAppInstalled !== undefined ? foundUser.isAppInstalled : match?.isAppInstalled
         };
         setUser(foundUser);
@@ -330,6 +333,25 @@ const UserDetails = () => {
     if (path.startsWith('http') || path.startsWith('blob:')) return path;
     const cleanPath = path.replace(/\\/g, '/');
     return `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
+  };
+
+  //user logout
+  const handleForceLogout = async () => {
+    if (!window.confirm(`Are you sure you want to force logout ${user?.name}? This will invalidate all active sessions for this user.`)) return;
+    
+    setIsActionLoading(true);
+    try {
+      const token = sessionStorage.getItem('accessToken');
+      await api.post(`/admin/users/${id}/logout`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert('User has been logged out successfully.');
+    } catch (err) {
+      console.error('Logout error:', err);
+      alert(err.response?.data?.message || 'Failed to logout user.');
+    } finally {
+      setIsActionLoading(false);
+    }
   };
 
   return (
@@ -884,14 +906,27 @@ const UserDetails = () => {
           {/* Profile Deletion Danger Zone */}
           <div className="bg-red-500/5 border border-red-500/25 shadow-2xl rounded-3xl p-6 relative overflow-hidden">
             <h4 className="text-sm font-bold text-red-400 mb-2 uppercase tracking-wider">Danger Zone</h4>
-            <p className="text-slate-400 text-xs mb-4">Permanently delete this user account. This action cannot be undone and will revoke their system access.</p>
-            <button 
-              onClick={() => setIsDeleting(true)}
-              disabled={isActionLoading}
-              className="flex items-center justify-center px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all cursor-pointer text-sm shadow-md shadow-red-600/10 shrink-0"
-            >
-              <FiTrash2 className="mr-2 text-base" /> Delete User Account
-            </button>
+            <p className="text-slate-400 text-xs mb-4">Manage security and account status for this user.</p>
+            
+            <div className="flex gap-3">
+              {/* Force Logout Button */}
+              <button 
+                onClick={handleForceLogout}
+                disabled={isActionLoading}
+                className="flex items-center justify-center px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition-all cursor-pointer text-sm shadow-md shadow-amber-600/10 shrink-0"
+              >
+                <FiRefreshCcw className="mr-2 text-base" /> Force Logout User
+              </button>
+
+              {/* Delete Account Button */}
+              <button 
+                onClick={() => setIsDeleting(true)}
+                disabled={isActionLoading}
+                className="flex items-center justify-center px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all cursor-pointer text-sm shadow-md shadow-red-600/10 shrink-0"
+              >
+                <FiTrash2 className="mr-2 text-base" /> Delete User Account
+              </button>
+            </div>
           </div>
 
         </div>

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { api, BASE_URL } from '../../../api/axios';
-import { 
-  FiCheck, FiEye, FiLoader, FiAlertCircle, 
-  FiSearch, FiUser, FiFileText, FiRefreshCcw, FiTrash2, FiUserMinus
+import {
+  FiCheck, FiEye, FiLoader, FiAlertCircle,
+  FiSearch, FiUser, FiFileText, FiRefreshCcw, FiTrash2, FiUserMinus, FiLogOut
 } from 'react-icons/fi';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 
@@ -101,9 +101,12 @@ const UsersList = () => {
       
       allUsers = allUsers.map(u => {
         const match = actUsers.find(au => au.userId === u._id || (au.email && u.email && au.email.toLowerCase() === u.email.toLowerCase()));
+        const lastActive = u.lastActive || match?.lastActive;
+        const isOnline = u.isOnline !== undefined ? u.isOnline : (lastActive ? (new Date() - new Date(lastActive) < 5 * 60 * 1000) : false);
         return {
           ...u,
-          lastActive: u.lastActive || match?.lastActive,
+          lastActive,
+          isOnline,
           lastLoginAt: u.lastLoginAt || match?.lastLoginAt,
           appVersion: u.appVersion || match?.appVersion,
           notificationsEnabled: u.notificationsEnabled !== undefined ? u.notificationsEnabled : match?.notificationsEnabled
@@ -211,6 +214,44 @@ const UsersList = () => {
 
   console.log(users)
   
+    const handleRoleLogout = async (role) => {
+      if (!role || !window.confirm(`Force logout ALL users with role: ${role}?`)) return;
+      try {
+        await api.post('/admin/users/logout-role', { role });
+        alert(`All ${role} users have been logged out.`);
+      } catch (err) {
+        alert('Failed to logout role.');
+      }
+    };
+
+    const handleGlobalLogout = async () => {
+      if (!window.confirm('WARNING: This will log out EVERYONE globally. Continue?')) return;
+      try {
+        await api.post('/admin/users/logout-all');
+        alert('System-wide logout successful.');
+      } catch (err) {
+        alert('Failed to perform global logout.');
+      }
+    };
+
+    const handleForceLogout = async (userId) => {
+    if (!window.confirm(`Are you sure you want to force logout? This will invalidate all active sessions for this user.`)) return;
+    
+    setIsActionLoading(true);
+    try {
+      const token = sessionStorage.getItem('accessToken');
+      await api.post(`/admin/users/${userId}/logout`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert('User has been logged out successfully.');
+    } catch (err) {
+      console.error('Logout error:', err);
+      alert(err.response?.data?.message || 'Failed to logout user.');
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+    
   return (
     <div className="relative space-y-4 min-h-full z-0 isolate w-full">
       {/* Glassmorphism Background Ambient Glows */}
@@ -238,7 +279,26 @@ const UsersList = () => {
           />
         </div>
       </div>
+      <div className="flex flex-wrap items-center gap-3 p-3 bg-black/10 border border-white/5 rounded-xl">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-2">Security Actions:</span>
+          
+          <button 
+            onClick={() => {
+              const role = prompt("Enter role to force logout (e.g., billing, warehouse, customer):");
+              if (role) handleRoleLogout(role);
+            }}
+            className="px-4 py-2 bg-orange-600/20 hover:bg-orange-600/40 text-orange-400 text-xs font-bold rounded-lg border border-orange-500/30 transition-all flex items-center gap-2"
+          >
+            <FiRefreshCcw size={12} /> Logout Role
+          </button>
 
+          <button 
+            onClick={handleGlobalLogout}
+            className="px-4 py-2 bg-red-600/20 hover:bg-red-600/40 text-red-400 text-xs font-bold rounded-lg border border-red-500/30 transition-all flex items-center gap-2"
+          >
+            <FiAlertCircle size={12} /> Global Logout
+          </button>
+        </div>
       {/* Content Area */}
       {loading ? (
         <div className="h-64 flex flex-col justify-center items-center bg-slate-900/50 border border-white/10 rounded-2xl">
@@ -338,6 +398,14 @@ const UsersList = () => {
                           title="Permanently Delete User"
                         >
                           <FiTrash2 />
+                        </button>
+                        <button 
+                          onClick={() => handleForceLogout(user._id)} 
+                          disabled={isActionLoading} 
+                          className="p-2.5 text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50 cursor-pointer transform-gpu" 
+                          title="Permanently Delete User"
+                        >
+                          <FiLogOut />
                         </button>
                       </td>
                     </tr>

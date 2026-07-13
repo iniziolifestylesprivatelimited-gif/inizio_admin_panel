@@ -53,7 +53,6 @@ const Dashboard = () => {
   const [requestStats, setRequestStats] = useState([]);
   const [subscriptions, setSubscriptions] = useState([]);
   const [activeActivityTab, setActiveActivityTab] = useState('ALL');
-  const [activeSearchTab, setActiveSearchTab] = useState('BRANDS');
   const [selectedProductViews, setSelectedProductViews] = useState(null);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const navigate = useNavigate();
@@ -82,7 +81,21 @@ const Dashboard = () => {
           api.get('/admin/request-stats', { headers }).catch(() => ({ data: { stats: [] } })),
           api.get('/admin/products/subscriptions/all', { headers }).catch(() => ({ data: { subscriptions: [] } }))
         ]);
-        setUsers(usersResponse.data);
+        const rawUsers = usersResponse.data || [];
+        const actUsers = activityResponse?.data?.users || [];
+        const mergedUsers = rawUsers.map(u => {
+          const match = actUsers.find(au => au.userId === u._id || (au.email && u.email && au.email.toLowerCase() === u.email.toLowerCase()));
+          const lastActive = u.lastActive || match?.lastActive;
+          const isOnline = u.isOnline !== undefined ? u.isOnline : (lastActive ? (new Date() - new Date(lastActive) < 5 * 60 * 1000) : false);
+          return {
+            ...u,
+            lastActive,
+            isOnline,
+            lastLoginAt: u.lastLoginAt || match?.lastLoginAt,
+            appVersion: u.appVersion || match?.appVersion
+          };
+        });
+        setUsers(mergedUsers);
         setProducts(productsResponse.data);
         setBrands(brandsResponse.data);
         setCategories(categoriesResponse.data);
@@ -356,6 +369,64 @@ const Dashboard = () => {
       tooltip: { theme: 'dark', y: { formatter: (val) => `${val} devices` } }
     },
     type: 'bar'
+  };
+
+  // Sort request stats to show the top 5 users with most requests
+  const topRequestStats = React.useMemo(() => {
+    return [...requestStats]
+      .sort((a, b) => (b.count || 0) - (a.count || 0))
+      .slice(0, 5);
+  }, [requestStats]);
+
+  const requestStatsLabels = topRequestStats.map(item => {
+    if (!item.user) return 'Guest / Unknown';
+    return item.user.name || item.user.email || 'Guest';
+  });
+  const requestStatsCounts = topRequestStats.map(item => item.count || 0);
+
+  const apiRequestStatsChartConfig = {
+    series: [{
+      name: 'Requests',
+      data: requestStatsCounts
+    }],
+    options: {
+      chart: { type: 'area', toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit' },
+      colors: ['#10b981'],
+      fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0, stops: [0, 100] } },
+      dataLabels: { enabled: false },
+      stroke: { curve: 'smooth', width: 3 },
+      xaxis: {
+        categories: requestStatsLabels,
+        axisBorder: { show: false },
+        axisTicks: { show: false },
+        labels: { style: { colors: '#94a3b8', fontWeight: 600, fontSize: '9px' } }
+      },
+      yaxis: {
+        labels: {
+          style: { colors: '#94a3b8', fontWeight: 600 },
+          formatter: (value) => value.toLocaleString('en-IN')
+        }
+      },
+      grid: {
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        strokeDashArray: 3,
+        xaxis: { lines: { show: false } },
+        yaxis: { lines: { show: true } }
+      },
+      markers: {
+        size: 4,
+        colors: ['#10b981'],
+        strokeColors: 'rgba(255, 255, 255, 0.8)',
+        strokeWidth: 2,
+        hover: { size: 6 }
+      },
+      theme: { mode: 'dark' },
+      tooltip: {
+        theme: 'dark',
+        y: { formatter: (val) => `${val.toLocaleString('en-IN')} requests` }
+      }
+    },
+    type: 'area'
   };
 
   // Calculate activity-related values
@@ -817,7 +888,7 @@ const Dashboard = () => {
                 </button>
               </div>
 
-              <div className="relative z-10 flex-1 overflow-y-auto min-h-auto space-y-3 custom-scrollbar pr-1">
+              <div className="relative z-10 flex-1 max-h-[460px] overflow-y-auto space-y-3 custom-scrollbar pr-1">
                 {!sortedMostViewedProducts || sortedMostViewedProducts.length === 0 ? (
                   <p className="text-xs text-slate-500 italic py-4">No product views recorded yet.</p>
                 ) : (
@@ -1012,132 +1083,39 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Brand & Catalog Search Analytics Tabbed List */}
+        {/* API Request Stats Live Chart */}
         <div className="relative bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 overflow-hidden flex flex-col h-[420px]">
           <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
 
-          <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Search Analytics</h3>
-              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Top brand, category, & key searches</p>
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                API Request Stats
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Top active accounts by API request volume</p>
             </div>
-
-            <div className="flex items-center gap-2">
-              <div className="flex bg-slate-950/40 p-1 rounded-xl border border-white/5 shrink-0">
-                <button
-                  onClick={() => setActiveSearchTab('BRANDS')}
-                  className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition-colors cursor-pointer ${activeSearchTab === 'BRANDS' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
-                    }`}
-                >
-                  Brands
-                </button>
-                <button
-                  onClick={() => setActiveSearchTab('CATEGORIES')}
-                  className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition-colors cursor-pointer ${activeSearchTab === 'CATEGORIES' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
-                    }`}
-                >
-                  Cats
-                </button>
-                <button
-                  onClick={() => setActiveSearchTab('QUERIES')}
-                  className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition-colors cursor-pointer ${activeSearchTab === 'QUERIES' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
-                    }`}
-                >
-                  Queries
-                </button>
-              </div>
-              <button
-                onClick={() => {
-                  const map = { BRANDS: 'most-searched-brands', CATEGORIES: 'most-searched-categories', QUERIES: 'most-searched' };
-                  navigate(`/dashboard/details/${map[activeSearchTab]}`);
-                }}
-                className="text-[10px] text-blue-400 hover:text-blue-300 font-bold uppercase tracking-wider transition-colors cursor-pointer whitespace-nowrap"
-              >
-                View All →
-              </button>
-            </div>
+            <button
+              onClick={() => navigate('/dashboard/details/request-stats')}
+              className="text-[10px] text-blue-400 hover:text-blue-300 font-bold uppercase tracking-wider transition-colors cursor-pointer whitespace-nowrap"
+            >
+              View All &rarr;
+            </button>
           </div>
 
-          <div className="relative z-10 flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1">
-            {activeSearchTab === 'BRANDS' && (
-              !(activityStats?.mostSearchedBrands) || activityStats.mostSearchedBrands.length === 0 ? (
-                <p className="text-xs text-slate-500 italic py-4">No brand search analytics recorded.</p>
-              ) : (
-                activityStats.mostSearchedBrands.map((item, idx) => {
-                  const bLogo = item.brand?.logo || '';
-                  return (
-                    <div
-                      key={item.brand?._id || idx}
-                      className="flex items-center justify-between p-2 rounded-xl bg-slate-950/10 border border-white/5 hover:border-blue-500/10 transition-colors"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <span className="w-5 h-5 rounded-md bg-slate-800 text-[10px] text-slate-400 font-bold flex items-center justify-center border border-white/5">
-                          {idx + 1}
-                        </span>
-                        {bLogo ? (
-                          <div className="w-7 h-7 rounded bg-white flex items-center justify-center p-0.5 border border-white/10 shrink-0">
-                            <img src={getImageUrl(bLogo)} alt={item.brand?.name} className="w-full h-full object-contain" />
-                          </div>
-                        ) : (
-                          <div className="w-7 h-7 rounded bg-slate-800 flex items-center justify-center text-[10px] text-slate-500 font-bold border border-white/5 uppercase shrink-0">
-                            {item.brand?.name?.substring(0, 2) || 'BR'}
-                          </div>
-                        )}
-                        <span className="text-xs font-bold text-white truncate">{item.brand?.name || 'Unknown'}</span>
-                      </div>
-                      <span className="bg-blue-500/10 text-blue-400 text-[10px] font-extrabold px-2 py-0.5 rounded-lg border border-blue-500/20 shrink-0">
-                        {item.searches} searches
-                      </span>
-                    </div>
-                  );
-                })
-              )
-            )}
-
-            {activeSearchTab === 'CATEGORIES' && (
-              !(activityStats?.mostSearchedCategories) || activityStats.mostSearchedCategories.length === 0 ? (
-                <p className="text-xs text-slate-500 italic py-4">No category search analytics recorded.</p>
-              ) : (
-                activityStats.mostSearchedCategories.map((item, idx) => (
-                  <div
-                    key={item.category?._id || idx}
-                    className="flex items-center justify-between p-2 rounded-xl bg-slate-950/10 border border-white/5 hover:border-blue-500/10 transition-colors"
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="w-5 h-5 rounded-md bg-slate-800 text-[10px] text-slate-400 font-bold flex items-center justify-center border border-white/5">
-                        {idx + 1}
-                      </span>
-                      <span className="text-xs font-bold text-white truncate">{item.category?.name || 'Unknown Category'}</span>
-                    </div>
-                    <span className="bg-indigo-500/10 text-indigo-400 text-[10px] font-extrabold px-2 py-0.5 rounded-lg border border-indigo-500/20 shrink-0">
-                      {item.searches} searches
-                    </span>
-                  </div>
-                ))
-              )
-            )}
-
-            {activeSearchTab === 'QUERIES' && (
-              !(activityStats?.mostSearched) || activityStats.mostSearched.length === 0 ? (
-                <p className="text-xs text-slate-500 italic py-4">No raw search queries recorded.</p>
-              ) : (
-                activityStats.mostSearched.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between p-2 rounded-xl bg-slate-950/10 border border-white/5 hover:border-blue-500/10 transition-colors"
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="w-5 h-5 rounded-md bg-slate-800 text-[10px] text-slate-400 font-bold flex items-center justify-center border border-white/5">
-                        {idx + 1}
-                      </span>
-                      <span className="text-xs font-mono font-bold text-slate-300 truncate select-all">"{item.query}"</span>
-                    </div>
-                    <span className="bg-amber-500/10 text-amber-400 text-[10px] font-extrabold px-2 py-0.5 rounded-lg border border-amber-500/20 shrink-0">
-                      {item.count} searches
-                    </span>
-                  </div>
-                ))
-              )
+          <div className="relative flex-1 w-full z-10">
+            {requestStatsCounts.length === 0 ? (
+              <div className="text-center text-slate-500 text-xs py-10 italic">
+                No request statistics recorded yet.
+              </div>
+            ) : (
+              <ReactApexChart
+                options={apiRequestStatsChartConfig.options}
+                series={apiRequestStatsChartConfig.series}
+                type={apiRequestStatsChartConfig.type}
+                height="100%"
+                width="100%"
+              />
             )}
           </div>
         </div>

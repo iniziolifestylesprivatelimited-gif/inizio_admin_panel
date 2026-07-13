@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import ReactApexChart from 'react-apexcharts';
 import { useParams, useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { api, BASE_URL } from '../api/axios';
@@ -20,6 +21,17 @@ const checkAppStatus = (u) => {
   return 'pending';
 };
 
+const getTodayString = () => {
+  const d = new Date();
+  return d.toISOString().split('T')[0];
+};
+
+const getPastDateString = (daysAgo) => {
+  const d = new Date();
+  d.setDate(d.getDate() - daysAgo);
+  return d.toISOString().split('T')[0];
+};
+
 const ActivityDetails = () => {
   const { type } = useParams();
   const navigate = useNavigate();
@@ -33,6 +45,9 @@ const ActivityDetails = () => {
   const [selectedRowLogins, setSelectedRowLogins] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const itemsPerPage = 10;
+  const [breakdownType, setBreakdownType] = useState('day'); // 'day', 'month', 'custom'
+  const [startDate, setStartDate] = useState(() => getPastDateString(14));
+  const [endDate, setEndDate] = useState(() => getTodayString());
 
   useEffect(() => {
     const fetchData = async (isPoll = false) => {
@@ -54,7 +69,7 @@ const ActivityDetails = () => {
           brands: brandRes.data,
           categories: catRes.data
         };
-        setExtraData(lookup);
+        setExtraData(prev => ({ ...prev, ...lookup }));
 
         if (type === 'revenue') {
           const res = await api.get('/orders/all', { headers });
@@ -73,12 +88,15 @@ const ActivityDetails = () => {
           let userList = Array.isArray(custRes.data) ? custRes.data : [];
           const actUsers = actRes.data?.users || [];
 
-          // Merge dynamic lastActive from activity stats users list
+          // Merge dynamic lastActive from activity stats users list and calculate isOnline dynamically
           userList = userList.map(u => {
             const match = actUsers.find(au => au.userId === u._id || (au.email && u.email && au.email.toLowerCase() === u.email.toLowerCase()));
+            const lastActive = match ? match.lastActive : u.lastActive;
+            const isOnline = u.isOnline !== undefined ? u.isOnline : (lastActive ? (new Date() - new Date(lastActive) < 5 * 60 * 1000) : false);
             return {
               ...u,
-              lastActive: match ? match.lastActive : u.lastActive
+              lastActive,
+              isOnline
             };
           });
 
@@ -115,20 +133,26 @@ const ActivityDetails = () => {
             setData(res.data?.mostViewedProducts || []);
           }
         } else {
-          // It's an activity metrics log type
-          const res = await api.get('/activity/stats', { headers });
+          let statsUrl = '/activity/stats';
+          if (type === 'all') {
+            if (breakdownType === 'day' || breakdownType === 'month') {
+              statsUrl += `?breakdown=true&breakdownInterval=${breakdownType}`;
+            } else if (breakdownType === 'custom') {
+              statsUrl += `?startDate=${startDate}&endDate=${endDate}`;
+            }
+          }
+          const res = await api.get(statsUrl, { headers });
           const activities = res.data?.recentActivities || [];
 
           // Store aggregated analytics for the relevant page types
-          if (type === 'product-views') {
-            setExtraData(prev => ({ ...prev, mostViewedProducts: res.data?.mostViewedProducts || [] }));
-          } else if (type === 'brand-views') {
-            setExtraData(prev => ({ ...prev, mostSearchedBrands: res.data?.mostSearchedBrands || [] }));
-          } else if (type === 'category-views') {
-            setExtraData(prev => ({ ...prev, mostSearchedCategories: res.data?.mostSearchedCategories || [] }));
-          } else if (type === 'search-queries') {
-            setExtraData(prev => ({ ...prev, mostSearched: res.data?.mostSearched || [] }));
-          }
+          setExtraData(prev => ({
+            ...prev,
+            trends: res.data?.trends || {},
+            ...(type === 'product-views' && { mostViewedProducts: res.data?.mostViewedProducts || [] }),
+            ...(type === 'brand-views' && { mostSearchedBrands: res.data?.mostSearchedBrands || [] }),
+            ...(type === 'category-views' && { mostSearchedCategories: res.data?.mostSearchedCategories || [] }),
+            ...(type === 'search-queries' && { mostSearched: res.data?.mostSearched || [] })
+          }));
 
           let filtered = [];
           if (type === 'logins') {
@@ -283,7 +307,7 @@ const ActivityDetails = () => {
     }, 5000);
 
     return () => clearInterval(intervalId);
-  }, [type]);
+  }, [type, breakdownType, startDate, endDate]);
 
   // Derived Title & Details Configurations
   const getHeaderConfig = () => {
@@ -333,6 +357,120 @@ const ActivityDetails = () => {
   };
 
   const header = getHeaderConfig();
+
+  // Calculate aggregate daily counts for trends chart
+  const dailyCounts = useMemo(() => {
+    const map = {};
+    const add = (arr) => {
+      if (!Array.isArray(arr)) return;
+      arr.forEach(item => {
+        if (item.date) {
+          map[item.date] = (map[item.date] || 0) + (item.count || 0);
+        }
+      });
+    };
+    add(extraData.trends?.products);
+    add(extraData.trends?.brands);
+    add(extraData.trends?.categories);
+    add(extraData.trends?.searches);
+
+    return Object.entries(map)
+      .map(([date, count]) => ({ date, count }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }, [extraData.trends]);
+
+  // Extract top trending highlights to display in the side list
+  const trendingHighlights = useMemo(() => {
+    const list = [];
+    if (extraData.trends?.products) {
+      extraData.trends.products.forEach(p => {
+        list.push({
+          name: p.productName || 'Unknown Product',
+          type: 'Product',
+          date: p.date,
+          count: p.count || 0
+        });
+      });
+    }
+    if (extraData.trends?.brands) {
+      extraData.trends.brands.forEach(b => {
+        list.push({
+          name: b.brandName || 'Unknown Brand',
+          type: 'Brand',
+          date: b.date,
+          count: b.count || 0
+        });
+      });
+    }
+    if (extraData.trends?.categories) {
+      extraData.trends.categories.forEach(c => {
+        list.push({
+          name: c.categoryName || 'Unknown Category',
+          type: 'Category',
+          date: c.date,
+          count: c.count || 0
+        });
+      });
+    }
+    if (extraData.trends?.searches) {
+      extraData.trends.searches.forEach(s => {
+        list.push({
+          name: `"${s.query}"`,
+          type: 'Search',
+          date: s.date,
+          count: s.count || 0
+        });
+      });
+    }
+    return list.sort((a, b) => b.count - a.count).slice(0, 10);
+  }, [extraData.trends]);
+
+  // Trends Line/Area Chart Config
+  const trendsChartConfig = useMemo(() => {
+    return {
+      series: [{
+        name: 'Total Activities',
+        data: dailyCounts.map(d => d.count)
+      }],
+      options: {
+        chart: { type: 'area', toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit' },
+        colors: ['#3b82f6'],
+        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0, stops: [0, 100] } },
+        dataLabels: { enabled: false },
+        stroke: { curve: 'smooth', width: 3 },
+        xaxis: {
+          categories: dailyCounts.map(d => d.date),
+          axisBorder: { show: false },
+          axisTicks: { show: false },
+          labels: { style: { colors: '#94a3b8', fontWeight: 600, fontSize: '9px' } }
+        },
+        yaxis: {
+          labels: {
+            style: { colors: '#94a3b8', fontWeight: 600 },
+            formatter: (value) => value.toLocaleString('en-IN')
+          }
+        },
+        grid: {
+          borderColor: 'rgba(255, 255, 255, 0.1)',
+          strokeDashArray: 3,
+          xaxis: { lines: { show: false } },
+          yaxis: { lines: { show: true } }
+        },
+        markers: {
+          size: 4,
+          colors: ['#3b82f6'],
+          strokeColors: 'rgba(255, 255, 255, 0.8)',
+          strokeWidth: 2,
+          hover: { size: 6 }
+        },
+        theme: { mode: 'dark' },
+        tooltip: {
+          theme: 'dark',
+          y: { formatter: (val) => `${val.toLocaleString('en-IN')} activities` }
+        }
+      }
+    };
+  }, [dailyCounts]);
 
   // Filtering Logic
   const getFilteredData = () => {
@@ -1430,6 +1568,97 @@ const ActivityDetails = () => {
         </div>
       </div>
 
+      {/* Date & Breakdown Control Panel - only visible on all / Activity Logs page */}
+      {type === 'all' && (
+        <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-xl shadow-black/40 rounded-3xl p-4.5 z-10 relative flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <FiCalendar className="text-blue-400 text-lg shrink-0" />
+            <div>
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Trends Breakdown</span>
+              <span className="text-xs text-white font-black uppercase tracking-tight">Select interval or custom range</span>
+            </div>
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Interval Selector Buttons */}
+            <div className="bg-black/40 p-1 border border-white/10 rounded-2xl flex items-center gap-1">
+              <button
+                onClick={() => setBreakdownType('day')}
+                className={`px-4.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  breakdownType === 'day' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Daily
+              </button>
+              <button
+                onClick={() => setBreakdownType('month')}
+                className={`px-4.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  breakdownType === 'month' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setBreakdownType('custom')}
+                className={`px-4.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  breakdownType === 'custom' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Custom Range
+              </button>
+            </div>
+
+            {/* Custom Date Pickers */}
+            {breakdownType === 'custom' && (
+              <div className="flex items-center gap-2">
+                <div
+                  onClick={(e) => {
+                    const input = e.currentTarget.querySelector('input[type="date"]');
+                    if (input && typeof input.showPicker === 'function') {
+                      try { input.showPicker(); } catch (err) { console.error(err); }
+                    }
+                  }}
+                  className="flex items-center gap-2 bg-black/30 border border-white/10 hover:border-blue-500/30 transition-all cursor-pointer rounded-xl px-3 py-1.5"
+                >
+                  <span className="text-[9px] text-slate-400 font-bold uppercase select-none">From:</span>
+                  <input
+                    type="date"
+                    value={startDate}
+                    max={endDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="bg-transparent text-xs text-white outline-none border-none cursor-pointer font-bold font-mono"
+                  />
+                  <FiCalendar className="text-slate-400 hover:text-white transition-colors text-xs pointer-events-none" />
+                </div>
+
+                <div
+                  onClick={(e) => {
+                    const input = e.currentTarget.querySelector('input[type="date"]');
+                    if (input && typeof input.showPicker === 'function') {
+                      try { input.showPicker(); } catch (err) { console.error(err); }
+                    }
+                  }}
+                  className="flex items-center gap-2 bg-black/30 border border-white/10 hover:border-blue-500/30 transition-all cursor-pointer rounded-xl px-3 py-1.5"
+                >
+                  <span className="text-[9px] text-slate-400 font-bold uppercase select-none">To:</span>
+                  <input
+                    type="date"
+                    value={endDate}
+                    min={startDate}
+                    max={getTodayString()}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="bg-transparent text-xs text-white outline-none border-none cursor-pointer font-bold font-mono"
+                  />
+                  <FiCalendar className="text-slate-400 hover:text-white transition-colors text-xs pointer-events-none" />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Inline Aggregated Analytics Panel */}
       {type === 'product-views' && extraData.mostViewedProducts?.length > 0 && (
         <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-5 z-10 relative overflow-hidden">
@@ -1584,6 +1813,81 @@ const ActivityDetails = () => {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {type === 'all' && extraData.trends && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 z-10 relative">
+          {/* Trends Area Chart */}
+          <div className="lg:col-span-2 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-5 overflow-hidden flex flex-col h-[320px]">
+            <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none" />
+            <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                  Overall Traffic & Search Trends
+                </h3>
+                <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Daily aggregate activity and query counts</p>
+              </div>
+              <span className="text-[10px] text-slate-500 font-bold uppercase">live insights</span>
+            </div>
+            
+            <div className="relative flex-1 w-full z-10">
+              {dailyCounts.length === 0 ? (
+                <div className="text-center text-slate-500 text-xs py-12 italic">
+                  No historical trend data available.
+                </div>
+              ) : (
+                <ReactApexChart
+                  options={trendsChartConfig.options}
+                  series={trendsChartConfig.series}
+                  type="area"
+                  height="100%"
+                  width="100%"
+                />
+              )}
+            </div>
+          </div>
+
+          {/* Top Trending List */}
+          <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-5 overflow-hidden flex flex-col h-[320px]">
+            <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/5 to-transparent pointer-events-none" />
+            <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                <FiTrendingUp className="text-indigo-400" />
+                Trending Highlights
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Top active items by date</p>
+            </div>
+            
+            <div className="relative flex-1 overflow-y-auto space-y-2.5 pr-1 custom-scrollbar z-10">
+              {trendingHighlights.length === 0 ? (
+                <div className="text-center text-slate-500 text-xs py-12 italic">
+                  No highlight events recorded.
+                </div>
+              ) : (
+                trendingHighlights.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-2 rounded-xl bg-slate-950/10 border border-white/5 hover:border-indigo-500/10 transition-colors"
+                  >
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-xs font-bold text-white truncate">{item.name}</span>
+                      <span className="text-[9px] text-slate-500 font-semibold">{item.type} &bull; {item.date}</span>
+                    </div>
+                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-lg border shrink-0 ${
+                      item.type === 'Product' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                      item.type === 'Brand' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' :
+                      item.type === 'Category' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
+                      'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                    }`}>
+                      {item.count} views
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
