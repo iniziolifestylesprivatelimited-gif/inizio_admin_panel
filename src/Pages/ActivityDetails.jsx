@@ -95,10 +95,40 @@ const ActivityDetails = () => {
             return dateB - dateA;
           });
           setData(userList);
+        } else if (type === 'request-stats') {
+          const res = await api.get('/admin/request-stats', { headers });
+          const fetchedStats = res.data?.stats || [];
+          setData(fetchedStats);
+        } else if (type === 'product-subscriptions') {
+          const res = await api.get('/admin/products/subscriptions/all', { headers });
+          const fetchedSubscriptions = res.data?.subscriptions || [];
+          setData(fetchedSubscriptions);
+        } else if (type === 'most-searched-brands' || type === 'most-searched-categories' || type === 'most-searched' || type === 'most-viewed-products') {
+          const res = await api.get('/activity/stats', { headers });
+          if (type === 'most-searched-brands') {
+            setData(res.data?.mostSearchedBrands || []);
+          } else if (type === 'most-searched-categories') {
+            setData(res.data?.mostSearchedCategories || []);
+          } else if (type === 'most-searched') {
+            setData(res.data?.mostSearched || []);
+          } else if (type === 'most-viewed-products') {
+            setData(res.data?.mostViewedProducts || []);
+          }
         } else {
           // It's an activity metrics log type
           const res = await api.get('/activity/stats', { headers });
           const activities = res.data?.recentActivities || [];
+
+          // Store aggregated analytics for the relevant page types
+          if (type === 'product-views') {
+            setExtraData(prev => ({ ...prev, mostViewedProducts: res.data?.mostViewedProducts || [] }));
+          } else if (type === 'brand-views') {
+            setExtraData(prev => ({ ...prev, mostSearchedBrands: res.data?.mostSearchedBrands || [] }));
+          } else if (type === 'category-views') {
+            setExtraData(prev => ({ ...prev, mostSearchedCategories: res.data?.mostSearchedCategories || [] }));
+          } else if (type === 'search-queries') {
+            setExtraData(prev => ({ ...prev, mostSearched: res.data?.mostSearched || [] }));
+          }
 
           let filtered = [];
           if (type === 'logins') {
@@ -213,6 +243,32 @@ const ActivityDetails = () => {
           }
           setData(filtered);
         }
+
+        // Run background check for request counts > 10000 to trigger browser desktop Notification
+        try {
+          const statsRes = await api.get('/admin/request-stats', { headers });
+          const statsList = statsRes.data?.stats || [];
+          statsList.forEach(stat => {
+            const isSuperAdmin = stat.user?.name === 'Super Admin' || stat.user?.email === 'inizio@gmail.com';
+            if (stat.count > 10000 && !isSuperAdmin) {
+              if ('Notification' in window) {
+                if (Notification.permission === 'granted') {
+                  const storageKey = `notified-stat-${stat._id}-${stat.count}`;
+                  if (!sessionStorage.getItem(storageKey)) {
+                    new Notification(`High API Usage Alert!`, {
+                      body: `${stat.user?.name || 'Guest / Unauthenticated User'} has made ${stat.count} requests.`,
+                    });
+                    sessionStorage.setItem(storageKey, 'true');
+                  }
+                } else if (Notification.permission === 'default') {
+                  Notification.requestPermission();
+                }
+              }
+            }
+          });
+        } catch (e) {
+          console.error("Failed to run background request stats alert check:", e);
+        }
       } catch (err) {
         console.error('Failed to load detail logs:', err);
         if (!isPoll) setError('Failed to fetch records. Please try again.');
@@ -259,6 +315,18 @@ const ActivityDetails = () => {
         return { title: 'Category Views Logs', desc: 'Track category filters and segment views by user.', icon: FiLayers, color: 'text-purple-400', bg: 'bg-purple-500/20' };
       case 'search-queries':
         return { title: 'Search Queries Logs', desc: 'Track catalog search keys and queries requested by users.', icon: FiSearch, color: 'text-amber-400', bg: 'bg-amber-500/20' };
+      case 'request-stats':
+        return { title: 'API Request Analytics', desc: 'Monitor API endpoint request counts and request rates per user/IP.', icon: FiActivity, color: 'text-rose-400', bg: 'bg-rose-500/20' };
+      case 'product-subscriptions':
+        return { title: 'Product Subscriptions', desc: 'Monitor user subscriptions for back-in-stock notifications.', icon: FiBell, color: 'text-cyan-400', bg: 'bg-cyan-500/20' };
+      case 'most-searched-brands':
+        return { title: 'Most Searched Brands', desc: 'Top brands searched by users across the catalog.', icon: FiTrendingUp, color: 'text-indigo-400', bg: 'bg-indigo-500/20' };
+      case 'most-searched-categories':
+        return { title: 'Most Searched Categories', desc: 'Top product categories searched by users.', icon: FiLayers, color: 'text-purple-400', bg: 'bg-purple-500/20' };
+      case 'most-searched':
+        return { title: 'Most Searched Queries', desc: 'Top raw search query strings entered by users in the catalog.', icon: FiSearch, color: 'text-amber-400', bg: 'bg-amber-500/20' };
+      case 'most-viewed-products':
+        return { title: 'Most Viewed Products', desc: 'Products with the highest total view counts from user activity.', icon: FiEye, color: 'text-blue-400', bg: 'bg-blue-500/20' };
       default:
         return { title: 'Activity Logs', desc: 'System log statistics overview.', icon: FiActivity, color: 'text-slate-400', bg: 'bg-slate-500/20' };
     }
@@ -279,6 +347,30 @@ const ActivityDetails = () => {
           item.status?.toLowerCase().includes(query) ||
           item.paymentStatus?.toLowerCase().includes(query)
         );
+      } else if (type === 'request-stats') {
+        const userName = item.user?.name || 'Guest / Unauthenticated';
+        const userEmail = item.user?.email || '';
+        const userPhone = item.user?.phone || '';
+        const ipStr = item.ip || '';
+        return (
+          userName.toLowerCase().includes(query) ||
+          userEmail.toLowerCase().includes(query) ||
+          userPhone.includes(query) ||
+          ipStr.toLowerCase().includes(query)
+        );
+      } else if (type === 'product-subscriptions') {
+        const userName = item.user?.name || '';
+        const userEmail = item.user?.email || '';
+        const userPhone = item.user?.phone || '';
+        const prodName = item.product?.name || '';
+        const variantName = item.variantName || '';
+        return (
+          userName.toLowerCase().includes(query) ||
+          userEmail.toLowerCase().includes(query) ||
+          userPhone.includes(query) ||
+          prodName.toLowerCase().includes(query) ||
+          variantName.toLowerCase().includes(query)
+        );
       } else if (type === 'brands') {
         return item.name?.toLowerCase().includes(query);
       } else if (type === 'products' || type === 'variants') {
@@ -289,6 +381,14 @@ const ActivityDetails = () => {
           item.email?.toLowerCase().includes(query) ||
           item.phone?.includes(query)
         );
+      } else if (type === 'most-searched-brands') {
+        return (item.brand?.name || '').toLowerCase().includes(query);
+      } else if (type === 'most-searched-categories') {
+        return (item.category?.name || '').toLowerCase().includes(query);
+      } else if (type === 'most-searched') {
+        return (item.query || '').toLowerCase().includes(query);
+      } else if (type === 'most-viewed-products') {
+        return (item.product?.name || '').toLowerCase().includes(query);
       } else {
         // Activity logs filter
         const actUser = item.user?.name || 'unknown';
@@ -386,6 +486,17 @@ const ActivityDetails = () => {
         label: 'Total Category Views',
         unit: 'views',
         viewHeader: 'Category',
+        isViewType: true
+      };
+    }
+    if (actionUpper === 'API_REQUESTS') {
+      return {
+        title: 'API Endpoint Request Stats',
+        icon: FiActivity,
+        color: 'text-rose-400',
+        label: 'Total Requests Count',
+        unit: 'requests',
+        viewHeader: 'Endpoint Path',
         isViewType: true
       };
     }
@@ -726,6 +837,289 @@ const ActivityDetails = () => {
       ));
     }
 
+    if (type === 'request-stats') {
+      return currentItems.map((item, index) => {
+        const isSuperAdmin = item.user?.name === 'Super Admin' || item.user?.email === 'inizio@gmail.com';
+        const displayCount = item.count || 0;
+        const displayIP = item.ip || 'N/A';
+        const initials = (item.user?.name || 'G').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+
+        return (
+          <tr key={item._id || index} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+            <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+            <td className="py-4 px-5">
+              <div className="flex items-center gap-2">
+                <div className={`w-8 h-8 rounded-lg border flex items-center justify-center font-bold text-xs tracking-wider shadow-inner ${
+                  isSuperAdmin 
+                    ? 'bg-gradient-to-tr from-amber-500/20 to-orange-500/20 border-amber-500/30 text-amber-300' 
+                    : item.user 
+                    ? 'bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 border-blue-500/30 text-blue-300' 
+                    : 'bg-gradient-to-tr from-slate-500/20 to-slate-600/20 border-white/10 text-slate-400'
+                }`}>
+                  {initials}
+                </div>
+                <div>
+                  <span className="text-sm font-bold text-white block">
+                    {item.user?.name || 'Guest / Unauthenticated'}
+                  </span>
+                  {item.user?.phone && (
+                    <span className="text-[10px] text-slate-500 mt-0.5 block flex items-center gap-1">
+                      <FiPhone className="text-slate-500 text-[8px]" /> {item.user.phone}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </td>
+            <td className="py-4 px-5 text-sm text-slate-300 font-medium select-all">
+              {item.user?.email || 'N/A'}
+            </td>
+            <td className="py-4 px-5">
+              <span className={`px-2.5 py-1 rounded-full font-bold text-xs border ${
+                displayCount > 10000 && !isSuperAdmin
+                  ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' 
+                  : displayCount > 5000 
+                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' 
+                  : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+              }`}>
+                {displayCount.toLocaleString()} requests
+              </span>
+            </td>
+            <td className="py-4 px-5 text-xs font-mono text-slate-400 select-all max-w-[150px] truncate" title={displayIP}>
+              {displayIP}
+            </td>
+            <td className="py-4 px-5 text-sm text-slate-400 font-medium">
+              {formatDateTime(item.lastRequestAt)}
+            </td>
+            <td className="py-4 px-5 text-center">
+              <button
+                onClick={() => {
+                  setSelectedRowLogins({
+                    action: 'API_REQUESTS',
+                    user: item.user || { name: 'Guest / Unauthenticated', email: item.ip },
+                    count: displayCount,
+                    endpointStats: item.endpointStats
+                  });
+                  setIsModalOpen(true);
+                }}
+                className="px-3 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 hover:border-blue-500/30 text-blue-400 hover:text-blue-300 rounded-lg text-xs font-bold transition-all cursor-pointer"
+              >
+                View Breakdown
+              </button>
+            </td>
+          </tr>
+        );
+      });
+    }
+
+    if (type === 'product-subscriptions') {
+      return currentItems.map((item, index) => {
+        const initials = (item.user?.name || 'G').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        const firstImg = item.product?.images?.[0] || '';
+        const displayProductLogo = firstImg ? (firstImg.startsWith('http') || firstImg.startsWith('blob:') ? firstImg : `${BASE_URL}${firstImg.startsWith('/') ? '' : '/'}${firstImg.replace(/\\/g, '/')}`) : '';
+
+        return (
+          <tr key={item._id || index} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+            <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+            <td className="py-4 px-5">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg border bg-gradient-to-tr from-cyan-500/20 to-blue-500/20 border-cyan-500/30 text-cyan-300 flex items-center justify-center font-bold text-xs tracking-wider shadow-inner">
+                  {initials}
+                </div>
+                <div>
+                  <span className="text-sm font-bold text-white block">
+                    {item.user?.name || 'Guest / Unauthenticated'}
+                  </span>
+                  {item.user?.phone && (
+                    <span className="text-[10px] text-slate-500 mt-0.5 block flex items-center gap-1">
+                      <FiPhone className="text-slate-500 text-[8px]" /> {item.user.phone}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </td>
+            <td className="py-4 px-5">
+              <div className="flex items-center gap-2">
+                {displayProductLogo ? (
+                  <div className="w-10 h-10 rounded-lg overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center p-0.5">
+                    <img src={displayProductLogo} alt={item.product?.name} className="w-full h-full object-contain" />
+                  </div>
+                ) : (
+                  <div className="w-10 h-10 rounded-lg bg-slate-800 shrink-0 flex items-center justify-center text-slate-500 border border-white/5">
+                    <FiBox size={16} />
+                  </div>
+                )}
+                <span className="text-sm font-bold text-white truncate max-w-[200px]" title={item.product?.name}>
+                  {item.product?.name || 'Unknown Product'}
+                </span>
+              </div>
+            </td>
+            <td className="py-4 px-5 text-xs font-bold text-blue-400 font-mono">
+              {item.variantName || 'Default'}
+            </td>
+            <td className="py-4 px-5 text-xs">
+              <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${
+                item.notified 
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                  : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+              }`}>
+                {item.notified ? 'notified' : 'pending alert'}
+              </span>
+            </td>
+            <td className="py-4 px-5 text-sm text-slate-400 font-medium">
+              {formatDateTime(item.createdAt)}
+            </td>
+          </tr>
+        );
+      });
+    }
+
+    if (type === 'most-searched-brands') {
+      const maxSearches = currentItems[0]?.searches || 1;
+      return currentItems.map((item, index) => {
+        const globalIndex = (currentPage - 1) * itemsPerPage + index;
+        const cleanLogo = (item.brand?.logo || '').replace(/\\/g, '/');
+        const logoUrl = cleanLogo ? `${BASE_URL}${cleanLogo.startsWith('/') ? '' : '/'}${cleanLogo}` : '';
+        const rankColors = ['text-amber-400', 'text-slate-300', 'text-orange-400'];
+        const rankBadgeBg = ['bg-amber-500/15 border-amber-500/30', 'bg-slate-500/15 border-slate-400/30', 'bg-orange-500/15 border-orange-500/30'];
+        return (
+          <tr key={item.brand?._id || index} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+            <td className="py-4 px-5">
+              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${globalIndex < 3 ? rankBadgeBg[globalIndex] : 'bg-slate-800/60 border-white/10 text-slate-400'} ${globalIndex < 3 ? rankColors[globalIndex] : ''}`}>
+                {globalIndex + 1}
+              </span>
+            </td>
+            <td className="py-4 px-5">
+              {logoUrl ? (
+                <img src={logoUrl} alt={item.brand?.name} className="w-10 h-10 object-contain rounded-xl bg-white border border-white/10 p-1" />
+              ) : (
+                <div className="w-10 h-10 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center text-slate-400 text-xs font-bold">
+                  {(item.brand?.name || '?').substring(0, 2).toUpperCase()}
+                </div>
+              )}
+            </td>
+            <td className="py-4 px-5 text-sm font-bold text-white">{item.brand?.name || 'Unknown Brand'}</td>
+            <td className="py-4 px-5">
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden max-w-[120px]">
+                  <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${Math.round((item.searches / maxSearches) * 100)}%` }} />
+                </div>
+                <span className="text-indigo-400 font-extrabold text-sm">{item.searches}</span>
+              </div>
+            </td>
+          </tr>
+        );
+      });
+    }
+
+    if (type === 'most-searched-categories') {
+      const maxSearches = currentItems[0]?.searches || 1;
+      return currentItems.map((item, index) => {
+        const globalIndex = (currentPage - 1) * itemsPerPage + index;
+        return (
+          <tr key={item.category?._id || index} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+            <td className="py-4 px-5">
+              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${
+                globalIndex === 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' :
+                globalIndex === 1 ? 'bg-slate-500/15 border-slate-400/30 text-slate-300' :
+                globalIndex === 2 ? 'bg-orange-500/15 border-orange-500/30 text-orange-400' :
+                'bg-slate-800/60 border-white/10 text-slate-400'}`}>
+                {globalIndex + 1}
+              </span>
+            </td>
+            <td className="py-4 px-5 text-sm font-bold text-white">{item.category?.name || 'Unknown Category'}</td>
+            <td className="py-4 px-5">
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden max-w-[120px]">
+                  <div className="h-full bg-purple-500 rounded-full" style={{ width: `${Math.round((item.searches / maxSearches) * 100)}%` }} />
+                </div>
+                <span className="text-purple-400 font-extrabold text-sm">{item.searches}</span>
+              </div>
+            </td>
+          </tr>
+        );
+      });
+    }
+
+    if (type === 'most-searched') {
+      const maxCount = currentItems[0]?.count || 1;
+      return currentItems.map((item, index) => {
+        const globalIndex = (currentPage - 1) * itemsPerPage + index;
+        return (
+          <tr key={index} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+            <td className="py-4 px-5">
+              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${
+                globalIndex === 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' :
+                globalIndex === 1 ? 'bg-slate-500/15 border-slate-400/30 text-slate-300' :
+                globalIndex === 2 ? 'bg-orange-500/15 border-orange-500/30 text-orange-400' :
+                'bg-slate-800/60 border-white/10 text-slate-400'}`}>
+                {globalIndex + 1}
+              </span>
+            </td>
+            <td className="py-4 px-5">
+              <code className="text-sm font-bold text-amber-300 bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-500/20 font-mono">
+                {item.query}
+              </code>
+            </td>
+            <td className="py-4 px-5">
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden max-w-[120px]">
+                  <div className="h-full bg-amber-500 rounded-full" style={{ width: `${Math.round((item.count / maxCount) * 100)}%` }} />
+                </div>
+                <span className="text-amber-400 font-extrabold text-sm">{item.count}×</span>
+              </div>
+            </td>
+          </tr>
+        );
+      });
+    }
+
+    if (type === 'most-viewed-products') {
+      const maxViews = currentItems[0]?.views || 1;
+      return currentItems.map((item, index) => {
+        const globalIndex = (currentPage - 1) * itemsPerPage + index;
+        const firstImg = item.product?.images?.[0] || '';
+        const imgUrl = firstImg.startsWith('http') ? firstImg : (firstImg ? `${BASE_URL}${firstImg.startsWith('/') ? '' : '/'}${firstImg}` : '');
+        return (
+          <tr key={item.product?._id || index} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+            <td className="py-4 px-5">
+              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${
+                globalIndex === 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' :
+                globalIndex === 1 ? 'bg-slate-500/15 border-slate-400/30 text-slate-300' :
+                globalIndex === 2 ? 'bg-orange-500/15 border-orange-500/30 text-orange-400' :
+                'bg-slate-800/60 border-white/10 text-slate-400'}`}>
+                {globalIndex + 1}
+              </span>
+            </td>
+            <td className="py-4 px-5">
+              {imgUrl ? (
+                <div className="w-12 h-12 rounded-xl overflow-hidden bg-white border border-white/10 flex items-center justify-center p-0.5">
+                  <img src={imgUrl} alt={item.product?.name} className="w-full h-full object-contain" />
+                </div>
+              ) : (
+                <div className="w-12 h-12 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center text-slate-500">
+                  <FiBox size={18} />
+                </div>
+              )}
+            </td>
+            <td className="py-4 px-5 text-sm font-bold text-white truncate max-w-[200px]" title={item.product?.name}>
+              {item.product?.name || 'Unknown Product'}
+            </td>
+            <td className="py-4 px-5 text-sm font-extrabold text-emerald-400">
+              ₹{(item.product?.basePrice || 0).toLocaleString('en-IN')}
+            </td>
+            <td className="py-4 px-5">
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden max-w-[120px]">
+                  <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.round((item.views / maxViews) * 100)}%` }} />
+                </div>
+                <span className="text-blue-400 font-extrabold text-sm">{item.views} views</span>
+              </div>
+            </td>
+          </tr>
+        );
+      });
+    }
+
     // It's an activity logs list
     return currentItems.map((item, index) => {
       let resolvedText = '';
@@ -872,6 +1266,70 @@ const ActivityDetails = () => {
         </>
       );
     }
+    if (type === 'request-stats') {
+      return (
+        <>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Email Address</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Requests</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">IP Address</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Last Request At</th>
+          <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Actions</th>
+        </>
+      );
+    }
+    if (type === 'product-subscriptions') {
+      return (
+        <>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Product Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Variant</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Notified Status</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Subscribed At</th>
+        </>
+      );
+    }
+    if (type === 'most-searched-brands') {
+      return (
+        <>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Logo</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Brand Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Searches</th>
+        </>
+      );
+    }
+    if (type === 'most-searched-categories') {
+      return (
+        <>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Category Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Searches</th>
+        </>
+      );
+    }
+    if (type === 'most-searched') {
+      return (
+        <>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Search Query</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Count</th>
+        </>
+      );
+    }
+    if (type === 'most-viewed-products') {
+      return (
+        <>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Product Image</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Product Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Base Price</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Views</th>
+        </>
+      );
+    }
 
     // Activity logs
     return (
@@ -971,6 +1429,165 @@ const ActivityDetails = () => {
           />
         </div>
       </div>
+
+      {/* Inline Aggregated Analytics Panel */}
+      {type === 'product-views' && extraData.mostViewedProducts?.length > 0 && (
+        <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-5 z-10 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none" />
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <FiEye className="text-blue-400 text-base" />
+                <h3 className="text-sm font-black text-white uppercase tracking-wider">Top Viewed Products</h3>
+              </div>
+              <span className="text-[10px] text-slate-500 font-bold uppercase">from activity stats</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              {extraData.mostViewedProducts.slice(0, 5).map((item, idx) => {
+                const firstImg = item.product?.images?.[0] || '';
+                const imgUrl = firstImg.startsWith('http') ? firstImg : (firstImg ? `${BASE_URL}${firstImg.startsWith('/') ? '' : '/'}${firstImg}` : '');
+                const maxV = extraData.mostViewedProducts[0]?.views || 1;
+                const rankBg = idx === 0 ? 'border-amber-500/30 bg-amber-500/5' : idx === 1 ? 'border-slate-400/30 bg-slate-500/5' : idx === 2 ? 'border-orange-500/30 bg-orange-500/5' : 'border-white/10 bg-white/[0.02]';
+                const rankColor = idx === 0 ? 'text-amber-400' : idx === 1 ? 'text-slate-300' : idx === 2 ? 'text-orange-400' : 'text-slate-500';
+                return (
+                  <div key={item.product?._id || idx} className={`rounded-2xl border p-3 flex flex-col gap-2 ${rankBg}`}>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-black ${rankColor}`}>#{idx + 1}</span>
+                      {imgUrl ? (
+                        <div className="w-8 h-8 rounded-lg overflow-hidden bg-white border border-white/10 flex items-center justify-center p-0.5 shrink-0">
+                          <img src={imgUrl} alt={item.product?.name} className="w-full h-full object-contain" />
+                        </div>
+                      ) : <div className="w-8 h-8 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center text-slate-500 shrink-0"><FiBox size={12} /></div>}
+                      <p className="text-xs font-bold text-white truncate leading-tight">{item.product?.name || 'Unknown'}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.round((item.views / maxV) * 100)}%` }} />
+                      </div>
+                      <span className="text-[10px] text-blue-400 font-extrabold shrink-0">{item.views}v</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {type === 'brand-views' && extraData.mostSearchedBrands?.length > 0 && (
+        <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-5 z-10 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/5 to-transparent pointer-events-none" />
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <FiTrendingUp className="text-indigo-400 text-base" />
+                <h3 className="text-sm font-black text-white uppercase tracking-wider">Most Searched Brands</h3>
+              </div>
+              <span className="text-[10px] text-slate-500 font-bold uppercase">from activity stats</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              {extraData.mostSearchedBrands.slice(0, 5).map((item, idx) => {
+                const cleanLogo = (item.brand?.logo || '').replace(/\\/g, '/');
+                const logoUrl = cleanLogo ? `${BASE_URL}${cleanLogo.startsWith('/') ? '' : '/'}${cleanLogo}` : '';
+                const maxS = extraData.mostSearchedBrands[0]?.searches || 1;
+                const rankBg = idx === 0 ? 'border-amber-500/30 bg-amber-500/5' : idx === 1 ? 'border-slate-400/30 bg-slate-500/5' : idx === 2 ? 'border-orange-500/30 bg-orange-500/5' : 'border-white/10 bg-white/[0.02]';
+                const rankColor = idx === 0 ? 'text-amber-400' : idx === 1 ? 'text-slate-300' : idx === 2 ? 'text-orange-400' : 'text-slate-500';
+                return (
+                  <div key={item.brand?._id || idx} className={`rounded-2xl border p-3 flex flex-col gap-2 ${rankBg}`}>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-black ${rankColor}`}>#{idx + 1}</span>
+                      {logoUrl ? (
+                        <img src={logoUrl} alt={item.brand?.name} className="w-8 h-8 object-contain rounded-lg bg-white border border-white/10 p-0.5 shrink-0" />
+                      ) : <div className="w-8 h-8 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center text-slate-400 text-[10px] font-bold shrink-0">{(item.brand?.name || '?').substring(0, 2).toUpperCase()}</div>}
+                      <p className="text-xs font-bold text-white truncate leading-tight">{item.brand?.name || 'Unknown'}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${Math.round((item.searches / maxS) * 100)}%` }} />
+                      </div>
+                      <span className="text-[10px] text-indigo-400 font-extrabold shrink-0">{item.searches}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {type === 'category-views' && extraData.mostSearchedCategories?.length > 0 && (
+        <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-5 z-10 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-purple-500/5 to-transparent pointer-events-none" />
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <FiLayers className="text-purple-400 text-base" />
+                <h3 className="text-sm font-black text-white uppercase tracking-wider">Most Searched Categories</h3>
+              </div>
+              <span className="text-[10px] text-slate-500 font-bold uppercase">from activity stats</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              {extraData.mostSearchedCategories.slice(0, 5).map((item, idx) => {
+                const maxS = extraData.mostSearchedCategories[0]?.searches || 1;
+                const rankBg = idx === 0 ? 'border-amber-500/30 bg-amber-500/5' : idx === 1 ? 'border-slate-400/30 bg-slate-500/5' : idx === 2 ? 'border-orange-500/30 bg-orange-500/5' : 'border-white/10 bg-white/[0.02]';
+                const rankColor = idx === 0 ? 'text-amber-400' : idx === 1 ? 'text-slate-300' : idx === 2 ? 'text-orange-400' : 'text-slate-500';
+                const catInitials = (item.category?.name || '?').substring(0, 2).toUpperCase();
+                return (
+                  <div key={item.category?._id || idx} className={`rounded-2xl border p-3 flex flex-col gap-2 ${rankBg}`}>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-black ${rankColor}`}>#{idx + 1}</span>
+                      <div className="w-8 h-8 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-300 text-[10px] font-black shrink-0">{catInitials}</div>
+                      <p className="text-xs font-bold text-white truncate leading-tight">{item.category?.name || 'Unknown'}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-purple-500 rounded-full" style={{ width: `${Math.round((item.searches / maxS) * 100)}%` }} />
+                      </div>
+                      <span className="text-[10px] text-purple-400 font-extrabold shrink-0">{item.searches}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {type === 'search-queries' && extraData.mostSearched?.length > 0 && (
+        <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-5 z-10 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 to-transparent pointer-events-none" />
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <FiSearch className="text-amber-400 text-base" />
+                <h3 className="text-sm font-black text-white uppercase tracking-wider">Top Search Queries</h3>
+              </div>
+              <span className="text-[10px] text-slate-500 font-bold uppercase">from activity stats</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              {extraData.mostSearched.slice(0, 5).map((item, idx) => {
+                const maxC = extraData.mostSearched[0]?.count || 1;
+                const rankBg = idx === 0 ? 'border-amber-500/30 bg-amber-500/5' : idx === 1 ? 'border-slate-400/30 bg-slate-500/5' : idx === 2 ? 'border-orange-500/30 bg-orange-500/5' : 'border-white/10 bg-white/[0.02]';
+                const rankColor = idx === 0 ? 'text-amber-400' : idx === 1 ? 'text-slate-300' : idx === 2 ? 'text-orange-400' : 'text-slate-500';
+                return (
+                  <div key={idx} className={`rounded-2xl border p-3 flex flex-col gap-2 ${rankBg}`}>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-black shrink-0 ${rankColor}`}>#{idx + 1}</span>
+                      <code className="text-xs font-bold text-amber-300 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 font-mono truncate">{item.query}</code>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-amber-500 rounded-full" style={{ width: `${Math.round((item.count / maxC) * 100)}%` }} />
+                      </div>
+                      <span className="text-[10px] text-amber-400 font-extrabold shrink-0">{item.count}×</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Table Card */}
       <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden z-10 relative">
@@ -1098,22 +1715,42 @@ const ActivityDetails = () => {
               {/* List of individual entries */}
               {modalConfig.isViewType ? (
                 <div className="space-y-2 max-h-[240px] overflow-y-auto custom-scrollbar pr-1 relative z-10">
-                  <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Viewed Items</span>
-                  {selectedRowLogins.views?.map((view, index) => (
-                    <div 
-                      key={view._id || index}
-                      className="flex justify-between items-center bg-slate-950/30 border border-white/5 p-3 rounded-xl hover:border-white/10 transition-colors animate-in fade-in duration-150"
-                    >
-                      <div className="text-left flex-1 min-w-0 pr-2">
-                        <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider">{modalConfig.viewHeader}</span>
-                        <span className="text-xs text-white font-bold mt-0.5 block truncate" title={view.productName || view.name}>{view.productName || view.name}</span>
+                  <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block mb-1">
+                    {selectedRowLogins.action === 'API_REQUESTS' ? 'Endpoint Hits' : 'Viewed Items'}
+                  </span>
+                  {selectedRowLogins.action === 'API_REQUESTS' ? (
+                    Object.entries(selectedRowLogins.endpointStats || {}).map(([endpoint, count], idx) => (
+                      <div 
+                        key={idx}
+                        className="flex justify-between items-center bg-slate-950/30 border border-white/5 p-3 rounded-xl hover:border-white/10 transition-colors animate-in fade-in duration-150 font-mono text-xs"
+                      >
+                        <div className="text-left flex-1 min-w-0 pr-2">
+                          <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider font-sans">Endpoint Path</span>
+                          <span className="text-xs text-white font-bold mt-0.5 block truncate select-all" title={endpoint}>{endpoint}</span>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider font-sans">Hits</span>
+                          <span className="text-xs text-blue-400 font-extrabold mt-0.5 block font-sans">{count.toLocaleString()}</span>
+                        </div>
                       </div>
-                      <div className="text-right shrink-0">
-                        <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider">Viewed At</span>
-                        <span className="text-xs text-slate-300 font-medium font-mono mt-0.5 block">{formatDateTime(view.createdAt)}</span>
+                    ))
+                  ) : (
+                    selectedRowLogins.views?.map((view, index) => (
+                      <div 
+                        key={view._id || index}
+                        className="flex justify-between items-center bg-slate-950/30 border border-white/5 p-3 rounded-xl hover:border-white/10 transition-colors animate-in fade-in duration-150"
+                      >
+                        <div className="text-left flex-1 min-w-0 pr-2">
+                          <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider">{modalConfig.viewHeader}</span>
+                          <span className="text-xs text-white font-bold mt-0.5 block truncate" title={view.productName || view.name}>{view.productName || view.name}</span>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider">Viewed At</span>
+                          <span className="text-xs text-slate-300 font-medium font-mono mt-0.5 block">{formatDateTime(view.createdAt)}</span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               ) : (
                 <div className="space-y-2 max-h-[240px] overflow-y-auto custom-scrollbar pr-1 relative z-10">

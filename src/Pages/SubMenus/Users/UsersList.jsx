@@ -47,8 +47,6 @@ const UsersList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [loggedInEmails, setLoggedInEmails] = useState(new Set());
-
   const navigate = useNavigate();
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [deletingUserId, setDeletingUserId] = useState(null);
@@ -59,11 +57,6 @@ const UsersList = () => {
     setDeletionReason('Uploaded GST certificate PDF is expired. Please upload the latest active certificate.');
   };
 
-  const hasLoggedIn = (user) => {
-    return (user.email && loggedInEmails.has(user.email.toLowerCase())) ||
-           (user.userId && loggedInEmails.has(user.userId.toLowerCase()));
-  };
-
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [usersPerPage] = useState(10);
@@ -71,7 +64,9 @@ const UsersList = () => {
   const { setUsersUnreadCount } = useOutletContext() || {};
 
   useEffect(() => {
-    setCurrentPage(1);
+    Promise.resolve().then(() => {
+      setCurrentPage(1);
+    });
   }, [searchQuery]);
 
   const fetchUsers = async (isPoll = false) => {
@@ -81,7 +76,7 @@ const UsersList = () => {
       const token = sessionStorage.getItem('accessToken');
       
       // Fetch all processed users, pending users, active login reports, and activity stats concurrently
-      const [customersResponse, pendingResponse, loginReportResponse, activityStatsResponse] = await Promise.all([
+      const [customersResponse, _pendingResponse, _loginReportResponse, activityStatsResponse] = await Promise.all([
         api.get('/admin/customers', { headers: { Authorization: `Bearer ${token}` } }),
         api.get('/admin/pending', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] })),
         api.get('/admin/login-report', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] })),
@@ -108,34 +103,14 @@ const UsersList = () => {
         const match = actUsers.find(au => au.userId === u._id || (au.email && u.email && au.email.toLowerCase() === u.email.toLowerCase()));
         return {
           ...u,
-          lastActive: match ? match.lastActive : u.lastActive
+          lastActive: u.lastActive || match?.lastActive,
+          lastLoginAt: u.lastLoginAt || match?.lastLoginAt,
+          appVersion: u.appVersion || match?.appVersion,
+          notificationsEnabled: u.notificationsEnabled !== undefined ? u.notificationsEnabled : match?.notificationsEnabled
         };
       });
 
-      // Handle active login reports
-      let loginReportList = [];
-      if (Array.isArray(loginReportResponse.data)) {
-        loginReportList = loginReportResponse.data;
-      } else if (loginReportResponse.data && typeof loginReportResponse.data === 'object') {
-        loginReportList = loginReportResponse.data.data || loginReportResponse.data.users || loginReportResponse.data.reports || [];
-      }
 
-      const loggedInSet = new Set();
-      loginReportList.forEach(r => {
-        if (r.email) loggedInSet.add(r.email.toLowerCase());
-        if (r.userId) loggedInSet.add(r.userId.toLowerCase());
-      });
-      setLoggedInEmails(loggedInSet);
-
-      // Extract pending users to filter them out from the rejected list
-      let pendingUsers = [];
-      if (Array.isArray(pendingResponse.data)) {
-        pendingUsers = pendingResponse.data;
-      } else if (pendingResponse.data && typeof pendingResponse.data === 'object') {
-        pendingUsers = pendingResponse.data.data || pendingResponse.data.users || pendingResponse.data.pending || [];
-      }
-      const pendingIds = new Set(pendingUsers.map(user => user._id));
-      
       setUsers(allUsers.filter(user => user.isApproved === true || !!user.userId));
 
       // Clear the notification badge once data is viewed
@@ -153,7 +128,9 @@ const UsersList = () => {
   };
 
   useEffect(() => {
-    fetchUsers(false);
+    Promise.resolve().then(() => {
+      fetchUsers(false);
+    });
 
     // Setup polling every 5 seconds to keep activity status in sync
     const intervalId = setInterval(() => {
@@ -209,13 +186,6 @@ const UsersList = () => {
     } finally {
       setIsActionLoading(false);
     }
-  };
-
-  const getDocumentUrl = (path) => {
-    if (!path) return '';
-    if (path.startsWith('http') || path.startsWith('blob:')) return path;
-    const cleanPath = path.replace(/\\/g, '/');
-    return `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
   };
 
   const filteredUsers = users.filter(user => {

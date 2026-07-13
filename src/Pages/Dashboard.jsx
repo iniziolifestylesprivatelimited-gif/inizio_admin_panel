@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { api, BASE_URL } from '../api/axios';
-import { 
+import {
   FiTrendingUp, FiUsers, FiBox, FiDollarSign, FiLayers,
-  FiActivity, FiEye, FiSearch, FiLogIn, FiLogOut, FiX, FiCheck
+  FiActivity, FiEye, FiSearch, FiLogIn, FiLogOut, FiX, FiCheck, FiBell
 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
@@ -22,7 +22,7 @@ const formatActivityTime = (dateString) => {
   const diffMs = now - date;
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMins / 60);
-  
+
   if (diffMins < 1) return 'Just now';
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
@@ -50,30 +50,46 @@ const Dashboard = () => {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [activityStats, setActivityStats] = useState(null);
+  const [requestStats, setRequestStats] = useState([]);
+  const [subscriptions, setSubscriptions] = useState([]);
   const [activeActivityTab, setActiveActivityTab] = useState('ALL');
+  const [activeSearchTab, setActiveSearchTab] = useState('BRANDS');
   const [selectedProductViews, setSelectedProductViews] = useState(null);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const navigate = useNavigate();
 
-   useEffect(() => {
+  useEffect(() => {
     const fetchData = async (isPoll = false) => {
       try {
         const token = sessionStorage.getItem('accessToken');
         const headers = { Authorization: `Bearer ${token}` };
-        const [productsResponse, brandsResponse, categoriesResponse, usersResponse, ordersResponse, activityResponse] = await Promise.all([
+        const [
+          productsResponse,
+          brandsResponse,
+          categoriesResponse,
+          usersResponse,
+          ordersResponse,
+          activityResponse,
+          requestResponse,
+          subsResponse
+        ] = await Promise.all([
           api.get('/products/', { headers }).catch(() => ({ data: [] })),
           api.get('/brands/', { headers }).catch(() => ({ data: [] })),
           api.get('/categories', { headers }).catch(() => ({ data: [] })),
           api.get('/admin/customers', { headers }).catch(() => ({ data: [] })),
           api.get('/orders/all', { headers }).catch(() => ({ data: [] })),
-          api.get('/activity/stats', { headers }).catch(() => ({ data: null }))
+          api.get('/activity/stats', { headers }).catch(() => ({ data: null })),
+          api.get('/admin/request-stats', { headers }).catch(() => ({ data: { stats: [] } })),
+          api.get('/admin/products/subscriptions/all', { headers }).catch(() => ({ data: { subscriptions: [] } }))
         ]);
         setUsers(usersResponse.data);
         setProducts(productsResponse.data);
         setBrands(brandsResponse.data);
         setCategories(categoriesResponse.data);
         setActivityStats(activityResponse?.data || null);
-        
+        setRequestStats(requestResponse?.data?.stats || []);
+        setSubscriptions(subsResponse?.data?.subscriptions || []);
+
         const fetchedOrders = Array.isArray(ordersResponse.data) ? ordersResponse.data : ordersResponse.data?.orders || [];
         setOrders(fetchedOrders);
         if (!isPoll) setLoading(false);
@@ -84,7 +100,7 @@ const Dashboard = () => {
         }
       }
     };
-    
+
     // Initial fetch
     fetchData(false);
 
@@ -117,17 +133,17 @@ const Dashboard = () => {
     const resolvedProductId = productItem.productId || productItem.product?._id || productItem.product;
     const prod = products.find(p => p._id === resolvedProductId) || productItem.product || {};
     if (!prod || !prod._id) return;
-    
+
     const pvLogs = (activityStats?.recentActivities || []).filter(act => {
       const action = (act.action || '').toUpperCase();
       const matchesAction = action === 'PRODUCT_VIEW' || action === 'PRODUCTVIEW' || action === 'PRODUCT';
       return matchesAction && (act.details?.productId === prod._id);
     });
-    
+
     // Group logs by user
     const userViewCounts = {};
     const uniqueUsers = [];
-    
+
     pvLogs.forEach(log => {
       const uId = log.user?._id || log.user?.email || 'unknown';
       if (!userViewCounts[uId]) {
@@ -140,10 +156,10 @@ const Dashboard = () => {
       }
       userViewCounts[uId].count += 1;
     });
-    
+
     // Sort users by count descending
     uniqueUsers.sort((a, b) => b.count - a.count);
-    
+
     setSelectedProductViews({
       product: prod,
       viewsList: uniqueUsers,
@@ -156,32 +172,32 @@ const Dashboard = () => {
   const processChartData = () => {
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const currentDate = new Date();
-    
+
     const labels = [];
     const salesData = [0, 0, 0, 0, 0, 0];
     const deliveredCountData = [0, 0, 0, 0, 0, 0];
     const processingCountData = [0, 0, 0, 0, 0, 0];
     const cancelledCountData = [0, 0, 0, 0, 0, 0];
-    
+
     for (let i = 5; i >= 0; i--) {
       const d = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
       labels.push(monthNames[d.getMonth()]);
     }
-    
+
     let totalRev = 0;
 
     orders.forEach(order => {
       const isPaid = order.paymentStatus?.toLowerCase() === 'paid';
       const status = order.orderStatus?.toLowerCase() || 'pending';
-      
+
       if (order.totalAmount && isPaid) {
-         totalRev += order.totalAmount;
+        totalRev += order.totalAmount;
       }
-      
+
       if (order.createdAt) {
         const orderDate = new Date(order.createdAt);
         const monthsDiff = (currentDate.getFullYear() - orderDate.getFullYear()) * 12 + (currentDate.getMonth() - orderDate.getMonth());
-        
+
         if (monthsDiff >= 0 && monthsDiff <= 5) {
           const index = 5 - monthsDiff;
           if (isPaid) {
@@ -280,6 +296,68 @@ const Dashboard = () => {
     type: 'donut'
   };
 
+  // Device metrics: dynamic charts
+  const notificationsChartConfig = {
+    series: [
+      activityStats?.deviceMetrics?.notificationsEnabled || 0,
+      activityStats?.deviceMetrics?.notificationsDisabled || 0
+    ],
+    options: {
+      chart: { type: 'donut', background: 'transparent', fontFamily: 'inherit' },
+      labels: ['Enabled', 'Disabled'],
+      colors: ['#10b981', '#f43f5e'],
+      dataLabels: { enabled: true, formatter: (val) => `${Math.round(val)}%` },
+      legend: { position: 'bottom', labels: { colors: '#94a3b8' } },
+      stroke: { colors: ['rgba(255,255,255,0.05)'], width: 1 },
+      theme: { mode: 'dark' },
+      tooltip: { theme: 'dark', y: { formatter: (val) => `${val} users` } }
+    },
+    type: 'donut'
+  };
+
+  const appVersionsData = activityStats?.deviceMetrics?.appVersions || [];
+  const appVersionsLabels = appVersionsData.map(av => av.version || 'Unknown');
+  const appVersionsCounts = appVersionsData.map(av => av.count || 0);
+
+  const appVersionsChartConfig = {
+    series: [{
+      name: 'Devices',
+      data: appVersionsCounts
+    }],
+    options: {
+      chart: { type: 'bar', toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit' },
+      colors: ['#6366f1'],
+      plotOptions: {
+        bar: {
+          borderRadius: 6,
+          horizontal: true,
+          barHeight: '60%',
+          distributed: true
+        }
+      },
+      dataLabels: { enabled: true, formatter: (val) => `${val}`, style: { colors: ['#fff'] } },
+      xaxis: {
+        categories: appVersionsLabels,
+        axisBorder: { show: false },
+        axisTicks: { show: false },
+        labels: { style: { colors: '#94a3b8', fontWeight: 600 } }
+      },
+      yaxis: {
+        labels: { style: { colors: '#94a3b8', fontWeight: 600 } }
+      },
+      grid: {
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        strokeDashArray: 3,
+        xaxis: { lines: { show: true } },
+        yaxis: { lines: { show: false } }
+      },
+      legend: { show: false },
+      theme: { mode: 'dark' },
+      tooltip: { theme: 'dark', y: { formatter: (val) => `${val} devices` } }
+    },
+    type: 'bar'
+  };
+
   // Calculate activity-related values
   const totalProductViews = activityStats?.recentActivities?.filter(act => {
     const action = (act.action || '').toUpperCase();
@@ -298,9 +376,9 @@ const Dashboard = () => {
       case 'VIEWS':
         return activityStats.recentActivities.filter(act => {
           const actionUpper = (act.action || '').toUpperCase();
-          return actionUpper === 'PRODUCT_VIEW' || actionUpper === 'PRODUCTVIEW' || 
-                 actionUpper === 'BRAND_VIEW' || actionUpper === 'BRANDVIEW' || 
-                 actionUpper === 'CATEGORY_VIEW' || actionUpper === 'CATEGORYVIEW';
+          return actionUpper === 'PRODUCT_VIEW' || actionUpper === 'PRODUCTVIEW' ||
+            actionUpper === 'BRAND_VIEW' || actionUpper === 'BRANDVIEW' ||
+            actionUpper === 'CATEGORY_VIEW' || actionUpper === 'CATEGORYVIEW';
         });
       case 'SEARCHES':
         return activityStats.recentActivities.filter(act => {
@@ -313,54 +391,54 @@ const Dashboard = () => {
     }
   };
   const filteredActivities = getFilteredActivities();
- 
+
   const sortedMostViewedProducts = React.useMemo(() => {
     return activityStats?.mostViewedProducts || [];
   }, [activityStats]);
- 
+
   // Dynamic data metrics
   const metrics = [
-    { 
-      title: "Total Revenue", 
-      value: `₹${totalRev.toLocaleString('en-IN')}`, 
-      icon: FiDollarSign, 
-      color: "text-emerald-400", 
+    {
+      title: "Total Revenue",
+      value: `₹${totalRev.toLocaleString('en-IN')}`,
+      icon: FiDollarSign,
+      color: "text-emerald-400",
       bg: "bg-emerald-500/20",
       hoverBorder: "hover:border-emerald-500/30",
       hoverGlow: "hover:shadow-[0_0_20px_rgba(16,185,129,0.12)]"
     },
-    { 
-      title: "No of Brands", 
-      value: brands.length, 
-      icon: FiTrendingUp, 
-      color: "text-blue-400", 
+    {
+      title: "No of Brands",
+      value: brands.length,
+      icon: FiTrendingUp,
+      color: "text-blue-400",
       bg: "bg-blue-500/20",
       hoverBorder: "hover:border-blue-500/30",
       hoverGlow: "hover:shadow-[0_0_20px_rgba(59,130,246,0.12)]"
     },
-    { 
-      title: "No of Products", 
-      value: products.length, 
-      icon: FiBox, 
-      color: "text-amber-400", 
+    {
+      title: "No of Products",
+      value: products.length,
+      icon: FiBox,
+      color: "text-amber-400",
       bg: "bg-amber-500/20",
       hoverBorder: "hover:border-amber-500/30",
       hoverGlow: "hover:shadow-[0_0_20px_rgba(245,158,11,0.12)]"
     },
-    { 
-      title: "Total Products (with Variants)", 
-      value: products.reduce((sum, p) => sum + (Array.isArray(p.variants) && p.variants.length > 1 ? p.variants.length : 1), 0), 
-      icon: FiLayers, 
-      color: "text-purple-400", 
+    {
+      title: "Total Products (with Variants)",
+      value: products.reduce((sum, p) => sum + (Array.isArray(p.variants) && p.variants.length > 1 ? p.variants.length : 1), 0),
+      icon: FiLayers,
+      color: "text-purple-400",
       bg: "bg-purple-500/20",
       hoverBorder: "hover:border-purple-500/30",
       hoverGlow: "hover:shadow-[0_0_20px_rgba(139,92,246,0.12)]"
     },
-    { 
-      title: "Total Users", 
-      value: users.length, 
-      icon: FiUsers, 
-      color: "text-indigo-400", 
+    {
+      title: "Total Users",
+      value: users.length,
+      icon: FiUsers,
+      color: "text-indigo-400",
       bg: "bg-indigo-500/20",
       hoverBorder: "hover:border-indigo-500/30",
       hoverGlow: "hover:shadow-[0_0_20px_rgba(99,102,241,0.12)]"
@@ -468,6 +546,26 @@ const Dashboard = () => {
       color: "text-rose-400",
       bg: "bg-rose-500/15",
       theme: "rose"
+    },
+    {
+      title: "API Request Stats",
+      value: requestStats.reduce((sum, item) => sum + (item.count || 0), 0).toLocaleString(),
+      desc: "Total tracked API endpoint hits",
+      path: "/dashboard/details/request-stats",
+      icon: FiActivity,
+      color: "text-rose-400",
+      bg: "bg-rose-500/15",
+      theme: "rose"
+    },
+    {
+      title: "Product Subscriptions",
+      value: subscriptions.length,
+      desc: "Back in stock alerts subscribed",
+      path: "/dashboard/details/product-subscriptions",
+      icon: FiBell,
+      color: "text-cyan-400",
+      bg: "bg-cyan-500/15",
+      theme: "cyan"
     }
   ];
 
@@ -583,8 +681,8 @@ const Dashboard = () => {
             <h3 className="text-white font-extrabold text-lg tracking-tight">Dashboard Connection Error</h3>
             <p className="text-sm text-slate-400 mt-2 leading-relaxed">{error}</p>
           </div>
-          <button 
-            onClick={() => window.location.reload()} 
+          <button
+            onClick={() => window.location.reload()}
             className="px-5 py-2.5 bg-rose-600/20 hover:bg-rose-600/35 border border-rose-500/30 text-rose-300 font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md"
           >
             Retry Connection
@@ -596,7 +694,7 @@ const Dashboard = () => {
 
   return (
     <div className="relative space-y-6 min-h-full z-0 isolate w-full">
-      
+
       {/* Added 'transform-gpu' to the heavy blur elements to force hardware acceleration */}
       <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
       <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
@@ -625,9 +723,9 @@ const Dashboard = () => {
       {/* Metric Cards Grid */}
       <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 xl:gap-6 z-10">
         {metrics.map((metric, index) => (
-          <div 
-            key={index} 
-            className={`bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-4 sm:p-5 xl:p-6 transition-all duration-300 hover:-translate-y-1 cursor-pointer relative overflow-hidden group ${metric.hoverBorder} ${metric.hoverGlow}`} 
+          <div
+            key={index}
+            className={`bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-4 sm:p-5 xl:p-6 transition-all duration-300 hover:-translate-y-1 cursor-pointer relative overflow-hidden group ${metric.hoverBorder} ${metric.hoverGlow}`}
             onClick={() => usernav(index)}
           >
             <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
@@ -638,8 +736,8 @@ const Dashboard = () => {
             </div>
             <div className="relative z-10">
               <h3 className="text-slate-400 text-sm font-bold tracking-wide">{metric.title}</h3>
-              <p 
-                className="text-2xl xl:text-xl 2xl:text-3xl font-extrabold text-white mt-1 tracking-tight truncate" 
+              <p
+                className="text-2xl xl:text-xl 2xl:text-3xl font-extrabold text-white mt-1 tracking-tight truncate"
                 title={metric.value.toString()}
               >
                 {metric.value}
@@ -651,13 +749,13 @@ const Dashboard = () => {
 
       {/* Activity & engagement Analytics Section */}
       {!loading && activityStats && (
-        <div className="mt-8 space-y-6 relative z-10">
+        <div className="mt-8 space-y-2 relative z-10">
           {/* Section Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h2 className="text-2xl font-bold text-white tracking-tight flex items-center gap-3">
               <FiActivity className="text-blue-400" /> Activity & Engagement Analytics
             </h2>
-            <button 
+            <button
               onClick={() => navigate('/dashboard/details/all')}
               className="flex items-center px-4 py-2 bg-blue-600/20 hover:bg-blue-600/35 border border-blue-500/30 text-blue-300 font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md hover:scale-[1.02] active:scale-[0.98] w-fit"
             >
@@ -666,9 +764,9 @@ const Dashboard = () => {
           </div>
 
           {/* Main Activity Details Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
             {/* Left Column: Engagement Categories Grid */}
-            <div className="lg:col-span-2 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 relative overflow-hidden flex flex-col lg:justify-between lg:h-[580px] h-auto gap-6">
+            <div className="lg:col-span-2 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 relative overflow-hidden flex flex-col h-fit gap-6">
               <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
               {/* <div className="relative z-10 mb-6">
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
@@ -678,8 +776,8 @@ const Dashboard = () => {
                   Click on any category card below to navigate directly to its detailed dashboard logs, campaigns, catalog lists, or system directories.
                 </p>
               </div> */}
-              
-              <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 z-10 lg:my-auto">
+
+              <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 z-10">
                 {activityMetricCards.map((card, idx) => (
                   <div
                     key={idx}
@@ -702,18 +800,24 @@ const Dashboard = () => {
                 ))}
               </div>
             </div>
- 
+
             {/* Right Column: Most Viewed Products */}
             <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 relative overflow-hidden flex flex-col lg:min-h-[580px] min-h-fit">
               <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-              
-              <div className="relative border-b border-white/5 pb-4 mb-6 z-10">
+
+              <div className="relative border-b border-white/5 pb-4 mb-6 z-10 flex items-center justify-between">
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
                   <FiEye className="text-blue-400" /> Most viewed Products
                 </h3>
+                <button
+                  onClick={() => navigate('/dashboard/details/most-viewed-products')}
+                  className="text-[10px] text-blue-400 hover:text-blue-300 font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                >
+                  View All →
+                </button>
               </div>
-              
-              <div className="relative z-10 flex-1 overflow-y-auto max-h-[470px] space-y-3 custom-scrollbar pr-1">
+
+              <div className="relative z-10 flex-1 overflow-y-auto min-h-auto space-y-3 custom-scrollbar pr-1">
                 {!sortedMostViewedProducts || sortedMostViewedProducts.length === 0 ? (
                   <p className="text-xs text-slate-500 italic py-4">No product views recorded yet.</p>
                 ) : (
@@ -721,11 +825,11 @@ const Dashboard = () => {
                     const resolvedProductId = item.productId || item.product?._id || item.product;
                     const prod = products.find(p => p._id === resolvedProductId) || item.product || {};
                     const imgUrl = prod.images?.[0] || '';
-                    
+
                     let rankBg = 'bg-slate-800 text-slate-400 border-white/5';
                     let itemBorder = 'border-white/5 hover:border-blue-500/20 bg-slate-950/10 hover:bg-slate-950/30';
                     let rankLabel = `${idx + 1}`;
-                    
+
                     if (idx === 0) {
                       rankBg = 'bg-gradient-to-r from-amber-400 to-yellow-600 text-slate-950 font-black shadow-lg shadow-amber-500/25 border-amber-300/30';
                       itemBorder = 'border-amber-500/20 hover:border-amber-400/50 bg-gradient-to-r from-amber-500/5 via-slate-900/30 to-slate-950/50';
@@ -739,10 +843,10 @@ const Dashboard = () => {
                       itemBorder = 'border-orange-500/20 hover:border-orange-400/50 bg-gradient-to-r from-orange-500/5 via-slate-900/30 to-slate-950/50';
                       rankLabel = '3rd';
                     }
-                    
+
                     return (
-                      <div 
-                        key={prod._id || idx} 
+                      <div
+                        key={prod._id || idx}
                         onClick={() => handleProductViewsClick(item)}
                         className={`flex items-center gap-3 p-2 rounded-2xl border transition-all duration-300 group cursor-pointer hover:scale-[1.01] ${itemBorder}`}
                       >
@@ -750,7 +854,7 @@ const Dashboard = () => {
                         <div className={`flex items-center justify-center shrink-0 w-8 h-8 rounded-xl text-[10px] font-black border uppercase tracking-wider ${rankBg}`}>
                           {rankLabel}
                         </div>
-                        
+
                         {/* Product Image preview */}
                         {imgUrl ? (
                           <div className="w-12 h-12 rounded-xl overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center shadow-inner transition-transform duration-300 group-hover:scale-105 p-0.5">
@@ -761,13 +865,13 @@ const Dashboard = () => {
                             <FiBox size={18} />
                           </div>
                         )}
-                        
+
                         {/* Details */}
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-bold text-white truncate group-hover:text-blue-400 transition-colors leading-snug">{prod.name || 'Unknown Product'}</p>
                           <p className="text-[10px] text-slate-500 font-semibold mt-1">Base Price: ₹{prod.basePrice?.toLocaleString('en-IN') || 0}</p>
                         </div>
-                        
+
                         {/* Views counter */}
                         <div className="shrink-0 bg-blue-500/10 text-blue-400 text-[10px] font-extrabold px-3 py-1 rounded-xl border border-blue-500/20 shadow-xs">
                           {item.views || 0} views
@@ -784,7 +888,7 @@ const Dashboard = () => {
 
       {/* Main Content Area (Analytics Charts Grid) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-10 relative z-10">
-        
+
         {/* Sales Revenue Chart */}
         <div className="relative bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 overflow-hidden flex flex-col h-[380px]">
           <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
@@ -795,12 +899,12 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="relative flex-1 w-full z-10">
-            <ReactApexChart 
-              options={salesChartConfig.options} 
-              series={salesChartConfig.series} 
-              type={salesChartConfig.type} 
-              height="100%" 
-              width="100%" 
+            <ReactApexChart
+              options={salesChartConfig.options}
+              series={salesChartConfig.series}
+              type={salesChartConfig.type}
+              height="100%"
+              width="100%"
             />
           </div>
         </div>
@@ -815,12 +919,12 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="relative flex-1 w-full z-10">
-            <ReactApexChart 
-              options={ordersChartConfig.options} 
-              series={ordersChartConfig.series} 
-              type={ordersChartConfig.type} 
-              height="100%" 
-              width="100%" 
+            <ReactApexChart
+              options={ordersChartConfig.options}
+              series={ordersChartConfig.series}
+              type={ordersChartConfig.type}
+              height="100%"
+              width="100%"
             />
           </div>
         </div>
@@ -840,13 +944,200 @@ const Dashboard = () => {
                 No brand data available for distribution.
               </div>
             ) : (
-              <ReactApexChart 
-                options={brandsChartConfig.options} 
-                series={brandsChartConfig.series} 
-                type={brandsChartConfig.type} 
-                height="100%" 
-                width="100%" 
+              <ReactApexChart
+                options={brandsChartConfig.options}
+                series={brandsChartConfig.series}
+                type={brandsChartConfig.type}
+                height="100%"
+                width="100%"
               />
+            )}
+          </div>
+        </div>
+
+      </div>
+
+      {/* Device & Search Analytics Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-10 relative z-10">
+
+        {/* App Version Distribution Chart */}
+        <div className="relative bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 overflow-hidden flex flex-col h-[420px]">
+          <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
+          <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
+            <div>
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider">App Version Distribution</h3>
+              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Registered devices per application release version</p>
+            </div>
+          </div>
+          <div className="relative flex-1 w-full z-10">
+            {appVersionsCounts.length === 0 ? (
+              <div className="text-center text-slate-500 text-xs py-10 italic">
+                No app version data available.
+              </div>
+            ) : (
+              <ReactApexChart
+                options={appVersionsChartConfig.options}
+                series={appVersionsChartConfig.series}
+                type={appVersionsChartConfig.type}
+                height="100%"
+                width="100%"
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Push Notification Alerts Chart */}
+        <div className="relative bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 overflow-hidden flex flex-col h-[420px]">
+          <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
+          <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
+            <div>
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Push Alerts Permission</h3>
+              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Notification permissions enabled vs disabled ratio</p>
+            </div>
+          </div>
+          <div className="relative flex-1 w-full z-10 flex items-center justify-center">
+            {notificationsChartConfig.series[0] === 0 && notificationsChartConfig.series[1] === 0 ? (
+              <div className="text-center text-slate-500 text-xs py-10 italic">
+                No device permissions recorded.
+              </div>
+            ) : (
+              <ReactApexChart
+                options={notificationsChartConfig.options}
+                series={notificationsChartConfig.series}
+                type={notificationsChartConfig.type}
+                height="100%"
+                width="100%"
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Brand & Catalog Search Analytics Tabbed List */}
+        <div className="relative bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 overflow-hidden flex flex-col h-[420px]">
+          <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
+
+          <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Search Analytics</h3>
+              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Top brand, category, & key searches</p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="flex bg-slate-950/40 p-1 rounded-xl border border-white/5 shrink-0">
+                <button
+                  onClick={() => setActiveSearchTab('BRANDS')}
+                  className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition-colors cursor-pointer ${activeSearchTab === 'BRANDS' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
+                    }`}
+                >
+                  Brands
+                </button>
+                <button
+                  onClick={() => setActiveSearchTab('CATEGORIES')}
+                  className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition-colors cursor-pointer ${activeSearchTab === 'CATEGORIES' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
+                    }`}
+                >
+                  Cats
+                </button>
+                <button
+                  onClick={() => setActiveSearchTab('QUERIES')}
+                  className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition-colors cursor-pointer ${activeSearchTab === 'QUERIES' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
+                    }`}
+                >
+                  Queries
+                </button>
+              </div>
+              <button
+                onClick={() => {
+                  const map = { BRANDS: 'most-searched-brands', CATEGORIES: 'most-searched-categories', QUERIES: 'most-searched' };
+                  navigate(`/dashboard/details/${map[activeSearchTab]}`);
+                }}
+                className="text-[10px] text-blue-400 hover:text-blue-300 font-bold uppercase tracking-wider transition-colors cursor-pointer whitespace-nowrap"
+              >
+                View All →
+              </button>
+            </div>
+          </div>
+
+          <div className="relative z-10 flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1">
+            {activeSearchTab === 'BRANDS' && (
+              !(activityStats?.mostSearchedBrands) || activityStats.mostSearchedBrands.length === 0 ? (
+                <p className="text-xs text-slate-500 italic py-4">No brand search analytics recorded.</p>
+              ) : (
+                activityStats.mostSearchedBrands.map((item, idx) => {
+                  const bLogo = item.brand?.logo || '';
+                  return (
+                    <div
+                      key={item.brand?._id || idx}
+                      className="flex items-center justify-between p-2 rounded-xl bg-slate-950/10 border border-white/5 hover:border-blue-500/10 transition-colors"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="w-5 h-5 rounded-md bg-slate-800 text-[10px] text-slate-400 font-bold flex items-center justify-center border border-white/5">
+                          {idx + 1}
+                        </span>
+                        {bLogo ? (
+                          <div className="w-7 h-7 rounded bg-white flex items-center justify-center p-0.5 border border-white/10 shrink-0">
+                            <img src={getImageUrl(bLogo)} alt={item.brand?.name} className="w-full h-full object-contain" />
+                          </div>
+                        ) : (
+                          <div className="w-7 h-7 rounded bg-slate-800 flex items-center justify-center text-[10px] text-slate-500 font-bold border border-white/5 uppercase shrink-0">
+                            {item.brand?.name?.substring(0, 2) || 'BR'}
+                          </div>
+                        )}
+                        <span className="text-xs font-bold text-white truncate">{item.brand?.name || 'Unknown'}</span>
+                      </div>
+                      <span className="bg-blue-500/10 text-blue-400 text-[10px] font-extrabold px-2 py-0.5 rounded-lg border border-blue-500/20 shrink-0">
+                        {item.searches} searches
+                      </span>
+                    </div>
+                  );
+                })
+              )
+            )}
+
+            {activeSearchTab === 'CATEGORIES' && (
+              !(activityStats?.mostSearchedCategories) || activityStats.mostSearchedCategories.length === 0 ? (
+                <p className="text-xs text-slate-500 italic py-4">No category search analytics recorded.</p>
+              ) : (
+                activityStats.mostSearchedCategories.map((item, idx) => (
+                  <div
+                    key={item.category?._id || idx}
+                    className="flex items-center justify-between p-2 rounded-xl bg-slate-950/10 border border-white/5 hover:border-blue-500/10 transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="w-5 h-5 rounded-md bg-slate-800 text-[10px] text-slate-400 font-bold flex items-center justify-center border border-white/5">
+                        {idx + 1}
+                      </span>
+                      <span className="text-xs font-bold text-white truncate">{item.category?.name || 'Unknown Category'}</span>
+                    </div>
+                    <span className="bg-indigo-500/10 text-indigo-400 text-[10px] font-extrabold px-2 py-0.5 rounded-lg border border-indigo-500/20 shrink-0">
+                      {item.searches} searches
+                    </span>
+                  </div>
+                ))
+              )
+            )}
+
+            {activeSearchTab === 'QUERIES' && (
+              !(activityStats?.mostSearched) || activityStats.mostSearched.length === 0 ? (
+                <p className="text-xs text-slate-500 italic py-4">No raw search queries recorded.</p>
+              ) : (
+                activityStats.mostSearched.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-2 rounded-xl bg-slate-950/10 border border-white/5 hover:border-blue-500/10 transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="w-5 h-5 rounded-md bg-slate-800 text-[10px] text-slate-400 font-bold flex items-center justify-center border border-white/5">
+                        {idx + 1}
+                      </span>
+                      <span className="text-xs font-mono font-bold text-slate-300 truncate select-all">"{item.query}"</span>
+                    </div>
+                    <span className="bg-amber-500/10 text-amber-400 text-[10px] font-extrabold px-2 py-0.5 rounded-lg border border-amber-500/20 shrink-0">
+                      {item.count} searches
+                    </span>
+                  </div>
+                ))
+              )
             )}
           </div>
         </div>
@@ -858,7 +1149,7 @@ const Dashboard = () => {
         <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
           <div className="bg-slate-900/95 border border-white/10 shadow-2xl rounded-3xl p-6 max-w-md w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
-            
+
             <div className="flex justify-between items-start mb-5 relative z-1000">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-xl bg-blue-500/20 text-blue-400 shrink-0">
@@ -871,7 +1162,7 @@ const Dashboard = () => {
                   <p className="text-[10px] text-slate-500 font-bold mt-0.5">Base Price: ₹{selectedProductViews.product.basePrice?.toLocaleString('en-IN') || 0}</p>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => {
                   setIsProductModalOpen(false);
                   setSelectedProductViews(null);
@@ -903,7 +1194,7 @@ const Dashboard = () => {
                 <p className="text-xs text-slate-500 italic py-4 text-center">No detailed user views logs found.</p>
               ) : (
                 selectedProductViews.viewsList.map((item, index) => (
-                  <div 
+                  <div
                     key={item.user?._id || index}
                     className="flex justify-between items-center bg-slate-950/30 border border-white/5 p-3 rounded-xl hover:border-white/10 transition-colors"
                   >
@@ -923,8 +1214,8 @@ const Dashboard = () => {
                 ))
               )}
             </div>
-            
-            <button 
+
+            <button
               onClick={() => {
                 setIsProductModalOpen(false);
                 setSelectedProductViews(null);

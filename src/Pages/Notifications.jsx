@@ -1,14 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MdSend, MdNotificationsActive, MdKeyboardArrowDown, MdImage, MdHistory, MdRefresh } from 'react-icons/md';
+import { MdSend, MdNotificationsActive, MdKeyboardArrowDown, MdImage, MdHistory, MdRefresh, MdPhoneAndroid, MdPhoneIphone } from 'react-icons/md';
 import { FiLoader, FiAlertCircle, FiCopy } from 'react-icons/fi';
 import axios from 'axios';
 import { api, BASE_URL } from '../api/axios';
+
+const PLATFORM_OPTIONS = [
+  { value: 'all',     label: 'All Platforms', icon: null,           color: 'blue'  },
+  { value: 'android', label: 'Android Only',  icon: 'MdPhoneAndroid', color: 'green' },
+  { value: 'ios',     label: 'iOS Only',      icon: 'MdPhoneIphone',  color: 'slate' },
+];
 
 const Notifications = () => {
   // State for the notification form
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [platform, setPlatform] = useState('all'); // 'all', 'android', 'ios'
   const [targetType, setTargetType] = useState('All Users'); // 'All Users', 'Single User', 'Selected Users'
   const [selectedCustomerIds, setSelectedCustomerIds] = useState([]);
   const [customerSearchTerm, setCustomerSearchTerm] = useState('');
@@ -150,7 +157,8 @@ const Notifications = () => {
             message: description.trim(),
             imageUrl: imageUrl.trim() || undefined,
             clickAction: clickAction,
-            actionId: clickAction === 'home' ? (imageUrl.trim() || undefined) : (clickAction !== 'none' ? actionId : undefined)
+            actionId: clickAction === 'home' ? (imageUrl.trim() || undefined) : (clickAction !== 'none' ? actionId : undefined),
+            platform: platform !== 'all' ? platform : undefined
           };
 
           const response = await api.post('/admin/notify', payload);
@@ -185,6 +193,7 @@ const Notifications = () => {
         setClickAction('none');
         setActionId('');
         setSearchTerm('');
+        setPlatform('all');
         setIsActionDropdownOpen(false);
 
         // Instant refresh of campaign history stats
@@ -227,6 +236,7 @@ const Notifications = () => {
     }
     setCustomerSearchTerm('');
     setSearchTerm('');
+    setPlatform(item.platform || 'all');
     setIsActionDropdownOpen(false);
     
     // Smooth scroll to top of compose form
@@ -297,6 +307,54 @@ const Notifications = () => {
                 <div className="mt-3 relative w-full max-w-xs h-32 rounded-xl overflow-hidden border border-white/10 bg-slate-800/50 flex items-center justify-center">
                   <img src={imageUrl.trim()} alt="Preview" className="max-w-full max-h-full object-contain" onError={(e) => e.target.src='https://placehold.co/300x150?text=Invalid+Image+URL'} />
                 </div>
+              )}
+            </div>
+
+            {/* Platform Targeting */}
+            <div>
+              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Target Platform</label>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPlatform('all')}
+                  className={`flex flex-col items-center gap-1.5 px-3 py-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                    platform === 'all'
+                      ? 'bg-blue-600/30 border-blue-500/50 text-blue-300 ring-1 ring-blue-500/40'
+                      : 'bg-black/20 border-white/10 text-slate-400 hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <span className="text-base">📢</span>
+                  <span>All Platforms</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPlatform('android')}
+                  className={`flex flex-col items-center gap-1.5 px-3 py-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                    platform === 'android'
+                      ? 'bg-emerald-600/25 border-emerald-500/50 text-emerald-300 ring-1 ring-emerald-500/40'
+                      : 'bg-black/20 border-white/10 text-slate-400 hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <MdPhoneAndroid className="text-xl" />
+                  <span>Android Only</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPlatform('ios')}
+                  className={`flex flex-col items-center gap-1.5 px-3 py-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                    platform === 'ios'
+                      ? 'bg-slate-500/25 border-slate-400/50 text-slate-200 ring-1 ring-slate-400/40'
+                      : 'bg-black/20 border-white/10 text-slate-400 hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <MdPhoneIphone className="text-xl" />
+                  <span>iOS Only</span>
+                </button>
+              </div>
+              {platform !== 'all' && (
+                <p className="text-[10px] text-slate-500 mt-2 font-medium">
+                  ⚠ Only users with a registered <strong className="text-slate-300">{platform === 'android' ? 'Android' : 'iOS'}</strong> device token will receive this notification.
+                </p>
               )}
             </div>
 
@@ -650,6 +708,21 @@ const Notifications = () => {
                     </div>
 
                     <div className="mt-2 pt-2 border-t border-white/5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-400">
+                      {/* Platform badge */}
+                      {item.platform && item.platform !== 'all' ? (
+                        <div className="flex items-center gap-1">
+                          {item.platform === 'android' 
+                            ? <MdPhoneAndroid className="text-emerald-400" /> 
+                            : <MdPhoneIphone className="text-slate-300" />}
+                          <span className={`font-bold ${item.platform === 'android' ? 'text-emerald-400' : 'text-slate-200'}`}>
+                            {item.platform === 'android' ? 'Android' : 'iOS'}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 text-blue-400 font-bold">
+                          <span>📢</span> All Platforms
+                        </div>
+                      )}
                       {item.customerId && (
                         <div>
                           Audience:{' '}
