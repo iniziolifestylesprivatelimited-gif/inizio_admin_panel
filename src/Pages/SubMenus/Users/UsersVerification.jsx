@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { api, BASE_URL } from '../../../api/axios';
 import { 
-  FiCheck, FiX, FiEye, FiLoader, FiAlertCircle, 
+  FiCheck, FiX, FiLoader, FiAlertCircle, 
   FiSearch, FiUser, FiFileText, FiUserMinus 
 } from 'react-icons/fi';
 import { useOutletContext } from 'react-router-dom';
@@ -171,8 +171,17 @@ const UsersVerification = () => {
             placeholder="Search by name, email..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/50 text-white placeholder-slate-500 text-sm font-medium"
+            className="w-full pl-10 pr-10 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/50 text-white placeholder-slate-500 text-sm font-medium"
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+            >
+              <FiX className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -204,7 +213,11 @@ const UsersVerification = () => {
               <tbody className="divide-y divide-white/5">
                 {filteredUsers.length > 0 ? (
                   filteredUsers.map((user, index) => (
-                    <tr key={user._id} className="hover:bg-transparent transition-colors">
+                    <tr 
+                      key={user._id} 
+                      onClick={() => openModal(user)}
+                      className="hover:bg-white/[0.02] cursor-pointer transition-colors"
+                    >
                       <td className="p-5 text-sm text-slate-400 font-medium">{index + 1}</td>
                       <td className="p-5 text-sm text-white font-medium">{user.name}</td>
                       <td className="p-5 text-sm text-slate-300">{user.email}</td>
@@ -220,13 +233,20 @@ const UsersVerification = () => {
                         </span>
                       </td>
                       <td className="p-5 flex items-center justify-center gap-2">
-                        <button onClick={() => openModal(user)} className="p-2.5 text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all" title="View Full Details">
-                          <FiEye />
-                        </button>
-                        <button onClick={() => handleApprove(user._id)} disabled={isActionLoading} className="p-2.5 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg transition-all disabled:opacity-50" title="Approve & Generate ID">
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleApprove(user._id); }} 
+                          disabled={isActionLoading} 
+                          className="p-2.5 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg transition-all disabled:opacity-50" 
+                          title="Approve & Generate ID"
+                        >
                           <FiCheck strokeWidth={3} />
                         </button>
-                        <button onClick={() => triggerReject(user._id)} disabled={isActionLoading} className="p-2.5 text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50" title="Reject KYC">
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); triggerReject(user._id); }} 
+                          disabled={isActionLoading} 
+                          className="p-2.5 text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50" 
+                          title="Reject KYC"
+                        >
                           <FiX strokeWidth={3} />
                         </button>
                       </td>

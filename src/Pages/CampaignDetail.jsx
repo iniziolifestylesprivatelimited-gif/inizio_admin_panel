@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
   FiArrowLeft, FiLoader, FiAlertCircle, FiSearch, 
-  FiMail, FiPhone, FiUser, FiInfo, FiLink, FiActivity 
+  FiMail, FiPhone, FiUser, FiInfo, FiLink, FiActivity, FiX 
 } from 'react-icons/fi';
 import axios from 'axios';
 import { api, BASE_URL } from '../api/axios';
@@ -245,8 +245,17 @@ const CampaignDetail = () => {
                   placeholder="Search recipients..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-black/20 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs placeholder-slate-500"
+                  className="w-full pl-9 pr-9 py-2 bg-black/20 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs placeholder-slate-500"
                 />
+                {searchTerm && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                  >
+                    <FiX className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
             </div>
 

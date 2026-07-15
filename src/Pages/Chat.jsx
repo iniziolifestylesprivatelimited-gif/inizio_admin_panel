@@ -72,6 +72,7 @@ const Chat = () => {
   const [replyToMessage, setReplyToMessage] = useState(null); // message object being replied to
   const [editingMessage, setEditingMessage] = useState(null); // message object being edited
   const fileInputRef = useRef(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const popularEmojis = [
     '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥸', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🫣', '🤭', '🫢', '🫡', '🤫', '🫠', '🤥', '😶', '🫥', '😐', '😑', '😬', '🫨', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '😵‍💫', '🫵', '👍', '👎', '👊', '✊', '🤛', '🤜', '🤞', '✌️', '🤟', '🤘', '👌', '🤌', '🤏', '👈', '👉', '👆', '👇', '✋', '🤚', '🖐️', '🖖', '👋', '🤙', '💪', '🦾', '🖕', '✍️', '🙏', '🤝', '👏', '🙌', '🫶', '👐', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '💬', '💭', '✉️', '📦', '🎁', '🎈', '🎉', '🌟', '✨', '🔥', '💯', '🚀'
@@ -328,13 +329,26 @@ const Chat = () => {
               <input 
                 type="text" 
                 placeholder="Search conversations..." 
-                className="w-full pl-10 pr-4 py-2 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 text-sm transition-all"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-10 py-2 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 text-sm transition-all"
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                >
+                  <FiX className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
           
           <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
-            {contacts.map(contact => (
+            {contacts.filter(contact => 
+              (contact.name || '').toLowerCase().includes(searchQuery.toLowerCase())
+            ).map(contact => (
               <div 
                 key={contact.userId} 
                 onClick={() => setActiveContact(contact.userId)}

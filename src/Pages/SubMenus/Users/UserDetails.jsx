@@ -205,6 +205,23 @@ const UserDetails = () => {
           categories: Object.values(categoryViewsMap).sort((a, b) => b.count - a.count),
           searches: Object.values(searchQueriesMap).sort((a, b) => b.count - a.count)
         });
+
+        // Update user state dynamically with login count and stats
+        const match = actRes.data?.users?.find(au => au.userId === user._id || (au.email && user.email && au.email.toLowerCase() === user.email.toLowerCase()));
+        const lastActive = user.lastActive || match?.lastActive;
+        const isOnline = user.isOnline !== undefined ? user.isOnline : (lastActive ? (new Date() - new Date(lastActive) < 5 * 60 * 1000) : false);
+        const loginCount = userLogs.filter(act => (act.action || '').toUpperCase() === 'LOGIN').length;
+
+        setUser(prev => prev ? {
+          ...prev,
+          lastActive,
+          isOnline,
+          lastLoginAt: prev.lastLoginAt || match?.lastLoginAt,
+          appVersion: prev.appVersion || match?.appVersion,
+          notificationsEnabled: prev.notificationsEnabled !== undefined ? prev.notificationsEnabled : match?.notificationsEnabled,
+          isAppInstalled: prev.isAppInstalled !== undefined ? prev.isAppInstalled : match?.isAppInstalled,
+          loginCount
+        } : null);
       } catch (err) {
         console.error('Failed to process user activities:', err);
       } finally {
@@ -238,12 +255,21 @@ const UserDetails = () => {
       }
 
       const actUsers = actResponse.data?.users || [];
+      const recentActivities = actResponse.data?.recentActivities || [];
 
       let foundUser = allUsers.find(u => u._id === id);
       if (foundUser) {
         const match = actUsers.find(au => au.userId === foundUser._id || (au.email && foundUser.email && au.email.toLowerCase() === foundUser.email.toLowerCase()));
         const lastActive = foundUser.lastActive || match?.lastActive;
         const isOnline = foundUser.isOnline !== undefined ? foundUser.isOnline : (lastActive ? (new Date() - new Date(lastActive) < 5 * 60 * 1000) : false);
+        
+        const loginCount = recentActivities.filter(act => {
+          const actUserId = act.user?._id || (typeof act.user === 'string' ? act.user : null);
+          const actUserEmail = act.user?.email;
+          const isUserMatch = (actUserId && actUserId === foundUser._id) || (actUserEmail && foundUser.email && actUserEmail.toLowerCase() === foundUser.email.toLowerCase());
+          return isUserMatch && (act.action || '').toUpperCase() === 'LOGIN';
+        }).length;
+
         foundUser = {
           ...foundUser,
           lastActive,
@@ -251,7 +277,8 @@ const UserDetails = () => {
           lastLoginAt: foundUser.lastLoginAt || match?.lastLoginAt,
           appVersion: foundUser.appVersion || match?.appVersion,
           notificationsEnabled: foundUser.notificationsEnabled !== undefined ? foundUser.notificationsEnabled : match?.notificationsEnabled,
-          isAppInstalled: foundUser.isAppInstalled !== undefined ? foundUser.isAppInstalled : match?.isAppInstalled
+          isAppInstalled: foundUser.isAppInstalled !== undefined ? foundUser.isAppInstalled : match?.isAppInstalled,
+          loginCount
         };
         setUser(foundUser);
         setError('');
@@ -608,6 +635,36 @@ const UserDetails = () => {
               <div className="bg-slate-950/30 border border-white/5 p-4 rounded-2xl">
                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Login Count</p>
                 <p className="text-xs font-bold text-white mt-1">{user.loginCount || 0} logins</p>
+              </div>
+
+              {/* Product Views */}
+              <div className="bg-slate-950/30 border border-white/5 p-4 rounded-2xl">
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Product Views</p>
+                <p className="text-xs font-bold text-white mt-1">{user.activityStats?.productViews || 0} views</p>
+              </div>
+
+              {/* Brand Views */}
+              <div className="bg-slate-950/30 border border-white/5 p-4 rounded-2xl">
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Brand Views</p>
+                <p className="text-xs font-bold text-white mt-1">{user.activityStats?.brandViews || 0} views</p>
+              </div>
+
+              {/* Category Views */}
+              <div className="bg-slate-950/30 border border-white/5 p-4 rounded-2xl">
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Category Views</p>
+                <p className="text-xs font-bold text-white mt-1">{user.activityStats?.categoryViews || 0} views</p>
+              </div>
+
+              {/* Searches Count */}
+              <div className="bg-slate-950/30 border border-white/5 p-4 rounded-2xl">
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Search Queries</p>
+                <p className="text-xs font-bold text-white mt-1">{user.activityStats?.searches || 0} queries</p>
+              </div>
+
+              {/* Total Engagement */}
+              <div className="bg-slate-950/30 border border-white/5 p-4 rounded-2xl">
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Total Engagement</p>
+                <p className="text-xs font-bold text-indigo-400 mt-1">{user.activityStats?.totalEngagement || 0} actions</p>
               </div>
 
               {/* Last Active */}

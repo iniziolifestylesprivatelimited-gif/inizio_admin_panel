@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { FiEdit2, FiTrash2, FiPlus, FiLoader, FiSearch, FiUpload, FiX, FiSave, FiImage, FiPackage, FiEye, FiChevronDown, FiChevronUp, FiArrowUp, FiArrowDown, FiCopy, FiDownload, FiFileText } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiPlus, FiLoader, FiSearch, FiUpload, FiX, FiSave, FiImage, FiPackage, FiChevronDown, FiChevronUp, FiArrowUp, FiArrowDown, FiCopy, FiDownload, FiFileText, FiCheck } from 'react-icons/fi';
 import { api, BASE_URL } from '../../../api/axios';
 import CustomDropdown from '../../../Components/CustomDropdown';
 import * as XLSX from 'xlsx';
@@ -96,6 +96,13 @@ const ProductList = () => {
   const [deactivateScope, setDeactivateScope] = useState('product');
   const [selectedDeactivateBrand, setSelectedDeactivateBrand] = useState('');
   const [selectedDeactivateCategory, setSelectedDeactivateCategory] = useState('');
+  const [isActivateModalOpen, setIsActivateModalOpen] = useState(false);
+  const [activateCondition, setActivateCondition] = useState('quantity');
+  const [activateQuantityOperator, setActivateQuantityOperator] = useState('gte');
+  const [activateQuantityValue, setActivateQuantityValue] = useState('1');
+  const [activateScope, setActivateScope] = useState('product');
+  const [selectedActivateBrand, setSelectedActivateBrand] = useState('');
+  const [selectedActivateCategory, setSelectedActivateCategory] = useState('');
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -782,6 +789,210 @@ const ProductList = () => {
     }
   };
 
+  const handleBulkActivate = async () => {
+    let targets = [];
+    const token = sessionStorage.getItem('accessToken');
+    
+    const valueThreshold = Number(activateQuantityValue);
+    if (activateCondition === 'quantity' && isNaN(valueThreshold)) {
+      alert('Please enter a valid number for quantity threshold.');
+      return;
+    }
+
+    const checkQuantityMatches = (qty) => {
+      const q = Number(qty) || 0;
+      switch (activateQuantityOperator) {
+        case 'gt': return q > valueThreshold;
+        case 'gte': return q >= valueThreshold;
+        case 'lt': return q < valueThreshold;
+        case 'lte': return q <= valueThreshold;
+        case 'eq': return q === valueThreshold;
+        case 'neq': return q !== valueThreshold;
+        default: return false;
+      }
+    };
+
+    // 1. Find the target products and construct their updated payload
+    if (activateCondition === 'quantity') {
+      if (activateScope === 'product') {
+        // Evaluate products based on aggregated quantity
+        targets = products.filter(p => {
+          if (p.isActive !== false) return false;
+          const totalQty = p.variants && p.variants.length > 0 
+            ? p.variants.reduce((sum, v) => sum + (Number(v.quantity) || 0), 0) 
+            : (Number(p.totalQuantity) || 0);
+          return checkQuantityMatches(totalQty);
+        }).map(p => ({
+          product: p,
+          updates: {
+            isActive: true, // Activate product
+            variants: p.variants || []
+          }
+        }));
+      } else {
+        // Evaluate individual variants and/or single products
+        targets = products.map(p => {
+          if (p.variants && p.variants.length > 0) {
+            // Check if any variant is inactive and matches the condition
+            const hasMatchingVariant = p.variants.some(v => v.isActive === false && checkQuantityMatches(v.quantity));
+            if (!hasMatchingVariant) return null;
+            
+            // Map variants to set isActive to true for those matching
+            const updatedVariants = p.variants.map(v => 
+              (v.isActive === false && checkQuantityMatches(v.quantity)) ? { ...v, isActive: true } : v
+            );
+            return {
+              product: p,
+              updates: {
+                isActive: true, // Keep parent product active
+                variants: updatedVariants
+              }
+            };
+          } else {
+            // Product with no variants
+            if (p.isActive === false && checkQuantityMatches(p.totalQuantity)) {
+              return {
+                product: p,
+                updates: {
+                  isActive: true, // Activate product itself
+                  variants: []
+                }
+              };
+            }
+          }
+          return null;
+        }).filter(Boolean);
+      }
+    } else if (activateCondition === 'brand') {
+      if (!selectedActivateBrand) {
+        alert('Please select a Brand.');
+        return;
+      }
+      targets = products.filter(p => {
+        if (p.isActive !== false) return false;
+        const brandId = p.brand?._id || p.brand;
+        return brandId === selectedActivateBrand;
+      }).map(p => ({
+        product: p,
+        updates: { isActive: true, variants: p.variants || [] }
+      }));
+    } else if (activateCondition === 'category') {
+      if (!selectedActivateCategory) {
+        alert('Please select a Category.');
+        return;
+      }
+      targets = products.filter(p => {
+        if (p.isActive !== false) return false;
+        const categoryId = p.category?._id || p.category;
+        return categoryId === selectedActivateCategory;
+      }).map(p => ({
+        product: p,
+        updates: { isActive: true, variants: p.variants || [] }
+      }));
+    } else if (activateCondition === 'all') {
+      targets = products.filter(p => p.isActive === false).map(p => ({
+        product: p,
+        updates: { isActive: true, variants: p.variants || [] }
+      }));
+    }
+
+    if (targets.length === 0) {
+      alert('No deactivated items match the selected condition.');
+      return;
+    }
+
+    const confirmMsg = activateCondition === 'quantity' && activateScope === 'variants'
+      ? `This will activate matching variants in ${targets.length} product(s). Are you sure you want to proceed?`
+      : `This will activate ${targets.length} product(s). Are you sure you want to proceed?`;
+
+    if (!window.confirm(confirmMsg)) {
+      return;
+    }
+
+    setIsBulkUpdating(true);
+    try {
+      await Promise.all(targets.map(async ({ product: p, updates }) => {
+        const formData = new FormData();
+        formData.append('name', p.name || '');
+        formData.append('description', p.description || '');
+        formData.append('details', p.details || '');
+        formData.append('expertNotes', p.expertNotes || '');
+        formData.append('basePrice', p.basePrice || 0);
+        formData.append('offerPrice', p.offerPrice || 0);
+        formData.append('l1Price', p.l1Price || 0);
+        formData.append('l2Price', p.l2Price || 0);
+        formData.append('l3Price', p.l3Price || 0);
+        formData.append('quantityPricing', JSON.stringify(p.quantityPricing || []));
+        formData.append('eanNumber', p.eanNumber || '');
+        formData.append('totalQuantity', p.totalQuantity || 0);
+        formData.append('cancellationPolicy', p.cancellationPolicy || '');
+        formData.append('sevenDaysReturn', p.sevenDaysReturn || '');
+        formData.append('warranty', p.warranty || '');
+        formData.append('isActive', updates.isActive);
+
+        const brandId = p.brand?._id || p.brand;
+        if (brandId) formData.append('brand', brandId);
+        
+        const categoryId = p.category?._id || p.category;
+        if (categoryId) formData.append('category', categoryId);
+
+        const payloadVariants = updates.variants.map(v => {
+          const parsedQP = (v.quantityPricing || [])
+            .map(qp => ({ minQty: Number(qp.minQty) || 0, price: Number(qp.price) || 0 }))
+            .filter(qp => qp.minQty > 0 || qp.price > 0);
+          
+          return {
+            _id: v._id,
+            name: v.name,
+            sku: v.sku,
+            quantity: Number(v.quantity) || 0,
+            price: Number(v.price) || 0,
+            offerPrice: Number(v.offerPrice) || 0,
+            l1Price: Number(v.l1Price) || 0,
+            l2Price: Number(v.l2Price) || 0,
+            l3Price: Number(v.l3Price) || 0,
+            quantityPricing: parsedQP,
+            images: v.images || [],
+            isActive: v.isActive !== false
+          };
+        });
+        formData.append('variants', JSON.stringify(payloadVariants));
+
+        if (p.images && p.images.length > 0) {
+          formData.append('images', JSON.stringify(p.images));
+        }
+
+        await axios.put(`${BASE_URL}/api/products/${p._id}`, formData, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+      }));
+
+      // Update local state
+      setProducts(prev => prev.map(p => {
+        const target = targets.find(t => t.product._id === p._id);
+        if (target) {
+          return {
+            ...p,
+            isActive: target.updates.isActive,
+            variants: target.updates.variants
+          };
+        }
+        return p;
+      }));
+      
+      alert('Items updated successfully.');
+      setIsActivateModalOpen(false);
+    } catch (error) {
+      console.error('Failed to bulk activate products/variants', error);
+      alert('Failed to activate some items.');
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
   const openImageView = (product) => {
     setCurrentProductForView(product);
     setIsImageViewOpen(true);
@@ -1141,8 +1352,17 @@ const ProductList = () => {
               placeholder="Search products..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-black/20 border border-white/10 text-white placeholder-slate-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md transition-all text-sm font-medium"
+              className="w-full pl-10 pr-10 py-2.5 bg-black/20 border border-white/10 text-white placeholder-slate-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md transition-all text-sm font-medium"
             />
+            {searchInput && (
+              <button
+                type="button"
+                onClick={() => setSearchInput('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+              >
+                <FiX className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -1268,6 +1488,7 @@ const ProductList = () => {
                       'Bulk Upload Excel',
                       'Rollback Bulk Upload',
                       'Deactivate Products',
+                      'Activate Products',
                       'Delete Products'
                     ]}
                     onChange={(option) => {
@@ -1283,6 +1504,8 @@ const ProductList = () => {
                         handleRollbackBulkUpload();
                       } else if (option === 'Deactivate Products') {
                         setIsDeactivateModalOpen(true);
+                      } else if (option === 'Activate Products') {
+                        setIsActivateModalOpen(true);
                       } else if (option === 'Delete Products') {
                         setIsDeleteMode(true);
                         setSelectedProducts([]);
@@ -1382,7 +1605,11 @@ const ProductList = () => {
               ) : currentProducts.length > 0 ? (
                 currentProducts.map((product, index) => {
                   return (
-                    <tr key={product._id || index} className="hover:bg-transparent transition-colors group">
+                    <tr 
+                      key={product._id || index} 
+                      onClick={() => openDetailsView(product)}
+                      className="hover:bg-white/[0.02] cursor-pointer transition-colors group"
+                    >
                       {isDeleteMode && (
                         <td className="px-4 py-3 text-center animate-in fade-in slide-in-from-left-2 duration-200">
                           <input 
@@ -1390,6 +1617,7 @@ const ProductList = () => {
                             className="w-4 h-4 rounded border-slate-500 bg-slate-800 text-blue-500 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-slate-900 transition-all cursor-pointer accent-blue-500 scheme-dark"
                             checked={selectedProducts.includes(product._id)}
                             onChange={() => handleSelectProduct(product._id)}
+                            onClick={(e) => e.stopPropagation()}
                           />
                         </td>
                       )}
@@ -1412,24 +1640,23 @@ const ProductList = () => {
                       <td className="px-4 py-3 text-sm text-emerald-400 font-bold">{product.offerPrice ?? '-'}</td>
                       <td className="px-4 py-3 text-center">{getQuantityBadge(product)}</td>
                       <td className="px-4 py-3 text-sm text-slate-400 text-center">{product.variants ? product.variants.length>1 ? `${product.variants.length}`: `0` : '-'}</td>
-                      {/* <td className="px-4 py-3 text-sm text-slate-400">{product.eanNumber ?? '-'}</td> */}
                       <td className="px-4 py-3 text-center">
                         {product.images && product.images.length > 0 ? (
                           <div 
-                            onClick={() => openImageView(product)}
-                            className="relative w-12 h-12 mx-auto rounded-lg overflow-hidden border border-white/10 bg-slate-800 cursor-pointer group"
-                            title="View Images"
+                            onClick={(e) => { e.stopPropagation(); openImageView(product); }}
+                            className="w-12 h-12 bg-white rounded-lg overflow-hidden border border-white/10 mx-auto cursor-pointer hover:border-blue-500 transition-colors relative group/img"
+                            title="Click to view images"
                           >
-                            <img src={getImageUrl(product.images[0])} alt={product.name} className="w-full h-full object-contain bg-white p-1 group-hover:scale-110 transition-transform" onError={(e) => e.target.src='https://placehold.co/150x150?text=Error'} />
+                            <img src={getImageUrl(product.images[0])} alt={product.name} className="w-full h-full object-cover" />
                             {product.images.length > 1 && (
-                              <span className="absolute bottom-0 right-0 bg-blue-600/90 backdrop-blur-sm text-white text-[9px] font-bold px-1.5 py-0.5 rounded-tl-lg">
+                              <span className="absolute bottom-0 right-0 bg-slate-950/80 border-t border-l border-white/10 text-[9px] font-black text-white px-1 py-0.25 rounded-tl-md">
                                 +{product.images.length - 1}
                               </span>
                             )}
                           </div>
                         ) : (
                           <div 
-                            onClick={() => openImageView(product)}
+                            onClick={(e) => { e.stopPropagation(); openImageView(product); }}
                             className="w-12 h-12 bg-slate-800 text-slate-500 hover:bg-slate-700 hover:text-white rounded-lg border border-white/10 flex flex-col items-center justify-center mx-auto transition-colors cursor-pointer"
                             title="No Images"
                           >
@@ -1438,10 +1665,11 @@ const ProductList = () => {
                         )}
                       </td>
                       <td className="px-4 py-3 text-center space-x-2">
-                        <button onClick={() => openDetailsView(product)} className="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-900/30 rounded-lg transition-colors cursor-pointer" title="View Details">
-                          <FiEye />
-                        </button>
-                        <button onClick={() => handleDelete(product._id)} className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-900/30 rounded-lg transition-colors cursor-pointer" title="Delete Product">
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleDelete(product._id); }} 
+                          className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-900/30 rounded-lg transition-colors cursor-pointer" 
+                          title="Delete Product"
+                        >
                           <FiTrash2 />
                         </button>
                       </td>
@@ -2288,6 +2516,169 @@ const ProductList = () => {
                   <>
                     <FiTrash2 className="mr-2" />
                     Deactivate Products
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      , document.body)}
+
+      {/* Activate Products Conditions Modal */}
+      {isActivateModalOpen && createPortal(
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={() => !isBulkUpdating && setIsActivateModalOpen(false)}></div>
+          
+          <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-800/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-900/50 text-emerald-400 flex items-center justify-center text-lg">
+                  <FiCheck />
+                </div>
+                <h2 className="text-xl font-bold text-white">Activate Products</h2>
+              </div>
+              <button 
+                onClick={() => setIsActivateModalOpen(false)} 
+                disabled={isBulkUpdating}
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors"
+              >
+                <FiX className="text-xl" />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Condition</label>
+                <select
+                  value={activateCondition}
+                  onChange={(e) => setActivateCondition(e.target.value)}
+                  disabled={isBulkUpdating}
+                  className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium"
+                >
+                  <option value="quantity" className="bg-slate-800">By Product/Variant Quantity</option>
+                  <option value="brand" className="bg-slate-800">Specific Brand</option>
+                  <option value="category" className="bg-slate-800">Specific Category</option>
+                  <option value="all" className="bg-slate-800">All Products</option>
+                </select>
+              </div>
+
+              {activateCondition === 'quantity' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Quantity Condition</label>
+                    <select
+                      value={activateQuantityOperator}
+                      onChange={(e) => setActivateQuantityOperator(e.target.value)}
+                      disabled={isBulkUpdating}
+                      className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium"
+                    >
+                      <option value="gt" className="bg-slate-800">Greater than</option>
+                      <option value="gte" className="bg-slate-800">Greater than or equal to</option>
+                      <option value="lt" className="bg-slate-800">Less than</option>
+                      <option value="lte" className="bg-slate-800">Less than or equal to</option>
+                      <option value="eq" className="bg-slate-800">Is equal to</option>
+                      <option value="neq" className="bg-slate-800">Is not equal to</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Quantity Threshold</label>
+                    <input
+                      type="number"
+                      value={activateQuantityValue}
+                      onChange={(e) => setActivateQuantityValue(e.target.value)}
+                      disabled={isBulkUpdating}
+                      required
+                      placeholder="e.g. 1"
+                      className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Activation Scope</label>
+                    <div className="flex items-center gap-6 mt-1">
+                      <label className="flex items-center gap-2 text-sm text-slate-300 font-bold cursor-pointer select-none">
+                        <input
+                          type="radio"
+                          name="activateScope"
+                          value="product"
+                          checked={activateScope === 'product'}
+                          onChange={() => setActivateScope('product')}
+                          disabled={isBulkUpdating}
+                          className="w-4 h-4 text-blue-500 bg-slate-800 border-white/10 focus:ring-blue-500 accent-blue-500"
+                        />
+                        Entire Product
+                      </label>
+                      <label className="flex items-center gap-2 text-sm text-slate-300 font-bold cursor-pointer select-none">
+                        <input
+                          type="radio"
+                          name="activateScope"
+                          value="variants"
+                          checked={activateScope === 'variants'}
+                          onChange={() => setActivateScope('variants')}
+                          disabled={isBulkUpdating}
+                          className="w-4 h-4 text-blue-500 bg-slate-800 border-white/10 focus:ring-blue-500 accent-blue-500"
+                        />
+                        Variants Only
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activateCondition === 'brand' && (
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Brand</label>
+                  <select
+                    value={selectedActivateBrand}
+                    onChange={(e) => setSelectedActivateBrand(e.target.value)}
+                    disabled={isBulkUpdating}
+                    required
+                    className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium"
+                  >
+                    <option value="" className="bg-slate-800">Choose a Brand</option>
+                    {brands.map(b => <option key={b._id} value={b._id} className="bg-slate-800">{b.name}</option>)}
+                  </select>
+                </div>
+              )}
+
+              {activateCondition === 'category' && (
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Category</label>
+                  <select
+                    value={selectedActivateCategory}
+                    onChange={(e) => setSelectedActivateCategory(e.target.value)}
+                    disabled={isBulkUpdating}
+                    required
+                    className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium"
+                  >
+                    <option value="" className="bg-slate-800">Choose a Category</option>
+                    {categories.map(c => <option key={c._id} value={c._id} className="bg-slate-800">{c.name}</option>)}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 py-4 border-t border-white/10 bg-slate-800/50 flex flex-col sm:flex-row justify-end gap-3">
+              <button 
+                onClick={() => setIsActivateModalOpen(false)} 
+                disabled={isBulkUpdating}
+                className="w-full sm:w-auto px-5 py-2.5 text-slate-300 font-bold rounded-xl hover:bg-slate-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleBulkActivate}
+                disabled={isBulkUpdating}
+                className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/30 cursor-pointer"
+              >
+                {isBulkUpdating ? (
+                  <>
+                    <FiLoader className="animate-spin mr-2" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <FiCheck className="mr-2" />
+                    Activate Products
                   </>
                 )}
               </button>

@@ -274,14 +274,25 @@ export const Ledgers = () => {
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setIsUserSelectOpen(false)}></div>
                     <div className="absolute z-50 w-full mt-2 bg-slate-950 border border-white/10 rounded-xl shadow-2xl p-3 space-y-2 animate-in fade-in duration-200">
-                      <input
-                        type="text"
-                        value={userSearchTerm}
-                        onChange={(e) => setUserSearchTerm(e.target.value)}
-                        placeholder="Search customer by name or email..."
-                        className="w-full px-3 py-2 bg-slate-900 border border-white/10 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 text-white text-xs placeholder-slate-500"
-                        autoFocus
-                      />
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={userSearchTerm}
+                          onChange={(e) => setUserSearchTerm(e.target.value)}
+                          placeholder="Search customer by name or email..."
+                          className="w-full pl-3 pr-8 py-2 bg-slate-900 border border-white/10 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 text-white text-xs placeholder-slate-500"
+                          autoFocus
+                        />
+                        {userSearchTerm && (
+                          <button
+                            type="button"
+                            onClick={() => setUserSearchTerm('')}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                          >
+                            <FiX className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
                       
                       <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-1">
                         {users.filter(user => 

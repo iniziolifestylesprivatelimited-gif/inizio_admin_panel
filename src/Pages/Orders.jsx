@@ -4,7 +4,7 @@ import axios from 'axios';
 import { BASE_URL, api } from '../api/axios';
 import { 
   FiBox, FiLoader, FiAlertCircle, FiChevronDown, FiCalendar, 
-  FiEye, FiX, FiMapPin, FiCreditCard, FiUser, FiPhone, FiMail, 
+  FiX, FiMapPin, FiCreditCard, FiUser, FiPhone, FiMail, 
   FiFileText, FiUpload, FiDownload, FiCheckCircle, FiTrash2, FiInfo, FiRefreshCcw, FiCheck,
   FiTruck
 } from 'react-icons/fi';
@@ -379,13 +379,16 @@ const Orders = ({ defaultStatus = 'all' }) => {
                       <th className="p-4">Items</th>
                       <th className="p-4">Amount</th>
                       <th className="p-4">Payment</th>
-                      <th className="p-2 text-center">Details</th>
                       <th className="p-4 pr-6">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
                     {currentOrders.map((order, index) => (
-                      <tr key={order._id} className="hover:bg-white/5 transition-colors group align-middle">
+                      <tr 
+                        key={order._id} 
+                        onClick={() => handleViewDetails(order)}
+                        className="hover:bg-white/[0.02] cursor-pointer transition-colors group align-middle"
+                      >
                         <td className="p-3 pl-6 text-sm text-slate-400 font-medium">
                           {(currentPage - 1) * itemsPerPage + index + 1}
                         </td>
@@ -443,15 +446,6 @@ const Orders = ({ defaultStatus = 'all' }) => {
                               {order.paymentStatus || 'Pending'}
                             </span>
                           </div>
-                        </td>
-                        <td className="p-4 text-sm text-center">
-                          <button
-                            onClick={() => handleViewDetails(order)}
-                            className="p-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 hover:text-white rounded-lg transition-colors border border-blue-500/20 cursor-pointer mx-auto block"
-                            title="View Full Details"
-                          >
-                            <FiEye className="text-lg" />
-                          </button>
                         </td>
                         <td className="p-4 pr-6">
                           <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-bold border uppercase tracking-wider ${getStatusColor(order.orderStatus)}`}>
@@ -535,7 +529,6 @@ const Orders = ({ defaultStatus = 'all' }) => {
                           <th className="p-4">Customer</th>
                           <th className="p-4">Reason</th>
                           <th className="p-4">Status</th>
-                          <th className="p-4 text-center">View</th>
                           <th className="p-4 pr-6 text-right">Actions</th>
                         </tr>
                       </thead>
@@ -546,7 +539,11 @@ const Orders = ({ defaultStatus = 'all' }) => {
                           const returnReason = ret.items?.[0]?.reason || ret.reason || 'No reason provided';
                           
                           return (
-                            <tr key={returnId} className="hover:bg-white/5 transition-colors group align-middle">
+                            <tr 
+                              key={returnId} 
+                              onClick={() => { setSelectedReturn(ret); setIsReturnModalOpen(true); }}
+                              className="hover:bg-white/[0.02] cursor-pointer transition-colors group align-middle"
+                            >
                               <td className="p-3 pl-6 text-sm text-slate-400 font-medium">
                                 {(currentReturnsPage - 1) * itemsPerPage + index + 1}
                               </td>
@@ -570,26 +567,17 @@ const Orders = ({ defaultStatus = 'all' }) => {
                                   {ret.status || 'Pending'}
                                 </span>
                               </td>
-                              <td className="p-4 text-sm text-center">
-                                <button
-                                  onClick={() => { setSelectedReturn(ret); setIsReturnModalOpen(true); }}
-                                  className="p-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 hover:text-white rounded-lg transition-colors border border-blue-500/20 cursor-pointer mx-auto block"
-                                  title="View Return Details"
-                                >
-                                  <FiEye className="text-lg" />
-                                </button>
-                              </td>
                               <td className="p-4 pr-6 text-right space-x-2">
                                 {(ret.status?.toLowerCase() === 'pending' || ret.status?.toLowerCase() === 'requested') && (
                                   <>
                                     <button
-                                      onClick={() => handleReturnStatusChange(returnId, 'Approved')}
+                                      onClick={(e) => { e.stopPropagation(); handleReturnStatusChange(returnId, 'Approved'); }}
                                       className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-xl border border-emerald-500/20 hover:border-emerald-500 text-xs font-bold transition-all shadow-sm cursor-pointer"
                                     >
                                       <FiCheck size={14} /> Approve
                                     </button>
                                     <button
-                                      onClick={() => { setSelectedReturn(ret); setIsReturnModalOpen(true); setRejectionInputOpen(true); }}
+                                      onClick={(e) => { e.stopPropagation(); setSelectedReturn(ret); setIsReturnModalOpen(true); setRejectionInputOpen(true); }}
                                       className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 hover:bg-red-600 text-red-400 hover:text-white rounded-xl border border-red-500/20 hover:border-red-500 text-xs font-bold transition-all shadow-sm cursor-pointer"
                                     >
                                       <FiX size={14} /> Reject
@@ -598,7 +586,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                                 )}
                                 {ret.status?.toLowerCase() === 'approved' && (
                                   <button
-                                    onClick={() => handleReturnStatusChange(returnId, 'Completed')}
+                                    onClick={(e) => { e.stopPropagation(); handleReturnStatusChange(returnId, 'Completed'); }}
                                     className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 hover:bg-blue-600 text-blue-400 hover:text-white rounded-xl border border-blue-500/20 hover:border-blue-500 text-xs font-bold transition-all shadow-sm cursor-pointer"
                                   >
                                     <FiCheckCircle size={14} /> Complete

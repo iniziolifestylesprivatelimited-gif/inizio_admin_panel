@@ -1,16 +1,24 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MdSend, MdNotificationsActive, MdKeyboardArrowDown, MdImage, MdHistory, MdRefresh, MdPhoneAndroid, MdPhoneIphone } from 'react-icons/md';
-import { FiLoader, FiAlertCircle, FiCopy } from 'react-icons/fi';
+import { 
+  MdSend, MdNotificationsActive, MdKeyboardArrowDown, MdImage, 
+  MdHistory, MdRefresh, MdPhoneAndroid, MdPhoneIphone, MdPeople, 
+  MdPerson, MdGroupAdd 
+} from 'react-icons/md';
+import { 
+  FiLoader, FiAlertCircle, FiCopy, FiGlobe, FiUsers, FiUser, 
+  FiUserCheck, FiLayers, FiBox, FiTrendingUp, FiLink, FiCheck, FiX 
+} from 'react-icons/fi';
 import axios from 'axios';
 import { api, BASE_URL } from '../api/axios';
 
-const PLATFORM_OPTIONS = [
-  { value: 'all',     label: 'All Platforms', icon: null,           color: 'blue'  },
-  { value: 'android', label: 'Android Only',  icon: 'MdPhoneAndroid', color: 'green' },
-  { value: 'ios',     label: 'iOS Only',      icon: 'MdPhoneIphone',  color: 'slate' },
-];
-
 const Notifications = () => {
+  const getAudienceIcon = (type) => {
+    if (type === 'All Users') return <FiUsers className="text-blue-400 text-lg shrink-0" />;
+    if (type === 'Single User') return <FiUser className="text-amber-400 text-lg shrink-0" />;
+    if (type === 'Selected Users') return <FiUserCheck className="text-emerald-400 text-lg shrink-0" />;
+    return null;
+  };
+
   // State for the notification form
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -323,7 +331,7 @@ const Notifications = () => {
                       : 'bg-black/20 border-white/10 text-slate-400 hover:bg-white/5 hover:text-white'
                   }`}
                 >
-                  <span className="text-base">📢</span>
+                  <FiGlobe className="text-xl" />
                   <span>All Platforms</span>
                 </button>
                 <button
@@ -367,13 +375,16 @@ const Notifications = () => {
                   onClick={() => setIsAudienceDropdownOpen(!isAudienceDropdownOpen)}
                   className={`w-full px-4 py-3 bg-black/20 border ${isAudienceDropdownOpen ? 'border-blue-500/50 bg-black/40 ring-2 ring-blue-500/50' : 'border-white/10'} rounded-xl shadow-inner backdrop-blur-md text-white transition-all text-sm font-medium capitalize flex justify-between items-center cursor-pointer select-none`}
                 >
-                  {targetType}
+                  <div className="flex items-center gap-2">
+                    {getAudienceIcon(targetType)}
+                    <span>{targetType}</span>
+                  </div>
                   <MdKeyboardArrowDown className={`text-xl text-slate-400 transition-transform duration-300 ${isAudienceDropdownOpen ? 'rotate-180 text-blue-400' : ''}`} />
                 </div>
 
                 {/* Custom Select Options Dropdown */}
                 {isAudienceDropdownOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
                     {['All Users', 'Single User', 'Selected Users'].map((type) => (
                       <div
                         key={type}
@@ -384,13 +395,32 @@ const Notifications = () => {
                           setCustomerSearchTerm('');
                           setIsCustomerDropdownOpen(false);
                         }}
-                        className={`px-4 py-3 text-sm font-medium cursor-pointer transition-colors ${targetType === type ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-white/10 hover:text-white'}`}
+                        className={`px-4 py-3 text-sm font-medium cursor-pointer transition-colors flex items-center gap-2.5 ${targetType === type ? 'bg-blue-600/35 text-blue-200 border-l-2 border-blue-500 font-semibold' : 'text-slate-300 hover:bg-white/5 hover:text-white'}`}
                       >
-                        {type}
+                        {getAudienceIcon(type)}
+                        <span>{type}</span>
                       </div>
                     ))}
                   </div>
                 )}
+              </div>
+
+              <div className="flex items-center gap-1.5 mt-2.5 text-xs font-bold text-slate-400">
+                <FiCheck className="text-emerald-500" />
+                <span>
+                  Targeting:{' '}
+                  <strong className="text-white">
+                    {targetType === 'All Users' ? (
+                      platform === 'all' ? customers.length :
+                      platform === 'android' ? customers.filter(c => c.devices?.some(d => d.devicePlatform?.toLowerCase() === 'android')).length :
+                      customers.filter(c => c.devices?.some(d => d.devicePlatform?.toLowerCase() === 'ios')).length
+                    ) : selectedCustomerIds.length}
+                  </strong>{' '}
+                  {targetType === 'All Users' 
+                    ? `user(s) matching ${platform === 'all' ? 'All Platforms' : platform === 'android' ? 'Android Only' : 'iOS Only'}`
+                    : `selected user(s)`
+                  }
+                </span>
               </div>
 
               {targetType !== 'All Users' && (
@@ -405,13 +435,17 @@ const Notifications = () => {
                       {selectedCustomerIds.map(id => {
                         const cust = customers.find(c => c._id === id);
                         if (!cust) return null;
+                        const hasAndroid = cust.devices?.some(d => d.devicePlatform?.toLowerCase() === 'android');
+                        const hasIos = cust.devices?.some(d => d.devicePlatform?.toLowerCase() === 'ios');
                         return (
                           <span key={id} className="inline-flex items-center px-3 py-1.5 bg-blue-600/30 text-blue-400 border border-blue-500/20 text-xs font-semibold rounded-full gap-1.5 animate-in fade-in">
                             {cust.name || cust.email}
+                            {hasAndroid && <span className="text-[9px] text-emerald-400 font-bold" title="Android Registered Device">🤖</span>}
+                            {hasIos && <span className="text-[9px] text-indigo-300 font-bold" title="iOS Registered Device">🍎</span>}
                             <button
                               type="button"
                               onClick={() => setSelectedCustomerIds(prev => prev.filter(x => x !== id))}
-                              className="hover:text-red-400 transition-colors text-sm font-bold focus:outline-none"
+                              className="hover:text-red-400 transition-colors text-sm font-bold focus:outline-none ml-1"
                             >
                               ×
                             </button>
@@ -454,38 +488,53 @@ const Notifications = () => {
                   {isCustomerDropdownOpen && (
                     <div className="absolute z-40 mt-2 w-full bg-slate-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-60">
                       <div className="overflow-y-auto max-h-56 custom-scrollbar">
-                        {customers.filter(c => 
-                          !selectedCustomerIds.includes(c._id) &&
-                          ((c.name || '').toLowerCase().includes(customerSearchTerm.toLowerCase()) || 
-                           (c.email || '').toLowerCase().includes(customerSearchTerm.toLowerCase()))
-                        ).length > 0 ? (
-                          customers
-                            .filter(c => 
-                              !selectedCustomerIds.includes(c._id) &&
-                              ((c.name || '').toLowerCase().includes(customerSearchTerm.toLowerCase()) || 
-                               (c.email || '').toLowerCase().includes(customerSearchTerm.toLowerCase()))
-                            )
-                            .map(cust => (
-                              <div
-                                key={cust._id}
-                                onClick={() => {
-                                  if (targetType === 'Single User') {
-                                    setSelectedCustomerIds([cust._id]);
-                                  } else {
-                                    setSelectedCustomerIds(prev => [...prev, cust._id]);
-                                  }
-                                  setCustomerSearchTerm('');
-                                  setIsCustomerDropdownOpen(false);
-                                }}
-                                className="px-4 py-2.5 text-sm cursor-pointer hover:bg-white/5 transition-colors text-left flex flex-col border-b border-white/5 last:border-b-0"
-                              >
-                                <span className="font-bold text-white">{cust.name || 'No Name'}</span>
-                                <span className="text-[11px] text-slate-400">{cust.email || 'No Email'}</span>
+                        {(() => {
+                          const filtered = customers.filter(c => {
+                            const matchesSearch = ((c.name || '').toLowerCase().includes(customerSearchTerm.toLowerCase()) || 
+                                                   (c.email || '').toLowerCase().includes(customerSearchTerm.toLowerCase()));
+                            const matchesNotSelected = !selectedCustomerIds.includes(c._id);
+                            if (platform === 'android') {
+                              return matchesSearch && matchesNotSelected && c.devices?.some(d => d.devicePlatform?.toLowerCase() === 'android');
+                            }
+                            if (platform === 'ios') {
+                              return matchesSearch && matchesNotSelected && c.devices?.some(d => d.devicePlatform?.toLowerCase() === 'ios');
+                            }
+                            return matchesSearch && matchesNotSelected;
+                          });
+
+                          if (filtered.length === 0) {
+                            return <div className="px-4 py-3 text-xs text-slate-500 text-center">No matching customers found</div>;
+                          }
+
+                          return filtered.map(cust => (
+                            <div
+                              key={cust._id}
+                              onClick={() => {
+                                if (targetType === 'Single User') {
+                                  setSelectedCustomerIds([cust._id]);
+                                } else {
+                                  setSelectedCustomerIds(prev => [...prev, cust._id]);
+                                }
+                                setCustomerSearchTerm('');
+                                setIsCustomerDropdownOpen(false);
+                              }}
+                              className="px-4 py-2.5 text-sm cursor-pointer hover:bg-white/5 transition-colors text-left flex justify-between items-center border-b border-white/5 last:border-b-0"
+                            >
+                              <div className="flex flex-col min-w-0">
+                                <span className="font-bold text-white block truncate">{cust.name || 'No Name'}</span>
+                                <span className="text-[11px] text-slate-400 truncate">{cust.email || 'No Email'}</span>
                               </div>
-                            ))
-                        ) : (
-                          <div className="px-4 py-3 text-xs text-slate-500 text-center">No customers found</div>
-                        )}
+                              <div className="flex gap-1 shrink-0 ml-2">
+                                {cust.devices?.some(d => d.devicePlatform?.toLowerCase() === 'android') && (
+                                  <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-green-500/10 text-green-400 border border-green-500/20 uppercase">Android</span>
+                                )}
+                                {cust.devices?.some(d => d.devicePlatform?.toLowerCase() === 'ios') && (
+                                  <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-slate-500/10 text-slate-300 border border-slate-500/20 uppercase font-mono">iOS</span>
+                                )}
+                              </div>
+                            </div>
+                          ));
+                        })()}
                       </div>
                     </div>
                   )}
@@ -496,23 +545,27 @@ const Notifications = () => {
             {/* Click Action Dropdown */}
             <div>
               <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Click Action (Optional)</label>
-              <select 
-                value={clickAction}
-                onChange={(e) => {
-                  setClickAction(e.target.value);
-                  setActionId('');
-                  setSearchTerm('');
-                  setIsActionDropdownOpen(false);
-                }}
-                className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white transition-all text-sm font-medium"
-              >
-                <option value="none" className="bg-slate-800">No Action</option>
-                <option value="home" className="bg-slate-800">Link to Home Page</option>
-                <option value="category" className="bg-slate-800">Link to Category</option>
-                <option value="product" className="bg-slate-800">Link to Specific Product</option>
-                <option value="brand" className="bg-slate-800">Link to Brand</option>
-                <option value="external" className="bg-slate-800">Link to External Website</option>
-              </select>
+              <div className="relative">
+                <select 
+                  value={clickAction}
+                  onChange={(e) => {
+                    setClickAction(e.target.value);
+                    setActionId('');
+                    setSearchTerm('');
+                    setIsActionDropdownOpen(false);
+                  }}
+                  className="w-full pl-10 pr-10 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white transition-all text-sm font-medium appearance-none cursor-pointer"
+                >
+                  <option value="none" className="bg-slate-800">No Action</option>
+                  <option value="home" className="bg-slate-800">Link to Home Page</option>
+                  <option value="category" className="bg-slate-800">Link to Category</option>
+                  <option value="product" className="bg-slate-800">Link to Specific Product</option>
+                  <option value="brand" className="bg-slate-800">Link to Brand</option>
+                  <option value="external" className="bg-slate-800">Link to External Website</option>
+                </select>
+                <FiLink className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-base pointer-events-none" />
+                <MdKeyboardArrowDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-xl pointer-events-none" />
+              </div>
             </div>
 
             {/* Click Action Dynamic Fields */}
@@ -535,34 +588,42 @@ const Notifications = () => {
                 {clickAction === 'category' && (
                   <>
                     <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Category</label>
-                    <select
-                      value={actionId}
-                      onChange={(e) => setActionId(e.target.value)}
-                      required
-                      className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white transition-all text-sm font-medium"
-                    >
-                      <option value="" className="bg-slate-800">-- Select Category --</option>
-                      {categories.map(cat => (
-                        <option key={cat._id} value={cat._id} className="bg-slate-800">{cat.name}</option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={actionId}
+                        onChange={(e) => setActionId(e.target.value)}
+                        required
+                        className="w-full pl-10 pr-10 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white transition-all text-sm font-medium appearance-none cursor-pointer"
+                      >
+                        <option value="" className="bg-slate-800">-- Select Category --</option>
+                        {categories.map(cat => (
+                          <option key={cat._id} value={cat._id} className="bg-slate-800">{cat.name}</option>
+                        ))}
+                      </select>
+                      <FiLayers className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-base pointer-events-none" />
+                      <MdKeyboardArrowDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-xl pointer-events-none" />
+                    </div>
                   </>
                 )}
 
                 {clickAction === 'brand' && (
                   <>
                     <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Brand</label>
-                    <select
-                      value={actionId}
-                      onChange={(e) => setActionId(e.target.value)}
-                      required
-                      className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white transition-all text-sm font-medium"
-                    >
-                      <option value="" className="bg-slate-800">-- Select Brand --</option>
-                      {brands.map(brand => (
-                        <option key={brand._id} value={brand._id} className="bg-slate-800">{brand.name}</option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={actionId}
+                        onChange={(e) => setActionId(e.target.value)}
+                        required
+                        className="w-full pl-10 pr-10 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white transition-all text-sm font-medium appearance-none cursor-pointer"
+                      >
+                        <option value="" className="bg-slate-800">-- Select Brand --</option>
+                        {brands.map(brand => (
+                          <option key={brand._id} value={brand._id} className="bg-slate-800">{brand.name}</option>
+                        ))}
+                      </select>
+                      <FiTrendingUp className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-base pointer-events-none" />
+                      <MdKeyboardArrowDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-xl pointer-events-none" />
+                    </div>
                   </>
                 )}
 
@@ -720,7 +781,7 @@ const Notifications = () => {
                         </div>
                       ) : (
                         <div className="flex items-center gap-1 text-blue-400 font-bold">
-                          <span>📢</span> All Platforms
+                          <FiGlobe className="text-xs text-blue-400 shrink-0" /> All Platforms
                         </div>
                       )}
                       {item.customerId && (
@@ -729,10 +790,16 @@ const Notifications = () => {
                           <span className="font-semibold text-slate-200">
                             {item.customerId === 'all'
                               ? 'All Users'
-                              : item.customerId.split(',').map(id => {
-                                  const c = customers.find(cust => cust._id === id);
-                                  return c ? (c.name || c.email) : id;
-                                }).join(', ')}
+                              : (() => {
+                                  const names = item.customerId.split(',').map(id => {
+                                    const c = customers.find(cust => cust._id === id);
+                                    return c ? (c.name || c.email) : id;
+                                  });
+                                  if (names.length > 3) {
+                                    return `${names.slice(0, 3).join(', ')} and ${names.length - 3} more`;
+                                  }
+                                  return names.join(', ');
+                                })()}
                           </span>
                         </div>
                       )}

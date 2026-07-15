@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { api, BASE_URL } from '../../../api/axios';
 import {
-  FiCheck, FiEye, FiLoader, FiAlertCircle,
-  FiSearch, FiUser, FiFileText, FiRefreshCcw, FiTrash2, FiUserMinus, FiLogOut
+  FiCheck, FiLoader, FiAlertCircle,
+  FiSearch, FiUser, FiFileText, FiRefreshCcw, FiTrash2, FiUserMinus, FiLogOut, FiX
 } from 'react-icons/fi';
+import { MdPhoneAndroid, MdPhoneIphone } from 'react-icons/md';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 
 const formatRelativeTime = (dateString) => {
@@ -99,17 +100,39 @@ const UsersList = () => {
         actUsers = activityStatsResponse.data;
       }
       
+      const recentActivities = activityStatsResponse.data?.recentActivities || [];
+
       allUsers = allUsers.map(u => {
         const match = actUsers.find(au => au.userId === u._id || (au.email && u.email && au.email.toLowerCase() === u.email.toLowerCase()));
         const lastActive = u.lastActive || match?.lastActive;
         const isOnline = u.isOnline !== undefined ? u.isOnline : (lastActive ? (new Date() - new Date(lastActive) < 5 * 60 * 1000) : false);
+        
+        const computedLoginCount = recentActivities.filter(act => {
+          const actUserId = act.user?._id || (typeof act.user === 'string' ? act.user : null);
+          const actUserEmail = act.user?.email;
+          const isUserMatch = (actUserId && actUserId === u._id) || (actUserEmail && u.email && actUserEmail.toLowerCase() === u.email.toLowerCase());
+          return isUserMatch && (act.action || '').toUpperCase() === 'LOGIN';
+        }).length;
+
+        const activityStats = match?.activityStats || {
+          searches: 0,
+          productViews: 0,
+          brandViews: 0,
+          categoryViews: 0,
+          logins: computedLoginCount,
+          totalEngagement: computedLoginCount
+        };
+
         return {
           ...u,
           lastActive,
           isOnline,
           lastLoginAt: u.lastLoginAt || match?.lastLoginAt,
           appVersion: u.appVersion || match?.appVersion,
-          notificationsEnabled: u.notificationsEnabled !== undefined ? u.notificationsEnabled : match?.notificationsEnabled
+          notificationsEnabled: u.notificationsEnabled !== undefined ? u.notificationsEnabled : match?.notificationsEnabled,
+          isAppInstalled: u.isAppInstalled !== undefined ? u.isAppInstalled : match?.isAppInstalled,
+          loginCount: match?.activityStats?.logins !== undefined ? match.activityStats.logins : computedLoginCount,
+          activityStats
         };
       });
 
@@ -196,14 +219,14 @@ const UsersList = () => {
     const emailMatch = user.email?.toLowerCase().includes(searchQuery.toLowerCase());
     const phoneMatch = user.phone?.includes(searchQuery);
     const userIdMatch = user.userId?.toLowerCase().includes(searchQuery.toLowerCase());
-    
+    const gstNumberMatch = user.gstNumber?.toLowerCase().includes(searchQuery.toLowerCase());
     const onlineText = user.isOnline ? 'online' : 'offline';
     const onlineMatch = onlineText.includes(searchQuery.toLowerCase());
     
     const appVersionMatch = user.appVersion?.toLowerCase().includes(searchQuery.toLowerCase());
     const loginMethodMatch = user.lastLoginMethod?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    return nameMatch || emailMatch || phoneMatch || userIdMatch || onlineMatch || appVersionMatch || loginMethodMatch;
+    return nameMatch || emailMatch || phoneMatch || userIdMatch || gstNumberMatch || onlineMatch || appVersionMatch || loginMethodMatch;
   });
 
   // Pagination logic
@@ -224,13 +247,20 @@ const UsersList = () => {
       }
     };
 
-    const handleGlobalLogout = async () => {
-      if (!window.confirm('WARNING: This will log out EVERYONE globally. Continue?')) return;
+    const handleGlobalLogout = async (platform = 'all') => {
+      const confirmMsg = platform === 'all' 
+        ? 'WARNING: This will log out EVERYONE globally. Continue?' 
+        : `WARNING: This will log out all active ${platform.toUpperCase()} user sessions. Continue?`;
+      if (!window.confirm(confirmMsg)) return;
       try {
-        await api.post('/admin/users/logout-all');
-        alert('System-wide logout successful.');
+        const token = sessionStorage.getItem('accessToken');
+        await api.post(`/admin/users/logout-all?platform=${platform}`, { platform }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        alert(`Logout successful for: ${platform === 'all' ? 'everyone' : platform + ' users'}.`);
       } catch (err) {
-        alert('Failed to perform global logout.');
+        console.error('Failed to perform global logout:', err);
+        alert(err.response?.data?.message || 'Failed to perform global logout.');
       }
     };
 
@@ -275,8 +305,17 @@ const UsersList = () => {
             placeholder="Search by name, email..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 text-sm font-medium transition-all"
+            className="w-full pl-10 pr-10 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 text-sm font-medium transition-all"
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+            >
+              <FiX className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-3 p-3 bg-black/10 border border-white/5 rounded-xl">
@@ -293,10 +332,24 @@ const UsersList = () => {
           </button>
 
           <button 
-            onClick={handleGlobalLogout}
+            onClick={() => handleGlobalLogout('all')}
             className="px-4 py-2 bg-red-600/20 hover:bg-red-600/40 text-red-400 text-xs font-bold rounded-lg border border-red-500/30 transition-all flex items-center gap-2"
           >
-            <FiAlertCircle size={12} /> Global Logout
+            <FiAlertCircle size={12} /> Logout All Users
+          </button>
+
+          <button 
+            onClick={() => handleGlobalLogout('android')}
+            className="px-4 py-2 bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-400 text-xs font-bold rounded-lg border border-emerald-500/30 transition-all flex items-center gap-2"
+          >
+            <MdPhoneAndroid size={12} /> Logout Android Only
+          </button>
+
+          <button 
+            onClick={() => handleGlobalLogout('ios')}
+            className="px-4 py-2 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-400 text-xs font-bold rounded-lg border border-indigo-500/30 transition-all flex items-center gap-2"
+          >
+            <MdPhoneIphone size={12} /> Logout iOS Only
           </button>
         </div>
       {/* Content Area */}
@@ -322,14 +375,19 @@ const UsersList = () => {
                   <th className="p-4 font-bold">Business Type</th>
                   <th className="p-4 font-bold">Status</th>
                   <th className="p-4 font-bold text-center">Activity & Logins</th>
-                  <th className="p-4 font-bold">User ID</th>
+                  {/* <th className="p-4 font-bold">User ID</th> */}
+                  <th className="p-4 font-bold text-center">GST Number</th>
                   <th className="p-4 font-bold text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {currentUsers.length > 0 ? (
                   currentUsers.map((user, index) => (
-                    <tr key={user._id} className="hover:bg-transparent transition-colors">
+                    <tr 
+                      key={user._id} 
+                      onClick={() => navigate(`/users/list/${user._id}`)}
+                      className="hover:bg-white/[0.02] cursor-pointer transition-colors"
+                    >
                       <td className="p-2 text-sm text-slate-400 text-center font-medium">{indexOfFirstUser + index + 1}</td>
                       <td className="p-4 text-sm text-white font-medium">
                         <div>
@@ -345,9 +403,22 @@ const UsersList = () => {
                               </span>
                             ) : null}
                           </div>
-                          {user.appVersion && (
-                            <span className="block text-[10px] text-slate-500 font-bold mt-0.5">
-                              App v{user.appVersion}
+                          {(user.appVersion || user.devices?.length > 0) && (
+                            <span className="block text-[10px] text-slate-500 font-bold mt-0.5 flex items-center gap-1.5 flex-wrap">
+                              {user.appVersion && <span>v{user.appVersion}</span>}
+                              {user.devices?.length > 0 && (
+                                <span className="inline-flex items-center gap-1">
+                                  {Array.from(new Set(user.devices.map(d => d.devicePlatform?.toLowerCase()).filter(Boolean))).map(plat => (
+                                    <span key={plat} className={`px-1 py-0.25 rounded text-[8px] font-black uppercase font-mono tracking-wider ${
+                                      plat === 'android' ? 'bg-green-500/15 text-green-400 border border-green-500/20' : 
+                                      plat === 'ios' ? 'bg-slate-500/20 text-slate-300 border border-slate-500/20' : 
+                                      'bg-slate-800 text-slate-400 border border-white/5'
+                                    }`}>
+                                      {plat}
+                                    </span>
+                                  ))}
+                                </span>
+                              )}
                             </span>
                           )}
                         </div>
@@ -378,21 +449,31 @@ const UsersList = () => {
                           <span className="text-[10px] text-slate-500 font-medium" title={`Raw lastActive: ${user.lastActive}`}>
                             Active: {formatRelativeTime(user.lastActive)}
                           </span>
-                          {console.log(`[DEBUG UsersList] User: ${user.name}, lastActive: ${user.lastActive}, type: ${typeof user.lastActive}`)}
                           {user.loginCount > 0 && (
                             <span className="text-[9px] text-blue-400 font-bold bg-blue-500/5 px-1.5 py-0.5 rounded border border-blue-500/10 block mt-0.5">
                               {user.loginCount} logins
                             </span>
                           )}
+                          {user.activityStats?.totalEngagement > 0 && (
+                            <span 
+                              className="text-[9px] text-indigo-400 font-bold bg-indigo-500/5 px-1.5 py-0.5 rounded border border-indigo-500/10 block mt-0.5 cursor-help"
+                              title={`Engagement breakdown:
+- Product Views: ${user.activityStats.productViews || 0}
+- Brand Views: ${user.activityStats.brandViews || 0}
+- Category Views: ${user.activityStats.categoryViews || 0}
+- Searches: ${user.activityStats.searches || 0}
+- Logins: ${user.activityStats.logins || 0}`}
+                            >
+                              {user.activityStats.totalEngagement} actions
+                            </span>
+                          )}
                         </div>
                       </td>
-                      <td className="p-4 text-sm text-emerald-400 font-mono font-semibold">{user.userId || 'N/A'}</td>
+                      {/* <td className="p-4 text-sm text-emerald-400 font-mono font-semibold">{user.userId || 'N/A'}</td> */}
+                      <td className="p-4 text-sm text-yellow-400 font-mono font-semibold">{user.gstNumber || 'N/A'}</td>
                       <td className="p-4 flex items-center justify-center gap-2">
-                        <button onClick={() => navigate(`/users/list/${user._id}`)} className="p-2.5 text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all cursor-pointer transform-gpu" title="View Full Details">
-                          <FiEye />
-                        </button>
                         <button 
-                          onClick={() => triggerDelete(user._id)} 
+                          onClick={(e) => { e.stopPropagation(); triggerDelete(user._id); }} 
                           disabled={isActionLoading} 
                           className="p-2.5 text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50 cursor-pointer transform-gpu" 
                           title="Permanently Delete User"
@@ -400,10 +481,10 @@ const UsersList = () => {
                           <FiTrash2 />
                         </button>
                         <button 
-                          onClick={() => handleForceLogout(user._id)} 
+                          onClick={(e) => { e.stopPropagation(); handleForceLogout(user._id); }} 
                           disabled={isActionLoading} 
                           className="p-2.5 text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50 cursor-pointer transform-gpu" 
-                          title="Permanently Delete User"
+                          title="Force Logout User"
                         >
                           <FiLogOut />
                         </button>

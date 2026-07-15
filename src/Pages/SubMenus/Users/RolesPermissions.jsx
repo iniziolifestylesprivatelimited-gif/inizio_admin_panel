@@ -338,10 +338,17 @@ const RolesPermissions = () => {
   const handleFetchDetailedUser = async (userId) => {
     setSelectedDetailedUser(userId);
     setDetailedUserInfo(null);
+    if (selectedRoleForUsers === 'customer') {
+      const customerInfo = roleUsersList.find(u => u._id === userId);
+      if (customerInfo) {
+        setDetailedUserInfo(customerInfo);
+        return;
+      }
+    }
     setLoadingDetailedUser(true);
     try {
       const res = await api.get(`/admin/users/${userId}`, { headers });
-      setDetailedUserInfo(res.data);
+      setDetailedUserInfo(res.data?.user || res.data);
     } catch (err) {
       console.error('Error fetching detailed user profile:', err);
     } finally {
@@ -554,7 +561,7 @@ const RolesPermissions = () => {
                         <div className="flex items-center gap-2">
                           <h3 className="font-extrabold text-white text-lg">{detailedUserInfo.name}</h3>
                           <span className="text-[9px] font-black bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded uppercase shrink-0">
-                            {detailedUserInfo.role}
+                            {detailedUserInfo.role || 'customer'}
                           </span>
                         </div>
                         <p className="text-xs text-slate-400 font-medium font-mono mt-0.5">{detailedUserInfo.email}</p>

@@ -9,54 +9,52 @@ import {
   FiLoader, FiX, FiCheckCircle, FiSliders, FiUserMinus,
   FiUserPlus
 } from 'react-icons/fi';
+import { filterAccessibleMenus } from '../utils/rbac';
 
 const PAGES = {
   DASHBOARD: { path: '/', name: 'Dashboard', icon: FiHome },
 
-  BANNERS: { path: '/banners', name: 'Banners', icon: FiImage },
-  NOTIFICATIONS: { path: '/notifications', name: 'Notifications', icon: FiBell },
-  CAMPAIGN_STATS: { path: '/campaign-stats', name: 'Campaign Stats', icon: FiActivity },
-  CHAT: { path: '/chat', name: 'Chat', icon: FiMessageCircle },
+  BANNERS: { path: '/banners', name: 'Banners', icon: FiImage, permission: 'banners_manage' },
+  NOTIFICATIONS: { path: '/notifications', name: 'Notifications', icon: FiBell, permission: 'notifications_send' },
+  CAMPAIGN_STATS: { path: '/campaign-stats', name: 'Campaign Stats', icon: FiActivity, permission: 'campaigns_view' },
+  CHAT: { path: '/chat', name: 'Chat', icon: FiMessageCircle, permission: 'chat_view' },
   ORDERS: {
     name: 'Orders',
     icon: FiShoppingCart,
     subMenus: [
-      { path: '/orders/all', name: 'All Orders', icon: FiShoppingCart },
-      { path: '/orders/processing', name: 'Processing', icon: FiLoader },
-      { path: '/orders/shipped', name: 'Shipped', icon: FiTruck },
-      { path: '/orders/cancelled', name: 'Cancelled', icon: FiX },
-      { path: '/orders/delivered', name: 'Delivered & Returns', icon: FiCheckCircle }
+      { path: '/orders/all', name: 'All Orders', icon: FiShoppingCart, permission: 'orders_view' },
+      { path: '/orders/processing', name: 'Processing', icon: FiLoader, permission: 'orders_manage' },
+      { path: '/orders/shipped', name: 'Shipped', icon: FiTruck, permission: 'orders_manage' },
+      { path: '/orders/cancelled', name: 'Cancelled', icon: FiX, permission: 'orders_manage' },
+      { path: '/orders/delivered', name: 'Delivered & Returns', icon: FiCheckCircle, permission: 'orders_manage' }
     ]
   },
-  LEDGERS: {path: '/ledgers', name: 'Ledgers', icon: FiFile},
+  LEDGERS: { path: '/ledgers', name: 'Ledgers', icon: FiFile, permission: 'ledgers_manage' },
 
-
-    // --- NESTED MENUS --------------------------------------------------------------
   CATALOG_MASTERS: {
     name: 'Catalog',
     icon: FiArchive,
     subMenus: [
-      { path: '/products/brands', name: 'Brands', icon: FiTag },
-      { path: '/products/categories', name: 'Categories', icon: FiGrid },
-      { path: '/products/home-order', name: 'Home Ordering', icon: FiSliders }
+      { path: '/products/brands', name: 'Brands', icon: FiTag, permission: 'products_view' },
+      { path: '/products/categories', name: 'Categories', icon: FiGrid, permission: 'products_view' },
+      { path: '/products/home-order', name: 'Home Ordering', icon: FiSliders, permission: 'products_manage' }
     ]
   },
 
   PRODUCTS_CATALOG: { 
     name: 'Products', 
     icon: FiBox,
-    // When subMenus exists, the Layout will render it as a dropdown
     subMenus: [
-      { path: '/products/list', name: 'Product List', icon: FiPackage },
-      { path: '/products/mapping', name: 'Product Mapping', icon: FiFilter },
+      { path: '/products/list', name: 'Product List', icon: FiPackage, permission: 'products_view' },
+      { path: '/products/mapping', name: 'Product Mapping', icon: FiFilter, permission: 'products_manage' },
     ]
   },
 
-  SETTINGS:{
+  SETTINGS: {
     name: 'Settings',
     icon: FiSettings,
-    subMenus:[
-      { path: '/settings/maintenance', name: 'Maintenance', icon: FiTool },
+    subMenus: [
+      { path: '/settings/maintenance', name: 'Maintenance', icon: FiTool, role: 'admin' },
       { path: '/settings/faqs', name: 'FAQs', icon: FiHelpCircle },
       { path: '/settings/privacy-policy', name: 'Privacy Policy', icon: FiShield },
       { path: '/settings/terms-and-conditions', name: 'Terms and Conditions', icon: FiFileText },
@@ -66,21 +64,20 @@ const PAGES = {
   USER_MGMT: { 
     name: 'Users', 
     icon: FiUser,
-    subMenus:[
-      { path: '/users/list', name: 'Users List', icon: FiUsers },
-      { path: '/users/verify', name: 'Users Verification', icon: FiUserCheck },
-      { path: '/users/active', name: 'Active Users', icon: FiActivity },
-      { path: '/users/deletion-requests', name: 'Deletion Requests', icon: FiUserMinus },
-      { path: '/users/roles-permissions', name: 'Roles & Permissions', icon: FiShield }
+    subMenus: [
+      { path: '/users/list', name: 'Users List', icon: FiUsers, permission: 'customers_view' },
+      { path: '/users/verify', name: 'Users Verification', icon: FiUserCheck, permission: 'customers_manage' },
+      { path: '/users/active', name: 'Active Users', icon: FiActivity, permission: 'customers_manage' },
+      { path: '/users/deletion-requests', name: 'Deletion Requests', icon: FiUserMinus, permission: 'customers_manage' },
+      { path: '/users/roles-permissions', name: 'Roles & Permissions', icon: FiShield, role: 'admin' }
     ]
   },
 
-  COUPONS: { path: '/coupons', name: 'Coupons', icon: FiPercent },
+  COUPONS: { path: '/coupons', name: 'Coupons', icon: FiPercent, permission: 'products_manage' },
 };
 
-  
-export const getAccessibleMenus = () => {
-  return [
+export const getAccessibleMenus = (userPermissions = [], userRole = '') => {
+  const allMenus = [
     PAGES.DASHBOARD, 
     PAGES.USER_MGMT, 
     PAGES.CATALOG_MASTERS,
@@ -94,4 +91,6 @@ export const getAccessibleMenus = () => {
     PAGES.CAMPAIGN_STATS,
     PAGES.SETTINGS
   ];
+
+  return filterAccessibleMenus(allMenus, userPermissions, userRole);
 };

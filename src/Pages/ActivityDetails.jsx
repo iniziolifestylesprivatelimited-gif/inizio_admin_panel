@@ -32,6 +32,46 @@ const getPastDateString = (daysAgo) => {
   return d.toISOString().split('T')[0];
 };
 
+const getUserBasedAnalytics = (rawStream) => {
+  const userMap = {};
+
+  rawStream.forEach(item => {
+    const userId = item.user?._id || 'guest';
+    const email = item.user?.email || 'Guest / Unauthenticated';
+    const name = item.user?.name || 'Guest / Unauthenticated';
+    const phone = item.user?.phone || '';
+    const ip = item.ip || '';
+    const key = userId !== 'guest' ? userId : email;
+
+    if (!userMap[key]) {
+      userMap[key] = {
+        userId,
+        name,
+        email,
+        phone,
+        ip,
+        totalActions: 0,
+        lastActiveAt: null,
+        lastEventType: '',
+        activities: []
+      };
+    }
+
+    userMap[key].activities.push(item);
+    userMap[key].totalActions += 1;
+
+    const itemTime = new Date(item.timestamp || item.createdAt).getTime();
+    const mapTime = userMap[key].lastActiveAt ? new Date(userMap[key].lastActiveAt).getTime() : 0;
+    if (itemTime > mapTime) {
+      userMap[key].lastActiveAt = item.timestamp || item.createdAt;
+      userMap[key].lastEventType = item.eventType;
+      userMap[key].ip = item.ip || userMap[key].ip;
+    }
+  });
+
+  return Object.values(userMap);
+};
+
 const ActivityDetails = () => {
   const { type } = useParams();
   const navigate = useNavigate();
@@ -43,6 +83,7 @@ const ActivityDetails = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedRowLogins, setSelectedRowLogins] = useState(null);
+  const [selectedUserAnalytics, setSelectedUserAnalytics] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const itemsPerPage = 10;
   const [breakdownType, setBreakdownType] = useState('day'); // 'day', 'month', 'custom'
@@ -88,15 +129,19 @@ const ActivityDetails = () => {
           let userList = Array.isArray(custRes.data) ? custRes.data : [];
           const actUsers = actRes.data?.users || [];
 
-          // Merge dynamic lastActive from activity stats users list and calculate isOnline dynamically
+          // Merge dynamic lastActive and other app metrics from activity stats users list
           userList = userList.map(u => {
             const match = actUsers.find(au => au.userId === u._id || (au.email && u.email && au.email.toLowerCase() === u.email.toLowerCase()));
-            const lastActive = match ? match.lastActive : u.lastActive;
+            const lastActive = u.lastActive || match?.lastActive;
             const isOnline = u.isOnline !== undefined ? u.isOnline : (lastActive ? (new Date() - new Date(lastActive) < 5 * 60 * 1000) : false);
             return {
               ...u,
               lastActive,
-              isOnline
+              isOnline,
+              lastLoginAt: u.lastLoginAt || match?.lastLoginAt,
+              appVersion: u.appVersion || match?.appVersion,
+              notificationsEnabled: u.notificationsEnabled !== undefined ? u.notificationsEnabled : match?.notificationsEnabled,
+              isAppInstalled: u.isAppInstalled !== undefined ? u.isAppInstalled : match?.isAppInstalled
             };
           });
 
@@ -121,38 +166,91 @@ const ActivityDetails = () => {
           const res = await api.get('/admin/products/subscriptions/all', { headers });
           const fetchedSubscriptions = res.data?.subscriptions || [];
           setData(fetchedSubscriptions);
+        } else if (type === 'analytics') {
+          const res = await api.get('/admin/analytics', { headers });
+          const analyticsData = res.data || {};
+          setData(analyticsData.activityStream || []);
+          setExtraData(prev => ({
+            ...prev,
+            funnel: analyticsData.funnel || {},
+            cartMetrics: analyticsData.cartMetrics || {},
+            managerPerformance: analyticsData.managerPerformance || {}
+          }));
         } else if (type === 'most-searched-brands' || type === 'most-searched-categories' || type === 'most-searched' || type === 'most-viewed-products') {
           const res = await api.get('/activity/stats', { headers });
           if (type === 'most-searched-brands') {
-            setData(res.data?.mostSearchedBrands || []);
+            const processed = (res.data?.mostSearchedBrands || []).map(item => {
+              const count = Array.isArray(item.viewers) ? item.viewers.reduce((sum, v) => sum + (v.count || 0), 0) : 0;
+              return { ...item, searches: count };
+            }).sort((a, b) => b.searches - a.searches);
+            setData(processed);
           } else if (type === 'most-searched-categories') {
-            setData(res.data?.mostSearchedCategories || []);
+            const processed = (res.data?.mostSearchedCategories || []).map(item => {
+              const count = Array.isArray(item.viewers) ? item.viewers.reduce((sum, v) => sum + (v.count || 0), 0) : 0;
+              return { ...item, searches: count };
+            }).sort((a, b) => b.searches - a.searches);
+            setData(processed);
           } else if (type === 'most-searched') {
             setData(res.data?.mostSearched || []);
           } else if (type === 'most-viewed-products') {
-            setData(res.data?.mostViewedProducts || []);
+            const processed = (res.data?.mostViewedProducts || []).map(item => {
+              const count = Array.isArray(item.viewers) ? item.viewers.reduce((sum, v) => sum + (v.count || 0), 0) : 0;
+              return { ...item, views: count };
+            }).sort((a, b) => b.views - a.views);
+            setData(processed);
           }
         } else {
-          let statsUrl = '/activity/stats';
-          if (type === 'all') {
-            if (breakdownType === 'day' || breakdownType === 'month') {
-              statsUrl += `?breakdown=true&breakdownInterval=${breakdownType}`;
-            } else if (breakdownType === 'custom') {
-              statsUrl += `?startDate=${startDate}&endDate=${endDate}`;
-            }
-          }
-          const res = await api.get(statsUrl, { headers });
-          const activities = res.data?.recentActivities || [];
+          let res;
+          let activities = [];
 
-          // Store aggregated analytics for the relevant page types
-          setExtraData(prev => ({
-            ...prev,
-            trends: res.data?.trends || {},
-            ...(type === 'product-views' && { mostViewedProducts: res.data?.mostViewedProducts || [] }),
-            ...(type === 'brand-views' && { mostSearchedBrands: res.data?.mostSearchedBrands || [] }),
-            ...(type === 'category-views' && { mostSearchedCategories: res.data?.mostSearchedCategories || [] }),
-            ...(type === 'search-queries' && { mostSearched: res.data?.mostSearched || [] })
-          }));
+          if (type === 'all') {
+            // We need BOTH raw logs (recentActivities) for the table and trends for the chart.
+            // A request with breakdown=true does not return recentActivities.
+            // Therefore, we fetch raw logs and breakdown trends separately in parallel.
+            const logsUrl = `/activity/stats?startDate=${startDate}&endDate=${endDate}`;
+            const [resLogs, resStats] = await Promise.all([
+              api.get(logsUrl, { headers }),
+              (breakdownType === 'day' || breakdownType === 'month')
+                ? api.get(`/activity/stats?breakdown=true&breakdownInterval=${breakdownType}&startDate=${startDate}&endDate=${endDate}`, { headers }).catch(() => null)
+                : Promise.resolve(null)
+            ]);
+
+            res = resLogs;
+            activities = resLogs.data?.recentActivities || [];
+
+            const trendsData = resStats ? (resStats.data?.trends || {}) : (resLogs.data?.trends || {});
+            setExtraData(prev => ({
+              ...prev,
+              trends: trendsData
+            }));
+          } else {
+            res = await api.get('/activity/stats', { headers });
+            activities = res.data?.recentActivities || [];
+
+            const processedProducts = (res.data?.mostViewedProducts || []).map(item => {
+              const count = Array.isArray(item.viewers) ? item.viewers.reduce((sum, v) => sum + (v.count || 0), 0) : 0;
+              return { ...item, views: count };
+            }).sort((a, b) => b.views - a.views);
+
+            const processedBrands = (res.data?.mostSearchedBrands || []).map(item => {
+              const count = Array.isArray(item.viewers) ? item.viewers.reduce((sum, v) => sum + (v.count || 0), 0) : 0;
+              return { ...item, searches: count };
+            }).sort((a, b) => b.searches - a.searches);
+
+            const processedCategories = (res.data?.mostSearchedCategories || []).map(item => {
+              const count = Array.isArray(item.viewers) ? item.viewers.reduce((sum, v) => sum + (v.count || 0), 0) : 0;
+              return { ...item, searches: count };
+            }).sort((a, b) => b.searches - a.searches);
+
+            setExtraData(prev => ({
+              ...prev,
+              trends: res.data?.trends || {},
+              ...(type === 'product-views' && { mostViewedProducts: processedProducts }),
+              ...(type === 'brand-views' && { mostSearchedBrands: processedBrands }),
+              ...(type === 'category-views' && { mostSearchedCategories: processedCategories }),
+              ...(type === 'search-queries' && { mostSearched: res.data?.mostSearched || [] })
+            }));
+          }
 
           let filtered = [];
           if (type === 'logins') {
@@ -314,6 +412,8 @@ const ActivityDetails = () => {
     switch (type) {
       case 'revenue':
         return { title: 'Sales Transactions', desc: 'Detailed log of client orders, fulfillment status, and total revenue calculations.', icon: FiDollarSign, color: 'text-emerald-400', bg: 'bg-emerald-500/20' };
+      case 'analytics':
+        return { title: 'Admin Analytics Dashboard', desc: 'Comprehensive analytics funnel metrics, active cart listings, manager performance logs, and cart activity streams.', icon: FiActivity, color: 'text-indigo-400', bg: 'bg-indigo-500/20' };
       case 'brands':
         return { title: 'Brands Catalog Directory', desc: 'List of all system-registered retail brands and logos.', icon: FiTrendingUp, color: 'text-blue-400', bg: 'bg-blue-500/20' };
       case 'products':
@@ -344,9 +444,9 @@ const ActivityDetails = () => {
       case 'product-subscriptions':
         return { title: 'Product Subscriptions', desc: 'Monitor user subscriptions for back-in-stock notifications.', icon: FiBell, color: 'text-cyan-400', bg: 'bg-cyan-500/20' };
       case 'most-searched-brands':
-        return { title: 'Most Searched Brands', desc: 'Top brands searched by users across the catalog.', icon: FiTrendingUp, color: 'text-indigo-400', bg: 'bg-indigo-500/20' };
+        return { title: 'Most Viewed Brands', desc: 'Top brands viewed by users across the catalog.', icon: FiTrendingUp, color: 'text-indigo-400', bg: 'bg-indigo-500/20' };
       case 'most-searched-categories':
-        return { title: 'Most Searched Categories', desc: 'Top product categories searched by users.', icon: FiLayers, color: 'text-purple-400', bg: 'bg-purple-500/20' };
+        return { title: 'Most Viewed Categories', desc: 'Top product categories viewed by users.', icon: FiLayers, color: 'text-purple-400', bg: 'bg-purple-500/20' };
       case 'most-searched':
         return { title: 'Most Searched Queries', desc: 'Top raw search query strings entered by users in the catalog.', icon: FiSearch, color: 'text-amber-400', bg: 'bg-amber-500/20' };
       case 'most-viewed-products':
@@ -474,6 +574,24 @@ const ActivityDetails = () => {
 
   // Filtering Logic
   const getFilteredData = () => {
+    if (type === 'analytics') {
+      const aggregated = getUserBasedAnalytics(data);
+      if (!searchQuery) return aggregated;
+      const query = searchQuery.toLowerCase();
+      return aggregated.filter(item => {
+        const userName = item.name || '';
+        const userEmail = item.email || '';
+        const userPhone = item.phone || '';
+        const eventType = item.lastEventType || '';
+        return (
+          userName.toLowerCase().includes(query) ||
+          userEmail.toLowerCase().includes(query) ||
+          userPhone.includes(query) ||
+          eventType.toLowerCase().includes(query)
+        );
+      });
+    }
+
     if (!searchQuery) return data;
     const query = searchQuery.toLowerCase();
 
@@ -509,6 +627,7 @@ const ActivityDetails = () => {
           prodName.toLowerCase().includes(query) ||
           variantName.toLowerCase().includes(query)
         );
+
       } else if (type === 'brands') {
         return item.name?.toLowerCase().includes(query);
       } else if (type === 'products' || type === 'variants') {
@@ -1049,6 +1168,53 @@ const ActivityDetails = () => {
       });
     }
 
+    if (type === 'analytics') {
+      return currentItems.map((item, index) => {
+        const initials = (item.name || 'G').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        const eventType = item.lastEventType || 'UNKNOWN';
+        const badgeColor = 
+          eventType === 'ADD_TO_CART' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+          eventType === 'REMOVE_FROM_CART' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' :
+          'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+
+        return (
+          <tr key={item.userId || index} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+            <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+            <td className="py-4 px-5">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg border bg-gradient-to-tr from-indigo-500/20 to-blue-500/20 border-indigo-500/30 text-indigo-300 flex items-center justify-center font-bold text-xs tracking-wider shadow-inner">
+                  {initials}
+                </div>
+                <span className="text-sm font-bold text-white block">
+                  {item.name || 'Guest / Unauthenticated'}
+                </span>
+              </div>
+            </td>
+            <td className="py-4 px-5 text-sm text-slate-300 font-medium select-all font-mono">{item.email || 'N/A'}</td>
+            <td className="py-4 px-5 text-sm text-slate-300 font-medium">{item.phone || 'N/A'}</td>
+            <td className="py-4 px-5 text-sm text-slate-300 font-bold font-mono text-center">
+              <span className="px-2.5 py-1 rounded bg-blue-500/15 border border-blue-500/20 text-blue-400 text-xs">
+                {item.totalActions} Action(s)
+              </span>
+            </td>
+            <td className="py-4 px-2 text-xs">
+              <span className={`px-2 py-1 rounded-full font-bold uppercase tracking-wider ${badgeColor}`}>
+                {eventType.replace(/_/g, ' ')}
+              </span>
+            </td>
+            <td className="py-4 px-5 text-sm text-slate-400 font-medium">{formatDateTime(item.lastActiveAt)}</td>
+            <td className="py-4 px-5 text-center">
+              <button 
+                onClick={() => setSelectedUserAnalytics(item)}
+                className="px-3 py-1.5 bg-indigo-600/25 hover:bg-indigo-600/50 text-indigo-300 hover:text-white rounded-lg border border-indigo-500/30 text-xs font-bold transition-all cursor-pointer"
+              >
+                View Activity
+              </button>
+            </td>
+          </tr>
+        );
+      });
+    }
     if (type === 'product-subscriptions') {
       return currentItems.map((item, index) => {
         const initials = (item.user?.name || 'G').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -1141,7 +1307,7 @@ const ActivityDetails = () => {
                 <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden max-w-[120px]">
                   <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${Math.round((item.searches / maxSearches) * 100)}%` }} />
                 </div>
-                <span className="text-indigo-400 font-extrabold text-sm">{item.searches}</span>
+                <span className="text-indigo-400 font-extrabold text-sm">{item.searches} views</span>
               </div>
             </td>
           </tr>
@@ -1170,7 +1336,7 @@ const ActivityDetails = () => {
                 <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden max-w-[120px]">
                   <div className="h-full bg-purple-500 rounded-full" style={{ width: `${Math.round((item.searches / maxSearches) * 100)}%` }} />
                 </div>
-                <span className="text-purple-400 font-extrabold text-sm">{item.searches}</span>
+                <span className="text-purple-400 font-extrabold text-sm">{item.searches} views</span>
               </div>
             </td>
           </tr>
@@ -1203,7 +1369,7 @@ const ActivityDetails = () => {
                 <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden max-w-[120px]">
                   <div className="h-full bg-amber-500 rounded-full" style={{ width: `${Math.round((item.count / maxCount) * 100)}%` }} />
                 </div>
-                <span className="text-amber-400 font-extrabold text-sm">{item.count}×</span>
+                <span className="text-amber-400 font-extrabold text-sm">{item.count} searches</span>
               </div>
             </td>
           </tr>
@@ -1417,6 +1583,20 @@ const ActivityDetails = () => {
         </>
       );
     }
+    if (type === 'analytics') {
+      return (
+        <>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Email</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Phone</th>
+          <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Total Actions</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Last Action</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Last Active At</th>
+          <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Actions</th>
+        </>
+      );
+    }
     if (type === 'product-subscriptions') {
       return (
         <>
@@ -1435,7 +1615,7 @@ const ActivityDetails = () => {
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Logo</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Brand Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Searches</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Views</th>
         </>
       );
     }
@@ -1444,7 +1624,7 @@ const ActivityDetails = () => {
         <>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Category Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Searches</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Views</th>
         </>
       );
     }
@@ -1453,7 +1633,7 @@ const ActivityDetails = () => {
         <>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Search Query</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Count</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Searches</th>
         </>
       );
     }
@@ -1563,8 +1743,20 @@ const ActivityDetails = () => {
               setSearchQuery(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full pl-11 pr-4 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 text-sm font-medium transition-all"
+            className="w-full pl-11 pr-11 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 text-sm font-medium transition-all"
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                setCurrentPage(1);
+              }}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+            >
+              <FiX className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -1659,164 +1851,7 @@ const ActivityDetails = () => {
         </div>
       )}
 
-      {/* Inline Aggregated Analytics Panel */}
-      {type === 'product-views' && extraData.mostViewedProducts?.length > 0 && (
-        <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-5 z-10 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none" />
-          <div className="relative z-10">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <FiEye className="text-blue-400 text-base" />
-                <h3 className="text-sm font-black text-white uppercase tracking-wider">Top Viewed Products</h3>
-              </div>
-              <span className="text-[10px] text-slate-500 font-bold uppercase">from activity stats</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-              {extraData.mostViewedProducts.slice(0, 5).map((item, idx) => {
-                const firstImg = item.product?.images?.[0] || '';
-                const imgUrl = firstImg.startsWith('http') ? firstImg : (firstImg ? `${BASE_URL}${firstImg.startsWith('/') ? '' : '/'}${firstImg}` : '');
-                const maxV = extraData.mostViewedProducts[0]?.views || 1;
-                const rankBg = idx === 0 ? 'border-amber-500/30 bg-amber-500/5' : idx === 1 ? 'border-slate-400/30 bg-slate-500/5' : idx === 2 ? 'border-orange-500/30 bg-orange-500/5' : 'border-white/10 bg-white/[0.02]';
-                const rankColor = idx === 0 ? 'text-amber-400' : idx === 1 ? 'text-slate-300' : idx === 2 ? 'text-orange-400' : 'text-slate-500';
-                return (
-                  <div key={item.product?._id || idx} className={`rounded-2xl border p-3 flex flex-col gap-2 ${rankBg}`}>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-xs font-black ${rankColor}`}>#{idx + 1}</span>
-                      {imgUrl ? (
-                        <div className="w-8 h-8 rounded-lg overflow-hidden bg-white border border-white/10 flex items-center justify-center p-0.5 shrink-0">
-                          <img src={imgUrl} alt={item.product?.name} className="w-full h-full object-contain" />
-                        </div>
-                      ) : <div className="w-8 h-8 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center text-slate-500 shrink-0"><FiBox size={12} /></div>}
-                      <p className="text-xs font-bold text-white truncate leading-tight">{item.product?.name || 'Unknown'}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.round((item.views / maxV) * 100)}%` }} />
-                      </div>
-                      <span className="text-[10px] text-blue-400 font-extrabold shrink-0">{item.views}v</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
 
-      {type === 'brand-views' && extraData.mostSearchedBrands?.length > 0 && (
-        <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-5 z-10 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/5 to-transparent pointer-events-none" />
-          <div className="relative z-10">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <FiTrendingUp className="text-indigo-400 text-base" />
-                <h3 className="text-sm font-black text-white uppercase tracking-wider">Most Searched Brands</h3>
-              </div>
-              <span className="text-[10px] text-slate-500 font-bold uppercase">from activity stats</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-              {extraData.mostSearchedBrands.slice(0, 5).map((item, idx) => {
-                const cleanLogo = (item.brand?.logo || '').replace(/\\/g, '/');
-                const logoUrl = cleanLogo ? `${BASE_URL}${cleanLogo.startsWith('/') ? '' : '/'}${cleanLogo}` : '';
-                const maxS = extraData.mostSearchedBrands[0]?.searches || 1;
-                const rankBg = idx === 0 ? 'border-amber-500/30 bg-amber-500/5' : idx === 1 ? 'border-slate-400/30 bg-slate-500/5' : idx === 2 ? 'border-orange-500/30 bg-orange-500/5' : 'border-white/10 bg-white/[0.02]';
-                const rankColor = idx === 0 ? 'text-amber-400' : idx === 1 ? 'text-slate-300' : idx === 2 ? 'text-orange-400' : 'text-slate-500';
-                return (
-                  <div key={item.brand?._id || idx} className={`rounded-2xl border p-3 flex flex-col gap-2 ${rankBg}`}>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-xs font-black ${rankColor}`}>#{idx + 1}</span>
-                      {logoUrl ? (
-                        <img src={logoUrl} alt={item.brand?.name} className="w-8 h-8 object-contain rounded-lg bg-white border border-white/10 p-0.5 shrink-0" />
-                      ) : <div className="w-8 h-8 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center text-slate-400 text-[10px] font-bold shrink-0">{(item.brand?.name || '?').substring(0, 2).toUpperCase()}</div>}
-                      <p className="text-xs font-bold text-white truncate leading-tight">{item.brand?.name || 'Unknown'}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${Math.round((item.searches / maxS) * 100)}%` }} />
-                      </div>
-                      <span className="text-[10px] text-indigo-400 font-extrabold shrink-0">{item.searches}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {type === 'category-views' && extraData.mostSearchedCategories?.length > 0 && (
-        <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-5 z-10 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-purple-500/5 to-transparent pointer-events-none" />
-          <div className="relative z-10">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <FiLayers className="text-purple-400 text-base" />
-                <h3 className="text-sm font-black text-white uppercase tracking-wider">Most Searched Categories</h3>
-              </div>
-              <span className="text-[10px] text-slate-500 font-bold uppercase">from activity stats</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-              {extraData.mostSearchedCategories.slice(0, 5).map((item, idx) => {
-                const maxS = extraData.mostSearchedCategories[0]?.searches || 1;
-                const rankBg = idx === 0 ? 'border-amber-500/30 bg-amber-500/5' : idx === 1 ? 'border-slate-400/30 bg-slate-500/5' : idx === 2 ? 'border-orange-500/30 bg-orange-500/5' : 'border-white/10 bg-white/[0.02]';
-                const rankColor = idx === 0 ? 'text-amber-400' : idx === 1 ? 'text-slate-300' : idx === 2 ? 'text-orange-400' : 'text-slate-500';
-                const catInitials = (item.category?.name || '?').substring(0, 2).toUpperCase();
-                return (
-                  <div key={item.category?._id || idx} className={`rounded-2xl border p-3 flex flex-col gap-2 ${rankBg}`}>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-xs font-black ${rankColor}`}>#{idx + 1}</span>
-                      <div className="w-8 h-8 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-300 text-[10px] font-black shrink-0">{catInitials}</div>
-                      <p className="text-xs font-bold text-white truncate leading-tight">{item.category?.name || 'Unknown'}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-purple-500 rounded-full" style={{ width: `${Math.round((item.searches / maxS) * 100)}%` }} />
-                      </div>
-                      <span className="text-[10px] text-purple-400 font-extrabold shrink-0">{item.searches}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {type === 'search-queries' && extraData.mostSearched?.length > 0 && (
-        <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-5 z-10 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 to-transparent pointer-events-none" />
-          <div className="relative z-10">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <FiSearch className="text-amber-400 text-base" />
-                <h3 className="text-sm font-black text-white uppercase tracking-wider">Top Search Queries</h3>
-              </div>
-              <span className="text-[10px] text-slate-500 font-bold uppercase">from activity stats</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-              {extraData.mostSearched.slice(0, 5).map((item, idx) => {
-                const maxC = extraData.mostSearched[0]?.count || 1;
-                const rankBg = idx === 0 ? 'border-amber-500/30 bg-amber-500/5' : idx === 1 ? 'border-slate-400/30 bg-slate-500/5' : idx === 2 ? 'border-orange-500/30 bg-orange-500/5' : 'border-white/10 bg-white/[0.02]';
-                const rankColor = idx === 0 ? 'text-amber-400' : idx === 1 ? 'text-slate-300' : idx === 2 ? 'text-orange-400' : 'text-slate-500';
-                return (
-                  <div key={idx} className={`rounded-2xl border p-3 flex flex-col gap-2 ${rankBg}`}>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-xs font-black shrink-0 ${rankColor}`}>#{idx + 1}</span>
-                      <code className="text-xs font-bold text-amber-300 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 font-mono truncate">{item.query}</code>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-amber-500 rounded-full" style={{ width: `${Math.round((item.count / maxC) * 100)}%` }} />
-                      </div>
-                      <span className="text-[10px] text-amber-400 font-extrabold shrink-0">{item.count}×</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
 
       {type === 'all' && extraData.trends && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 z-10 relative">
@@ -1888,6 +1923,153 @@ const ActivityDetails = () => {
                   </div>
                 ))
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {type === 'analytics' && extraData.funnel && (
+        <div className="space-y-6 z-10 relative">
+          {/* KPI Cards Row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">Active Carts</span>
+              <span className="text-2xl font-black text-white mt-2">{extraData.cartMetrics?.activeCartsCount || 0}</span>
+            </div>
+            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">Total Items in Carts</span>
+              <span className="text-2xl font-black text-white mt-2">{extraData.cartMetrics?.totalQuantitiesInCarts || 0}</span>
+            </div>
+            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">Cart Adds</span>
+              <span className="text-2xl font-black text-emerald-400 mt-2">{extraData.funnel?.cartAdds || 0}</span>
+            </div>
+            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">Checkout Initiations</span>
+              <span className="text-2xl font-black text-blue-400 mt-2">{extraData.funnel?.checkoutInitiations || 0}</span>
+            </div>
+            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">Purchases</span>
+              <span className="text-2xl font-black text-purple-400 mt-2">{extraData.funnel?.checkoutSuccesses || 0}</span>
+            </div>
+            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">Cart to Checkout</span>
+              <span className="text-2xl font-black text-indigo-400 mt-2">{extraData.funnel?.conversionRates?.cartToCheckout || '0.0%'}</span>
+            </div>
+            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">Checkout to Purchase</span>
+              <span className="text-2xl font-black text-cyan-400 mt-2">{extraData.funnel?.conversionRates?.checkoutToPurchase || '0.0%'}</span>
+            </div>
+          </div>
+
+          {/* Funnel Graph Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Funnel Chart/Visual */}
+            <div className="lg:col-span-1 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl p-5 overflow-hidden flex flex-col relative">
+              <div className="absolute inset-0 bg-linear-to-b from-blue-500/5 to-transparent pointer-events-none" />
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 border-b border-white/5 pb-2">
+                Conversion Funnel
+              </h3>
+              <div className="space-y-4 flex-1 flex flex-col justify-center">
+                {/* Cart Adds */}
+                <div>
+                  <div className="flex justify-between text-xs font-bold text-slate-400 mb-1">
+                    <span>1. Cart Adds</span>
+                    <span className="text-white">{extraData.funnel?.cartAdds || 0}</span>
+                  </div>
+                  <div className="h-4 bg-slate-800 rounded-lg overflow-hidden">
+                    <div className="h-full bg-emerald-500 rounded-lg transition-all duration-500" style={{ width: '100%' }} />
+                  </div>
+                </div>
+                {/* Checkout Initiations */}
+                <div>
+                  <div className="flex justify-between text-xs font-bold text-slate-400 mb-1">
+                    <span>2. Checkout Initiations</span>
+                    <span className="text-white">{extraData.funnel?.checkoutInitiations || 0}</span>
+                  </div>
+                  <div className="h-4 bg-slate-800 rounded-lg overflow-hidden">
+                    <div className="h-full bg-blue-500 rounded-lg transition-all duration-500" style={{ width: `${extraData.funnel?.cartAdds ? Math.round(((extraData.funnel?.checkoutInitiations || 0) / extraData.funnel.cartAdds) * 100) : 0}%` }} />
+                  </div>
+                </div>
+                {/* Checkout Successes */}
+                <div>
+                  <div className="flex justify-between text-xs font-bold text-slate-400 mb-1">
+                    <span>3. Purchase Successes</span>
+                    <span className="text-white">{extraData.funnel?.checkoutSuccesses || 0}</span>
+                  </div>
+                  <div className="h-4 bg-slate-800 rounded-lg overflow-hidden">
+                    <div className="h-full bg-purple-500 rounded-lg transition-all duration-500" style={{ width: `${extraData.funnel?.cartAdds ? Math.round(((extraData.funnel?.checkoutSuccesses || 0) / extraData.funnel.cartAdds) * 100) : 0}%` }} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Conversion Rates Sub-Grid */}
+              <div className="mt-4 pt-3 border-t border-white/5 grid grid-cols-2 gap-2 text-center">
+                <div className="bg-white/[0.02] border border-white/5 rounded-xl p-2.5">
+                  <span className="text-[9px] font-black text-slate-500 uppercase block tracking-wider">Cart to Checkout</span>
+                  <span className="text-sm font-extrabold text-indigo-400 mt-1 block">{extraData.funnel?.conversionRates?.cartToCheckout || '0.0%'}</span>
+                </div>
+                <div className="bg-white/[0.02] border border-white/5 rounded-xl p-2.5">
+                  <span className="text-[9px] font-black text-slate-500 uppercase block tracking-wider">Checkout to Purchase</span>
+                  <span className="text-sm font-extrabold text-cyan-400 mt-1 block">{extraData.funnel?.conversionRates?.checkoutToPurchase || '0.0%'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Manager Performance table */}
+            <div className="lg:col-span-2 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl p-5 overflow-hidden flex flex-col relative">
+              <div className="absolute inset-0 bg-linear-to-b from-indigo-500/5 to-transparent pointer-events-none" />
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 border-b border-white/5 pb-2">
+                Manager Performance
+              </h3>
+              
+              <div className="space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-1">
+                {/* Sales Heads */}
+                <div>
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">State Sales Heads</span>
+                  {!extraData.managerPerformance?.salesHeads || extraData.managerPerformance.salesHeads.length === 0 ? (
+                    <div className="text-xs text-slate-500 italic py-2">No active Sales Heads recorded.</div>
+                  ) : (
+                    <div className="space-y-2">
+                      {extraData.managerPerformance.salesHeads.map(sh => (
+                        <div key={sh._id} className="flex justify-between items-center bg-white/[0.02] border border-white/5 p-3 rounded-xl hover:border-white/10 transition-colors">
+                          <div className="text-left">
+                            <span className="text-xs font-bold text-white block">{sh.name}</span>
+                            <span className="text-[9px] text-slate-500 font-semibold">{sh.states?.join(', ')}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-xs font-extrabold text-blue-400 block">₹{(sh.totalSales || 0).toLocaleString()}</span>
+                            <span className="text-[9px] text-slate-500 font-bold">{sh.orderCount || 0} orders</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* TSMs */}
+                <div>
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Territory Sales Managers</span>
+                  {!extraData.managerPerformance?.territorySalesManagers || extraData.managerPerformance.territorySalesManagers.length === 0 ? (
+                    <div className="text-xs text-slate-500 italic py-2">No active TSMs recorded.</div>
+                  ) : (
+                    <div className="space-y-2">
+                      {extraData.managerPerformance.territorySalesManagers.map(tsm => (
+                        <div key={tsm._id} className="flex justify-between items-center bg-white/[0.02] border border-white/5 p-3 rounded-xl hover:border-white/10 transition-colors">
+                          <div className="text-left">
+                            <span className="text-xs font-bold text-white block">{tsm.name}</span>
+                            <span className="text-[9px] text-slate-500 font-semibold">{tsm.territories?.join(', ')}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-xs font-extrabold text-blue-400 block">₹{(tsm.totalSales || 0).toLocaleString()}</span>
+                            <span className="text-[9px] text-slate-500 font-bold">{tsm.orderCount || 0} orders</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -2091,6 +2273,101 @@ const ActivityDetails = () => {
           document.body
         );
       })()}
+
+      {/* User Analytics Activity Popup Modal */}
+      {selectedUserAnalytics && createPortal(
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
+          <div className="bg-slate-900/95 border border-white/10 shadow-2xl rounded-3xl p-6 max-w-2xl w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+            
+            <div className="flex justify-between items-start mb-5 relative z-[1000]">
+              <div>
+                <h3 className="text-lg font-black text-white flex items-center gap-2">
+                  <FiActivity className="text-indigo-400" /> User Activity History
+                </h3>
+                <p className="text-xs text-slate-400 mt-1 font-semibold">{selectedUserAnalytics.name || 'Guest / Unauthenticated'}</p>
+              </div>
+              <button 
+                onClick={() => setSelectedUserAnalytics(null)}
+                className="p-1.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer"
+              >
+                <FiX size={16} />
+              </button>
+            </div>
+
+            {/* User Meta Card */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-950/40 border border-white/5 rounded-2xl p-4 mb-5 text-xs relative z-10">
+              <div className="flex flex-col min-w-0">
+                <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px] mb-0.5">Email Address</span>
+                <span className="text-slate-200 font-semibold select-all font-mono truncate" title={selectedUserAnalytics.email}>{selectedUserAnalytics.email || '-'}</span>
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px] mb-0.5">Phone Number</span>
+                <span className="text-slate-200 font-semibold select-all font-mono">{selectedUserAnalytics.phone || '-'}</span>
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px] mb-0.5">Total Activity Actions</span>
+                <span className="text-indigo-300 font-black">{selectedUserAnalytics.totalActions} Cart Action(s)</span>
+              </div>
+            </div>
+
+            {/* List of individual activity stream entries */}
+            <div className="space-y-2.5 max-h-[350px] overflow-y-auto custom-scrollbar pr-1 relative z-10">
+              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block mb-1">
+                Activity Stream Logs
+              </span>
+              {selectedUserAnalytics.activities.map((item, index) => {
+                const eventType = item.eventType || 'UNKNOWN';
+                const badgeColor = 
+                  eventType === 'ADD_TO_CART' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                  eventType === 'REMOVE_FROM_CART' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' :
+                  'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+
+                return (
+                  <div 
+                    key={item._id || index}
+                    className="bg-slate-950/30 border border-white/5 p-3 rounded-xl hover:border-white/10 transition-colors animate-in fade-in duration-150 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-left"
+                  >
+                    <div className="flex flex-col gap-1 min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${badgeColor}`}>
+                          {eventType.replace(/_/g, ' ')}
+                        </span>
+                        <span className="text-slate-500 text-[10px] font-mono select-all">IP: {item.ip || 'N/A'}</span>
+                      </div>
+                      <span className="text-xs text-white font-bold truncate mt-0.5" title={item.details?.productName}>
+                        {(() => {
+                          const productFromLookup = (extraData.products || []).find(p => p._id === item.details?.productId);
+                          return item.details?.productName || productFromLookup?.name || 'Unknown Product';
+                        })()}
+                      </span>
+                    </div>
+
+                    <div className="flex sm:flex-col items-start sm:items-end shrink-0 justify-between sm:justify-start gap-1">
+                      {item.details?.quantity !== undefined && (
+                        <span className="text-xs text-slate-300 font-bold font-mono">
+                          Qty: {item.details.quantity}
+                        </span>
+                      )}
+                      <span className="text-[10px] text-slate-400 font-medium">
+                        {formatDateTime(item.timestamp || item.createdAt)}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            <button 
+              onClick={() => setSelectedUserAnalytics(null)}
+              className="w-full mt-6 py-2.5 bg-slate-800 border border-white/10 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md"
+            >
+              Close
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };

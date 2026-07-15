@@ -3,7 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import { api } from '../../../api/axios';
 import { 
   FiRefreshCw, FiLoader, FiAlertCircle, 
-  FiSearch, FiUserMinus
+  FiSearch, FiUserMinus, FiX
 } from 'react-icons/fi';
 
 const DeletionRequests = () => {
@@ -100,8 +100,17 @@ const DeletionRequests = () => {
             placeholder="Search by ID, name, email..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-white placeholder-slate-500 text-sm font-medium"
+            className="w-full pl-10 pr-10 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-white placeholder-slate-500 text-sm font-medium"
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+            >
+              <FiX className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 

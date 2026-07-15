@@ -10,9 +10,10 @@ import HeaderSearch from './HeaderSearch';
 import logoImg from '../assets/logos.png';
 import appIconImg from '../assets/app-icon-png.png';
 import { api } from '../api/axios';
+import { isRouteAllowed } from '../utils/rbac';
 
 const Layout = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, userPermissions } = useAuth();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -57,6 +58,19 @@ const Layout = () => {
     setIsProfileDropdownOpen(false);
     setIsNotificationsDropdownOpen(false);
   }, [location.pathname]);
+
+  // URL Protection Check
+  useEffect(() => {
+    if (user) {
+      if (user.role !== 'admin' && userPermissions.length === 0) return;
+      const currentAccessibleMenus = getAccessibleMenus(userPermissions, user.role);
+      const allowed = isRouteAllowed(location.pathname, currentAccessibleMenus, user.role);
+      if (!allowed) {
+        console.warn(`Access denied to path: ${location.pathname}. Redirecting to dashboard.`);
+        navigation('/', { replace: true });
+      }
+    }
+  }, [location.pathname, userPermissions, user]);
 
   // Click outside handler for dropdowns
   useEffect(() => {
@@ -377,7 +391,7 @@ const Layout = () => {
     return 0;
   };
 
-  const userMenus = getAccessibleMenus();
+  const userMenus = getAccessibleMenus(userPermissions, user?.role);
   const isExpanded = isHovered || isMobileMenuOpen;
 
   return (

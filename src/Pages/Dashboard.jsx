@@ -52,6 +52,7 @@ const Dashboard = () => {
   const [activityStats, setActivityStats] = useState(null);
   const [requestStats, setRequestStats] = useState([]);
   const [subscriptions, setSubscriptions] = useState([]);
+  const [analyticsData, setAnalyticsData] = useState(null);
   const [activeActivityTab, setActiveActivityTab] = useState('ALL');
   const [selectedProductViews, setSelectedProductViews] = useState(null);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -70,7 +71,8 @@ const Dashboard = () => {
           ordersResponse,
           activityResponse,
           requestResponse,
-          subsResponse
+          subsResponse,
+          analyticsResponse
         ] = await Promise.all([
           api.get('/products/', { headers }).catch(() => ({ data: [] })),
           api.get('/brands/', { headers }).catch(() => ({ data: [] })),
@@ -79,7 +81,8 @@ const Dashboard = () => {
           api.get('/orders/all', { headers }).catch(() => ({ data: [] })),
           api.get('/activity/stats', { headers }).catch(() => ({ data: null })),
           api.get('/admin/request-stats', { headers }).catch(() => ({ data: { stats: [] } })),
-          api.get('/admin/products/subscriptions/all', { headers }).catch(() => ({ data: { subscriptions: [] } }))
+          api.get('/admin/products/subscriptions/all', { headers }).catch(() => ({ data: { subscriptions: [] } })),
+          api.get('/admin/analytics', { headers }).catch(() => ({ data: null }))
         ]);
         const rawUsers = usersResponse.data || [];
         const actUsers = activityResponse?.data?.users || [];
@@ -92,7 +95,9 @@ const Dashboard = () => {
             lastActive,
             isOnline,
             lastLoginAt: u.lastLoginAt || match?.lastLoginAt,
-            appVersion: u.appVersion || match?.appVersion
+            appVersion: u.appVersion || match?.appVersion,
+            notificationsEnabled: u.notificationsEnabled !== undefined ? u.notificationsEnabled : match?.notificationsEnabled,
+            isAppInstalled: u.isAppInstalled !== undefined ? u.isAppInstalled : match?.isAppInstalled
           };
         });
         setUsers(mergedUsers);
@@ -102,6 +107,7 @@ const Dashboard = () => {
         setActivityStats(activityResponse?.data || null);
         setRequestStats(requestResponse?.data?.stats || []);
         setSubscriptions(subsResponse?.data?.subscriptions || []);
+        setAnalyticsData(analyticsResponse?.data || null);
 
         const fetchedOrders = Array.isArray(ordersResponse.data) ? ordersResponse.data : ordersResponse.data?.orders || [];
         setOrders(fetchedOrders);
@@ -637,6 +643,16 @@ const Dashboard = () => {
       color: "text-cyan-400",
       bg: "bg-cyan-500/15",
       theme: "cyan"
+    },
+    {
+      title: "Funnel & Cart Analytics",
+      value: `${analyticsData?.cartMetrics?.activeCartsCount || 0} Active Carts`,
+      desc: `Total Cart Adds: ${analyticsData?.funnel?.cartAdds || 0}`,
+      path: "/dashboard/details/analytics",
+      icon: FiTrendingUp,
+      color: "text-indigo-400",
+      bg: "bg-indigo-500/15",
+      theme: "indigo"
     }
   ];
 
