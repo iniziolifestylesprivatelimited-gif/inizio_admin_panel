@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { 
-  FiSearch, FiSend, FiPaperclip, FiMoreVertical, FiPhone, FiVideo, 
-  FiSmile, FiInfo, FiArrowLeft, FiCheck, FiCornerUpLeft, FiEdit2, 
-  FiTrash2, FiX, FiFileText, FiDownload, FiLoader 
+import {
+  FiSearch, FiSend, FiPaperclip, FiMoreVertical, FiPhone, FiVideo,
+  FiSmile, FiInfo, FiArrowLeft, FiCheck, FiCornerUpLeft, FiEdit2,
+  FiTrash2, FiX, FiFileText, FiDownload, FiLoader
 } from 'react-icons/fi';
 import { api, BASE_URL } from '../api/axios';
 import { useOutletContext } from 'react-router-dom';
@@ -19,13 +19,13 @@ const formatDividerDate = (dateString) => {
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return '';
   const now = new Date();
-  
+
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
-  
+
   const msgDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  
+
   if (msgDate.getTime() === today.getTime()) {
     return 'Today';
   } else if (msgDate.getTime() === yesterday.getTime()) {
@@ -40,13 +40,13 @@ const formatLastMessageDate = (dateString) => {
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return '';
   const now = new Date();
-  
+
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
-  
+
   const msgDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  
+
   if (msgDate.getTime() === today.getTime()) {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   } else if (msgDate.getTime() === yesterday.getTime()) {
@@ -109,7 +109,7 @@ const Chat = () => {
       const response = await api.get('/chat/users/list', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       const fetchedContacts = response.data || [];
       // Sort contacts by lastMessageAt descending to keep order consistent
       const sortedContacts = fetchedContacts.sort((a, b) => {
@@ -117,7 +117,7 @@ const Chat = () => {
         const dateB = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
         return dateB - dateA;
       });
-      
+
       setContacts(prev => {
         if (JSON.stringify(prev) === JSON.stringify(sortedContacts)) return prev;
         return sortedContacts;
@@ -133,9 +133,9 @@ const Chat = () => {
       const response = await api.get(`/chat/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       const fetchedMessages = Array.isArray(response.data) ? response.data : response.data?.messages || [];
-      
+
       setMessages(prev => {
         if (JSON.stringify(prev) === JSON.stringify(fetchedMessages)) {
           return prev;
@@ -147,7 +147,7 @@ const Chat = () => {
       await api.put(`/chat/read/${userId}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       // Update unread counts
       fetchUnreadCount();
       fetchContacts();
@@ -171,7 +171,7 @@ const Chat = () => {
     const intervalId = setInterval(() => {
       fetchContacts();
       fetchUnreadCount();
-    }, 5000);
+    }, 30000);
     return () => clearInterval(intervalId);
   }, [fetchContacts, fetchUnreadCount]);
 
@@ -179,7 +179,7 @@ const Chat = () => {
     if (activeContact) {
       fetchMessages(activeContact);
       // Poll for new active chat messages every 2 seconds
-      const intervalId = setInterval(() => fetchMessages(activeContact), 2000);
+      const intervalId = setInterval(() => fetchMessages(activeContact), 30000);
       return () => clearInterval(intervalId);
     } else {
       setMessages([]);
@@ -201,7 +201,7 @@ const Chat = () => {
     try {
       const token = sessionStorage.getItem('accessToken');
       const response = await api.post('/chat/upload-file', formData, {
-        headers: { 
+        headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
@@ -270,11 +270,11 @@ const Chat = () => {
       // Optimistic UI update
       const tempId = Date.now().toString();
       setMessages(prev => [
-        ...prev, 
-        { 
-          _id: tempId, 
+        ...prev,
+        {
+          _id: tempId,
           senderId: 'admin',
-          message: messageText, 
+          message: messageText,
           fileUrl: currentAttachment?.fileUrl,
           fileName: currentAttachment?.fileName,
           fileType: currentAttachment?.fileType,
@@ -303,7 +303,7 @@ const Chat = () => {
         await api.post('/chat/send', payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        
+
         fetchMessages(activeContact);
         fetchContacts();
       } catch (err) {
@@ -318,7 +318,7 @@ const Chat = () => {
     <div className="relative flex h-[calc(100dvh-12rem)] md:h-[calc(85dvh-6rem)] z-0 w-full">
       {/* Glassmorphism Background Ambient Glows */}
       <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
-      
+
       <div className="flex w-full h-full bg-transparent backdrop-blur-2xl border border-white/10 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl shadow-black/50 min-w-0">
         {/* Sidebar - Contacts */}
         <div className={`${activeContact ? 'hidden md:flex' : 'flex'} w-full md:w-80 lg:w-96 border-r border-white/10 flex-col bg-black/20`}>
@@ -326,9 +326,9 @@ const Chat = () => {
             <h2 className="text-xl font-bold text-white mb-4 tracking-tight">Messages</h2>
             <div className="relative">
               <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
-              <input 
-                type="text" 
-                placeholder="Search conversations..." 
+              <input
+                type="text"
+                placeholder="Search conversations..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-10 py-2 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 text-sm transition-all"
@@ -344,13 +344,13 @@ const Chat = () => {
               )}
             </div>
           </div>
-          
+
           <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
-            {contacts.filter(contact => 
+            {contacts.filter(contact =>
               (contact.name || '').toLowerCase().includes(searchQuery.toLowerCase())
             ).map(contact => (
-              <div 
-                key={contact.userId} 
+              <div
+                key={contact.userId}
                 onClick={() => setActiveContact(contact.userId)}
                 className={`flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-all mb-1 ${activeContact === contact.userId ? 'bg-blue-600/20 border border-blue-500/30' : 'hover:bg-white/5 border border-transparent'}`}
               >
@@ -399,8 +399,8 @@ const Chat = () => {
               {/* Chat Header */}
               <div className="h-16 px-4 sm:px-6 border-b border-white/10 flex items-center justify-between bg-black/20 shrink-0 min-w-0">
                 <div className="flex items-center gap-3 min-w-0">
-                  <button 
-                    onClick={() => setActiveContact(null)} 
+                  <button
+                    onClick={() => setActiveContact(null)}
                     className="md:hidden p-2 -ml-2 text-slate-400 hover:text-white transition-colors"
                   >
                     <FiArrowLeft className="text-xl" />
@@ -437,7 +437,7 @@ const Chat = () => {
                 {messages.map((msg, index) => {
                   const senderId = typeof msg.sender === 'object' ? (msg.sender?._id || msg.sender?.userId) : (msg.senderId || msg.sender || msg.from);
                   const receiverId = typeof msg.receiver === 'object' ? (msg.receiver?._id || msg.receiver?.userId) : (msg.receiverId || msg.receiver || msg.to);
-                  
+
                   let isMe = true;
                   if (senderId) {
                     isMe = String(senderId) !== String(activeContact);
@@ -451,7 +451,7 @@ const Chat = () => {
                   const showDivider = currentDateStr !== prevDateStr;
 
                   const isSeen = msg.isRead || msg.read || msg.seen || msg.isSeen || msg.status === 'read' || msg.status === 'seen';
-                  
+
                   const isDeleted = msg.message === "This message was deleted" || msg.text === "This message was deleted" || msg.isDeleted === true;
 
                   const getReplyText = (replyTo) => {
@@ -480,13 +480,13 @@ const Chat = () => {
                             </div>
                           )}
                           <div className={`flex flex-col min-w-0 ${isMe ? 'items-end' : 'items-start'} relative`}>
-                            
+
                             {/* Message Actions Overlay */}
                             <div className={`absolute top-1/2 -translate-y-1/2 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-950/85 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-white/10 shadow-lg z-10 ${isMe ? 'right-full mr-2' : 'left-full ml-2'}`}>
                               {!isDeleted && (
-                                <button 
-                                  type="button" 
-                                  onClick={() => setReplyToMessage(msg)} 
+                                <button
+                                  type="button"
+                                  onClick={() => setReplyToMessage(msg)}
                                   className="p-1 text-slate-400 hover:text-indigo-400 rounded-md transition-colors cursor-pointer"
                                   title="Reply"
                                 >
@@ -495,17 +495,17 @@ const Chat = () => {
                               )}
                               {isMe && !isDeleted && (
                                 <>
-                                  <button 
-                                    type="button" 
-                                    onClick={() => { setEditingMessage(msg); setMessage(msg.message || msg.text || ''); setReplyToMessage(null); }} 
+                                  <button
+                                    type="button"
+                                    onClick={() => { setEditingMessage(msg); setMessage(msg.message || msg.text || ''); setReplyToMessage(null); }}
                                     className="p-1 text-slate-400 hover:text-blue-400 rounded-md transition-colors cursor-pointer"
                                     title="Edit"
                                   >
                                     <FiEdit2 className="text-xs" />
                                   </button>
-                                  <button 
-                                    type="button" 
-                                    onClick={() => handleDeleteMessage(msg._id || msg.id)} 
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteMessage(msg._id || msg.id)}
                                     className="p-1 text-slate-400 hover:text-red-400 rounded-md transition-colors cursor-pointer"
                                     title="Delete"
                                   >
@@ -515,12 +515,11 @@ const Chat = () => {
                               )}
                             </div>
 
-                            <div 
-                              className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl max-w-full ${
-                                isMe 
-                                  ? 'bg-blue-600 text-white rounded-br-sm shadow-sm' 
+                            <div
+                              className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl max-w-full ${isMe
+                                  ? 'bg-blue-600 text-white rounded-br-sm shadow-sm'
                                   : 'bg-white/10 text-slate-200 border border-white/5 rounded-bl-sm shadow-sm'
-                              }`}
+                                }`}
                             >
                               {/* Reply Context in Message */}
                               {msg.replyTo && !isDeleted && (
@@ -545,10 +544,10 @@ const Chat = () => {
                                       <p className="font-semibold text-slate-300 truncate">{msg.fileName || 'Attachment'}</p>
                                       <p className="text-[10px] text-slate-500 capitalize">{msg.fileType ? msg.fileType.split('/')[1] : 'document'}</p>
                                     </div>
-                                    <a 
-                                      href={getImageUrl(msg.fileUrl)} 
-                                      target="_blank" 
-                                      rel="noreferrer" 
+                                    <a
+                                      href={getImageUrl(msg.fileUrl)}
+                                      target="_blank"
+                                      rel="noreferrer"
                                       className="p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors shrink-0 cursor-pointer"
                                       title="Open / Download"
                                       download
@@ -568,7 +567,7 @@ const Chat = () => {
                               )}
                             </div>
                             <div className={`flex items-center gap-1 mt-1.5 mx-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
-                              <span 
+                              <span
                                 className="text-[10px] font-medium text-slate-500 cursor-help"
                                 title={msg.createdAt ? new Date(msg.createdAt).toLocaleString() : ''}
                               >
@@ -597,7 +596,7 @@ const Chat = () => {
 
               {/* Input Area */}
               <div className="p-3 sm:p-4 border-t border-white/10 bg-black/20 shrink-0 animate-in fade-in duration-200">
-                
+
                 {/* Reply Preview */}
                 {replyToMessage && (
                   <div className="flex items-center justify-between p-2 bg-indigo-600/10 border border-indigo-500/20 rounded-xl mb-2 animate-in fade-in slide-in-from-bottom-1 text-xs">
@@ -605,9 +604,9 @@ const Chat = () => {
                       <p className="font-semibold text-indigo-400">Reply to {String(replyToMessage.senderId || replyToMessage.sender || replyToMessage.from) === String(activeContact) ? 'Customer' : 'Support'}</p>
                       <p className="text-slate-300 truncate">{replyToMessage.message || replyToMessage.text}</p>
                     </div>
-                    <button 
-                      type="button" 
-                      onClick={() => setReplyToMessage(null)} 
+                    <button
+                      type="button"
+                      onClick={() => setReplyToMessage(null)}
                       className="p-1 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-colors"
                     >
                       <FiX className="text-sm" />
@@ -622,9 +621,9 @@ const Chat = () => {
                       <p className="font-semibold text-blue-400">Editing Message</p>
                       <p className="text-slate-300 truncate">{editingMessage.message || editingMessage.text}</p>
                     </div>
-                    <button 
-                      type="button" 
-                      onClick={() => { setEditingMessage(null); setMessage(''); }} 
+                    <button
+                      type="button"
+                      onClick={() => { setEditingMessage(null); setMessage(''); }}
                       className="p-1 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-colors"
                     >
                       <FiX className="text-sm" />
@@ -646,9 +645,9 @@ const Chat = () => {
                       <p className="text-xs font-semibold text-white truncate">{attachment.fileName}</p>
                       <p className="text-[10px] text-slate-400">Ready to send</p>
                     </div>
-                    <button 
-                      type="button" 
-                      onClick={handleRemoveAttachment} 
+                    <button
+                      type="button"
+                      onClick={handleRemoveAttachment}
                       className="p-1 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-colors"
                     >
                       <FiX className="text-sm" />
@@ -667,8 +666,8 @@ const Chat = () => {
                 <form onSubmit={handleSend} className="flex items-end gap-2">
                   <div className="flex-1 bg-black/20 border border-white/10 rounded-2xl flex items-end p-1 focus-within:border-blue-500/50 focus-within:bg-black/40 shadow-inner backdrop-blur-md transition-all min-w-0">
                     <div className="relative shrink-0 flex items-center" ref={emojiPickerRef}>
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                         className={`p-2.5 transition-colors rounded-xl ${showEmojiPicker ? 'text-blue-400 bg-white/5' : 'text-slate-400 hover:text-blue-400'}`}
                         title="Emoji"
@@ -692,7 +691,7 @@ const Chat = () => {
                         </div>
                       )}
                     </div>
-                    <textarea 
+                    <textarea
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       placeholder={editingMessage ? "Edit message..." : "Type a message..."}
@@ -705,22 +704,22 @@ const Chat = () => {
                         }
                       }}
                     />
-                    <input 
-                      type="file" 
-                      ref={fileInputRef} 
+                    <input
+                      type="file"
+                      ref={fileInputRef}
                       onChange={handleFileChange}
-                      className="hidden" 
+                      className="hidden"
                     />
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={handleAttachClick}
-                      className="p-2.5 text-slate-400 hover:text-blue-400 transition-colors shrink-0" 
+                      className="p-2.5 text-slate-400 hover:text-blue-400 transition-colors shrink-0"
                       title="Attach File"
                     >
                       <FiPaperclip className="text-xl" />
                     </button>
                   </div>
-                  <button 
+                  <button
                     type="submit"
                     disabled={editingMessage ? !message.trim() : (!message.trim() && !attachment)}
                     className="h-10 w-10 sm:h-11 sm:w-11 mb-1 rounded-2xl bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-500/20 shrink-0"

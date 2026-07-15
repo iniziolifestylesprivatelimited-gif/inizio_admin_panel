@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  FiSettings, FiPlay, FiSquare, FiClock, 
+import {
+  FiSettings, FiPlay, FiSquare, FiClock,
   FiCalendar, FiTrash2, FiAlertTriangle, FiRefreshCw,
   FiSmartphone, FiSave
 } from 'react-icons/fi';
@@ -26,7 +26,7 @@ const Maintenance = () => {
     updateMessage: 'Critical security patches and payment flow enhancements are now live.',
     storeUrl: 'https://play.google.com/store/apps/details?id=com.inizio.store'
   });
-  
+
   const [iosConfig, setIosConfig] = useState({
     latestVersion: '2.0.2',
     forceUpdate: false,
@@ -34,7 +34,7 @@ const Maintenance = () => {
     updateMessage: 'Critical security patches and payment flow enhancements are now live.',
     storeUrl: 'https://apps.apple.com/in/app/inizio/id6763986039'
   });
-  
+
   const [updateLoading, setUpdateLoading] = useState(false);
 
   // 1. Fetch current live config from Backend on Mount
@@ -43,20 +43,20 @@ const Maintenance = () => {
       try {
         setLoading(true);
         const response = await api.get('/app-config');
-        
-        const { 
+
+        const {
           maintenanceMode, maintenanceMessage, updatedAt,
           android, ios
         } = response.data;
-        
+
         // Populate Maintenance Data
         setIsActive(maintenanceMode);
         setMessage(maintenanceMessage || '');
-        
+
         // Populate Platform Specific App Version Data
         if (android) setAndroidConfig(android);
         if (ios) setIosConfig(ios);
-        
+
         if (maintenanceMode) {
           setTimerLabel('Live (No End Time Specified)');
           setHistory([
@@ -93,15 +93,15 @@ const Maintenance = () => {
   // Countdown Timer Logic
   useEffect(() => {
     let interval;
-    
+
     if (isActive && startTime && endTime) {
       interval = setInterval(() => {
         const now = new Date().getTime();
         const start = new Date(startTime).getTime();
         const end = new Date(endTime).getTime();
-        
+
         let distance;
-        
+
         if (now < start) {
           distance = start - now;
           setTimerLabel('Starts In');
@@ -116,13 +116,13 @@ const Maintenance = () => {
           clearInterval(interval);
           setTimeLeft('00:00:00');
           setTimerLabel('Time Remaining');
-          handleStop(true); 
+          handleStop(true);
         } else {
           const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
           const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
           const seconds = Math.floor((distance % (1000 * 60)) / 1000);
           const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-          
+
           if (days > 0) {
             setTimeLeft(`${days}d ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
           } else {
@@ -131,7 +131,7 @@ const Maintenance = () => {
             );
           }
         }
-      }, 1000);
+      }, 30000);
     } else if (!isActive) {
       setTimeLeft('00:00:00');
       if (timerLabel !== 'Live (No End Time Specified)') {
@@ -145,7 +145,7 @@ const Maintenance = () => {
   // Handle Maintenance Form
   const handleStart = async (e) => {
     e.preventDefault();
-    
+
     if (!message.trim()) {
       alert('Please provide a message.');
       return;
@@ -172,7 +172,7 @@ const Maintenance = () => {
       });
 
       setIsActive(true);
-      
+
       const newRecord = {
         id: Date.now(),
         message,
@@ -196,7 +196,7 @@ const Maintenance = () => {
       });
 
       setIsActive(false);
-      
+
       setHistory(prev => {
         const updated = [...prev];
         if (updated[0] && (updated[0].status === 'Active' || updated[0].status === 'Scheduled')) {
@@ -205,7 +205,7 @@ const Maintenance = () => {
         }
         return updated;
       });
-      
+
       setMessage('');
       setStartTime('');
       setEndTime('');
@@ -249,7 +249,7 @@ const Maintenance = () => {
 
   return (
     <div className="space-y-6 relative p-4 max-w-7xl mx-auto">
-      
+
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
@@ -272,13 +272,13 @@ const Maintenance = () => {
       <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
+
         {/* SECTION 1: Configure Downtime */}
         <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl p-6 sm:p-8">
           <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
             <FiClock className="text-blue-400" /> Configure Downtime
           </h2>
-          
+
           <form onSubmit={handleStart} className="space-y-6">
             <div>
               <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Display Message to Users</label>
@@ -350,7 +350,7 @@ const Maintenance = () => {
           <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2 shrink-0">
             <FiCalendar className="text-blue-400" /> Maintenance Logs
           </h2>
-          
+
           <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar flex-1 max-h-125">
             {history.length === 0 ? (
               <p className="text-slate-400 italic text-center py-12">No maintenance history available.</p>
@@ -359,24 +359,24 @@ const Maintenance = () => {
                 <div key={item.id} className="p-5 border border-white/5 rounded-2xl bg-slate-950/20 hover:bg-white/5 transition-all relative group">
                   <div className="pr-8">
                     <h3 className="font-bold text-white tracking-tight leading-tight">{item.message}</h3>
-                    
+
                     <div className="flex flex-col gap-1 mt-3 text-xs text-slate-300 font-medium">
                       <span><span className="text-slate-500">Started:</span> {item.startTime}</span>
                       <span><span className="text-slate-500">Ended:</span> {item.endTime}</span>
                     </div>
-                    
+
                     <div className="mt-4 flex items-center">
                       <span className={`px-2.5 py-1 rounded-md capitalize font-bold tracking-wide text-[10px]
-                        ${item.status === 'Active' ? 'bg-red-500/20 text-red-300 border border-red-500/30' : 
-                          item.status === 'Scheduled' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' : 
-                          item.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 
-                          'bg-amber-500/20 text-amber-300 border border-amber-500/30'}`}
+                        ${item.status === 'Active' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
+                          item.status === 'Scheduled' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' :
+                            item.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                              'bg-amber-500/20 text-amber-300 border border-amber-500/30'}`}
                       >
                         {item.status}
                       </span>
                     </div>
                   </div>
-                  
+
                   <button
                     onClick={() => handleDelete(item.id)}
                     className="absolute top-4 right-4 text-slate-500 hover:text-red-400 p-2 rounded-xl hover:bg-red-500/20 transition-all opacity-0 group-hover:opacity-100"
@@ -408,13 +408,13 @@ const Maintenance = () => {
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-          
+
           {/* ANDROID CONFIG */}
           <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5">
             <h3 className="text-lg font-bold text-green-400 mb-5 flex items-center gap-2">
               <FaAndroid size={20} /> Android Configuration
             </h3>
-            
+
             <div className="space-y-5">
               <div className="flex gap-4">
                 <div className="flex-1">
@@ -430,9 +430,9 @@ const Maintenance = () => {
                 <div className="flex flex-col justify-center items-center bg-slate-900/50 px-4 py-2 rounded-lg border border-white/5">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Force Update</label>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      className="sr-only peer" 
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
                       checked={androidConfig.forceUpdate}
                       onChange={(e) => handleConfigChange('android', 'forceUpdate', e.target.checked)}
                     />
@@ -481,7 +481,7 @@ const Maintenance = () => {
             <h3 className="text-lg font-bold text-blue-400 mb-5 flex items-center gap-2">
               <FaApple size={22} className="mb-0.5" /> iOS Configuration
             </h3>
-            
+
             <div className="space-y-5">
               <div className="flex gap-4">
                 <div className="flex-1">
@@ -497,9 +497,9 @@ const Maintenance = () => {
                 <div className="flex flex-col justify-center items-center bg-slate-900/50 px-4 py-2 rounded-lg border border-white/5">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Force Update</label>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      className="sr-only peer" 
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
                       checked={iosConfig.forceUpdate}
                       onChange={(e) => handleConfigChange('ios', 'forceUpdate', e.target.checked)}
                     />
@@ -542,7 +542,7 @@ const Maintenance = () => {
               </div>
             </div>
           </div>
-          
+
         </div>
       </form>
     </div>

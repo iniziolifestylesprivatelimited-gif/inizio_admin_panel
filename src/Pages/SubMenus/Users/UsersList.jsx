@@ -161,7 +161,7 @@ const UsersList = () => {
     // Setup polling every 5 seconds to keep activity status in sync
     const intervalId = setInterval(() => {
       fetchUsers(true);
-    }, 1000);
+    }, 30000);
 
     return () => clearInterval(intervalId);
   }, []);

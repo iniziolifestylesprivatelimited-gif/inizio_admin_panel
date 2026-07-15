@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '../../../api/axios';
-import { 
-  FiSearch, FiLoader, FiAlertCircle, FiRefreshCcw, 
+import {
+  FiSearch, FiLoader, FiAlertCircle, FiRefreshCcw,
   FiActivity, FiKey, FiUsers, FiClock, FiMail, FiCheck, FiX
 } from 'react-icons/fi';
 
@@ -37,14 +37,14 @@ const ActiveUsers = () => {
       const response = await api.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       let fetchedData = [];
       if (Array.isArray(response.data)) {
         fetchedData = response.data;
       } else if (response.data && typeof response.data === 'object') {
         fetchedData = response.data.data || response.data.users || response.data.reports || [];
       }
-      
+
       setReportData(fetchedData);
     } catch (err) {
       console.error(`Fetch error for tab ${tab}:`, err);
@@ -62,7 +62,7 @@ const ActiveUsers = () => {
 
     const intervalId = setInterval(() => {
       fetchReportData(activeTab, false);
-    }, 10000);
+    }, 30000);
 
     return () => clearInterval(intervalId);
   }, [activeTab]);
@@ -95,7 +95,7 @@ const ActiveUsers = () => {
       item.userId?.toLowerCase().includes(query) ||
       item.businessType?.toLowerCase().includes(query)
     );
-    
+
     if (activeTab === 'login') {
       return basicMatch || item.lastLoginMethod?.toLowerCase().includes(query);
     } else {
@@ -125,7 +125,7 @@ const ActiveUsers = () => {
     <div className="relative space-y-6 min-h-full z-0 isolate w-full">
       {/* Glassmorphism Ambient Glows */}
       <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
-      
+
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -141,9 +141,9 @@ const ActiveUsers = () => {
         <div className="flex w-full md:w-auto items-center gap-3">
           <div className="relative flex-1 md:w-72">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input 
-              type="text" 
-              placeholder="Search by name, email, ID..." 
+            <input
+              type="text"
+              placeholder="Search by name, email, ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-10 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 text-sm font-medium transition-all"
@@ -158,7 +158,7 @@ const ActiveUsers = () => {
               </button>
             )}
           </div>
-          <button 
+          <button
             onClick={() => fetchReportData(activeTab)}
             disabled={loading}
             className="p-2.5 bg-slate-800 border border-white/10 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center shrink-0"
@@ -173,21 +173,19 @@ const ActiveUsers = () => {
       <div className="flex border-b border-white/10 gap-6">
         <button
           onClick={() => setActiveTab('login')}
-          className={`pb-3 font-bold text-sm transition-all cursor-pointer ${
-            activeTab === 'login' 
-              ? 'text-blue-400 border-b-2 border-blue-400 font-extrabold' 
+          className={`pb-3 font-bold text-sm transition-all cursor-pointer ${activeTab === 'login'
+              ? 'text-blue-400 border-b-2 border-blue-400 font-extrabold'
               : 'text-slate-400 hover:text-slate-200'
-          }`}
+            }`}
         >
           Login Report
         </button>
         <button
           onClick={() => setActiveTab('password-setup')}
-          className={`pb-3 font-bold text-sm transition-all cursor-pointer ${
-            activeTab === 'password-setup' 
-              ? 'text-blue-400 border-b-2 border-blue-400 font-extrabold' 
+          className={`pb-3 font-bold text-sm transition-all cursor-pointer ${activeTab === 'password-setup'
+              ? 'text-blue-400 border-b-2 border-blue-400 font-extrabold'
               : 'text-slate-400 hover:text-slate-200'
-          }`}
+            }`}
         >
           Password Setup Report
         </button>
@@ -349,7 +347,7 @@ const ActiveUsers = () => {
                           {item.businessType || 'L1'}
                         </span>
                       </td>
-                      
+
                       {activeTab === 'login' ? (
                         <>
                           <td className="p-4 text-sm text-slate-300">
@@ -402,7 +400,7 @@ const ActiveUsers = () => {
       {!loading && !error && filteredData.length > 0 && (
         <div className="relative z-10 flex flex-col md:flex-row justify-end items-center gap-4 bg-transparent backdrop-blur-2xl shadow-lg shadow-black/20 p-4 rounded-2xl border border-white/10 isolate">
           <div className="flex space-x-2">
-            <button 
+            <button
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
               className="px-4 py-2 bg-transparent border border-white/10 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold cursor-pointer"
@@ -438,20 +436,19 @@ const ActiveUsers = () => {
                       if (page !== '...') setCurrentPage(page);
                     }}
                     disabled={page === '...'}
-                    className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-sm font-medium border transition-colors shrink-0 ${
-                      page === currentPage
+                    className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-sm font-medium border transition-colors shrink-0 ${page === currentPage
                         ? 'bg-blue-600 text-white border-blue-500 shadow-md'
                         : page === '...'
-                        ? 'bg-transparent text-slate-500 border-transparent cursor-default'
-                        : 'bg-slate-800 text-slate-300 border-white/10 hover:bg-slate-700 cursor-pointer'
-                    }`}
+                          ? 'bg-transparent text-slate-500 border-transparent cursor-default'
+                          : 'bg-slate-800 text-slate-300 border-white/10 hover:bg-slate-700 cursor-pointer'
+                      }`}
                   >
                     {page}
                   </button>
                 ));
               })()}
             </div>
-            <button 
+            <button
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages || totalPages === 0}
               className="px-4 py-2 bg-transparent border border-white/10 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold cursor-pointer"

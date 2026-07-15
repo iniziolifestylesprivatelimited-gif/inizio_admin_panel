@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
-import { 
+import {
   FiLogOut, FiMenu, FiX, FiUser,
   FiBell, FiChevronDown, FiChevronRight
 } from 'react-icons/fi';
@@ -76,14 +76,14 @@ const Layout = () => {
   useEffect(() => {
     const handleOutsideClick = (event) => {
       if (
-        notificationsDropdownRef.current && 
+        notificationsDropdownRef.current &&
         !notificationsDropdownRef.current.contains(event.target) &&
         (!mobileNotificationsDropdownRef.current || !mobileNotificationsDropdownRef.current.contains(event.target))
       ) {
         setIsNotificationsDropdownOpen(false);
       }
       if (
-        profileDropdownRef.current && 
+        profileDropdownRef.current &&
         !profileDropdownRef.current.contains(event.target) &&
         (!mobileProfileDropdownRef.current || !mobileProfileDropdownRef.current.contains(event.target))
       ) {
@@ -220,7 +220,7 @@ const Layout = () => {
             }
 
             const isNotOnChatPage = !window.location.pathname.includes('/chat');
-            
+
             // 2. In-App Toast
             if (isNotOnChatPage) {
               setToastMsg(`New message from ${contact.name || 'Customer'}`);
@@ -265,7 +265,7 @@ const Layout = () => {
             }
           }
         });
-        
+
         prevContactsRef.current = contacts;
         isInitialLoad.current = false;
 
@@ -277,7 +277,7 @@ const Layout = () => {
     };
 
     fetchUnreadCount();
-    const intervalId = setInterval(fetchUnreadCount, 5000);
+    const intervalId = setInterval(fetchUnreadCount, 30000);
     return () => clearInterval(intervalId);
   }, [user]);
 
@@ -314,8 +314,8 @@ const Layout = () => {
 
         const orders = Array.isArray(ordersRes.data) ? ordersRes.data : ordersRes.data?.orders || [];
         const users = Array.isArray(usersRes.data) ? usersRes.data : [];
-        const pendingUsers = Array.isArray(pendingRes.data) 
-          ? pendingRes.data 
+        const pendingUsers = Array.isArray(pendingRes.data)
+          ? pendingRes.data
           : pendingRes.data?.pending || pendingRes.data?.users || pendingRes.data?.data || [];
 
         const deletionsData = deletionRes.data;
@@ -327,29 +327,29 @@ const Layout = () => {
         }
 
         if (!isInitialDataLoad.current) {
-           const prevOrdersCount = prevOrdersRef.current?.length || 0;
-           const currentOrdersCount = orders.length;
-           if (currentOrdersCount > prevOrdersCount && !location.pathname.startsWith('/orders')) {
-             setOrdersUnreadCount(prev => prev + (currentOrdersCount - prevOrdersCount));
-           }
+          const prevOrdersCount = prevOrdersRef.current?.length || 0;
+          const currentOrdersCount = orders.length;
+          if (currentOrdersCount > prevOrdersCount && !location.pathname.startsWith('/orders')) {
+            setOrdersUnreadCount(prev => prev + (currentOrdersCount - prevOrdersCount));
+          }
 
-           const prevUsersCount = prevUsersRef.current?.length || 0;
-           const currentUsersCount = users.length;
-           if (currentUsersCount > prevUsersCount && location.pathname !== '/users/list') {
-             setUsersUnreadCount(prev => prev + (currentUsersCount - prevUsersCount));
-           }
+          const prevUsersCount = prevUsersRef.current?.length || 0;
+          const currentUsersCount = users.length;
+          if (currentUsersCount > prevUsersCount && location.pathname !== '/users/list') {
+            setUsersUnreadCount(prev => prev + (currentUsersCount - prevUsersCount));
+          }
 
-           const prevPendingCount = prevPendingRef.current?.length || 0;
-           const currentPendingCount = pendingUsers.length;
-           if (currentPendingCount > prevPendingCount && location.pathname !== '/users/verify') {
-             setUsersVerifyUnreadCount(prev => prev + (currentPendingCount - prevPendingCount));
-           }
+          const prevPendingCount = prevPendingRef.current?.length || 0;
+          const currentPendingCount = pendingUsers.length;
+          if (currentPendingCount > prevPendingCount && location.pathname !== '/users/verify') {
+            setUsersVerifyUnreadCount(prev => prev + (currentPendingCount - prevPendingCount));
+          }
 
-           const prevDeletionCount = prevDeletionRef.current?.length || 0;
-           const currentDeletionCount = deletionUsers.length;
-           if (currentDeletionCount > prevDeletionCount && location.pathname !== '/users/deletion-requests') {
-             setUsersDeletionUnreadCount(prev => prev + (currentDeletionCount - prevDeletionCount));
-           }
+          const prevDeletionCount = prevDeletionRef.current?.length || 0;
+          const currentDeletionCount = deletionUsers.length;
+          if (currentDeletionCount > prevDeletionCount && location.pathname !== '/users/deletion-requests') {
+            setUsersDeletionUnreadCount(prev => prev + (currentDeletionCount - prevDeletionCount));
+          }
         }
 
         prevOrdersRef.current = orders;
@@ -364,7 +364,7 @@ const Layout = () => {
     };
 
     fetchOrdersAndUsers();
-    const intervalId = setInterval(fetchOrdersAndUsers, 10000);
+    const intervalId = setInterval(fetchOrdersAndUsers, 30000);
     return () => clearInterval(intervalId);
   }, [user, location.pathname]);
 
@@ -396,7 +396,7 @@ const Layout = () => {
 
   return (
     <div className="flex h-dvh bg-linear-to-br from-black via-slate-950 to-blue-950 font-sans overflow-hidden text-slate-300 relative z-0">
-      
+
       {/* Global Ambient Glows */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10 transform-gpu">
         <div className="absolute top-[-10%] left-[-5%] w-96 h-96 bg-blue-600/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 transform-gpu"></div>
@@ -406,7 +406,7 @@ const Layout = () => {
       {/* Custom In-App Toast Notification */}
       {toastMsg && (
         <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-100 animate-in fade-in slide-in-from-top-4">
-          <div 
+          <div
             onClick={() => { navigation('/chat'); setToastMsg(null); }}
             className="bg-blue-600 text-white px-6 py-3 rounded-full shadow-2xl shadow-blue-600/50 flex items-center gap-3 cursor-pointer border border-blue-500/50"
           >
@@ -430,18 +430,18 @@ const Layout = () => {
               </div>
             </div>
             <div className="flex gap-2 shrink-0">
-               <button 
-                 onClick={requestNotificationPermission}
-                 className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-bold cursor-pointer transition-colors"
-               >
-                 Enable
-               </button>
-               <button 
-                 onClick={() => setShowPermissionBanner(false)}
-                 className="px-2 py-1.5 bg-white/5 hover:bg-white/10 text-slate-400 rounded-lg text-[10px] font-bold cursor-pointer transition-colors"
-               >
-                 Later
-               </button>
+              <button
+                onClick={requestNotificationPermission}
+                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-bold cursor-pointer transition-colors"
+              >
+                Enable
+              </button>
+              <button
+                onClick={() => setShowPermissionBanner(false)}
+                className="px-2 py-1.5 bg-white/5 hover:bg-white/10 text-slate-400 rounded-lg text-[10px] font-bold cursor-pointer transition-colors"
+              >
+                Later
+              </button>
             </div>
           </div>
         </div>
@@ -453,7 +453,7 @@ const Layout = () => {
         <div className="flex items-center gap-4">
           {/* Mobile Notifications Dropdown */}
           <div className="relative" ref={mobileNotificationsDropdownRef}>
-            <button 
+            <button
               onClick={() => setIsNotificationsDropdownOpen(!isNotificationsDropdownOpen)}
               className="text-slate-300 hover:text-white relative transition-colors mt-1 focus:outline-none"
             >
@@ -475,7 +475,7 @@ const Layout = () => {
                     </span>
                   )}
                 </div>
-                
+
                 <div className="max-h-60 overflow-y-auto divide-y divide-white/5 no-scrollbar">
                   {notificationsList.length === 0 ? (
                     <div className="py-6 text-center text-slate-500 text-xs">
@@ -485,7 +485,7 @@ const Layout = () => {
                     </div>
                   ) : (
                     notificationsList.map((notif) => (
-                      <div 
+                      <div
                         key={notif.id}
                         onClick={() => handleNotificationClick(notif.path)}
                         className="flex items-start gap-2.5 p-2.5 hover:bg-white/5 transition-all cursor-pointer group"
@@ -511,11 +511,11 @@ const Layout = () => {
 
           {/* Mobile Profile Dropdown */}
           <div className="relative" ref={mobileProfileDropdownRef}>
-            <div 
+            <div
               className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-inner cursor-pointer"
               onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
             >
-            {user.email ? user.email.charAt(0).toUpperCase() : 'U'}
+              {user.email ? user.email.charAt(0).toUpperCase() : 'U'}
             </div>
 
             {/* Dropdown Menu */}
@@ -523,15 +523,15 @@ const Layout = () => {
               <div className="absolute right-0 mt-3 w-48 bg-slate-900/80 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl shadow-black/50 py-2 z-50 animate-in fade-in slide-in-from-top-2">
                 <div className="px-4 py-2 border-b border-white/10 mb-1">
                   <p className="text-sm font-semibold text-white line-clamp-1">{user.email || 'User'}</p>
-                <p className="text-xs text-slate-400 capitalize">Administrator</p>
+                  <p className="text-xs text-slate-400 capitalize">Administrator</p>
                 </div>
-                <Link 
-                  to="/profile" 
+                <Link
+                  to="/profile"
                   className="flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
                 >
                   <FiUser className="mr-2" /> Profile
                 </Link>
-                <button 
+                <button
                   onClick={logout}
                   className="w-full flex items-center px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
                 >
@@ -540,8 +540,8 @@ const Layout = () => {
               </div>
             )}
           </div>
-          
-          <button 
+
+          <button
             onClick={() => setIsMobileMenuOpen(true)}
             className="p-1 text-slate-300 hover:text-white focus:outline-none transition-colors"
           >
@@ -552,13 +552,13 @@ const Layout = () => {
 
       {/* MOBILE OVERLAY */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden transition-opacity"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
 
-      <aside 
+      <aside
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={`
@@ -576,21 +576,19 @@ const Layout = () => {
 
         <div className="h-16 flex items-center justify-center border-b border-white/10 bg-transparent shrink-0 relative overflow-hidden">
           {/* Full Logo (logos.png) */}
-          <div className={`absolute transition-all duration-300 ease-in-out flex items-center justify-center ${
-            isExpanded ? 'opacity-100 scale-100 rotate-0' : 'opacity-0 scale-75 rotate-[-12deg] pointer-events-none'
-          }`}>
+          <div className={`absolute transition-all duration-300 ease-in-out flex items-center justify-center ${isExpanded ? 'opacity-100 scale-100 rotate-0' : 'opacity-0 scale-75 rotate-[-12deg] pointer-events-none'
+            }`}>
             <img src={logoImg} alt="logo" className="h-14 w-auto object-contain scale-200 mt-1.5" />
           </div>
 
           {/* Collapsed App Icon (app-icon-png.png) */}
-          <div className={`absolute transition-all duration-300 ease-in-out flex items-center justify-center ${
-            isExpanded ? 'opacity-0 scale-75 rotate-[12deg] pointer-events-none' : 'opacity-100 scale-100 rotate-0'
-          }`}>
+          <div className={`absolute transition-all duration-300 ease-in-out flex items-center justify-center ${isExpanded ? 'opacity-0 scale-75 rotate-[12deg] pointer-events-none' : 'opacity-100 scale-100 rotate-0'
+            }`}>
             <img src={appIconImg} alt="logo" className="lg:h-10 lg:w-10 h-14 w-auto object-contain lg:scale-100 scale-200 lg:mt-0 mt-1.5" />
           </div>
 
           {/* Mobile Close Button */}
-          <button 
+          <button
             className="lg:hidden absolute right-4 p-1.5 text-slate-400 hover:text-white bg-white/5 border border-white/10 rounded-xl transition-all cursor-pointer hover:bg-white/15"
             onClick={() => setIsMobileMenuOpen(false)}
             title="Close Menu"
@@ -598,19 +596,18 @@ const Layout = () => {
             <FiX className="text-lg" />
           </button>
         </div>
-        
+
         <nav className="flex-1 px-4 py-3 overflow-y-auto no-scrollbar space-y-2">
-          <p className={`px-2 mb-4 text-xs font-bold text-slate-500 uppercase tracking-wider transition-all duration-300 ${
-            isExpanded ? 'opacity-100' : 'lg:opacity-0'
-          }`}>
+          <p className={`px-2 mb-4 text-xs font-bold text-slate-500 uppercase tracking-wider transition-all duration-300 ${isExpanded ? 'opacity-100' : 'lg:opacity-0'
+            }`}>
             MAIN MENU
           </p>
-          
+
           {userMenus.map((menu) => {
-            
+
             if (!menu) return null;
             const Icon = menu.icon;
-            
+
             // IF THIS MENU HAS SUB-MENUS (Dropdown Logic)
             if (menu.subMenus) {
               const isOpen = openMenus[menu.name];
@@ -621,14 +618,14 @@ const Layout = () => {
               return (
                 <div key={menu.name} className="space-y-1">
                   {/* Parent Toggle Button */}
-                  <button 
+                  <button
                     onClick={() => toggleSubMenu(menu.name)}
                     title={!isExpanded ? menu.name : undefined}
                     className={`
                       w-full h-12 flex items-center justify-between px-4 transition-all duration-300 group
-                      ${isChildActive && !isOpen 
-                        ? 'bg-blue-600/20 text-blue-500 border border-blue-600/50 shadow-sm rounded-xl' 
-                        : isExpanded 
+                      ${isChildActive && !isOpen
+                        ? 'bg-blue-600/20 text-blue-500 border border-blue-600/50 shadow-sm rounded-xl'
+                        : isExpanded
                           ? 'text-slate-300 hover:bg-white/10 hover:text-white border border-transparent cursor-pointer rounded-xl'
                           : 'bg-white/[0.03] backdrop-blur-md border border-white/5 text-slate-300 hover:bg-white/10 hover:border-white/10 cursor-pointer shadow-xs rounded-xl'
                       }
@@ -636,14 +633,12 @@ const Layout = () => {
                   >
                     <div className="flex items-center min-w-0">
                       {Icon && <Icon className={`shrink-0 transition-all duration-300 ${isExpanded ? 'text-lg text-slate-300 group-hover:text-white' : 'text-base lg:mr-0 group-hover:scale-105'}`} />}
-                      <span className={`font-medium text-sm whitespace-nowrap transition-all duration-300 ease-in-out ${
-                        isExpanded ? 'opacity-100 max-w-[150px] ml-3' : 'opacity-0 max-w-0 overflow-hidden ml-0'
-                      }`}>{menu.name}</span>
+                      <span className={`font-medium text-sm whitespace-nowrap transition-all duration-300 ease-in-out ${isExpanded ? 'opacity-100 max-w-[150px] ml-3' : 'opacity-0 max-w-0 overflow-hidden ml-0'
+                        }`}>{menu.name}</span>
                     </div>
 
-                    <div className={`flex items-center shrink-0 transition-all duration-300 ease-in-out ${
-                      isExpanded ? 'opacity-100 max-w-[50px] ml-2' : 'opacity-0 max-w-0 overflow-hidden ml-0'
-                    }`}>
+                    <div className={`flex items-center shrink-0 transition-all duration-300 ease-in-out ${isExpanded ? 'opacity-100 max-w-[50px] ml-2' : 'opacity-0 max-w-0 overflow-hidden ml-0'
+                      }`}>
                       {!isOpen && parentBadgeCount > 0 && (
                         <span className="mr-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shrink-0">
                           {parentBadgeCount > 9 ? '9+' : parentBadgeCount}
@@ -655,42 +650,41 @@ const Layout = () => {
 
                   {/* Collapsible Sub-Menus */}
                   {isExpanded && (
-                    <div 
-                      className={`grid transition-all duration-300 ease-in-out ${
-                        isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 pointer-events-none'
-                      }`}
+                    <div
+                      className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 pointer-events-none'
+                        }`}
                     >
                       <div className="overflow-hidden">
                         <div className="pl-11 pr-2 py-1 space-y-1">
-                        {menu.subMenus.map((sub) => {
-                          const isSubActive = location.pathname === sub.path;
-                          const SubIcon = sub.icon;
-                          const badgeCount = getBadgeCount(sub.path);
-                          return (
-                            <Link
-                              key={sub.path}
-                              to={sub.path}
-                              onClick={() => setIsMobileMenuOpen(false)}
-                              className={`
+                          {menu.subMenus.map((sub) => {
+                            const isSubActive = location.pathname === sub.path;
+                            const SubIcon = sub.icon;
+                            const badgeCount = getBadgeCount(sub.path);
+                            return (
+                              <Link
+                                key={sub.path}
+                                to={sub.path}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className={`
                                 flex items-center justify-between px-4 py-2 rounded-lg text-sm font-medium transition-colors
-                                ${isSubActive 
-                                  ? 'bg-blue-600/20 text-white shadow-md shadow-blue-600/20'
-                                  : 'text-slate-400 hover:bg-white/10 hover:text-white'
-                                }
+                                ${isSubActive
+                                    ? 'bg-blue-600/20 text-white shadow-md shadow-blue-600/20'
+                                    : 'text-slate-400 hover:bg-white/10 hover:text-white'
+                                  }
                               `}
-                            >
-                              <div className="flex items-center">
-                                {SubIcon && <SubIcon className="text-base mr-3" />}
-                                <span className="transition-all duration-300 opacity-100">{sub.name}</span>
-                              </div>
-                              {badgeCount > 0 && (
-                                <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shrink-0 transition-opacity duration-300 opacity-100">
-                                  {badgeCount > 9 ? '9+' : badgeCount}
-                                </span>
-                              )}
-                            </Link>
-                          );
-                        })}
+                              >
+                                <div className="flex items-center">
+                                  {SubIcon && <SubIcon className="text-base mr-3" />}
+                                  <span className="transition-all duration-300 opacity-100">{sub.name}</span>
+                                </div>
+                                {badgeCount > 0 && (
+                                  <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shrink-0 transition-opacity duration-300 opacity-100">
+                                    {badgeCount > 9 ? '9+' : badgeCount}
+                                  </span>
+                                )}
+                              </Link>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
@@ -702,11 +696,11 @@ const Layout = () => {
             // IF THIS IS A STANDARD FLAT LINK
             const isActive = location.pathname === menu.path;
             const badgeCount = getBadgeCount(menu.path);
-            
+
             return (
-              <Link 
-                key={menu.path} 
-                to={menu.path} 
+              <Link
+                key={menu.path}
+                to={menu.path}
                 onClick={() => {
                   setOpenMenus({});
                   setIsMobileMenuOpen(false);
@@ -715,8 +709,8 @@ const Layout = () => {
                 className={`
                   w-full h-12 flex items-center justify-between px-4 transition-all duration-300 group
                   ${isActive
-                    ? 'bg-blue-600/20 text-blue-500 shadow-sm border border-blue-600/50 rounded-xl' 
-                    : isExpanded 
+                    ? 'bg-blue-600/20 text-blue-500 shadow-sm border border-blue-600/50 rounded-xl'
+                    : isExpanded
                       ? 'text-slate-300 hover:bg-white/10 hover:text-white border border-transparent rounded-xl'
                       : 'bg-white/[0.03] backdrop-blur-md border border-white/5 text-slate-300 hover:bg-white/10 hover:border-white/10 shadow-xs rounded-xl'
                   }
@@ -724,14 +718,12 @@ const Layout = () => {
               >
                 <div className="flex items-center min-w-0">
                   {Icon && <Icon className={`shrink-0 transition-all duration-300 ${isActive ? 'scale-105' : 'group-hover:scale-105'} ${isExpanded ? 'text-lg text-slate-300 group-hover:text-white' : 'text-base lg:mr-0'}`} />}
-                  <span className={`font-medium text-sm whitespace-nowrap transition-all duration-300 ease-in-out ${
-                    isExpanded ? 'opacity-100 max-w-[150px] ml-3' : 'opacity-0 max-w-0 overflow-hidden ml-0'
-                  }`}>{menu.name}</span>
+                  <span className={`font-medium text-sm whitespace-nowrap transition-all duration-300 ease-in-out ${isExpanded ? 'opacity-100 max-w-[150px] ml-3' : 'opacity-0 max-w-0 overflow-hidden ml-0'
+                    }`}>{menu.name}</span>
                 </div>
                 {badgeCount > 0 && (
-                  <span className={`ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shrink-0 transition-all duration-300 ease-in-out ${
-                    isExpanded ? 'opacity-100 max-w-[50px] ml-2' : 'opacity-0 max-w-0 overflow-hidden ml-0'
-                  }`}>
+                  <span className={`ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shrink-0 transition-all duration-300 ease-in-out ${isExpanded ? 'opacity-100 max-w-[50px] ml-2' : 'opacity-0 max-w-0 overflow-hidden ml-0'
+                    }`}>
                     {badgeCount > 9 ? '9+' : badgeCount}
                   </span>
                 )}
@@ -743,10 +735,10 @@ const Layout = () => {
 
       {/* MAIN CONTENT WRAPPER (Includes Header, Content, Footer) */}
       <div className="flex-1 flex flex-col h-full overflow-hidden bg-transparent relative pt-16 lg:pt-0">
-        
+
         {/* GLOBAL HEADER (Desktop Top Bar) */}
         <header className="hidden lg:flex h-16 bg-transparent backdrop-blur-2xl border-b border-white/10 shadow-sm shadow-black/50 items-center justify-between px-8 sticky top-0 z-20">
-          
+
           {/* Left Side: Global Search */}
           <HeaderSearch />
 
@@ -754,7 +746,7 @@ const Layout = () => {
           <div className="flex items-center space-x-6">
             {/* Desktop Notifications Dropdown */}
             <div className="relative" ref={notificationsDropdownRef}>
-              <button 
+              <button
                 onClick={() => setIsNotificationsDropdownOpen(!isNotificationsDropdownOpen)}
                 className="text-slate-400 hover:text-blue-500 relative transition-colors mt-1 focus:outline-none"
               >
@@ -776,7 +768,7 @@ const Layout = () => {
                       </span>
                     )}
                   </div>
-                  
+
                   <div className="max-h-72 overflow-y-auto divide-y divide-white/5 no-scrollbar">
                     {notificationsList.length === 0 ? (
                       <div className="py-8 text-center text-slate-500 text-xs">
@@ -786,7 +778,7 @@ const Layout = () => {
                       </div>
                     ) : (
                       notificationsList.map((notif) => (
-                        <div 
+                        <div
                           key={notif.id}
                           onClick={() => handleNotificationClick(notif.path)}
                           className="flex items-start gap-3 p-3 hover:bg-white/5 transition-all cursor-pointer group"
@@ -809,39 +801,39 @@ const Layout = () => {
                 </div>
               )}
             </div>
-            
+
             <div className="h-8 w-px bg-white/10"></div>
- 
+
             {/* Profile Dropdown Trigger */}
             <div className="relative" ref={profileDropdownRef}>
-              <div 
+              <div
                 className="flex items-center cursor-pointer group"
                 onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
               >
                 <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-inner">
-                {user.email ? user.email.charAt(0).toUpperCase() : 'U'}
+                  {user.email ? user.email.charAt(0).toUpperCase() : 'U'}
                 </div>
                 <div className="ml-3 hidden md:block">
                   <p className="text-xs font-bold text-white">Admin Account</p>
-                <p className="text-[10px] text-slate-400 uppercase">Administrator</p>
+                  <p className="text-[10px] text-slate-400 uppercase">Administrator</p>
                 </div>
                 <FiChevronDown className="ml-2 text-slate-400 group-hover:text-white transition-colors" />
               </div>
- 
+
               {/* Dropdown Menu */}
               {isProfileDropdownOpen && (
                 <div className="absolute right-0 mt-3 w-48 bg-slate-900/80 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl shadow-black/50 py-2 z-50 animate-in fade-in slide-in-from-top-2">
                   <div className="px-4 py-2 border-b border-white/10 mb-1">
                     <p className="text-sm font-semibold text-white line-clamp-1">{user.email || 'User'}</p>
-                  <p className="text-xs text-slate-400 capitalize">Administrator</p>
+                    <p className="text-xs text-slate-400 capitalize">Administrator</p>
                   </div>
-                  <Link 
-                    to="/profile" 
+                  <Link
+                    to="/profile"
                     className="flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
                   >
                     <FiUser className="mr-2" /> Profile
                   </Link>
-                  <button 
+                  <button
                     onClick={logout}
                     className="w-full flex items-center px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
                   >

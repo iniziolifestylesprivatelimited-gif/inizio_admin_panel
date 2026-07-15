@@ -402,7 +402,7 @@ const ActivityDetails = () => {
     fetchData(false);
     const intervalId = setInterval(() => {
       fetchData(true);
-    }, 5000);
+    }, 30000);
 
     return () => clearInterval(intervalId);
   }, [type, breakdownType, startDate, endDate]);
@@ -659,8 +659,8 @@ const ActivityDetails = () => {
 
         let viewsMatch = false;
         if (Array.isArray(item.views)) {
-          viewsMatch = item.views.some(v => 
-            (v.productName || '').toLowerCase().includes(query) || 
+          viewsMatch = item.views.some(v =>
+            (v.productName || '').toLowerCase().includes(query) ||
             (v.name || '').toLowerCase().includes(query)
           );
         }
@@ -898,11 +898,10 @@ const ActivityDetails = () => {
             <td className="py-6 px-3">
               <div className="flex items-center gap-2">
                 <div className="relative">
-                  <div className={`w-8 h-8 rounded-lg border flex items-center justify-center font-bold text-xs tracking-wider shadow-inner ${
-                    type === 'installed' 
-                      ? 'bg-gradient-to-tr from-emerald-500/20 to-teal-500/20 border-emerald-500/30 text-emerald-300' 
+                  <div className={`w-8 h-8 rounded-lg border flex items-center justify-center font-bold text-xs tracking-wider shadow-inner ${type === 'installed'
+                      ? 'bg-gradient-to-tr from-emerald-500/20 to-teal-500/20 border-emerald-500/30 text-emerald-300'
                       : 'bg-gradient-to-tr from-rose-500/20 to-orange-500/20 border-rose-500/30 text-rose-300'
-                  }`}>
+                    }`}>
                     {initials}
                   </div>
                   {type === 'installed' && (
@@ -913,9 +912,8 @@ const ActivityDetails = () => {
                   )}
                 </div>
                 <div>
-                  <div className={`text-xs font-bold text-white transition-colors flex items-center gap-1 ${
-                    type === 'installed' ? 'group-hover:text-emerald-400' : 'group-hover:text-rose-400'
-                  }`}>
+                  <div className={`text-xs font-bold text-white transition-colors flex items-center gap-1 ${type === 'installed' ? 'group-hover:text-emerald-400' : 'group-hover:text-rose-400'
+                    }`}>
                     {item.name || 'Unknown User'}
                   </div>
                   {item.phone && (
@@ -940,21 +938,19 @@ const ActivityDetails = () => {
               </span>
             </td>
             <td className="py-6 px-3">
-              <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                type === 'installed' && item.notificationsEnabled 
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+              <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${type === 'installed' && item.notificationsEnabled
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                   : 'bg-slate-800 text-slate-500 border border-white/5'
-              }`}>
+                }`}>
                 <FiBell className={type === 'installed' && item.notificationsEnabled ? 'text-emerald-400' : 'text-slate-500'} size={10} />
                 {type === 'installed' && item.notificationsEnabled ? 'Enabled' : 'Disabled'}
               </span>
             </td>
             <td className="py-6 px-3">
-              <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                type === 'installed' && item.isAppLockEnabled 
-                  ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20' 
+              <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${type === 'installed' && item.isAppLockEnabled
+                  ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20'
                   : 'bg-slate-800 text-slate-500 border border-white/5'
-              }`}>
+                }`}>
                 <FiShield className={type === 'installed' && item.isAppLockEnabled ? 'text-teal-400' : 'text-slate-500'} size={10} />
                 {type === 'installed' && item.isAppLockEnabled ? 'Secured' : 'Inactive'}
               </span>
@@ -1106,13 +1102,12 @@ const ActivityDetails = () => {
             <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td className="py-4 px-5">
               <div className="flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-lg border flex items-center justify-center font-bold text-xs tracking-wider shadow-inner ${
-                  isSuperAdmin 
-                    ? 'bg-gradient-to-tr from-amber-500/20 to-orange-500/20 border-amber-500/30 text-amber-300' 
-                    : item.user 
-                    ? 'bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 border-blue-500/30 text-blue-300' 
-                    : 'bg-gradient-to-tr from-slate-500/20 to-slate-600/20 border-white/10 text-slate-400'
-                }`}>
+                <div className={`w-8 h-8 rounded-lg border flex items-center justify-center font-bold text-xs tracking-wider shadow-inner ${isSuperAdmin
+                    ? 'bg-gradient-to-tr from-amber-500/20 to-orange-500/20 border-amber-500/30 text-amber-300'
+                    : item.user
+                      ? 'bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 border-blue-500/30 text-blue-300'
+                      : 'bg-gradient-to-tr from-slate-500/20 to-slate-600/20 border-white/10 text-slate-400'
+                  }`}>
                   {initials}
                 </div>
                 <div>
@@ -1131,13 +1126,12 @@ const ActivityDetails = () => {
               {item.user?.email || 'N/A'}
             </td>
             <td className="py-4 px-5">
-              <span className={`px-2.5 py-1 rounded-full font-bold text-xs border ${
-                displayCount > 10000 && !isSuperAdmin
-                  ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' 
-                  : displayCount > 5000 
-                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' 
-                  : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-              }`}>
+              <span className={`px-2.5 py-1 rounded-full font-bold text-xs border ${displayCount > 10000 && !isSuperAdmin
+                  ? 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                  : displayCount > 5000
+                    ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                    : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                }`}>
                 {displayCount.toLocaleString()} requests
               </span>
             </td>
@@ -1172,10 +1166,10 @@ const ActivityDetails = () => {
       return currentItems.map((item, index) => {
         const initials = (item.name || 'G').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
         const eventType = item.lastEventType || 'UNKNOWN';
-        const badgeColor = 
+        const badgeColor =
           eventType === 'ADD_TO_CART' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-          eventType === 'REMOVE_FROM_CART' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' :
-          'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+            eventType === 'REMOVE_FROM_CART' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' :
+              'bg-amber-500/10 text-amber-400 border border-amber-500/20';
 
         return (
           <tr key={item.userId || index} className="border-b border-white/5 hover:bg-white/5 transition-colors">
@@ -1204,7 +1198,7 @@ const ActivityDetails = () => {
             </td>
             <td className="py-4 px-5 text-sm text-slate-400 font-medium">{formatDateTime(item.lastActiveAt)}</td>
             <td className="py-4 px-5 text-center">
-              <button 
+              <button
                 onClick={() => setSelectedUserAnalytics(item)}
                 className="px-3 py-1.5 bg-indigo-600/25 hover:bg-indigo-600/50 text-indigo-300 hover:text-white rounded-lg border border-indigo-500/30 text-xs font-bold transition-all cursor-pointer"
               >
@@ -1261,11 +1255,10 @@ const ActivityDetails = () => {
               {item.variantName || 'Default'}
             </td>
             <td className="py-4 px-5 text-xs">
-              <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${
-                item.notified 
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+              <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${item.notified
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                   : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-              }`}>
+                }`}>
                 {item.notified ? 'notified' : 'pending alert'}
               </span>
             </td>
@@ -1322,11 +1315,10 @@ const ActivityDetails = () => {
         return (
           <tr key={item.category?._id || index} className="border-b border-white/5 hover:bg-white/5 transition-colors">
             <td className="py-4 px-5">
-              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${
-                globalIndex === 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' :
-                globalIndex === 1 ? 'bg-slate-500/15 border-slate-400/30 text-slate-300' :
-                globalIndex === 2 ? 'bg-orange-500/15 border-orange-500/30 text-orange-400' :
-                'bg-slate-800/60 border-white/10 text-slate-400'}`}>
+              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${globalIndex === 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' :
+                  globalIndex === 1 ? 'bg-slate-500/15 border-slate-400/30 text-slate-300' :
+                    globalIndex === 2 ? 'bg-orange-500/15 border-orange-500/30 text-orange-400' :
+                      'bg-slate-800/60 border-white/10 text-slate-400'}`}>
                 {globalIndex + 1}
               </span>
             </td>
@@ -1351,11 +1343,10 @@ const ActivityDetails = () => {
         return (
           <tr key={index} className="border-b border-white/5 hover:bg-white/5 transition-colors">
             <td className="py-4 px-5">
-              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${
-                globalIndex === 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' :
-                globalIndex === 1 ? 'bg-slate-500/15 border-slate-400/30 text-slate-300' :
-                globalIndex === 2 ? 'bg-orange-500/15 border-orange-500/30 text-orange-400' :
-                'bg-slate-800/60 border-white/10 text-slate-400'}`}>
+              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${globalIndex === 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' :
+                  globalIndex === 1 ? 'bg-slate-500/15 border-slate-400/30 text-slate-300' :
+                    globalIndex === 2 ? 'bg-orange-500/15 border-orange-500/30 text-orange-400' :
+                      'bg-slate-800/60 border-white/10 text-slate-400'}`}>
                 {globalIndex + 1}
               </span>
             </td>
@@ -1386,11 +1377,10 @@ const ActivityDetails = () => {
         return (
           <tr key={item.product?._id || index} className="border-b border-white/5 hover:bg-white/5 transition-colors">
             <td className="py-4 px-5">
-              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${
-                globalIndex === 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' :
-                globalIndex === 1 ? 'bg-slate-500/15 border-slate-400/30 text-slate-300' :
-                globalIndex === 2 ? 'bg-orange-500/15 border-orange-500/30 text-orange-400' :
-                'bg-slate-800/60 border-white/10 text-slate-400'}`}>
+              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${globalIndex === 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' :
+                  globalIndex === 1 ? 'bg-slate-500/15 border-slate-400/30 text-slate-300' :
+                    globalIndex === 2 ? 'bg-orange-500/15 border-orange-500/30 text-orange-400' :
+                      'bg-slate-800/60 border-white/10 text-slate-400'}`}>
                 {globalIndex + 1}
               </span>
             </td>
@@ -1770,31 +1760,28 @@ const ActivityDetails = () => {
               <span className="text-xs text-white font-black uppercase tracking-tight">Select interval or custom range</span>
             </div>
           </div>
-          
+
           <div className="flex flex-wrap items-center gap-3">
             {/* Interval Selector Buttons */}
             <div className="bg-black/40 p-1 border border-white/10 rounded-2xl flex items-center gap-1">
               <button
                 onClick={() => setBreakdownType('day')}
-                className={`px-4.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                  breakdownType === 'day' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white'
-                }`}
+                className={`px-4.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${breakdownType === 'day' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white'
+                  }`}
               >
                 Daily
               </button>
               <button
                 onClick={() => setBreakdownType('month')}
-                className={`px-4.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                  breakdownType === 'month' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white'
-                }`}
+                className={`px-4.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${breakdownType === 'month' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white'
+                  }`}
               >
                 Monthly
               </button>
               <button
                 onClick={() => setBreakdownType('custom')}
-                className={`px-4.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                  breakdownType === 'custom' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white'
-                }`}
+                className={`px-4.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${breakdownType === 'custom' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white'
+                  }`}
               >
                 Custom Range
               </button>
@@ -1868,7 +1855,7 @@ const ActivityDetails = () => {
               </div>
               <span className="text-[10px] text-slate-500 font-bold uppercase">live insights</span>
             </div>
-            
+
             <div className="relative flex-1 w-full z-10">
               {dailyCounts.length === 0 ? (
                 <div className="text-center text-slate-500 text-xs py-12 italic">
@@ -1896,7 +1883,7 @@ const ActivityDetails = () => {
               </h3>
               <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Top active items by date</p>
             </div>
-            
+
             <div className="relative flex-1 overflow-y-auto space-y-2.5 pr-1 custom-scrollbar z-10">
               {trendingHighlights.length === 0 ? (
                 <div className="text-center text-slate-500 text-xs py-12 italic">
@@ -1912,12 +1899,11 @@ const ActivityDetails = () => {
                       <span className="text-xs font-bold text-white truncate">{item.name}</span>
                       <span className="text-[9px] text-slate-500 font-semibold">{item.type} &bull; {item.date}</span>
                     </div>
-                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-lg border shrink-0 ${
-                      item.type === 'Product' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                      item.type === 'Brand' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' :
-                      item.type === 'Category' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
-                      'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                    }`}>
+                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-lg border shrink-0 ${item.type === 'Product' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                        item.type === 'Brand' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' :
+                          item.type === 'Category' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
+                            'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                      }`}>
                       {item.count} views
                     </span>
                   </div>
@@ -2022,7 +2008,7 @@ const ActivityDetails = () => {
               <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 border-b border-white/5 pb-2">
                 Manager Performance
               </h3>
-              
+
               <div className="space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-1">
                 {/* Sales Heads */}
                 <div>
@@ -2107,14 +2093,14 @@ const ActivityDetails = () => {
               >
                 &larr;
               </button>
-              
+
               {/* Numbered Page Buttons */}
               {Array.from({ length: totalPages }, (_, index) => {
                 const pageNumber = index + 1;
                 if (totalPages > 6) {
                   const isFirstOrLast = pageNumber === 1 || pageNumber === totalPages;
                   const isNearCurrent = Math.abs(pageNumber - currentPage) <= 1;
-                  
+
                   if (!isFirstOrLast && !isNearCurrent) {
                     if (pageNumber === 2 && currentPage > 3) {
                       return <span key="ellipsis-start" className="px-1.5 text-slate-600 text-xs font-black select-none">...</span>;
@@ -2125,16 +2111,15 @@ const ActivityDetails = () => {
                     return null;
                   }
                 }
-                
+
                 return (
                   <button
                     key={pageNumber}
                     onClick={() => handlePageChange(pageNumber)}
-                    className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center border ${
-                      currentPage === pageNumber
+                    className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center border ${currentPage === pageNumber
                         ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/25'
                         : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'
-                    }`}
+                      }`}
                   >
                     {pageNumber}
                   </button>
@@ -2158,12 +2143,12 @@ const ActivityDetails = () => {
       {isModalOpen && selectedRowLogins && (() => {
         const modalConfig = getModalHeader(selectedRowLogins.action);
         const ModalIcon = modalConfig.icon;
-        
+
         return createPortal(
           <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
             <div className="bg-slate-900/95 border border-white/10 shadow-2xl rounded-3xl p-6 max-w-md w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
               <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
-              
+
               <div className="flex justify-between items-start mb-5 relative z-1000">
                 <div>
                   <h3 className="text-lg font-black text-white flex items-center gap-2">
@@ -2171,7 +2156,7 @@ const ActivityDetails = () => {
                   </h3>
                   <p className="text-xs text-slate-400 mt-1 font-semibold">{selectedRowLogins.user?.name || 'Unknown User'}</p>
                 </div>
-                <button 
+                <button
                   onClick={() => {
                     setIsModalOpen(false);
                     setSelectedRowLogins(null);
@@ -2206,7 +2191,7 @@ const ActivityDetails = () => {
                   </span>
                   {selectedRowLogins.action === 'API_REQUESTS' ? (
                     Object.entries(selectedRowLogins.endpointStats || {}).map(([endpoint, count], idx) => (
-                      <div 
+                      <div
                         key={idx}
                         className="flex justify-between items-center bg-slate-950/30 border border-white/5 p-3 rounded-xl hover:border-white/10 transition-colors animate-in fade-in duration-150 font-mono text-xs"
                       >
@@ -2222,7 +2207,7 @@ const ActivityDetails = () => {
                     ))
                   ) : (
                     selectedRowLogins.views?.map((view, index) => (
-                      <div 
+                      <div
                         key={view._id || index}
                         className="flex justify-between items-center bg-slate-950/30 border border-white/5 p-3 rounded-xl hover:border-white/10 transition-colors animate-in fade-in duration-150"
                       >
@@ -2242,7 +2227,7 @@ const ActivityDetails = () => {
                 <div className="space-y-2 max-h-[240px] overflow-y-auto custom-scrollbar pr-1 relative z-10">
                   <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Detailed Logs</span>
                   {selectedRowLogins.logins?.map((login, index) => (
-                    <div 
+                    <div
                       key={login._id || index}
                       className="flex justify-between items-center bg-slate-950/30 border border-white/5 p-3 rounded-xl hover:border-white/10 transition-colors"
                     >
@@ -2258,8 +2243,8 @@ const ActivityDetails = () => {
                   ))}
                 </div>
               )}
-              
-              <button 
+
+              <button
                 onClick={() => {
                   setIsModalOpen(false);
                   setSelectedRowLogins(null);
@@ -2279,7 +2264,7 @@ const ActivityDetails = () => {
         <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
           <div className="bg-slate-900/95 border border-white/10 shadow-2xl rounded-3xl p-6 max-w-2xl w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
-            
+
             <div className="flex justify-between items-start mb-5 relative z-[1000]">
               <div>
                 <h3 className="text-lg font-black text-white flex items-center gap-2">
@@ -2287,7 +2272,7 @@ const ActivityDetails = () => {
                 </h3>
                 <p className="text-xs text-slate-400 mt-1 font-semibold">{selectedUserAnalytics.name || 'Guest / Unauthenticated'}</p>
               </div>
-              <button 
+              <button
                 onClick={() => setSelectedUserAnalytics(null)}
                 className="p-1.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer"
               >
@@ -2318,13 +2303,13 @@ const ActivityDetails = () => {
               </span>
               {selectedUserAnalytics.activities.map((item, index) => {
                 const eventType = item.eventType || 'UNKNOWN';
-                const badgeColor = 
+                const badgeColor =
                   eventType === 'ADD_TO_CART' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-                  eventType === 'REMOVE_FROM_CART' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' :
-                  'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+                    eventType === 'REMOVE_FROM_CART' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' :
+                      'bg-amber-500/10 text-amber-400 border border-amber-500/20';
 
                 return (
-                  <div 
+                  <div
                     key={item._id || index}
                     className="bg-slate-950/30 border border-white/5 p-3 rounded-xl hover:border-white/10 transition-colors animate-in fade-in duration-150 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-left"
                   >
@@ -2357,8 +2342,8 @@ const ActivityDetails = () => {
                 );
               })}
             </div>
-            
-            <button 
+
+            <button
               onClick={() => setSelectedUserAnalytics(null)}
               className="w-full mt-6 py-2.5 bg-slate-800 border border-white/10 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md"
             >

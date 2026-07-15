@@ -126,7 +126,7 @@ const Dashboard = () => {
     // Setup polling every 30 seconds
     const intervalId = setInterval(() => {
       fetchData(true);
-    }, 5000);
+    }, 30000);
 
     return () => clearInterval(intervalId);
   }, []);
