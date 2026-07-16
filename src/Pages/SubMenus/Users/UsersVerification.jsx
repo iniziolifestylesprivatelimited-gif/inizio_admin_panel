@@ -413,7 +413,7 @@ const UsersVerification = () => {
                 disabled={isActionLoading || !rejectionReason.trim()}
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isActionLoading ? <FiLoader className="animate-spin text-xs" /> : <FiUserMinus size={14} />} Reject & Delete
+                {isActionLoading ? <FiLoader className="animate-spin text-xs" /> : <FiUserMinus size={14} />} Reject KYC
               </button>
             </div>
           </div>

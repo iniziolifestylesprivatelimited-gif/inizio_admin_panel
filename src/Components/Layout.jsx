@@ -570,8 +570,8 @@ const Layout = () => {
       >
         {/* Sidebar Ambient Glows */}
         <div className="absolute top-0 left-0 w-full h-full pointer-events-none -z-10 transform-gpu">
-          <div className="absolute top-[10%] left-[-20%] w-64 h-64 bg-blue-600/20 rounded-full mix-blend-screen filter blur-[80px] opacity-60 transform-gpu"></div>
-          <div className="absolute bottom-[20%] right-[-20%] w-72 h-72 bg-blue-600/50 rounded-full mix-blend-screen filter blur-[100px] opacity-50 transform-gpu"></div>
+          <div className="absolute top-[10%] left-[-20%] w-64 h-64 bg-blue-600/20 rounded-full mix-blend-screen filter blur-[80px] opacity-60 transform-gpu animate-glow"></div>
+          <div className="absolute bottom-[20%] right-[-20%] w-72 h-72 bg-blue-600/50 rounded-full mix-blend-screen filter blur-[100px] opacity-50 transform-gpu animate-glow" style={{ animationDelay: '-5s' }}></div>
         </div>
 
         <div className="h-16 flex items-center justify-center border-b border-white/10 bg-transparent shrink-0 relative overflow-hidden">
@@ -846,7 +846,7 @@ const Layout = () => {
         </header>
 
         {/* DYNAMIC PAGE CONTENT */}
-        <main className="flex-1 overflow-y-auto custom-scrollbar">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
           <div className="w-full mx-auto p-4 sm:p-6 lg:p-8 min-h-full">
             <Outlet context={{ setChatUnreadCount, setOrdersUnreadCount, setUsersUnreadCount, setUsersVerifyUnreadCount, setUsersDeletionUnreadCount }} />
           </div>

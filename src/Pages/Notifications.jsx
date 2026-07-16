@@ -6,10 +6,11 @@ import {
 } from 'react-icons/md';
 import { 
   FiLoader, FiAlertCircle, FiCopy, FiGlobe, FiUsers, FiUser, 
-  FiUserCheck, FiLayers, FiBox, FiTrendingUp, FiLink, FiCheck, FiX 
+  FiUserCheck, FiLayers, FiBox, FiTrendingUp, FiLink, FiCheck, FiX, FiSearch
 } from 'react-icons/fi';
 import axios from 'axios';
 import { api, BASE_URL } from '../api/axios';
+import CustomDropdown from '../Components/CustomDropdown';
 
 const Notifications = () => {
   const getAudienceIcon = (type) => {
@@ -53,6 +54,7 @@ const Notifications = () => {
   const [campaigns, setCampaigns] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [errorHistory, setErrorHistory] = useState('');
+  const [historySearchQuery, setHistorySearchQuery] = useState('');
 
   // Fetch history of campaigns
   const fetchCampaignHistory = async () => {
@@ -251,10 +253,31 @@ const Notifications = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const clickActionOptions = [
+    { value: 'none', label: 'No Action' },
+    { value: 'home', label: 'Link to Home Page' },
+    { value: 'category', label: 'Link to Category' },
+    { value: 'product', label: 'Link to Specific Product' },
+    { value: 'brand', label: 'Link to Brand' },
+    { value: 'external', label: 'Link to External Website' }
+  ];
+
+  const filteredCampaigns = campaigns.filter(c => {
+    if (!historySearchQuery) return true;
+    const query = historySearchQuery.toLowerCase();
+    return (
+      (c.title || '').toLowerCase().includes(query) ||
+      (c.message || '').toLowerCase().includes(query) ||
+      (c.campaignId || '').toLowerCase().includes(query)
+    );
+  });
+
   return (
     <div className="relative space-y-4 min-h-full z-0">
-      {/* Glassmorphism Background Ambient Glows */}
-      <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
+      {/* Bounded Ambient Glows Container to prevent horizontal scrollbars */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute top-10 left-10 w-100 h-100 bg-blue-500/30 rounded-full mix-blend-screen filter blur-[80px] opacity-50 transform-gpu animate-glow"></div>
+      </div>
 
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
@@ -546,25 +569,18 @@ const Notifications = () => {
             <div>
               <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Click Action (Optional)</label>
               <div className="relative">
-                <select 
+                <CustomDropdown 
                   value={clickAction}
-                  onChange={(e) => {
-                    setClickAction(e.target.value);
+                  onChange={(val) => {
+                    setClickAction(val);
                     setActionId('');
                     setSearchTerm('');
                     setIsActionDropdownOpen(false);
                   }}
-                  className="w-full pl-10 pr-10 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white transition-all text-sm font-medium appearance-none cursor-pointer"
-                >
-                  <option value="none" className="bg-slate-800">No Action</option>
-                  <option value="home" className="bg-slate-800">Link to Home Page</option>
-                  <option value="category" className="bg-slate-800">Link to Category</option>
-                  <option value="product" className="bg-slate-800">Link to Specific Product</option>
-                  <option value="brand" className="bg-slate-800">Link to Brand</option>
-                  <option value="external" className="bg-slate-800">Link to External Website</option>
-                </select>
-                <FiLink className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-base pointer-events-none" />
-                <MdKeyboardArrowDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-xl pointer-events-none" />
+                  options={clickActionOptions}
+                  statusColor="pl-10 text-white border-white/10 bg-black/20 text-sm font-medium rounded-xl"
+                />
+                <FiLink className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none z-10" />
               </div>
             </div>
 
@@ -589,19 +605,16 @@ const Notifications = () => {
                   <>
                     <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Category</label>
                     <div className="relative">
-                      <select
+                      <CustomDropdown
                         value={actionId}
-                        onChange={(e) => setActionId(e.target.value)}
-                        required
-                        className="w-full pl-10 pr-10 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white transition-all text-sm font-medium appearance-none cursor-pointer"
-                      >
-                        <option value="" className="bg-slate-800">-- Select Category --</option>
-                        {categories.map(cat => (
-                          <option key={cat._id} value={cat._id} className="bg-slate-800">{cat.name}</option>
-                        ))}
-                      </select>
-                      <FiLayers className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-base pointer-events-none" />
-                      <MdKeyboardArrowDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-xl pointer-events-none" />
+                        onChange={(val) => setActionId(val)}
+                        options={[
+                          { value: '', label: '-- Select Category --' },
+                          ...categories.map(cat => ({ value: cat._id, label: cat.name }))
+                        ]}
+                        statusColor="pl-10 text-white border-white/10 bg-black/20 text-sm font-medium rounded-xl"
+                      />
+                      <FiLayers className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none z-10" />
                     </div>
                   </>
                 )}
@@ -610,19 +623,16 @@ const Notifications = () => {
                   <>
                     <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Brand</label>
                     <div className="relative">
-                      <select
+                      <CustomDropdown
                         value={actionId}
-                        onChange={(e) => setActionId(e.target.value)}
-                        required
-                        className="w-full pl-10 pr-10 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white transition-all text-sm font-medium appearance-none cursor-pointer"
-                      >
-                        <option value="" className="bg-slate-800">-- Select Brand --</option>
-                        {brands.map(brand => (
-                          <option key={brand._id} value={brand._id} className="bg-slate-800">{brand.name}</option>
-                        ))}
-                      </select>
-                      <FiTrendingUp className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-base pointer-events-none" />
-                      <MdKeyboardArrowDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-xl pointer-events-none" />
+                        onChange={(val) => setActionId(val)}
+                        options={[
+                          { value: '', label: '-- Select Brand --' },
+                          ...brands.map(brand => ({ value: brand._id, label: brand.name }))
+                        ]}
+                        statusColor="pl-10 text-white border-white/10 bg-black/20 text-sm font-medium rounded-xl"
+                      />
+                      <FiTrendingUp className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none z-10" />
                     </div>
                   </>
                 )}
@@ -724,6 +734,27 @@ const Notifications = () => {
             </button>
           </div>
 
+          {/* Search History Bar */}
+          <div className="relative mb-5 shrink-0">
+            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search history by title, description or ID..."
+              value={historySearchQuery}
+              onChange={(e) => setHistorySearchQuery(e.target.value)}
+              className="w-full pl-11 pr-11 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 text-sm font-medium transition-all"
+            />
+            {historySearchQuery && (
+              <button
+                type="button"
+                onClick={() => setHistorySearchQuery('')}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <FiX className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
           {errorHistory && (
             <div className="text-red-400 bg-red-900/20 p-4 rounded-xl border border-red-500/30 flex items-center mb-4 shrink-0">
               <FiAlertCircle className="mr-2 text-lg" /> {errorHistory}
@@ -738,8 +769,10 @@ const Notifications = () => {
               </div>
             ) : campaigns.length === 0 ? (
               <p className="text-slate-400 italic text-center py-12">No notification history found.</p>
+            ) : filteredCampaigns.length === 0 ? (
+              <p className="text-slate-400 italic text-center py-12">No matching notifications found.</p>
             ) : (
-              campaigns.map((item) => (
+              filteredCampaigns.map((item) => (
                 <div key={item.campaignId} className="p-5 border border-white/10 rounded-2xl bg-slate-800/10 hover:bg-white/5 transition-all flex flex-col sm:flex-row gap-4 relative group">
                   {item.imageUrl && (
                     <div className="w-full sm:w-24 h-16 shrink-0 rounded-xl overflow-hidden border border-white/10 bg-slate-800/50 flex items-center justify-center">

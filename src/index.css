@@ -55,3 +55,33 @@ table td:not(:last-child) {
 input[type="date"] {
   color-scheme: dark;
 }
+
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* ========================================================
+   AMBIENT GLOW MOTION ANIMATION
+   ======================================================== */
+@keyframes float-glow {
+  0% {
+    transform: translate(0px, 0px) scale(1) rotate(0deg);
+  }
+  25% {
+    transform: translate(15vw, -10vh) scale(1.15) rotate(40deg);
+  }
+  50% {
+    transform: translate(30vw, 15vh) scale(0.9) rotate(80deg);
+  }
+  75% {
+    transform: translate(-10vw, 25vh) scale(1.1) rotate(120deg);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1) rotate(180deg);
+  }
+}
+
+.animate-glow {
+  animation: float-glow 35s infinite ease-in-out;
+}

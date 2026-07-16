@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { api, BASE_URL } from '../api/axios';
 import {
   FiTrendingUp, FiUsers, FiBox, FiDollarSign, FiLayers,
-  FiActivity, FiEye, FiSearch, FiLogIn, FiLogOut, FiX, FiCheck, FiBell
+  FiActivity, FiEye, FiSearch, FiLogIn, FiLogOut, FiX, FiCheck, FiBell, FiCalendar
 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
@@ -53,6 +53,13 @@ const Dashboard = () => {
   const [requestStats, setRequestStats] = useState([]);
   const [subscriptions, setSubscriptions] = useState([]);
   const [analyticsData, setAnalyticsData] = useState(null);
+  const [breakdownType, setBreakdownType] = useState('day'); // 'day', 'month', 'custom'
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 14);
+    return d.toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [activeActivityTab, setActiveActivityTab] = useState('ALL');
   const [selectedProductViews, setSelectedProductViews] = useState(null);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -63,6 +70,10 @@ const Dashboard = () => {
       try {
         const token = sessionStorage.getItem('accessToken');
         const headers = { Authorization: `Bearer ${token}` };
+        let activityUrl = `/activity/stats?startDate=${startDate}&endDate=${endDate}`;
+        if (breakdownType === 'day' || breakdownType === 'month') {
+          activityUrl = `/activity/stats?breakdown=true&breakdownInterval=${breakdownType}&startDate=${startDate}&endDate=${endDate}`;
+        }
         const [
           productsResponse,
           brandsResponse,
@@ -79,7 +90,7 @@ const Dashboard = () => {
           api.get('/categories', { headers }).catch(() => ({ data: [] })),
           api.get('/admin/customers', { headers }).catch(() => ({ data: [] })),
           api.get('/orders/all', { headers }).catch(() => ({ data: [] })),
-          api.get('/activity/stats', { headers }).catch(() => ({ data: null })),
+          api.get(activityUrl, { headers }).catch(() => ({ data: null })),
           api.get('/admin/request-stats', { headers }).catch(() => ({ data: { stats: [] } })),
           api.get('/admin/products/subscriptions/all', { headers }).catch(() => ({ data: { subscriptions: [] } })),
           api.get('/admin/analytics', { headers }).catch(() => ({ data: null }))
@@ -129,7 +140,7 @@ const Dashboard = () => {
     }, 30000);
 
     return () => clearInterval(intervalId);
-  }, []);
+  }, [breakdownType, startDate, endDate]);
 
   // console.log(products)
   // console.log(brands)
@@ -436,10 +447,10 @@ const Dashboard = () => {
   };
 
   // Calculate activity-related values
-  const totalProductViews = activityStats?.recentActivities?.filter(act => {
+  const totalProductViews = (activityStats?.recentActivities?.filter(act => {
     const action = (act.action || '').toUpperCase();
     return action === 'PRODUCT_VIEW' || action === 'PRODUCTVIEW' || action === 'PRODUCT';
-  }).length || 0;
+  }).length) || (activityStats?.users?.reduce((sum, u) => sum + (u.activityStats?.productViews || 0), 0)) || 0;
   const recentActivitiesCount = activityStats?.recentActivities?.length || 0;
 
   const getFilteredActivities = () => {
@@ -472,6 +483,120 @@ const Dashboard = () => {
   const sortedMostViewedProducts = React.useMemo(() => {
     return activityStats?.mostViewedProducts || [];
   }, [activityStats]);
+
+  // Calculate aggregate daily counts for trends chart
+  const dailyCounts = React.useMemo(() => {
+    const map = {};
+    const add = (arr) => {
+      if (!Array.isArray(arr)) return;
+      arr.forEach(item => {
+        if (item.date) {
+          map[item.date] = (map[item.date] || 0) + (item.count || 0);
+        }
+      });
+    };
+    add(activityStats?.trends?.products);
+    add(activityStats?.trends?.brands);
+    add(activityStats?.trends?.categories);
+    add(activityStats?.trends?.searches);
+
+    return Object.entries(map)
+      .map(([date, count]) => ({ date, count }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }, [activityStats?.trends]);
+
+  // Extract top trending highlights to display in the side list
+  const trendingHighlights = React.useMemo(() => {
+    const list = [];
+    if (activityStats?.trends?.products) {
+      activityStats.trends.products.forEach(p => {
+        list.push({
+          name: p.productName || 'Unknown Product',
+          type: 'Product',
+          date: p.date,
+          count: p.count || 0
+        });
+      });
+    }
+    if (activityStats?.trends?.brands) {
+      activityStats.trends.brands.forEach(b => {
+        list.push({
+          name: b.brandName || 'Unknown Brand',
+          type: 'Brand',
+          date: b.date,
+          count: b.count || 0
+        });
+      });
+    }
+    if (activityStats?.trends?.categories) {
+      activityStats.trends.categories.forEach(c => {
+        list.push({
+          name: c.categoryName || 'Unknown Category',
+          type: 'Category',
+          date: c.date,
+          count: c.count || 0
+        });
+      });
+    }
+    if (activityStats?.trends?.searches) {
+      activityStats.trends.searches.forEach(s => {
+        list.push({
+          name: `"${s.query}"`,
+          type: 'Search',
+          date: s.date,
+          count: s.count || 0
+        });
+      });
+    }
+    return list.sort((a, b) => b.count - a.count).slice(0, 10);
+  }, [activityStats?.trends]);
+
+  // Trends Line/Area Chart Config
+  const trendsChartConfig = React.useMemo(() => {
+    return {
+      series: [{
+        name: 'Total Activities',
+        data: dailyCounts.map(d => d.count)
+      }],
+      options: {
+        chart: { type: 'area', toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit' },
+        colors: ['#3b82f6'],
+        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0, stops: [0, 100] } },
+        dataLabels: { enabled: false },
+        stroke: { curve: 'smooth', width: 3 },
+        xaxis: {
+          categories: dailyCounts.map(d => d.date),
+          axisBorder: { show: false },
+          axisTicks: { show: false },
+          labels: { style: { colors: '#94a3b8', fontWeight: 600, fontSize: '9px' } }
+        },
+        yaxis: {
+          labels: {
+            style: { colors: '#94a3b8', fontWeight: 600 },
+            formatter: (value) => value.toLocaleString('en-IN')
+          }
+        },
+        grid: {
+          borderColor: 'rgba(255, 255, 255, 0.1)',
+          strokeDashArray: 3,
+          xaxis: { lines: { show: false } },
+          yaxis: { lines: { show: true } }
+        },
+        markers: {
+          size: 4,
+          colors: ['#3b82f6'],
+          strokeColors: 'rgba(255, 255, 255, 0.8)',
+          strokeWidth: 2,
+          hover: { size: 6 }
+        },
+        theme: { mode: 'dark' },
+        tooltip: {
+          theme: 'dark',
+          y: { formatter: (val) => `${val.toLocaleString('en-IN')} activities` }
+        }
+      }
+    };
+  }, [dailyCounts]);
 
   // Dynamic data metrics
   const metrics = [
@@ -523,15 +648,15 @@ const Dashboard = () => {
   ];
 
   // Dynamic activity metrics cards configurations
-  const brandViewsCount = activityStats?.recentActivities?.filter(act => {
+  const brandViewsCount = (activityStats?.recentActivities?.filter(act => {
     const action = (act.action || '').toUpperCase();
     return action === 'BRAND_VIEW' || action === 'BRAND';
-  }).length || 0;
+  }).length) || (activityStats?.mostSearchedBrands?.reduce((sum, item) => sum + (item.searches || 0), 0)) || 0;
 
-  const categoryViewsCount = activityStats?.recentActivities?.filter(act => {
+  const categoryViewsCount = (activityStats?.recentActivities?.filter(act => {
     const action = (act.action || '').toUpperCase();
     return action === 'CATEGORY_VIEW' || action === 'CATEGORY';
-  }).length || 0;
+  }).length) || (activityStats?.mostSearchedCategories?.reduce((sum, item) => sum + (item.searches || 0), 0)) || 0;
 
   const activityMetricCards = [
     {
@@ -586,7 +711,7 @@ const Dashboard = () => {
     },
     {
       title: "Search Queries",
-      value: activityStats?.recentActivities?.filter(act => (act.action || '').toUpperCase() === 'SEARCH').length || 0,
+      value: (activityStats?.recentActivities?.filter(act => (act.action || '').toUpperCase() === 'SEARCH').length) || (activityStats?.users?.reduce((sum, u) => sum + (u.activityStats?.searches || 0), 0)) || 0,
       desc: "Catalog searches made",
       path: "/dashboard/details/search-queries",
       icon: FiSearch,
@@ -782,9 +907,11 @@ const Dashboard = () => {
   return (
     <div className="relative space-y-6 min-h-full z-0 isolate w-full">
 
-      {/* Added 'transform-gpu' to the heavy blur elements to force hardware acceleration */}
-      <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
+      {/* Bounded Ambient Glows Container to prevent horizontal scrollbars */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute top-10 left-10 w-100 h-100 bg-blue-500/30 rounded-full mix-blend-screen filter blur-[80px] opacity-50 transform-gpu animate-glow"></div>
+        {/* <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/50 rounded-full mix-blend-screen filter blur-[100px] opacity-50 transform-gpu animate-glow" style={{ animationDelay: '-7s' }}></div> */}
+      </div>
 
       {/* Header Section */}
       <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 z-10">
@@ -968,6 +1095,167 @@ const Dashboard = () => {
                   })
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Date & Breakdown Control Panel */}
+      {!loading && activityStats && (
+        <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-xl shadow-black/40 rounded-3xl p-4.5 z-10 relative flex flex-col md:flex-row md:items-center justify-between gap-4 mt-8">
+          <div className="flex items-center gap-3">
+            <FiCalendar className="text-blue-400 text-lg shrink-0" />
+            <div>
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Trends Breakdown</span>
+              <span className="text-xs text-white font-black uppercase tracking-tight">Select interval or custom range</span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Interval Selector Buttons */}
+            <div className="bg-black/40 p-1 border border-white/10 rounded-2xl flex items-center gap-1">
+              <button
+                onClick={() => setBreakdownType('day')}
+                className={`px-4.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${breakdownType === 'day' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white'}`}
+              >
+                Daily
+              </button>
+              <button
+                onClick={() => setBreakdownType('month')}
+                className={`px-4.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${breakdownType === 'month' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white'}`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setBreakdownType('custom')}
+                className={`px-4.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${breakdownType === 'custom' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white'}`}
+              >
+                Custom Range
+              </button>
+            </div>
+
+            {/* Custom Date Pickers */}
+            {breakdownType === 'custom' && (
+              <div className="flex items-center gap-2">
+                <div
+                  onClick={(e) => {
+                    const input = e.currentTarget.querySelector('input[type="date"]');
+                    if (input && typeof input.showPicker === 'function') {
+                      try { input.showPicker(); } catch (err) { console.error(err); }
+                    }
+                  }}
+                  className="flex items-center gap-2 bg-black/30 border border-white/10 hover:border-blue-500/30 transition-all cursor-pointer rounded-xl px-3 py-1.5"
+                >
+                  <span className="text-[9px] text-slate-400 font-bold uppercase select-none">From:</span>
+                  <input
+                    type="date"
+                    value={startDate}
+                    max={endDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="bg-transparent text-xs text-white outline-none border-none cursor-pointer font-bold font-mono"
+                  />
+                  <FiCalendar className="text-slate-400 hover:text-white transition-colors text-xs pointer-events-none" />
+                </div>
+
+                <div
+                  onClick={(e) => {
+                    const input = e.currentTarget.querySelector('input[type="date"]');
+                    if (input && typeof input.showPicker === 'function') {
+                      try { input.showPicker(); } catch (err) { console.error(err); }
+                    }
+                  }}
+                  className="flex items-center gap-2 bg-black/30 border border-white/10 hover:border-blue-500/30 transition-all cursor-pointer rounded-xl px-3 py-1.5"
+                >
+                  <span className="text-[9px] text-slate-400 font-bold uppercase select-none">To:</span>
+                  <input
+                    type="date"
+                    value={endDate}
+                    min={startDate}
+                    max={new Date().toISOString().split('T')[0]}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="bg-transparent text-xs text-white outline-none border-none cursor-pointer font-bold font-mono"
+                  />
+                  <FiCalendar className="text-slate-400 hover:text-white transition-colors text-xs pointer-events-none" />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Trends Graph Row */}
+      {!loading && activityStats && activityStats.trends && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 z-10 relative mt-6">
+          {/* Trends Area Chart */}
+          <div className="lg:col-span-2 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-5 overflow-hidden flex flex-col h-[320px]">
+            <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none" />
+            <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                  Overall Traffic & Search Trends
+                </h3>
+                <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Daily aggregate activity and query counts</p>
+              </div>
+              <span className="text-[10px] text-slate-500 font-bold uppercase">live insights</span>
+            </div>
+
+            <div className="relative flex-1 w-full z-10">
+              {dailyCounts.length === 0 ? (
+                <div className="text-center text-slate-500 text-xs py-12 italic">
+                  No historical trend data available.
+                </div>
+              ) : (
+                <ReactApexChart
+                  options={trendsChartConfig.options}
+                  series={trendsChartConfig.series}
+                  type="area"
+                  height="100%"
+                  width="100%"
+                />
+              )}
+            </div>
+          </div>
+
+          {/* Top Trending List */}
+          <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-5 overflow-hidden flex flex-col h-[320px]">
+            <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/5 to-transparent pointer-events-none" />
+            <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                <FiTrendingUp className="text-indigo-400" />
+                Trending Highlights
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Top active items by date</p>
+            </div>
+
+            <div className="relative flex-1 overflow-y-auto space-y-2.5 pr-1 custom-scrollbar z-10">
+              {trendingHighlights.length === 0 ? (
+                <div className="text-center text-slate-500 text-xs py-12 italic">
+                  No highlight events recorded.
+                </div>
+              ) : (
+                trendingHighlights.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-2 rounded-xl bg-slate-950/10 border border-white/5 hover:border-indigo-500/10 transition-colors"
+                  >
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-xs font-bold text-white truncate">{item.name}</span>
+                      <span className="text-[9px] text-slate-500 font-semibold">{item.type} &bull; {item.date}</span>
+                    </div>
+                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-lg border shrink-0 ${
+                      item.type === 'Product' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                      item.type === 'Brand' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' :
+                      item.type === 'Category' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
+                      'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                    }`}>
+                      {item.count} views
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>

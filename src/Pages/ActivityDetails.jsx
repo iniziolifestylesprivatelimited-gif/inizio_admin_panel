@@ -204,25 +204,11 @@ const ActivityDetails = () => {
           let activities = [];
 
           if (type === 'all') {
-            // We need BOTH raw logs (recentActivities) for the table and trends for the chart.
-            // A request with breakdown=true does not return recentActivities.
-            // Therefore, we fetch raw logs and breakdown trends separately in parallel.
             const logsUrl = `/activity/stats?startDate=${startDate}&endDate=${endDate}`;
-            const [resLogs, resStats] = await Promise.all([
-              api.get(logsUrl, { headers }),
-              (breakdownType === 'day' || breakdownType === 'month')
-                ? api.get(`/activity/stats?breakdown=true&breakdownInterval=${breakdownType}&startDate=${startDate}&endDate=${endDate}`, { headers }).catch(() => null)
-                : Promise.resolve(null)
-            ]);
+            const resLogs = await api.get(logsUrl, { headers });
 
             res = resLogs;
             activities = resLogs.data?.recentActivities || [];
-
-            const trendsData = resStats ? (resStats.data?.trends || {}) : (resLogs.data?.trends || {});
-            setExtraData(prev => ({
-              ...prev,
-              trends: trendsData
-            }));
           } else {
             res = await api.get('/activity/stats', { headers });
             activities = res.data?.recentActivities || [];
@@ -255,111 +241,185 @@ const ActivityDetails = () => {
           let filtered = [];
           if (type === 'logins') {
             filtered = activities.filter(act => (act.action || '').toUpperCase() === 'LOGIN');
+            if (filtered.length === 0 && res.data?.users) {
+              filtered = res.data.users
+                .filter(u => u.activityStats?.logins > 0)
+                .map(u => ({
+                  _id: `login-${u.userId}`,
+                  user: { _id: u.userId, name: u.name, email: u.email, phone: u.phone },
+                  action: 'LOGIN',
+                  createdAt: u.lastLoginAt || u.lastActive,
+                  details: { method: 'App Session' }
+                }));
+            }
           } else if (type === 'logouts') {
             filtered = activities.filter(act => (act.action || '').toUpperCase() === 'LOGOUT');
+            if (filtered.length === 0 && res.data?.users) {
+              filtered = res.data.users
+                .filter(u => u.activityStats?.logins > 0)
+                .map(u => ({
+                  _id: `logout-${u.userId}`,
+                  user: { _id: u.userId, name: u.name, email: u.email, phone: u.phone },
+                  action: 'LOGOUT',
+                  createdAt: u.lastActive
+                }));
+            }
           } else if (type === 'product-views') {
             const pvActivities = activities.filter(act => {
               const action = (act.action || '').toUpperCase();
               return action === 'PRODUCT_VIEW' || action === 'PRODUCTVIEW' || action === 'PRODUCT';
             });
-            const groupedPV = [];
-            const userMap = {};
+            if (pvActivities.length === 0 && res.data?.users) {
+              filtered = res.data.users
+                .filter(u => u.activityStats?.productViews > 0)
+                .map(u => ({
+                  _id: u.userId,
+                  user: { _id: u.userId, name: u.name, email: u.email, phone: u.phone },
+                  action: 'PRODUCT_VIEW',
+                  count: u.activityStats.productViews,
+                  views: [],
+                  createdAt: u.lastActive,
+                  latestProduct: 'App Product Catalog'
+                }));
+            } else {
+              const groupedPV = [];
+              const userMap = {};
 
-            pvActivities.forEach(act => {
-              const uId = act.user?._id || act.user?.email || 'unknown';
-              if (!userMap[uId]) {
+              pvActivities.forEach(act => {
+                const uId = act.user?._id || act.user?.email || 'unknown';
+                if (!userMap[uId]) {
+                  const productId = act.details?.productId;
+                  const prod = lookup.products?.find(p => p._id === productId);
+                  userMap[uId] = {
+                    _id: act._id || uId,
+                    user: act.user,
+                    action: 'PRODUCT_VIEW',
+                    count: 0,
+                    views: [],
+                    createdAt: act.createdAt,
+                    latestProduct: prod?.name || productId || 'a product'
+                  };
+                  groupedPV.push(userMap[uId]);
+                }
+                userMap[uId].count += 1;
+
                 const productId = act.details?.productId;
                 const prod = lookup.products?.find(p => p._id === productId);
-                userMap[uId] = {
-                  _id: act._id || uId,
-                  user: act.user,
-                  action: 'PRODUCT_VIEW',
-                  count: 0,
-                  views: [],
-                  createdAt: act.createdAt,
-                  latestProduct: prod?.name || productId || 'a product'
-                };
-                groupedPV.push(userMap[uId]);
-              }
-              userMap[uId].count += 1;
-
-              const productId = act.details?.productId;
-              const prod = lookup.products?.find(p => p._id === productId);
-              userMap[uId].views.push({
-                _id: act._id,
-                productName: prod?.name || productId || 'a product',
-                createdAt: act.createdAt
+                userMap[uId].views.push({
+                  _id: act._id,
+                  productName: prod?.name || productId || 'a product',
+                  createdAt: act.createdAt
+                });
               });
-            });
-            filtered = groupedPV;
+              filtered = groupedPV;
+            }
           } else if (type === 'brand-views') {
             const bvActivities = activities.filter(act => {
               const action = (act.action || '').toUpperCase();
               return action === 'BRAND_VIEW' || action === 'BRAND';
             });
-            const groupedBV = [];
-            const userMap = {};
-
-            bvActivities.forEach(act => {
-              const uId = act.user?._id || act.user?.email || 'unknown';
-              const brandId = act.details?.brandId || act.details?.id;
-              const brand = lookup.brands?.find(b => b._id === brandId);
-              if (!userMap[uId]) {
-                userMap[uId] = {
-                  _id: act._id || uId,
-                  user: act.user,
+            if (bvActivities.length === 0 && res.data?.users) {
+              filtered = res.data.users
+                .filter(u => u.activityStats?.brandViews > 0)
+                .map(u => ({
+                  _id: u.userId,
+                  user: { _id: u.userId, name: u.name, email: u.email, phone: u.phone },
                   action: 'BRAND_VIEW',
-                  count: 0,
+                  count: u.activityStats.brandViews,
                   views: [],
-                  createdAt: act.createdAt,
-                  latestBrand: brand?.name || brandId || 'a brand'
-                };
-                groupedBV.push(userMap[uId]);
-              }
-              userMap[uId].count += 1;
+                  createdAt: u.lastActive,
+                  latestBrand: 'App Brand Catalog'
+                }));
+            } else {
+              const groupedBV = [];
+              const userMap = {};
 
-              userMap[uId].views.push({
-                _id: act._id,
-                name: brand?.name || brandId || 'a brand',
-                createdAt: act.createdAt
+              bvActivities.forEach(act => {
+                const uId = act.user?._id || act.user?.email || 'unknown';
+                const brandId = act.details?.brandId || act.details?.id;
+                const brand = lookup.brands?.find(b => b._id === brandId);
+                if (!userMap[uId]) {
+                  userMap[uId] = {
+                    _id: act._id || uId,
+                    user: act.user,
+                    action: 'BRAND_VIEW',
+                    count: 0,
+                    views: [],
+                    createdAt: act.createdAt,
+                    latestBrand: brand?.name || brandId || 'a brand'
+                  };
+                  groupedBV.push(userMap[uId]);
+                }
+                userMap[uId].count += 1;
+
+                userMap[uId].views.push({
+                  _id: act._id,
+                  name: brand?.name || brandId || 'a brand',
+                  createdAt: act.createdAt
+                });
               });
-            });
-            filtered = groupedBV;
+              filtered = groupedBV;
+            }
           } else if (type === 'category-views') {
             const cvActivities = activities.filter(act => {
               const action = (act.action || '').toUpperCase();
               return action === 'CATEGORY_VIEW' || action === 'CATEGORY';
             });
-            const groupedCV = [];
-            const userMap = {};
-
-            cvActivities.forEach(act => {
-              const uId = act.user?._id || act.user?.email || 'unknown';
-              const catId = act.details?.categoryId || act.details?.id;
-              const cat = lookup.categories?.find(c => c._id === catId);
-              if (!userMap[uId]) {
-                userMap[uId] = {
-                  _id: act._id || uId,
-                  user: act.user,
+            if (cvActivities.length === 0 && res.data?.users) {
+              filtered = res.data.users
+                .filter(u => u.activityStats?.categoryViews > 0)
+                .map(u => ({
+                  _id: u.userId,
+                  user: { _id: u.userId, name: u.name, email: u.email, phone: u.phone },
                   action: 'CATEGORY_VIEW',
-                  count: 0,
+                  count: u.activityStats.categoryViews,
                   views: [],
-                  createdAt: act.createdAt,
-                  latestCategory: cat?.name || catId || 'a category'
-                };
-                groupedCV.push(userMap[uId]);
-              }
-              userMap[uId].count += 1;
+                  createdAt: u.lastActive,
+                  latestCategory: 'App Category Catalog'
+                }));
+            } else {
+              const groupedCV = [];
+              const userMap = {};
 
-              userMap[uId].views.push({
-                _id: act._id,
-                name: cat?.name || catId || 'a category',
-                createdAt: act.createdAt
+              cvActivities.forEach(act => {
+                const uId = act.user?._id || act.user?.email || 'unknown';
+                const catId = act.details?.categoryId || act.details?.id;
+                const cat = lookup.categories?.find(c => c._id === catId);
+                if (!userMap[uId]) {
+                  userMap[uId] = {
+                    _id: act._id || uId,
+                    user: act.user,
+                    action: 'CATEGORY_VIEW',
+                    count: 0,
+                    views: [],
+                    createdAt: act.createdAt,
+                    latestCategory: cat?.name || catId || 'a category'
+                  };
+                  groupedCV.push(userMap[uId]);
+                }
+                userMap[uId].count += 1;
+
+                userMap[uId].views.push({
+                  _id: act._id,
+                  name: cat?.name || catId || 'a category',
+                  createdAt: act.createdAt
+                });
               });
-            });
-            filtered = groupedCV;
+              filtered = groupedCV;
+            }
           } else if (type === 'search-queries') {
             filtered = activities.filter(act => (act.action || '').toUpperCase() === 'SEARCH');
+            if (filtered.length === 0 && res.data?.users) {
+              filtered = res.data.users
+                .filter(u => u.activityStats?.searches > 0)
+                .map(u => ({
+                  _id: `search-${u.userId}`,
+                  user: { _id: u.userId, name: u.name, email: u.email, phone: u.phone },
+                  action: 'SEARCH',
+                  createdAt: u.lastActive,
+                  details: { query: 'Search Query' }
+                }));
+            }
           } else {
             filtered = activities;
           }
@@ -1696,8 +1756,10 @@ const ActivityDetails = () => {
 
   return (
     <div className="relative space-y-6 min-h-full w-full z-0 isolate pb-10">
-      {/* Background glow blobs */}
-      <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full filter blur-[80px] opacity-40 pointer-events-none -z-10 transform-gpu"></div>
+      {/* Background glow blobs - bounded container to prevent scrollbars */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute top-10 left-10 w-100 h-100 bg-blue-500/30 rounded-full filter blur-[80px] opacity-40 transform-gpu"></div>
+      </div>
 
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 z-10 relative">
@@ -1750,165 +1812,62 @@ const ActivityDetails = () => {
         </div>
       </div>
 
-      {/* Date & Breakdown Control Panel - only visible on all / Activity Logs page */}
+      {/* Date Filter Panel - only visible on all / Activity Logs page */}
       {type === 'all' && (
         <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-xl shadow-black/40 rounded-3xl p-4.5 z-10 relative flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <FiCalendar className="text-blue-400 text-lg shrink-0" />
             <div>
-              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Trends Breakdown</span>
-              <span className="text-xs text-white font-black uppercase tracking-tight">Select interval or custom range</span>
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Filter Activity Logs</span>
+              <span className="text-xs text-white font-black uppercase tracking-tight">Select custom date range</span>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            {/* Interval Selector Buttons */}
-            <div className="bg-black/40 p-1 border border-white/10 rounded-2xl flex items-center gap-1">
-              <button
-                onClick={() => setBreakdownType('day')}
-                className={`px-4.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${breakdownType === 'day' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white'
-                  }`}
-              >
-                Daily
-              </button>
-              <button
-                onClick={() => setBreakdownType('month')}
-                className={`px-4.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${breakdownType === 'month' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white'
-                  }`}
-              >
-                Monthly
-              </button>
-              <button
-                onClick={() => setBreakdownType('custom')}
-                className={`px-4.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${breakdownType === 'custom' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white'
-                  }`}
-              >
-                Custom Range
-              </button>
-            </div>
-
             {/* Custom Date Pickers */}
-            {breakdownType === 'custom' && (
-              <div className="flex items-center gap-2">
-                <div
-                  onClick={(e) => {
-                    const input = e.currentTarget.querySelector('input[type="date"]');
-                    if (input && typeof input.showPicker === 'function') {
-                      try { input.showPicker(); } catch (err) { console.error(err); }
-                    }
-                  }}
-                  className="flex items-center gap-2 bg-black/30 border border-white/10 hover:border-blue-500/30 transition-all cursor-pointer rounded-xl px-3 py-1.5"
-                >
-                  <span className="text-[9px] text-slate-400 font-bold uppercase select-none">From:</span>
-                  <input
-                    type="date"
-                    value={startDate}
-                    max={endDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="bg-transparent text-xs text-white outline-none border-none cursor-pointer font-bold font-mono"
-                  />
-                  <FiCalendar className="text-slate-400 hover:text-white transition-colors text-xs pointer-events-none" />
-                </div>
-
-                <div
-                  onClick={(e) => {
-                    const input = e.currentTarget.querySelector('input[type="date"]');
-                    if (input && typeof input.showPicker === 'function') {
-                      try { input.showPicker(); } catch (err) { console.error(err); }
-                    }
-                  }}
-                  className="flex items-center gap-2 bg-black/30 border border-white/10 hover:border-blue-500/30 transition-all cursor-pointer rounded-xl px-3 py-1.5"
-                >
-                  <span className="text-[9px] text-slate-400 font-bold uppercase select-none">To:</span>
-                  <input
-                    type="date"
-                    value={endDate}
-                    min={startDate}
-                    max={getTodayString()}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="bg-transparent text-xs text-white outline-none border-none cursor-pointer font-bold font-mono"
-                  />
-                  <FiCalendar className="text-slate-400 hover:text-white transition-colors text-xs pointer-events-none" />
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-
-
-      {type === 'all' && extraData.trends && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 z-10 relative">
-          {/* Trends Area Chart */}
-          <div className="lg:col-span-2 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-5 overflow-hidden flex flex-col h-[320px]">
-            <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none" />
-            <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
-                  Overall Traffic & Search Trends
-                </h3>
-                <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Daily aggregate activity and query counts</p>
-              </div>
-              <span className="text-[10px] text-slate-500 font-bold uppercase">live insights</span>
-            </div>
-
-            <div className="relative flex-1 w-full z-10">
-              {dailyCounts.length === 0 ? (
-                <div className="text-center text-slate-500 text-xs py-12 italic">
-                  No historical trend data available.
-                </div>
-              ) : (
-                <ReactApexChart
-                  options={trendsChartConfig.options}
-                  series={trendsChartConfig.series}
-                  type="area"
-                  height="100%"
-                  width="100%"
+            <div className="flex items-center gap-2">
+              <div
+                onClick={(e) => {
+                  const input = e.currentTarget.querySelector('input[type="date"]');
+                  if (input && typeof input.showPicker === 'function') {
+                    try { input.showPicker(); } catch (err) { console.error(err); }
+                  }
+                }}
+                className="flex items-center gap-2 bg-black/30 border border-white/10 hover:border-blue-500/30 transition-all cursor-pointer rounded-xl px-3 py-1.5"
+              >
+                <span className="text-[9px] text-slate-400 font-bold uppercase select-none">From:</span>
+                <input
+                  type="date"
+                  value={startDate}
+                  max={endDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-transparent text-xs text-white outline-none border-none cursor-pointer font-bold font-mono"
                 />
-              )}
-            </div>
-          </div>
+                <FiCalendar className="text-slate-400 hover:text-white transition-colors text-xs pointer-events-none" />
+              </div>
 
-          {/* Top Trending List */}
-          <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-5 overflow-hidden flex flex-col h-[320px]">
-            <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/5 to-transparent pointer-events-none" />
-            <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                <FiTrendingUp className="text-indigo-400" />
-                Trending Highlights
-              </h3>
-              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Top active items by date</p>
-            </div>
-
-            <div className="relative flex-1 overflow-y-auto space-y-2.5 pr-1 custom-scrollbar z-10">
-              {trendingHighlights.length === 0 ? (
-                <div className="text-center text-slate-500 text-xs py-12 italic">
-                  No highlight events recorded.
-                </div>
-              ) : (
-                trendingHighlights.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between p-2 rounded-xl bg-slate-950/10 border border-white/5 hover:border-indigo-500/10 transition-colors"
-                  >
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-xs font-bold text-white truncate">{item.name}</span>
-                      <span className="text-[9px] text-slate-500 font-semibold">{item.type} &bull; {item.date}</span>
-                    </div>
-                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-lg border shrink-0 ${item.type === 'Product' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                        item.type === 'Brand' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' :
-                          item.type === 'Category' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
-                            'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                      }`}>
-                      {item.count} views
-                    </span>
-                  </div>
-                ))
-              )}
+              <div
+                onClick={(e) => {
+                  const input = e.currentTarget.querySelector('input[type="date"]');
+                  if (input && typeof input.showPicker === 'function') {
+                    try { input.showPicker(); } catch (err) { console.error(err); }
+                  }
+                }}
+                className="flex items-center gap-2 bg-black/30 border border-white/10 hover:border-blue-500/30 transition-all cursor-pointer rounded-xl px-3 py-1.5"
+              >
+                <span className="text-[9px] text-slate-400 font-bold uppercase select-none">To:</span>
+                <input
+                  type="date"
+                  value={endDate}
+                  min={startDate}
+                  max={getTodayString()}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-transparent text-xs text-white outline-none border-none cursor-pointer font-bold font-mono"
+                />
+                <FiCalendar className="text-slate-400 hover:text-white transition-colors text-xs pointer-events-none" />
+              </div>
             </div>
           </div>
         </div>

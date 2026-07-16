@@ -131,7 +131,7 @@ const Maintenance = () => {
             );
           }
         }
-      }, 30000);
+      }, 1000);
     } else if (!isActive) {
       setTimeLeft('00:00:00');
       if (timerLabel !== 'Live (No End Time Specified)') {
