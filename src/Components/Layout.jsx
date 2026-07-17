@@ -398,9 +398,9 @@ const Layout = () => {
     <div className="flex h-dvh bg-linear-to-br from-black via-slate-950 to-blue-950 font-sans overflow-hidden text-slate-300 relative z-0">
 
       {/* Global Ambient Glows */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10 transform-gpu">
-        <div className="absolute top-[-10%] left-[-5%] w-96 h-96 bg-blue-600/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 transform-gpu"></div>
-        {/* <div className="absolute bottom-[-10%] right-[-5%] w-120 h-120 bg-blue-600/50 rounded-full mix-blend-screen filter blur-[120px] opacity-50 transform-gpu"></div> */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute top-10 left-10 w-75 h-75 bg-blue-500/30 rounded-full mix-blend-screen filter blur-[80px] opacity-60 transform-gpu animate-glow"></div>
+        <div className="absolute bottom-10 right-10 w-75 h-75 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-70 transform-gpu animate-glow-alt" style={{ animationDelay: '-12s' }}></div>
       </div>
 
       {/* Custom In-App Toast Notification */}

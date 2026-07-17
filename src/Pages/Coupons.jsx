@@ -287,9 +287,7 @@ const Coupons = () => {
 
   return (
     <div className="relative space-y-6 min-h-full z-0 isolate w-full">
-      {/* Background glow effects */}
-      <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/10 rounded-full mix-blend-screen filter blur-[80px] opacity-45 pointer-events-none -z-10 transform-gpu"></div>
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-500/10 rounded-full mix-blend-screen filter blur-[100px] opacity-45 pointer-events-none -z-10 transform-gpu"></div>
+
 
       {/* Header */}
       <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-4 z-10">

@@ -362,9 +362,7 @@ const RolesPermissions = () => {
 
   return (
     <div className="relative space-y-6 min-h-full z-0 isolate w-full pb-10">
-      {/* Glassmorphism Background Ambient Glows */}
-      <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/10 rounded-full mix-blend-screen filter blur-[80px] opacity-40 pointer-events-none -z-10 transform-gpu"></div>
-      <div className="absolute bottom-10 right-10 w-80 h-80 bg-indigo-500/10 rounded-full mix-blend-screen filter blur-[100px] opacity-40 pointer-events-none -z-10 transform-gpu"></div>
+
 
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

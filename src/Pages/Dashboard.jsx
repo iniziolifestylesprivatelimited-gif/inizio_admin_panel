@@ -907,11 +907,7 @@ const Dashboard = () => {
   return (
     <div className="relative space-y-6 min-h-full z-0 isolate w-full">
 
-      {/* Bounded Ambient Glows Container to prevent horizontal scrollbars */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-        <div className="absolute top-10 left-10 w-100 h-100 bg-blue-500/30 rounded-full mix-blend-screen filter blur-[80px] opacity-50 transform-gpu animate-glow"></div>
-        {/* <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/50 rounded-full mix-blend-screen filter blur-[100px] opacity-50 transform-gpu animate-glow" style={{ animationDelay: '-7s' }}></div> */}
-      </div>
+
 
       {/* Header Section */}
       <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 z-10">

@@ -269,7 +269,7 @@ const Maintenance = () => {
         </div>
       </div>
 
-      <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none -z-10 transform-gpu"></div>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 

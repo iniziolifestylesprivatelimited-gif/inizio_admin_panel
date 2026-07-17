@@ -56,9 +56,7 @@ const SearchResults = () => {
 
   return (
     <div className="relative space-y-6 min-h-full z-0">
-      {/* Glassmorphism Background Ambient Glows */}
-      <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 pointer-events-none z-[-1]"></div>
-      {/* <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 pointer-events-none z-[-1]"></div> */}
+
 
       {/* Header Section */}
       <div className="flex flex-col gap-2 mb-8">

@@ -274,10 +274,7 @@ const Notifications = () => {
 
   return (
     <div className="relative space-y-4 min-h-full z-0">
-      {/* Bounded Ambient Glows Container to prevent horizontal scrollbars */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-        <div className="absolute top-10 left-10 w-100 h-100 bg-blue-500/30 rounded-full mix-blend-screen filter blur-[80px] opacity-50 transform-gpu animate-glow"></div>
-      </div>
+
 
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">

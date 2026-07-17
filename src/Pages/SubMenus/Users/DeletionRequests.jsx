@@ -80,8 +80,7 @@ const DeletionRequests = () => {
 
   return (
     <div className="space-y-4 relative">
-      {/* Ambient Glows */}
-      <div className="absolute top-10 left-10 w-72 h-72 bg-red-500/10 rounded-full mix-blend-screen filter blur-[80px] opacity-30 pointer-events-none -z-10 transform-gpu"></div>
+
 
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">

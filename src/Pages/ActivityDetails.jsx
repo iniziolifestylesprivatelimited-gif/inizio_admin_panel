@@ -1756,10 +1756,7 @@ const ActivityDetails = () => {
 
   return (
     <div className="relative space-y-6 min-h-full w-full z-0 isolate pb-10">
-      {/* Background glow blobs - bounded container to prevent scrollbars */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-        <div className="absolute top-10 left-10 w-100 h-100 bg-blue-500/30 rounded-full filter blur-[80px] opacity-40 transform-gpu"></div>
-      </div>
+
 
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 z-10 relative">

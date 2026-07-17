@@ -83,5 +83,27 @@ html, body {
 }
 
 .animate-glow {
-  animation: float-glow 35s infinite ease-in-out;
+  animation: float-glow 25s infinite ease-in-out;
+}
+
+@keyframes float-glow-alt {
+  0% {
+    transform: translate(0px, 0px) scale(1) rotate(0deg);
+  }
+  25% {
+    transform: translate(-15vw, 15vh) scale(0.85) rotate(-45deg);
+  }
+  50% {
+    transform: translate(-30vw, -10vh) scale(1.1) rotate(-90deg);
+  }
+  75% {
+    transform: translate(10vw, -25vh) scale(0.95) rotate(-135deg);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1) rotate(-180deg);
+  }
+}
+
+.animate-glow-alt {
+  animation: float-glow-alt 15s infinite ease-in-out;
 }
