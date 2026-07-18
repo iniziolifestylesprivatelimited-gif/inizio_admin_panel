@@ -120,11 +120,39 @@ const ActivityDetails = () => {
         } else if (type === 'brands') {
           setData(brandRes.data);
         } else if (type === 'products' || type === 'variants') {
-          setData(prodRes.data);
+          if (type === 'variants') {
+            const variantList = [];
+            prodRes.data.forEach(p => {
+              if (Array.isArray(p.variants) && p.variants.length > 1) {
+                p.variants.forEach(v => {
+                  variantList.push({
+                    _id: `${p._id}-${v._id || v.name}`,
+                    productId: p._id,
+                    productName: p.name,
+                    name: v.name || 'Default Variant',
+                    price: v.price || p.basePrice || 0,
+                    isActive: v.isActive !== false && p.isActive !== false
+                  });
+                });
+              } else {
+                variantList.push({
+                  _id: `${p._id}-default`,
+                  productId: p._id,
+                  productName: p.name,
+                  name: 'Default Variant',
+                  price: p.basePrice || 0,
+                  isActive: p.isActive !== false
+                });
+              }
+            });
+            setData(variantList);
+          } else {
+            setData(prodRes.data);
+          }
         } else if (type === 'users' || type === 'users-status' || type === 'installed' || type === 'uninstalled') {
           const [custRes, actRes] = await Promise.all([
             api.get('/admin/customers', { headers }),
-            api.get('/activity/stats', { headers }).catch(() => ({ data: { users: [] } }))
+            api.get(`/activity/stats?startDate=${startDate}&endDate=${endDate}`, { headers }).catch(() => ({ data: { users: [] } }))
           ]);
           let userList = Array.isArray(custRes.data) ? custRes.data : [];
           const actUsers = actRes.data?.users || [];
@@ -177,7 +205,7 @@ const ActivityDetails = () => {
             managerPerformance: analyticsData.managerPerformance || {}
           }));
         } else if (type === 'most-searched-brands' || type === 'most-searched-categories' || type === 'most-searched' || type === 'most-viewed-products') {
-          const res = await api.get('/activity/stats', { headers });
+          const res = await api.get(`/activity/stats?startDate=${startDate}&endDate=${endDate}`, { headers });
           if (type === 'most-searched-brands') {
             const processed = (res.data?.mostSearchedBrands || []).map(item => {
               const count = Array.isArray(item.viewers) ? item.viewers.reduce((sum, v) => sum + (v.count || 0), 0) : 0;
@@ -200,19 +228,11 @@ const ActivityDetails = () => {
             setData(processed);
           }
         } else {
-          let res;
-          let activities = [];
+          const logsUrl = `/activity/stats?startDate=${startDate}&endDate=${endDate}`;
+          let res = await api.get(logsUrl, { headers });
+          let activities = res.data?.recentActivities || [];
 
-          if (type === 'all') {
-            const logsUrl = `/activity/stats?startDate=${startDate}&endDate=${endDate}`;
-            const resLogs = await api.get(logsUrl, { headers });
-
-            res = resLogs;
-            activities = resLogs.data?.recentActivities || [];
-          } else {
-            res = await api.get('/activity/stats', { headers });
-            activities = res.data?.recentActivities || [];
-
+          if (type !== 'all') {
             const processedProducts = (res.data?.mostViewedProducts || []).map(item => {
               const count = Array.isArray(item.viewers) ? item.viewers.reduce((sum, v) => sum + (v.count || 0), 0) : 0;
               return { ...item, views: count };
@@ -593,7 +613,20 @@ const ActivityDetails = () => {
         data: dailyCounts.map(d => d.count)
       }],
       options: {
-        chart: { type: 'area', toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit' },
+        chart: { 
+          type: 'area', 
+          toolbar: { show: false }, 
+          background: 'transparent', 
+          fontFamily: 'inherit',
+          dropShadow: {
+            enabled: true,
+            top: 6,
+            left: 0,
+            blur: 8,
+            color: '#3b82f6',
+            opacity: 0.25
+          }
+        },
         colors: ['#3b82f6'],
         fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0, stops: [0, 100] } },
         dataLabels: { enabled: false },
@@ -690,8 +723,14 @@ const ActivityDetails = () => {
 
       } else if (type === 'brands') {
         return item.name?.toLowerCase().includes(query);
-      } else if (type === 'products' || type === 'variants') {
+      } else if (type === 'products') {
         return item.name?.toLowerCase().includes(query) || item._id?.toLowerCase().includes(query);
+      } else if (type === 'variants') {
+        return (
+          item.productName?.toLowerCase().includes(query) ||
+          item.name?.toLowerCase().includes(query) ||
+          item.productId?.toLowerCase().includes(query)
+        );
       } else if (type === 'users' || type === 'users-status' || type === 'installed' || type === 'uninstalled') {
         return (
           item.name?.toLowerCase().includes(query) ||
@@ -897,7 +936,7 @@ const ActivityDetails = () => {
       });
     }
 
-    if (type === 'products' || type === 'variants') {
+    if (type === 'products') {
       return currentItems.map((item, index) => {
         const variantCount = Array.isArray(item.variants) ? item.variants.length : 1;
         return (
@@ -916,6 +955,24 @@ const ActivityDetails = () => {
           </tr>
         );
       });
+    }
+
+    if (type === 'variants') {
+      return currentItems.map((item, index) => (
+        <tr key={item._id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+          <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+          <td className="py-4 px-5 text-xs font-mono text-slate-500">#{item.productId}</td>
+          <td className="py-4 px-5 text-sm font-bold text-white truncate max-w-[200px]" title={item.productName}>{item.productName}</td>
+          <td className="py-4 px-5 text-sm text-blue-400 font-bold">{item.name}</td>
+          <td className="py-4 px-5 text-sm text-emerald-400 font-extrabold">₹{(item.price || 0).toLocaleString('en-IN')}</td>
+          <td className="py-4 px-5 text-xs">
+            <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${item.isActive !== false ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+              }`}>
+              {item.isActive !== false ? 'active' : 'inactive'}
+            </span>
+          </td>
+        </tr>
+      ));
     }
 
     if (type === 'users' || type === 'users-status') {
@@ -1539,7 +1596,7 @@ const ActivityDetails = () => {
         </>
       );
     }
-    if (type === 'products' || type === 'variants') {
+    if (type === 'products') {
       return (
         <>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
@@ -1547,6 +1604,18 @@ const ActivityDetails = () => {
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Product Name</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Base Price</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">No. of Variants</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
+        </>
+      );
+    }
+    if (type === 'variants') {
+      return (
+        <>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Product ID</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Product Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Variant Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Price</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
         </>
       );
@@ -1809,8 +1878,8 @@ const ActivityDetails = () => {
         </div>
       </div>
 
-      {/* Date Filter Panel - only visible on all / Activity Logs page */}
-      {type === 'all' && (
+      {/* Date Filter Panel - visible on all date-filtered pages */}
+      {['all', 'logins', 'logouts', 'product-views', 'brand-views', 'category-views', 'search-queries', 'users', 'users-status', 'installed', 'uninstalled', 'most-searched-brands', 'most-searched-categories', 'most-searched', 'most-viewed-products'].includes(type) && (
         <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-xl shadow-black/40 rounded-3xl p-4.5 z-10 relative flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <FiCalendar className="text-blue-400 text-lg shrink-0" />

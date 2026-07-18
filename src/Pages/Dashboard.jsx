@@ -7,6 +7,9 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import ReactApexChart from 'react-apexcharts';
+import Card from '../Components/Card';
+import PageHeader from '../Components/PageHeader';
+import { KPISkeleton, TableRowSkeleton } from '../Components/Skeleton';
 
 const getImageUrl = (path) => {
   if (!path) return '';
@@ -271,7 +274,20 @@ const Dashboard = () => {
   const salesChartConfig = {
     series: [{ name: 'Revenue', data: salesData }],
     options: {
-      chart: { type: 'area', toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit' },
+      chart: { 
+        type: 'area', 
+        toolbar: { show: false }, 
+        background: 'transparent', 
+        fontFamily: 'inherit',
+        dropShadow: {
+          enabled: true,
+          top: 6,
+          left: 0,
+          blur: 8,
+          color: '#3b82f6',
+          opacity: 0.25
+        }
+      },
       colors: ['#3b82f6'],
       fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0, stops: [0, 100] } },
       dataLabels: { enabled: false },
@@ -407,7 +423,20 @@ const Dashboard = () => {
       data: requestStatsCounts
     }],
     options: {
-      chart: { type: 'area', toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit' },
+      chart: { 
+        type: 'area', 
+        toolbar: { show: false }, 
+        background: 'transparent', 
+        fontFamily: 'inherit',
+        dropShadow: {
+          enabled: true,
+          top: 6,
+          left: 0,
+          blur: 8,
+          color: '#10b981',
+          opacity: 0.25
+        }
+      },
       colors: ['#10b981'],
       fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0, stops: [0, 100] } },
       dataLabels: { enabled: false },
@@ -559,7 +588,20 @@ const Dashboard = () => {
         data: dailyCounts.map(d => d.count)
       }],
       options: {
-        chart: { type: 'area', toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit' },
+        chart: { 
+          type: 'area', 
+          toolbar: { show: false }, 
+          background: 'transparent', 
+          fontFamily: 'inherit',
+          dropShadow: {
+            enabled: true,
+            top: 6,
+            left: 0,
+            blur: 8,
+            color: '#3b82f6',
+            opacity: 0.25
+          }
+        },
         colors: ['#3b82f6'],
         fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0, stops: [0, 100] } },
         dataLabels: { enabled: false },
@@ -865,17 +907,38 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="h-[80vh] flex flex-col justify-center items-center relative z-10 w-full">
-        <div className="absolute top-1/4 left-1/3 w-64 h-64 bg-blue-500/10 rounded-full mix-blend-screen filter blur-[80px] pointer-events-none -z-10 transform-gpu animate-pulse"></div>
-        <div className="p-6 rounded-3xl bg-slate-900/40 border border-white/5 backdrop-blur-xl flex flex-col items-center gap-4 max-w-sm text-center shadow-2xl">
-          <div className="relative w-16 h-16 flex items-center justify-center">
-            <div className="absolute inset-0 rounded-full border-4 border-blue-500/20"></div>
-            <div className="absolute inset-0 rounded-full border-4 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
-            <FiTrendingUp className="text-blue-400 text-2xl animate-pulse" />
+      <div className="relative space-y-6 min-h-full z-0 isolate w-full">
+        <PageHeader
+          title="Dashboard Overview"
+          icon={FiTrendingUp}
+          description="Welcome back to Inizio. Here is a summary of your system health, metrics, and logs."
+        />
+        
+        <KPISkeleton cards={5} />
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 z-10 relative mt-6">
+          <div className="lg:col-span-2">
+            <Card className="p-6">
+              <div className="h-6 bg-white/5 rounded-lg w-1/4 mb-6 animate-pulse" />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="h-28 bg-white/5 rounded-2xl animate-pulse" />
+                ))}
+              </div>
+            </Card>
           </div>
-          <div>
-            <h3 className="text-white font-extrabold text-base tracking-tight">Initializing Dashboard</h3>
-            <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">Fetching live catalog statistics and session activity logs...</p>
+          <div className="lg:col-span-1">
+            <Card className="p-6 min-h-[300px]">
+              <div className="h-6 bg-white/5 rounded-lg w-1/2 mb-6 animate-pulse" />
+              <div className="space-y-4">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex justify-between items-center animate-pulse">
+                    <div className="h-4 bg-white/5 rounded-md w-2/3" />
+                    <div className="h-6 bg-white/5 rounded-md w-12" />
+                  </div>
+                ))}
+              </div>
+            </Card>
           </div>
         </div>
       </div>
@@ -910,32 +973,30 @@ const Dashboard = () => {
 
 
       {/* Header Section */}
-      <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 z-10">
-        <div>
-          <h1 className="text-3xl font-black text-white tracking-tight flex items-center gap-3">
-            <FiTrendingUp className="text-blue-400" /> Dashboard Overview
-          </h1>
-          <p className="text-xs md:text-sm text-slate-400 mt-1.5 font-medium leading-relaxed">
-            Welcome back to the <span className="text-blue-400 font-bold">Inizio</span>. Here is a summary of your system health, metrics, and logs.
-          </p>
-        </div>
-        <div className="bg-slate-900/60 backdrop-blur-md border border-white/10 px-4.5 py-2 rounded-2xl flex items-center gap-3 shadow-lg shrink-0 w-fit self-start md:self-center">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-          <div className="text-[10px] md:text-xs">
-            <span className="text-slate-400 font-bold uppercase tracking-wider block text-[9px]">Live Connection</span>
-            <span className="text-white font-extrabold font-mono mt-0.5 block">
-              {new Date().toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}
-            </span>
+      <PageHeader
+        title="Dashboard Overview"
+        icon={FiTrendingUp}
+        description="Welcome back to Inizio. Here is a summary of your system health, metrics, and logs."
+        action={
+          <div className="bg-slate-900/60 backdrop-blur-md border border-white/10 px-4.5 py-2 rounded-2xl flex items-center gap-3 shadow-lg shrink-0 w-fit self-start md:self-center">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+            <div className="text-[10px] md:text-xs">
+              <span className="text-slate-400 font-bold uppercase tracking-wider block text-[9px]">Live Connection</span>
+              <span className="text-white font-extrabold font-mono mt-0.5 block">
+                {new Date().toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}
+              </span>
+            </div>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* Metric Cards Grid */}
       <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 xl:gap-6 z-10">
         {metrics.map((metric, index) => (
-          <div
+          <Card
             key={index}
-            className={`bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-4 sm:p-5 xl:p-6 transition-all duration-300 hover:-translate-y-1 cursor-pointer relative overflow-hidden group ${metric.hoverBorder} ${metric.hoverGlow}`}
+            hoverable
+            className={`p-4 sm:p-5 xl:p-6 transition-all duration-300 hover:-translate-y-1 cursor-pointer relative overflow-hidden group ${metric.hoverBorder} ${metric.hoverGlow}`}
             onClick={() => usernav(index)}
           >
             <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
@@ -953,7 +1014,7 @@ const Dashboard = () => {
                 {metric.value}
               </p>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
 
@@ -976,16 +1037,8 @@ const Dashboard = () => {
           {/* Main Activity Details Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
             {/* Left Column: Engagement Categories Grid */}
-            <div className="lg:col-span-2 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 relative overflow-hidden flex flex-col h-fit gap-6">
+            <Card className="lg:col-span-2 h-fit gap-6">
               <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-              {/* <div className="relative z-10 mb-6">
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <FiActivity className="text-blue-400 animate-pulse" /> Engagement Categories
-                </h3>
-                <p className="text-xs text-slate-400 mt-1.5 font-medium leading-relaxed">
-                  Click on any category card below to navigate directly to its detailed dashboard logs, campaigns, catalog lists, or system directories.
-                </p>
-              </div> */}
 
               <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 z-10">
                 {activityMetricCards.map((card, idx) => (
@@ -1009,10 +1062,10 @@ const Dashboard = () => {
                   </div>
                 ))}
               </div>
-            </div>
+            </Card>
 
             {/* Right Column: Most Viewed Products */}
-            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 relative overflow-hidden flex flex-col lg:min-h-[580px] min-h-fit">
+            <Card className="lg:min-h-[580px] min-h-fit">
               <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
 
               <div className="relative border-b border-white/5 pb-4 mb-6 z-10 flex items-center justify-between">
@@ -1090,15 +1143,15 @@ const Dashboard = () => {
                     );
                   })
                 )}
-              </div>
-            </div>
+              </div>  
+            </Card>
           </div>
         </div>
       )}
 
       {/* Date & Breakdown Control Panel */}
       {!loading && activityStats && (
-        <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-xl shadow-black/40 rounded-3xl p-4.5 z-10 relative flex flex-col md:flex-row md:items-center justify-between gap-4 mt-8">
+        <Card className="!p-4.5 z-10 relative flex flex-col md:flex-row md:items-center justify-between gap-4 mt-8">
           <div className="flex items-center gap-3">
             <FiCalendar className="text-blue-400 text-lg shrink-0" />
             <div>
@@ -1178,14 +1231,14 @@ const Dashboard = () => {
               </div>
             )}
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Trends Graph Row */}
       {!loading && activityStats && activityStats.trends && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 z-10 relative mt-6">
           {/* Trends Area Chart */}
-          <div className="lg:col-span-2 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-5 overflow-hidden flex flex-col h-[320px]">
+          <Card className="lg:col-span-2 !p-5 overflow-hidden flex flex-col h-[320px]">
             <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none" />
             <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
               <div>
@@ -1213,10 +1266,10 @@ const Dashboard = () => {
                 />
               )}
             </div>
-          </div>
+          </Card>
 
           {/* Top Trending List */}
-          <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-5 overflow-hidden flex flex-col h-[320px]">
+          <Card className="!p-5 overflow-hidden flex flex-col h-[320px]">
             <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/5 to-transparent pointer-events-none" />
             <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
               <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
@@ -1253,7 +1306,7 @@ const Dashboard = () => {
                 ))
               )}
             </div>
-          </div>
+          </Card>
         </div>
       )}
 
@@ -1261,7 +1314,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-10 relative z-10">
 
         {/* Sales Revenue Chart */}
-        <div className="relative bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 overflow-hidden flex flex-col h-[380px]">
+        <Card className="h-[380px] overflow-hidden flex flex-col !p-6">
           <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
           <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
             <div>
@@ -1278,10 +1331,10 @@ const Dashboard = () => {
               width="100%"
             />
           </div>
-        </div>
+        </Card>
 
         {/* Order Volume Chart */}
-        <div className="relative bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 overflow-hidden flex flex-col h-[380px]">
+        <Card className="h-[380px] overflow-hidden flex flex-col !p-6">
           <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
           <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
             <div>
@@ -1298,10 +1351,10 @@ const Dashboard = () => {
               width="100%"
             />
           </div>
-        </div>
+        </Card>
 
         {/* Brand Share Chart */}
-        <div className="relative bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 overflow-hidden flex flex-col h-[380px]">
+        <Card className="h-[380px] overflow-hidden flex flex-col !p-6">
           <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
           <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
             <div>
@@ -1324,7 +1377,7 @@ const Dashboard = () => {
               />
             )}
           </div>
-        </div>
+        </Card>
 
       </div>
 
@@ -1332,7 +1385,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-10 relative z-10">
 
         {/* App Version Distribution Chart */}
-        <div className="relative bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 overflow-hidden flex flex-col h-[420px]">
+        <Card className="h-[420px] overflow-hidden flex flex-col !p-6">
           <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
           <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
             <div>
@@ -1355,10 +1408,10 @@ const Dashboard = () => {
               />
             )}
           </div>
-        </div>
+        </Card>
 
         {/* Push Notification Alerts Chart */}
-        <div className="relative bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 overflow-hidden flex flex-col h-[420px]">
+        <Card className="h-[420px] overflow-hidden flex flex-col !p-6">
           <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
           <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
             <div>
@@ -1381,10 +1434,10 @@ const Dashboard = () => {
               />
             )}
           </div>
-        </div>
+        </Card>
 
         {/* API Request Stats Live Chart */}
-        <div className="relative bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 overflow-hidden flex flex-col h-[420px]">
+        <Card className="h-[420px] overflow-hidden flex flex-col !p-6">
           <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
 
           <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
@@ -1418,7 +1471,7 @@ const Dashboard = () => {
               />
             )}
           </div>
-        </div>
+        </Card>
 
       </div>
 

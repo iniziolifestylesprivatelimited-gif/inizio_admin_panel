@@ -83,7 +83,7 @@ html, body {
 }
 
 .animate-glow {
-  animation: float-glow 25s infinite ease-in-out;
+  animation: float-glow 50s infinite ease-in-out;
 }
 
 @keyframes float-glow-alt {
@@ -105,5 +105,5 @@ html, body {
 }
 
 .animate-glow-alt {
-  animation: float-glow-alt 15s infinite ease-in-out;
+  animation: float-glow-alt 40s infinite ease-in-out;
 }

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   FiArrowLeft, 
-  FiLoader, 
   FiAlertCircle, 
   FiSearch, 
   FiLink, 
@@ -15,6 +14,9 @@ import {
 } from 'react-icons/fi';
 import axios from 'axios';
 import { api, BASE_URL } from '../api/axios';
+import Card from '../Components/Card';
+import PageHeader from '../Components/PageHeader';
+import { KPISkeleton, TableRowSkeleton } from '../Components/Skeleton';
 
 const getImageUrl = (path) => {
   if (!path) return '';
@@ -118,9 +120,30 @@ const CampaignDetail = () => {
 
   if (loading) {
     return (
-      <div className="h-96 flex flex-col justify-center items-center bg-slate-900/40 border border-white/10 rounded-3xl backdrop-blur-xl">
-        <FiLoader className="animate-spin text-3xl text-blue-400 mb-4" />
-        <p className="text-slate-400">Loading campaign statistics detail...</p>
+      <div className="relative space-y-6 min-h-full z-0 w-full pb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <button 
+            onClick={() => navigate('/campaign-stats')}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-white/5 hover:border-white/10 transition-all cursor-pointer shadow-md"
+          >
+            <FiArrowLeft size={14} /> Back to Stats List
+          </button>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-1">
+            <Card className="h-96 animate-pulse flex flex-col gap-4">
+              <div className="h-8 bg-white/5 rounded-xl w-3/4" />
+              <div className="h-6 bg-white/5 rounded-xl w-1/2" />
+              <div className="h-40 bg-white/5 rounded-xl w-full" />
+            </Card>
+          </div>
+          <div className="lg:col-span-2 space-y-6">
+            <KPISkeleton cards={3} />
+            <Card className="p-6">
+              <TableRowSkeleton columns={5} rows={6} />
+            </Card>
+          </div>
+        </div>
       </div>
     );
   }
@@ -188,7 +211,7 @@ const CampaignDetail = () => {
         
         {/* Left Column: Campaign Details Block */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 space-y-4">
+          <Card className="space-y-4">
             <h2 className="text-xl font-bold text-white tracking-tight leading-snug">{campaignDetail.title}</h2>
             <span className="inline-block text-xs text-slate-400 font-semibold bg-white/5 px-2.5 py-1 rounded-md border border-white/10">
               {campaignDetail.createdAt ? new Date(campaignDetail.createdAt).toLocaleString([], { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
@@ -224,7 +247,7 @@ const CampaignDetail = () => {
                 </div>
               </div>
             )}
-          </div>
+          </Card>
         </div>
 
         {/* Right Column: Performance Summary and Recipient Table */}
@@ -233,7 +256,7 @@ const CampaignDetail = () => {
           {/* General Stats Performance Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {/* KPI 1: Sent */}
-            <div className="bg-transparent backdrop-blur-2xl border border-white/10 p-5 rounded-3xl flex items-center justify-between shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+            <Card hoverable className="p-5 flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Sent</p>
                 <p className="text-2xl font-black text-white mt-1">
@@ -243,10 +266,10 @@ const CampaignDetail = () => {
               <div className="p-3 bg-indigo-500/10 rounded-2xl text-indigo-400">
                 <FiSend className="text-xl" />
               </div>
-            </div>
+            </Card>
 
             {/* KPI 2: Delivered */}
-            <div className="bg-transparent backdrop-blur-2xl border border-white/10 p-5 rounded-3xl flex items-center justify-between shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+            <Card hoverable className="p-5 flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Delivered</p>
                 <p className="text-2xl font-black text-emerald-400 mt-1">
@@ -259,10 +282,10 @@ const CampaignDetail = () => {
               <div className="p-3 bg-emerald-500/10 rounded-2xl text-emerald-400">
                 <FiCheckCircle className="text-xl" />
               </div>
-            </div>
+            </Card>
 
             {/* KPI 3: Clicked */}
-            <div className="bg-transparent backdrop-blur-2xl border border-white/10 p-5 rounded-3xl flex items-center justify-between shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+            <Card hoverable className="p-5 flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Clicked</p>
                 <p className="text-2xl font-black text-blue-400 mt-1">
@@ -275,11 +298,11 @@ const CampaignDetail = () => {
               <div className="p-3 bg-blue-500/10 rounded-2xl text-blue-400">
                 <FiActivity className="text-xl" />
               </div>
-            </div>
+            </Card>
           </div>
 
           {/* Recipient Activity Table Card */}
-          <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col">
+          <Card className="overflow-hidden flex flex-col !p-0">
             
             {/* Table Search & Tab Filters */}
             <div className="p-6 border-b border-white/10 bg-slate-900/40 space-y-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -439,8 +462,8 @@ const CampaignDetail = () => {
                   </button>
                 </div>
               </div>
-            )}
-          </div>
+            )}  
+          </Card>
         </div>
       </div>
     </div>

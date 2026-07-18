@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { MdHistory, MdRefresh, MdImage, MdLink } from 'react-icons/md';
+import { MdHistory, MdRefresh, MdImage } from 'react-icons/md';
 import { 
-  FiLoader, 
   FiAlertCircle, 
   FiSearch, 
   FiChevronLeft, 
@@ -14,6 +13,9 @@ import {
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { api, BASE_URL } from '../api/axios';
+import Card from '../Components/Card';
+import PageHeader from '../Components/PageHeader';
+import { KPISkeleton, TableRowSkeleton } from '../Components/Skeleton';
 
 const CampaignStats = () => {
   const [campaigns, setCampaigns] = useState([]);
@@ -135,67 +137,65 @@ const CampaignStats = () => {
   return (
     <div className="relative space-y-6 min-h-full z-0 w-full pb-8">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
-        <div>
-          <h1 className="text-3xl font-black text-white tracking-tight flex items-center gap-3">
-            <MdHistory className="text-blue-400" />
-            Campaign Statistics
-          </h1>
-          <p className="text-xs md:text-sm text-slate-400 font-medium mt-1">
-            Review notification histories, check delivery status, and analyze click-through rates.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Campaign Statistics"
+        icon={MdHistory}
+        description="Review notification histories, check delivery status, and analyze click-through rates."
+      />
 
       {/* KPI Cards Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* KPI 1: Campaigns */}
-        <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl p-5 flex items-center justify-between transition-all duration-300 hover:-translate-y-1">
-          <div>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Campaigns</p>
-            <p className="text-2xl font-black text-white mt-1.5">{totalCampaigns}</p>
-          </div>
-          <div className="p-3 bg-blue-500/10 rounded-2xl text-blue-400">
-            <FiBarChart2 className="text-xl" />
-          </div>
-        </div>
+      {loading && campaigns.length === 0 ? (
+        <KPISkeleton cards={4} />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* KPI 1: Campaigns */}
+          <Card hoverable className="p-5 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Campaigns</p>
+              <p className="text-2xl font-black text-white mt-1.5">{totalCampaigns}</p>
+            </div>
+            <div className="p-3 bg-blue-500/10 rounded-2xl text-blue-400">
+              <FiBarChart2 className="text-xl" />
+            </div>
+          </Card>
 
-        {/* KPI 2: Total Sent */}
-        <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl p-5 flex items-center justify-between transition-all duration-300 hover:-translate-y-1">
-          <div>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Notifications Sent</p>
-            <p className="text-2xl font-black text-white mt-1.5">{totalSent.toLocaleString()}</p>
-          </div>
-          <div className="p-3 bg-indigo-500/10 rounded-2xl text-indigo-400">
-            <FiSend className="text-xl" />
-          </div>
-        </div>
+          {/* KPI 2: Total Sent */}
+          <Card hoverable className="p-5 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Notifications Sent</p>
+              <p className="text-2xl font-black text-white mt-1.5">{totalSent.toLocaleString()}</p>
+            </div>
+            <div className="p-3 bg-indigo-500/10 rounded-2xl text-indigo-400">
+              <FiSend className="text-xl" />
+            </div>
+          </Card>
 
-        {/* KPI 3: Delivery Rate */}
-        <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl p-5 flex items-center justify-between transition-all duration-300 hover:-translate-y-1">
-          <div>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Avg. Delivery Rate</p>
-            <p className="text-2xl font-black text-emerald-400 mt-1.5">{avgDeliveryRate}</p>
-          </div>
-          <div className="p-3 bg-emerald-500/10 rounded-2xl text-emerald-400">
-            <FiCheckCircle className="text-xl" />
-          </div>
-        </div>
+          {/* KPI 3: Delivery Rate */}
+          <Card hoverable className="p-5 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Avg. Delivery Rate</p>
+              <p className="text-2xl font-black text-emerald-400 mt-1.5">{avgDeliveryRate}</p>
+            </div>
+            <div className="p-3 bg-emerald-500/10 rounded-2xl text-emerald-400">
+              <FiCheckCircle className="text-xl" />
+            </div>
+          </Card>
 
-        {/* KPI 4: CTR */}
-        <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl p-5 flex items-center justify-between transition-all duration-300 hover:-translate-y-1">
-          <div>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Avg. Click-Through Rate</p>
-            <p className="text-2xl font-black text-violet-400 mt-1.5">{avgClickRate}</p>
-          </div>
-          <div className="p-3 bg-violet-500/10 rounded-2xl text-violet-400">
-            <FiActivity className="text-xl" />
-          </div>
+          {/* KPI 4: CTR */}
+          <Card hoverable className="p-5 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Avg. Click-Through Rate</p>
+              <p className="text-2xl font-black text-violet-400 mt-1.5">{avgClickRate}</p>
+            </div>
+            <div className="p-3 bg-violet-500/10 rounded-2xl text-violet-400">
+              <FiActivity className="text-xl" />
+            </div>
+          </Card>
         </div>
-      </div>
+      )}
 
       {/* Search Filter Bar */}
-      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 p-4 bg-slate-900/40 border border-white/10 rounded-2xl backdrop-blur-xl">
+      <Card className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 !p-4 !rounded-2xl">
         <div className="relative flex-1">
           <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -214,7 +214,7 @@ const CampaignStats = () => {
           <MdRefresh className={`mr-2 text-lg ${loading ? 'animate-spin' : ''}`} />
           Refresh Stats
         </button>
-      </div>
+      </Card>
 
       {error && (
         <div className="text-red-400 bg-red-900/20 p-4 rounded-xl border border-red-500/30 flex items-center">
@@ -223,17 +223,16 @@ const CampaignStats = () => {
       )}
 
       {loading && campaigns.length === 0 ? (
-        <div className="h-64 flex flex-col justify-center items-center bg-slate-900/40 border border-white/10 rounded-3xl backdrop-blur-xl">
-          <FiLoader className="animate-spin text-3xl text-blue-400 mb-4" />
-          <p className="text-slate-400">Loading campaign stats...</p>
-        </div>
+        <Card className="p-6">
+          <TableRowSkeleton columns={6} rows={5} />
+        </Card>
       ) : filteredCampaigns.length === 0 ? (
         <div className="py-16 flex flex-col items-center justify-center bg-slate-900/40 backdrop-blur-xl rounded-3xl border border-dashed border-white/20">
           <MdHistory className="text-5xl text-slate-500 mb-4" />
           <p className="text-slate-400 font-medium">No campaign statistics found.</p>
         </div>
       ) : (
-        <div className="relative z-10 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full isolate will-change-transform">
+        <Card className="overflow-hidden flex flex-col h-full isolate will-change-transform !p-0">
           <div className="overflow-auto custom-scrollbar max-h-[60vh]">
             <table className="w-full text-left border-collapse whitespace-nowrap min-w-200">
               <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md shadow-md">
@@ -405,7 +404,7 @@ const CampaignStats = () => {
               </div>
             </div>
           )}
-        </div>
+        </Card>
       )}
     </div>
   );

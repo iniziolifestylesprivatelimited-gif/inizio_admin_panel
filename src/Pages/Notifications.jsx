@@ -5,12 +5,15 @@ import {
   MdPerson, MdGroupAdd 
 } from 'react-icons/md';
 import { 
-  FiLoader, FiAlertCircle, FiCopy, FiGlobe, FiUsers, FiUser, 
+  FiAlertCircle, FiCopy, FiGlobe, FiUsers, FiUser, 
   FiUserCheck, FiLayers, FiBox, FiTrendingUp, FiLink, FiCheck, FiX, FiSearch
 } from 'react-icons/fi';
 import axios from 'axios';
 import { api, BASE_URL } from '../api/axios';
 import CustomDropdown from '../Components/CustomDropdown';
+import Card from '../Components/Card';
+import PageHeader from '../Components/PageHeader';
+import { TableRowSkeleton } from '../Components/Skeleton';
 
 const Notifications = () => {
   const getAudienceIcon = (type) => {
@@ -273,23 +276,17 @@ const Notifications = () => {
   });
 
   return (
-    <div className="relative space-y-4 min-h-full z-0">
-
-
+    <div className="relative space-y-4 min-h-full z-0 w-full">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-        <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-            <MdNotificationsActive className="text-blue-400" />
-            Notifications Management
-          </h1>
-          <p className="text-slate-400 font-medium mt-1">Compose, send, and view notification audit histories.</p>
-        </div>
-      </div>
+      <PageHeader
+        title="Notifications Management"
+        icon={MdNotificationsActive}
+        description="Compose, send, and view notification audit histories."
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left Side: Compose Notification */}
-        <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 sm:p-8 flex flex-col h-fit">
+        <Card className="sm:p-8 h-fit">
           <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
             <MdSend className="text-blue-400" /> Send Notification
           </h2>
@@ -713,58 +710,66 @@ const Notifications = () => {
               )}
             </button>
           </form>
-        </div>
-
-        {/* Right Side: Notification History */}
-        <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 sm:p-8 flex flex-col max-h-[105vh] min-h-[70vh]">
-          <div className="flex justify-between items-center mb-6 shrink-0">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <MdHistory className="text-blue-400" /> Notification History
-            </h2>
-            <button 
-              onClick={fetchCampaignHistory} 
-              disabled={loadingHistory}
-              className="p-2 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-all disabled:opacity-50 cursor-pointer"
-              title="Refresh History"
-            >
-              <MdRefresh size={20} className={loadingHistory ? "animate-spin" : ""} />
-            </button>
-          </div>
-
-          {/* Search History Bar */}
-          <div className="relative mb-5 shrink-0">
-            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search history by title, description or ID..."
-              value={historySearchQuery}
-              onChange={(e) => setHistorySearchQuery(e.target.value)}
-              className="w-full pl-11 pr-11 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 text-sm font-medium transition-all"
-            />
-            {historySearchQuery && (
-              <button
-                type="button"
-                onClick={() => setHistorySearchQuery('')}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer"
-              >
-                <FiX className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-
-          {errorHistory && (
-            <div className="text-red-400 bg-red-900/20 p-4 rounded-xl border border-red-500/30 flex items-center mb-4 shrink-0">
-              <FiAlertCircle className="mr-2 text-lg" /> {errorHistory}
-            </div>
-          )}
-
-          <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar flex-1">
-            {loadingHistory && campaigns.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-                <FiLoader className="animate-spin text-3xl mb-3 text-blue-400" />
-                <span>Loading history...</span>
-              </div>
-            ) : campaigns.length === 0 ? (
+              </Card>
+ 
+         {/* Right Side: Notification History */}
+         <Card className="sm:p-8 flex flex-col max-h-[105vh] min-h-[70vh]">
+           <div className="flex justify-between items-center mb-6 shrink-0">
+             <h2 className="text-xl font-bold text-white flex items-center gap-2">
+               <MdHistory className="text-blue-400" /> Notification History
+             </h2>
+             <button 
+               onClick={fetchCampaignHistory} 
+               disabled={loadingHistory}
+               className="p-2 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-all disabled:opacity-50 cursor-pointer"
+               title="Refresh History"
+             >
+               <MdRefresh size={20} className={loadingHistory ? "animate-spin" : ""} />
+             </button>
+           </div>
+ 
+           {/* Search History Bar */}
+           <div className="relative mb-5 shrink-0">
+             <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+             <input
+               type="text"
+               placeholder="Search history by title, description or ID..."
+               value={historySearchQuery}
+               onChange={(e) => setHistorySearchQuery(e.target.value)}
+               className="w-full pl-11 pr-11 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 text-sm font-medium transition-all"
+             />
+             {historySearchQuery && (
+               <button
+                 type="button"
+                 onClick={() => setHistorySearchQuery('')}
+                 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer"
+               >
+                 <FiX className="w-4 h-4" />
+               </button>
+             )}
+           </div>
+ 
+           {errorHistory && (
+             <div className="text-red-400 bg-red-900/20 p-4 rounded-xl border border-red-500/30 flex items-center mb-4 shrink-0">
+               <FiAlertCircle className="mr-2 text-lg" /> {errorHistory}
+             </div>
+           )}
+ 
+           <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar flex-1">
+             {loadingHistory && campaigns.length === 0 ? (
+               <div className="space-y-4">
+                 {Array.from({ length: 3 }).map((_, i) => (
+                   <div key={i} className="p-5 border border-white/10 rounded-2xl bg-white/[0.01] animate-pulse flex gap-4">
+                     <div className="w-24 h-16 bg-white/5 rounded-xl shrink-0" />
+                     <div className="flex-1 space-y-3">
+                       <div className="h-4 bg-white/5 rounded-lg w-1/3" />
+                       <div className="h-3 bg-white/5 rounded-lg w-3/4" />
+                       <div className="h-3 bg-white/5 rounded-lg w-1/2" />
+                     </div>
+                   </div>
+                 ))}
+               </div>
+             ) : campaigns.length === 0 ? (
               <p className="text-slate-400 italic text-center py-12">No notification history found.</p>
             ) : filteredCampaigns.length === 0 ? (
               <p className="text-slate-400 italic text-center py-12">No matching notifications found.</p>
@@ -850,7 +855,7 @@ const Notifications = () => {
               ))
             )}
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );
