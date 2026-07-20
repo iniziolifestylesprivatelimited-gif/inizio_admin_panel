@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { api, BASE_URL } from '../api/axios';
 import {
   FiTrendingUp, FiUsers, FiBox, FiDollarSign, FiLayers,
-  FiActivity, FiEye, FiSearch, FiLogIn, FiLogOut, FiX, FiCheck, FiBell, FiCalendar
+  FiActivity, FiEye, FiSearch, FiLogIn, FiLogOut, FiX, FiCheck, FiBell, FiCalendar, FiPhone
 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
@@ -68,15 +68,32 @@ const Dashboard = () => {
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const navigate = useNavigate();
 
+  const getActivityStatsUrl = () => {
+    if (breakdownType === 'day') {
+      return `/activity/stats?breakdown=true&breakdownInterval=day`;
+    }
+    if (breakdownType === 'month') {
+      return `/activity/stats?breakdown=true&breakdownInterval=month`;
+    }
+    if (breakdownType === 'custom') {
+      return `/activity/stats?startDate=${startDate}&endDate=${endDate}`;
+    }
+    return `/activity/stats`;
+  };
+
+  const getFilterQueryParams = () => {
+    if (breakdownType === 'day') return '?breakdown=true&breakdownInterval=day';
+    if (breakdownType === 'month') return '?breakdown=true&breakdownInterval=month';
+    if (breakdownType === 'custom') return `?startDate=${startDate}&endDate=${endDate}`;
+    return '';
+  };
+
   useEffect(() => {
     const fetchData = async (isPoll = false) => {
       try {
         const token = sessionStorage.getItem('accessToken');
         const headers = { Authorization: `Bearer ${token}` };
-        let activityUrl = `/activity/stats?startDate=${startDate}&endDate=${endDate}`;
-        if (breakdownType === 'day' || breakdownType === 'month') {
-          activityUrl = `/activity/stats?breakdown=true&breakdownInterval=${breakdownType}&startDate=${startDate}&endDate=${endDate}`;
-        }
+        const activityUrl = getActivityStatsUrl();
         const [
           productsResponse,
           brandsResponse,
@@ -167,31 +184,47 @@ const Dashboard = () => {
     const prod = products.find(p => p._id === resolvedProductId) || productItem.product || {};
     if (!prod || !prod._id) return;
 
-    const pvLogs = (activityStats?.recentActivities || []).filter(act => {
-      const action = (act.action || '').toUpperCase();
-      const matchesAction = action === 'PRODUCT_VIEW' || action === 'PRODUCTVIEW' || action === 'PRODUCT';
-      return matchesAction && (act.details?.productId === prod._id);
-    });
+    const userViewMap = {};
 
-    // Group logs by user
-    const userViewCounts = {};
-    const uniqueUsers = [];
-
-    pvLogs.forEach(log => {
-      const uId = log.user?._id || log.user?.email || 'unknown';
-      if (!userViewCounts[uId]) {
-        userViewCounts[uId] = {
-          user: log.user || { name: 'Unknown User', email: 'N/A' },
-          count: 0,
-          latestView: log.createdAt
+    // 1. Process viewers array attached directly to the product item
+    if (Array.isArray(productItem.viewers) && productItem.viewers.length > 0) {
+      productItem.viewers.forEach(v => {
+        let uObj = v.user;
+        if (!uObj || typeof uObj === 'string') {
+          const matchedUser = users.find(u => u._id === (v.user || v.userId || v._id));
+          uObj = matchedUser || { name: 'Unknown User', email: 'N/A' };
+        }
+        const uId = uObj._id || uObj.email || uObj.name || 'unknown';
+        userViewMap[uId] = {
+          user: uObj,
+          count: (userViewMap[uId]?.count || 0) + (v.count || 1),
+          latestView: v.lastViewedAt || v.timestamp || v.createdAt
         };
-        uniqueUsers.push(userViewCounts[uId]);
+      });
+    }
+
+    // 2. Process recentActivities / activityStream for additional product view logs
+    const stream = activityStats?.recentActivities || activityStats?.activityStream || [];
+    stream.forEach(act => {
+      const action = (act.action || act.eventType || '').toUpperCase();
+      const matchesAction = action === 'PRODUCT_VIEW' || action === 'PRODUCTVIEW' || action === 'PRODUCT';
+      const pId = act.details?.productId || act.productId;
+      if (matchesAction && pId === prod._id) {
+        let uObj = act.user;
+        if (!uObj || typeof uObj === 'string') {
+          const matchedUser = users.find(u => u._id === (act.user || act.userId || act._id));
+          uObj = matchedUser || { name: 'Unknown User', email: 'N/A' };
+        }
+        const uId = uObj._id || uObj.email || uObj.name || 'unknown';
+        userViewMap[uId] = {
+          user: uObj,
+          count: (userViewMap[uId]?.count || 0) + 1,
+          latestView: act.createdAt || act.timestamp || userViewMap[uId]?.latestView
+        };
       }
-      userViewCounts[uId].count += 1;
     });
 
-    // Sort users by count descending
-    uniqueUsers.sort((a, b) => b.count - a.count);
+    const uniqueUsers = Object.values(userViewMap).sort((a, b) => b.count - a.count);
 
     setSelectedProductViews({
       product: prod,
@@ -199,7 +232,7 @@ const Dashboard = () => {
       totalViews: productItem.views || uniqueUsers.reduce((sum, u) => sum + u.count, 0)
     });
     setIsProductModalOpen(true);
-  }
+  };
 
   // Process orders data for the chart (last 6 months)
   const processChartData = () => {
@@ -274,10 +307,10 @@ const Dashboard = () => {
   const salesChartConfig = {
     series: [{ name: 'Revenue', data: salesData }],
     options: {
-      chart: { 
-        type: 'area', 
-        toolbar: { show: false }, 
-        background: 'transparent', 
+      chart: {
+        type: 'area',
+        toolbar: { show: false },
+        background: 'transparent',
         fontFamily: 'inherit',
         dropShadow: {
           enabled: true,
@@ -404,53 +437,102 @@ const Dashboard = () => {
     type: 'bar'
   };
 
-  // Sort request stats to show the top 5 users with most requests
-  const topRequestStats = React.useMemo(() => {
-    return [...requestStats]
-      .sort((a, b) => (b.count || 0) - (a.count || 0))
-      .slice(0, 5);
-  }, [requestStats]);
+  // Calculate Product Price Tier Engagement (Grouped Bar Chart)
+  const priceTierEngagementData = React.useMemo(() => {
+    const tiers = {
+      budget: { label: 'Budget (< ₹1k)', views: 0, cartAdds: 0 },
+      mid: { label: 'Mid-Tier (₹1k-5k)', views: 0, cartAdds: 0 },
+      premium: { label: 'Premium (₹5k-20k)', views: 0, cartAdds: 0 },
+      luxury: { label: 'Luxury (> ₹20k)', views: 0, cartAdds: 0 }
+    };
 
-  const requestStatsLabels = topRequestStats.map(item => {
-    if (!item.user) return 'Guest / Unknown';
-    return item.user.name || item.user.email || 'Guest';
-  });
-  const requestStatsCounts = topRequestStats.map(item => item.count || 0);
+    const getTierKey = (price) => {
+      const p = Number(price) || 0;
+      if (p < 1000) return 'budget';
+      if (p <= 5000) return 'mid';
+      if (p <= 20000) return 'premium';
+      return 'luxury';
+    };
 
-  const apiRequestStatsChartConfig = {
-    series: [{
-      name: 'Requests',
-      data: requestStatsCounts
-    }],
+    const productPriceMap = {};
+    (products || []).forEach(prod => {
+      if (prod && prod._id) {
+        productPriceMap[prod._id] = Number(prod.basePrice) || 0;
+      }
+    });
+
+    // Accumulate views per price tier
+    const mostViewed = activityStats?.mostViewedProducts || [];
+    mostViewed.forEach(item => {
+      const prodId = item.productId || item.product?._id || item.product;
+      const price = item.product?.basePrice ?? productPriceMap[prodId] ?? 0;
+      const views = Number(item.views || item.count) || 0;
+      const key = getTierKey(price);
+      tiers[key].views += views;
+    });
+
+    // Accumulate cart additions per price tier
+    const stream = activityStats?.recentActivities || activityStats?.activityStream || [];
+    stream.forEach(evt => {
+      const action = (evt.action || evt.eventType || '').toUpperCase();
+      if (action.includes('CART') || action.includes('ADD_TO_CART')) {
+        const prodId = evt.details?.productId || evt.productId;
+        const price = evt.details?.price ?? productPriceMap[prodId] ?? 0;
+        const key = getTierKey(price);
+        tiers[key].cartAdds += 1;
+      }
+    });
+
+    return {
+      categories: [tiers.budget.label, tiers.mid.label, tiers.premium.label, tiers.luxury.label],
+      views: [tiers.budget.views, tiers.mid.views, tiers.premium.views, tiers.luxury.views],
+      cartAdds: [tiers.budget.cartAdds, tiers.mid.cartAdds, tiers.premium.cartAdds, tiers.luxury.cartAdds]
+    };
+  }, [products, activityStats]);
+
+  const priceTierChartConfig = {
+    series: [
+      {
+        name: 'Total Views',
+        data: priceTierEngagementData.views
+      },
+      {
+        name: 'Cart Additions',
+        data: priceTierEngagementData.cartAdds
+      }
+    ],
     options: {
-      chart: { 
-        type: 'area', 
-        toolbar: { show: false }, 
-        background: 'transparent', 
+      chart: {
+        type: 'bar',
+        toolbar: { show: false },
+        background: 'transparent',
         fontFamily: 'inherit',
-        dropShadow: {
-          enabled: true,
-          top: 6,
-          left: 0,
-          blur: 8,
-          color: '#10b981',
-          opacity: 0.25
+      },
+      colors: ['#3b82f6', '#10b981'],
+      plotOptions: {
+        bar: {
+          horizontal: false,
+          columnWidth: '55%',
+          borderRadius: 6,
+          dataLabels: { position: 'top' }
         }
       },
-      colors: ['#10b981'],
-      fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0, stops: [0, 100] } },
       dataLabels: { enabled: false },
-      stroke: { curve: 'smooth', width: 3 },
+      stroke: {
+        show: true,
+        width: 2,
+        colors: ['transparent']
+      },
       xaxis: {
-        categories: requestStatsLabels,
+        categories: priceTierEngagementData.categories,
         axisBorder: { show: false },
         axisTicks: { show: false },
-        labels: { style: { colors: '#94a3b8', fontWeight: 600, fontSize: '9px' } }
+        labels: { style: { colors: '#94a3b8', fontWeight: 600, fontSize: '10px' } }
       },
       yaxis: {
         labels: {
           style: { colors: '#94a3b8', fontWeight: 600 },
-          formatter: (value) => value.toLocaleString('en-IN')
+          formatter: (value) => Math.round(value).toLocaleString('en-IN')
         }
       },
       grid: {
@@ -459,24 +541,23 @@ const Dashboard = () => {
         xaxis: { lines: { show: false } },
         yaxis: { lines: { show: true } }
       },
-      markers: {
-        size: 4,
-        colors: ['#10b981'],
-        strokeColors: 'rgba(255, 255, 255, 0.8)',
-        strokeWidth: 2,
-        hover: { size: 6 }
-      },
       theme: { mode: 'dark' },
       tooltip: {
         theme: 'dark',
-        y: { formatter: (val) => `${val.toLocaleString('en-IN')} requests` }
+        y: { formatter: (val) => `${val.toLocaleString('en-IN')} actions` }
+      },
+      legend: {
+        position: 'top',
+        horizontalAlign: 'right',
+        labels: { colors: '#94a3b8' },
+        markers: { width: 8, height: 8, radius: 12 }
       }
     },
-    type: 'area'
+    type: 'bar'
   };
 
   // Calculate activity-related values
-  const totalProductViews = (activityStats?.recentActivities?.filter(act => {
+  const totalProductViews = (activityStats?.mostViewedProducts?.reduce((sum, item) => sum + (item.views !== undefined ? item.views : (Array.isArray(item.viewers) ? item.viewers.reduce((s, v) => s + (v.count || 0), 0) : 0)), 0)) || (activityStats?.recentActivities?.filter(act => {
     const action = (act.action || '').toUpperCase();
     return action === 'PRODUCT_VIEW' || action === 'PRODUCTVIEW' || action === 'PRODUCT';
   }).length) || (activityStats?.users?.reduce((sum, u) => sum + (u.activityStats?.productViews || 0), 0)) || 0;
@@ -484,27 +565,38 @@ const Dashboard = () => {
 
   const getFilteredActivities = () => {
     if (!activityStats?.recentActivities) return [];
+    let list = activityStats.recentActivities;
+
+    if (startDate && endDate && list.length > 0) {
+      const startMs = new Date(`${startDate}T00:00:00.000Z`).getTime();
+      const endMs = new Date(`${endDate}T23:59:59.999Z`).getTime();
+      list = list.filter(act => {
+        const actTime = new Date(act.createdAt || act.timestamp).getTime();
+        return !isNaN(actTime) ? (actTime >= startMs && actTime <= endMs) : true;
+      });
+    }
+
     switch (activeActivityTab) {
       case 'SESSIONS':
-        return activityStats.recentActivities.filter(act => {
+        return list.filter(act => {
           const actionUpper = (act.action || '').toUpperCase();
           return actionUpper === 'LOGIN' || actionUpper === 'LOGOUT';
         });
       case 'VIEWS':
-        return activityStats.recentActivities.filter(act => {
+        return list.filter(act => {
           const actionUpper = (act.action || '').toUpperCase();
           return actionUpper === 'PRODUCT_VIEW' || actionUpper === 'PRODUCTVIEW' ||
             actionUpper === 'BRAND_VIEW' || actionUpper === 'BRANDVIEW' ||
             actionUpper === 'CATEGORY_VIEW' || actionUpper === 'CATEGORYVIEW';
         });
       case 'SEARCHES':
-        return activityStats.recentActivities.filter(act => {
+        return list.filter(act => {
           const actionUpper = (act.action || '').toUpperCase();
           return actionUpper === 'SEARCH';
         });
       case 'ALL':
       default:
-        return activityStats.recentActivities;
+        return list;
     }
   };
   const filteredActivities = getFilteredActivities();
@@ -588,10 +680,10 @@ const Dashboard = () => {
         data: dailyCounts.map(d => d.count)
       }],
       options: {
-        chart: { 
-          type: 'area', 
-          toolbar: { show: false }, 
-          background: 'transparent', 
+        chart: {
+          type: 'area',
+          toolbar: { show: false },
+          background: 'transparent',
           fontFamily: 'inherit',
           dropShadow: {
             enabled: true,
@@ -690,20 +782,22 @@ const Dashboard = () => {
   ];
 
   // Dynamic activity metrics cards configurations
-  const brandViewsCount = (activityStats?.recentActivities?.filter(act => {
+  const brandViewsCount = (activityStats?.mostSearchedBrands?.reduce((sum, item) => sum + (item.searches !== undefined ? item.searches : (Array.isArray(item.viewers) ? item.viewers.reduce((s, v) => s + (v.count || 0), 0) : 0)), 0)) || (activityStats?.recentActivities?.filter(act => {
     const action = (act.action || '').toUpperCase();
     return action === 'BRAND_VIEW' || action === 'BRAND';
-  }).length) || (activityStats?.mostSearchedBrands?.reduce((sum, item) => sum + (item.searches || 0), 0)) || 0;
+  }).length) || (activityStats?.users?.reduce((sum, u) => sum + (u.activityStats?.brandViews || 0), 0)) || 0;
 
-  const categoryViewsCount = (activityStats?.recentActivities?.filter(act => {
+  const categoryViewsCount = (activityStats?.mostSearchedCategories?.reduce((sum, item) => sum + (item.searches !== undefined ? item.searches : (Array.isArray(item.viewers) ? item.viewers.reduce((s, v) => s + (v.count || 0), 0) : 0)), 0)) || (activityStats?.recentActivities?.filter(act => {
     const action = (act.action || '').toUpperCase();
     return action === 'CATEGORY_VIEW' || action === 'CATEGORY';
-  }).length) || (activityStats?.mostSearchedCategories?.reduce((sum, item) => sum + (item.searches || 0), 0)) || 0;
+  }).length) || (activityStats?.users?.reduce((sum, u) => sum + (u.activityStats?.categoryViews || 0), 0)) || 0;
 
   const activityMetricCards = [
     {
       title: "Total Logins",
-      value: activityStats?.summary?.totalLogins ?? (activityStats?.recentActivities?.filter(act => (act.action || '').toUpperCase() === 'LOGIN').length || 0),
+      value: (activityStats?.summary?.totalLogins !== undefined && activityStats?.summary?.totalLogins !== null)
+        ? activityStats.summary.totalLogins
+        : ((activityStats?.users?.reduce((sum, u) => sum + (u.activityStats?.logins || 0), 0)) || (activityStats?.recentActivities?.filter(act => (act.action || '').toUpperCase() === 'LOGIN').length) || 0),
       desc: "Active user logins log",
       path: "/dashboard/details/logins",
       icon: FiLogIn,
@@ -713,7 +807,9 @@ const Dashboard = () => {
     },
     {
       title: "Total Logouts",
-      value: activityStats?.summary?.totalLogouts ?? (activityStats?.recentActivities?.filter(act => (act.action || '').toUpperCase() === 'LOGOUT').length || 0),
+      value: (activityStats?.summary?.totalLogouts !== undefined && activityStats?.summary?.totalLogouts !== null)
+        ? activityStats.summary.totalLogouts
+        : ((activityStats?.users?.reduce((sum, u) => sum + (u.activityStats?.logouts || 0), 0)) || (activityStats?.recentActivities?.filter(act => (act.action || '').toUpperCase() === 'LOGOUT').length) || 0),
       desc: "Active user logouts log",
       path: "/dashboard/details/logouts",
       icon: FiLogOut,
@@ -753,7 +849,7 @@ const Dashboard = () => {
     },
     {
       title: "Search Queries",
-      value: (activityStats?.recentActivities?.filter(act => (act.action || '').toUpperCase() === 'SEARCH').length) || (activityStats?.users?.reduce((sum, u) => sum + (u.activityStats?.searches || 0), 0)) || 0,
+      value: (activityStats?.recentActivities?.filter(act => (act.action || '').toUpperCase() === 'SEARCH').length) || (activityStats?.mostSearched?.reduce((sum, item) => sum + (item.count || 0), 0)) || (activityStats?.users?.reduce((sum, u) => sum + (u.activityStats?.searches || 0), 0)) || 0,
       desc: "Catalog searches made",
       path: "/dashboard/details/search-queries",
       icon: FiSearch,
@@ -913,9 +1009,9 @@ const Dashboard = () => {
           icon={FiTrendingUp}
           description="Welcome back to Inizio. Here is a summary of your system health, metrics, and logs."
         />
-        
+
         <KPISkeleton cards={5} />
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 z-10 relative mt-6">
           <div className="lg:col-span-2">
             <Card className="p-6">
@@ -990,6 +1086,94 @@ const Dashboard = () => {
         }
       />
 
+      {/* Activity Stats Breakdown Filter Controls */}
+      <Card className="!p-4 z-10 relative flex flex-col md:flex-row md:items-center justify-between gap-4 border border-white/10 bg-slate-900/40 backdrop-blur-xl">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
+            <FiCalendar size={16} />
+          </div>
+          <div>
+            <span className="text-xs font-black text-white uppercase tracking-wider block">Activity Data Interval</span>
+            <span className="text-[10px] text-slate-400 font-semibold block">Select breakdown mode or custom date range to update metric cards</span>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Interval Selector Buttons */}
+          <div className="bg-black/40 p-1 border border-white/10 rounded-2xl flex items-center gap-1">
+            <button
+              onClick={() => setBreakdownType('day')}
+              className={`px-4 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${breakdownType === 'day' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white'
+                }`}
+            >
+              Daily Breakdown
+            </button>
+            <button
+              onClick={() => setBreakdownType('month')}
+              className={`px-4 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${breakdownType === 'month' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white'
+                }`}
+            >
+              Monthly Breakdown
+            </button>
+            <button
+              onClick={() => setBreakdownType('custom')}
+              className={`px-4 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${breakdownType === 'custom' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white'
+                }`}
+            >
+              Custom Date Range
+            </button>
+          </div>
+
+          {/* Custom Date Pickers */}
+          {breakdownType === 'custom' && (
+            <div className="flex items-center gap-2 animate-in fade-in duration-200">
+              <div
+                onClick={(e) => {
+                  const input = e.currentTarget.querySelector('input[type="date"]');
+                  if (input && typeof input.showPicker === 'function') {
+                    try { input.showPicker(); } catch (err) { console.error(err); }
+                  }
+                }}
+                className="flex items-center gap-2 bg-black/30 border border-white/10 hover:border-blue-500/30 transition-all cursor-pointer rounded-xl px-3 py-1.5"
+              >
+                <span className="text-[9px] text-slate-400 font-bold uppercase select-none">From:</span>
+                <input
+                  type="date"
+                  value={startDate}
+                  max={endDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-transparent text-xs text-white outline-none border-none cursor-pointer font-bold font-mono"
+                />
+                <FiCalendar className="text-slate-400 hover:text-white transition-colors text-xs pointer-events-none" />
+              </div>
+
+              <div
+                onClick={(e) => {
+                  const input = e.currentTarget.querySelector('input[type="date"]');
+                  if (input && typeof input.showPicker === 'function') {
+                    try { input.showPicker(); } catch (err) { console.error(err); }
+                  }
+                }}
+                className="flex items-center gap-2 bg-black/30 border border-white/10 hover:border-blue-500/30 transition-all cursor-pointer rounded-xl px-3 py-1.5"
+              >
+                <span className="text-[9px] text-slate-400 font-bold uppercase select-none">To:</span>
+                <input
+                  type="date"
+                  value={endDate}
+                  min={startDate}
+                  max={new Date().toISOString().split('T')[0]}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-transparent text-xs text-white outline-none border-none cursor-pointer font-bold font-mono"
+                />
+                <FiCalendar className="text-slate-400 hover:text-white transition-colors text-xs pointer-events-none" />
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
+
       {/* Metric Cards Grid */}
       <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 xl:gap-6 z-10">
         {metrics.map((metric, index) => (
@@ -1027,7 +1211,7 @@ const Dashboard = () => {
               <FiActivity className="text-blue-400" /> Activity & Engagement Analytics
             </h2>
             <button
-              onClick={() => navigate('/dashboard/details/all')}
+              onClick={() => navigate(`/dashboard/details/all${getFilterQueryParams()}`)}
               className="flex items-center px-4 py-2 bg-blue-600/20 hover:bg-blue-600/35 border border-blue-500/30 text-blue-300 font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md hover:scale-[1.02] active:scale-[0.98] w-fit"
             >
               <FiActivity className="mr-1.5" /> View Detailed Log Feed
@@ -1044,7 +1228,7 @@ const Dashboard = () => {
                 {activityMetricCards.map((card, idx) => (
                   <div
                     key={idx}
-                    onClick={() => navigate(card.path)}
+                    onClick={() => navigate(`${card.path}${getFilterQueryParams()}`)}
                     className="bg-slate-950/20 border border-white/5 hover:border-white/15 p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col justify-between min-h-[145px] group hover:bg-slate-950/45 hover:shadow-xl shadow-black/30"
                   >
                     <div className="flex justify-between items-start mb-3">
@@ -1065,7 +1249,7 @@ const Dashboard = () => {
             </Card>
 
             {/* Right Column: Most Viewed Products */}
-            <Card className="lg:min-h-[580px] min-h-fit">
+            <Card className="lg:min-h-[580px] min-h-fit bg-transparent backdrop-blur-2xl border border-white/10">
               <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
 
               <div className="relative border-b border-white/5 pb-4 mb-6 z-10 flex items-center justify-between">
@@ -1073,37 +1257,41 @@ const Dashboard = () => {
                   <FiEye className="text-blue-400" /> Most viewed Products
                 </h3>
                 <button
-                  onClick={() => navigate('/dashboard/details/most-viewed-products')}
-                  className="text-[10px] text-blue-400 hover:text-blue-300 font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                  onClick={() => navigate(`/dashboard/details/most-viewed-products${getFilterQueryParams()}`)}
+                  className="text-[10px] text-blue-400 hover:text-blue-300 font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1 hover:underline"
                 >
-                  View All →
+                  View All &rarr;
                 </button>
               </div>
 
               <div className="relative z-10 flex-1 max-h-[460px] overflow-y-auto space-y-3 custom-scrollbar pr-1">
                 {!sortedMostViewedProducts || sortedMostViewedProducts.length === 0 ? (
-                  <p className="text-xs text-slate-500 italic py-4">No product views recorded yet.</p>
+                  <div className="text-center py-12">
+                    <FiBox className="mx-auto text-slate-600 text-3xl mb-2" />
+                    <p className="text-xs text-slate-500 font-medium">No product views recorded yet.</p>
+                  </div>
                 ) : (
                   sortedMostViewedProducts.map((item, idx) => {
                     const resolvedProductId = item.productId || item.product?._id || item.product;
                     const prod = products.find(p => p._id === resolvedProductId) || item.product || {};
-                    const imgUrl = prod.images?.[0] || '';
+                    const firstImg = prod.images?.[0] || '';
+                    const imgUrl = firstImg.startsWith('http') ? firstImg : (firstImg ? `${BASE_URL}${firstImg.startsWith('/') ? '' : '/'}${firstImg}` : '');
 
-                    let rankBg = 'bg-slate-800 text-slate-400 border-white/5';
-                    let itemBorder = 'border-white/5 hover:border-blue-500/20 bg-slate-950/10 hover:bg-slate-950/30';
+                    let rankBg = 'bg-slate-800/80 text-slate-400 border-white/10';
+                    let itemBorder = 'border-white/5 hover:border-blue-500/30 bg-transparent backdrop-blur-2xl hover:bg-white/5';
                     let rankLabel = `${idx + 1}`;
 
                     if (idx === 0) {
                       rankBg = 'bg-gradient-to-r from-amber-400 to-yellow-600 text-slate-950 font-black shadow-lg shadow-amber-500/25 border-amber-300/30';
-                      itemBorder = 'border-amber-500/20 hover:border-amber-400/50 bg-gradient-to-r from-amber-500/5 via-slate-900/30 to-slate-950/50';
+                      itemBorder = 'border-amber-500/30 hover:border-amber-400/60 bg-gradient-to-r from-amber-500/10 via-slate-900/40 to-transparent';
                       rankLabel = '1st';
                     } else if (idx === 1) {
                       rankBg = 'bg-gradient-to-r from-slate-300 to-slate-500 text-slate-950 font-black shadow-lg shadow-slate-400/25 border-slate-200/30';
-                      itemBorder = 'border-slate-400/20 hover:border-slate-300/50 bg-gradient-to-r from-slate-400/5 via-slate-900/30 to-slate-950/50';
+                      itemBorder = 'border-slate-400/30 hover:border-slate-300/60 bg-gradient-to-r from-slate-400/10 via-slate-900/40 to-transparent';
                       rankLabel = '2nd';
                     } else if (idx === 2) {
                       rankBg = 'bg-gradient-to-r from-orange-400 to-amber-600 text-slate-950 font-black shadow-lg shadow-orange-500/25 border-orange-300/30';
-                      itemBorder = 'border-orange-500/20 hover:border-orange-400/50 bg-gradient-to-r from-orange-500/5 via-slate-900/30 to-slate-950/50';
+                      itemBorder = 'border-orange-500/30 hover:border-orange-400/60 bg-gradient-to-r from-orange-500/10 via-slate-900/40 to-transparent';
                       rankLabel = '3rd';
                     }
 
@@ -1111,7 +1299,7 @@ const Dashboard = () => {
                       <div
                         key={prod._id || idx}
                         onClick={() => handleProductViewsClick(item)}
-                        className={`flex items-center gap-3 p-2 rounded-2xl border transition-all duration-300 group cursor-pointer hover:scale-[1.01] ${itemBorder}`}
+                        className={`flex items-center gap-3 p-3 rounded-2xl border transition-all duration-300 group cursor-pointer hover:scale-[1.01] shadow-sm ${itemBorder}`}
                       >
                         {/* Rank Badge */}
                         <div className={`flex items-center justify-center shrink-0 w-8 h-8 rounded-xl text-[10px] font-black border uppercase tracking-wider ${rankBg}`}>
@@ -1120,118 +1308,37 @@ const Dashboard = () => {
 
                         {/* Product Image preview */}
                         {imgUrl ? (
-                          <div className="w-12 h-12 rounded-xl overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center shadow-inner transition-transform duration-300 group-hover:scale-105 p-0.5">
-                            <img src={getImageUrl(imgUrl)} alt={prod.name} className="w-full h-full object-contain" />
+                          <div className="w-12 h-12 rounded-xl overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center shadow-inner p-0.5 group-hover:scale-105 transition-transform duration-300">
+                            <img src={imgUrl} alt={prod.name} className="w-full h-full object-contain" />
                           </div>
                         ) : (
-                          <div className="w-12 h-12 rounded-xl bg-slate-800 shrink-0 flex items-center justify-center text-slate-500 border border-white/5 transition-transform duration-300 group-hover:scale-105">
+                          <div className="w-12 h-12 rounded-xl bg-slate-800/80 shrink-0 flex items-center justify-center text-slate-500 border border-white/5 group-hover:scale-105 transition-transform duration-300">
                             <FiBox size={18} />
                           </div>
                         )}
 
                         {/* Details */}
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-bold text-white truncate group-hover:text-blue-400 transition-colors leading-snug">{prod.name || 'Unknown Product'}</p>
-                          <p className="text-[10px] text-slate-500 font-semibold mt-1">Base Price: ₹{prod.basePrice?.toLocaleString('en-IN') || 0}</p>
+                          <p className="text-xs font-extrabold text-white truncate group-hover:text-blue-400 transition-colors leading-snug" title={prod.name || 'Unknown Product'}>
+                            {prod.name || 'Unknown Product'}
+                          </p>
+                          <p className="text-[10px] text-emerald-400 font-extrabold font-mono mt-1">
+                            ₹{(prod.basePrice || 0).toLocaleString('en-IN')}
+                          </p>
                         </div>
 
                         {/* Views counter */}
-                        <div className="shrink-0 bg-blue-500/10 text-blue-400 text-[10px] font-extrabold px-3 py-1 rounded-xl border border-blue-500/20 shadow-xs">
+                        <div className="shrink-0 bg-blue-500/15 text-blue-300 text-xs font-black font-mono px-3 py-1.5 rounded-xl border border-blue-500/30 shadow-xs group-hover:bg-blue-500/25 transition-all">
                           {item.views || 0} views
                         </div>
                       </div>
                     );
                   })
                 )}
-              </div>  
+              </div>
             </Card>
           </div>
         </div>
-      )}
-
-      {/* Date & Breakdown Control Panel */}
-      {!loading && activityStats && (
-        <Card className="!p-4.5 z-10 relative flex flex-col md:flex-row md:items-center justify-between gap-4 mt-8">
-          <div className="flex items-center gap-3">
-            <FiCalendar className="text-blue-400 text-lg shrink-0" />
-            <div>
-              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Trends Breakdown</span>
-              <span className="text-xs text-white font-black uppercase tracking-tight">Select interval or custom range</span>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Interval Selector Buttons */}
-            <div className="bg-black/40 p-1 border border-white/10 rounded-2xl flex items-center gap-1">
-              <button
-                onClick={() => setBreakdownType('day')}
-                className={`px-4.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${breakdownType === 'day' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white'}`}
-              >
-                Daily
-              </button>
-              <button
-                onClick={() => setBreakdownType('month')}
-                className={`px-4.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${breakdownType === 'month' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white'}`}
-              >
-                Monthly
-              </button>
-              <button
-                onClick={() => setBreakdownType('custom')}
-                className={`px-4.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${breakdownType === 'custom' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white'}`}
-              >
-                Custom Range
-              </button>
-            </div>
-
-            {/* Custom Date Pickers */}
-            {breakdownType === 'custom' && (
-              <div className="flex items-center gap-2">
-                <div
-                  onClick={(e) => {
-                    const input = e.currentTarget.querySelector('input[type="date"]');
-                    if (input && typeof input.showPicker === 'function') {
-                      try { input.showPicker(); } catch (err) { console.error(err); }
-                    }
-                  }}
-                  className="flex items-center gap-2 bg-black/30 border border-white/10 hover:border-blue-500/30 transition-all cursor-pointer rounded-xl px-3 py-1.5"
-                >
-                  <span className="text-[9px] text-slate-400 font-bold uppercase select-none">From:</span>
-                  <input
-                    type="date"
-                    value={startDate}
-                    max={endDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="bg-transparent text-xs text-white outline-none border-none cursor-pointer font-bold font-mono"
-                  />
-                  <FiCalendar className="text-slate-400 hover:text-white transition-colors text-xs pointer-events-none" />
-                </div>
-
-                <div
-                  onClick={(e) => {
-                    const input = e.currentTarget.querySelector('input[type="date"]');
-                    if (input && typeof input.showPicker === 'function') {
-                      try { input.showPicker(); } catch (err) { console.error(err); }
-                    }
-                  }}
-                  className="flex items-center gap-2 bg-black/30 border border-white/10 hover:border-blue-500/30 transition-all cursor-pointer rounded-xl px-3 py-1.5"
-                >
-                  <span className="text-[9px] text-slate-400 font-bold uppercase select-none">To:</span>
-                  <input
-                    type="date"
-                    value={endDate}
-                    min={startDate}
-                    max={new Date().toISOString().split('T')[0]}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="bg-transparent text-xs text-white outline-none border-none cursor-pointer font-bold font-mono"
-                  />
-                  <FiCalendar className="text-slate-400 hover:text-white transition-colors text-xs pointer-events-none" />
-                </div>
-              </div>
-            )}
-          </div>
-        </Card>
       )}
 
       {/* Trends Graph Row */}
@@ -1294,12 +1401,11 @@ const Dashboard = () => {
                       <span className="text-xs font-bold text-white truncate">{item.name}</span>
                       <span className="text-[9px] text-slate-500 font-semibold">{item.type} &bull; {item.date}</span>
                     </div>
-                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-lg border shrink-0 ${
-                      item.type === 'Product' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-lg border shrink-0 ${item.type === 'Product' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
                       item.type === 'Brand' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' :
-                      item.type === 'Category' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
-                      'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                    }`}>
+                        item.type === 'Category' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
+                          'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                      }`}>
                       {item.count} views
                     </span>
                   </div>
@@ -1436,36 +1542,36 @@ const Dashboard = () => {
           </div>
         </Card>
 
-        {/* API Request Stats Live Chart */}
+        {/* Product Price Tier Engagement Chart */}
         <Card className="h-[420px] overflow-hidden flex flex-col !p-6">
           <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
 
           <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                API Request Stats
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                Product Price Tier Engagement
               </h3>
-              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Top active accounts by API request volume</p>
+              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Views vs cart additions by price tier</p>
             </div>
             <button
-              onClick={() => navigate('/dashboard/details/request-stats')}
+              onClick={() => navigate(`/dashboard/details/product-views${getFilterQueryParams()}`)}
               className="text-[10px] text-blue-400 hover:text-blue-300 font-bold uppercase tracking-wider transition-colors cursor-pointer whitespace-nowrap"
             >
-              View All &rarr;
+              View Details &rarr;
             </button>
           </div>
 
           <div className="relative flex-1 w-full z-10">
-            {requestStatsCounts.length === 0 ? (
-              <div className="text-center text-slate-500 text-xs py-10 italic">
-                No request statistics recorded yet.
+            {priceTierEngagementData.views.every(v => v === 0) && priceTierEngagementData.cartAdds.every(c => c === 0) ? (
+              <div className="text-center text-slate-500 text-xs py-16 italic">
+                No product engagement data recorded for price tiers.
               </div>
             ) : (
               <ReactApexChart
-                options={apiRequestStatsChartConfig.options}
-                series={apiRequestStatsChartConfig.series}
-                type={apiRequestStatsChartConfig.type}
+                options={priceTierChartConfig.options}
+                series={priceTierChartConfig.series}
+                type={priceTierChartConfig.type}
                 height="100%"
                 width="100%"
               />
@@ -1477,8 +1583,8 @@ const Dashboard = () => {
 
       {/* Product Views Details Modal */}
       {isProductModalOpen && selectedProductViews && createPortal(
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
-          <div className="bg-slate-900/95 border border-white/10 shadow-2xl rounded-3xl p-6 max-w-md w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-2xl flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
+          <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl p-6 max-w-md w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
 
             <div className="flex justify-between items-start mb-5 relative z-1000">
@@ -1490,7 +1596,7 @@ const Dashboard = () => {
                   <h3 className="text-base font-black text-white tracking-tight leading-snug truncate max-w-[240px]" title={selectedProductViews.product.name}>
                     {selectedProductViews.product.name}
                   </h3>
-                  <p className="text-[10px] text-slate-500 font-bold mt-0.5">Base Price: ₹{selectedProductViews.product.basePrice?.toLocaleString('en-IN') || 0}</p>
+                  <p className="text-[10px] text-emerald-400 font-extrabold font-mono mt-0.5">Base Price: ₹{(selectedProductViews.product.basePrice || 0).toLocaleString('en-IN')}</p>
                 </div>
               </div>
               <button
@@ -1505,44 +1611,67 @@ const Dashboard = () => {
             </div>
 
             {/* Total Metric Highlight Banner */}
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4.5 mb-5 flex justify-between items-center text-xs relative z-10">
+            <div className="bg-transparent backdrop-blur-2xl border border-white/10 rounded-2xl p-4.5 mb-5 flex justify-between items-center text-xs relative z-10">
               <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Total System Views</span>
               <button
                 onClick={() => {
                   setIsProductModalOpen(false);
-                  navigate('/dashboard/details/product-views');
+                  navigate(`/dashboard/details/product-views${getFilterQueryParams()}`);
                 }}
-                className="px-2.5 py-0.5 rounded-full text-[10px] bg-blue-500/25 hover:bg-blue-500/40 text-blue-400 font-black border border-blue-500/30 transition-all cursor-pointer hover:scale-105 active:scale-95"
+                className="px-2.5 py-0.5 rounded-full text-[10px] bg-blue-500/25 hover:bg-blue-500/40 text-blue-300 font-black border border-blue-500/30 transition-all cursor-pointer hover:scale-105 active:scale-95"
               >
                 {selectedProductViews.totalViews} views &rarr;
               </button>
             </div>
 
             {/* Scrollable list of user view metrics */}
-            <div className="space-y-2.5 max-h-[250px] overflow-y-auto custom-scrollbar pr-1 relative z-10">
-              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block mb-1">User View Frequency</span>
+            <div className="space-y-2.5 max-h-[280px] overflow-y-auto custom-scrollbar pr-1 relative z-10">
+              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block mb-1">
+                User View Breakdown ({selectedProductViews.viewsList.length} user{selectedProductViews.viewsList.length !== 1 ? 's' : ''})
+              </span>
               {selectedProductViews.viewsList.length === 0 ? (
-                <p className="text-xs text-slate-500 italic py-4 text-center">No detailed user views logs found.</p>
+                <p className="text-xs text-slate-500 italic py-6 text-center">No individual user view statistics recorded.</p>
               ) : (
-                selectedProductViews.viewsList.map((item, index) => (
-                  <div
-                    key={item.user?._id || index}
-                    className="flex justify-between items-center bg-slate-950/30 border border-white/5 p-3 rounded-xl hover:border-white/10 transition-colors"
-                  >
-                    <div className="text-left min-w-0 pr-2">
-                      <span className="text-xs text-white font-extrabold block truncate">{item.user.name || 'Unknown User'}</span>
-                      <span className="text-[9px] text-slate-400 font-mono block mt-0.5 select-all truncate">{item.user.email || '-'}</span>
+                selectedProductViews.viewsList.map((item, index) => {
+                  const u = item.user || {};
+                  const initials = (u.name || 'U').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                  const percent = selectedProductViews.totalViews > 0
+                    ? Math.round(((item.count || 0) / selectedProductViews.totalViews) * 100)
+                    : 0;
+
+                  return (
+                    <div
+                      key={u._id || u.email || index}
+                      className="flex items-center justify-between bg-transparent backdrop-blur-2xl border border-white/10 p-3 rounded-xl hover:border-white/20 transition-colors animate-in fade-in duration-150"
+                    >
+                      <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
+                        <div className="w-8 h-8 rounded-lg border bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 border-white/10 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-inner">
+                          {initials}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <span className="text-xs text-white font-extrabold block truncate">{u.name || 'Unknown User'}</span>
+                          <span className="text-[9px] text-slate-400 font-mono block truncate select-all">{u.email || '-'}</span>
+                          {u.phone && (
+                            <span className="text-[9px] text-slate-500 flex items-center gap-1 mt-0.5">
+                              <FiPhone size={8} /> {u.phone}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0 flex flex-col items-end">
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                          {item.count || 0} view{item.count !== 1 ? 's' : ''} ({percent}%)
+                        </span>
+                        {item.latestView && (
+                          <span className="text-[9px] text-slate-500 font-medium mt-1 font-mono">
+                            {formatActivityTime(item.latestView)}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-right shrink-0 flex flex-col items-end">
-                      <span className="px-2 py-0.5 rounded-md text-[9px] bg-blue-500/10 text-blue-400 font-extrabold border border-blue-500/20">
-                        {item.count} view{item.count > 1 ? 's' : ''}
-                      </span>
-                      <span className="text-[9px] text-slate-500 font-medium mt-1 font-mono">
-                        {formatActivityTime(item.latestView)}
-                      </span>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
 

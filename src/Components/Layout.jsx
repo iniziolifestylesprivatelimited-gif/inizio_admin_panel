@@ -626,8 +626,8 @@ const Layout = () => {
                       ${isChildActive && !isOpen
                         ? 'bg-blue-600/20 text-blue-500 border border-blue-600/50 shadow-sm rounded-xl'
                         : isExpanded
-                          ? 'text-slate-300 hover:bg-white/10 hover:text-white border border-transparent cursor-pointer rounded-xl'
-                          : 'bg-white/[0.03] backdrop-blur-md border border-white/5 text-slate-300 hover:bg-white/10 hover:border-white/10 cursor-pointer shadow-xs rounded-xl'
+                          ? 'text-slate-300 hover:bg-blue-600/20 hover:text-blue-500 border border-transparent cursor-pointer rounded-xl'
+                          : 'bg-white/[0.03] backdrop-blur-md border border-white/5 text-slate-300 hover:bg-blue-600/20 hover:text-blue-500 cursor-pointer shadow-xs rounded-xl'
                       }
                     `}
                   >
@@ -711,7 +711,7 @@ const Layout = () => {
                   ${isActive
                     ? 'bg-blue-600/20 text-blue-500 shadow-sm border border-blue-600/50 rounded-xl'
                     : isExpanded
-                      ? 'text-slate-300 hover:bg-white/10 hover:text-white border border-transparent rounded-xl'
+                      ? 'text-slate-300 hover:bg-blue-600/20 hover:text-blue-500 border border-transparent rounded-xl'
                       : 'bg-white/[0.03] backdrop-blur-md border border-white/5 text-slate-300 hover:bg-white/10 hover:border-white/10 shadow-xs rounded-xl'
                   }
                 `}

@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import ReactApexChart from 'react-apexcharts';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { api, BASE_URL } from '../api/axios';
 import {
   FiArrowLeft, FiSearch, FiActivity, FiUsers, FiBox,
   FiDollarSign, FiLayers, FiTrendingUp, FiEye, FiLogIn,
-  FiLogOut, FiClock, FiSettings, FiCheck, FiX, FiPhone, FiMail, FiSmartphone, FiBell, FiShield, FiCalendar
+  FiLogOut, FiClock, FiSettings, FiCheck, FiX, FiPhone, FiMail, FiSmartphone, FiBell, FiShield, FiCalendar, FiFilter
 } from 'react-icons/fi';
 
 const checkAppStatus = (u) => {
@@ -32,10 +32,43 @@ const getPastDateString = (daysAgo) => {
   return d.toISOString().split('T')[0];
 };
 
-const getUserBasedAnalytics = (rawStream) => {
+const formatDateTimeSmall = (dateStr) => {
+  if (!dateStr) return 'N/A';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  return d.toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  });
+};
+
+const getUserBasedAnalytics = (rawStream, filterType = 'ALL') => {
   const userMap = {};
 
-  rawStream.forEach(item => {
+  const filteredStream = (rawStream || []).filter(item => {
+    if (filterType === 'ALL') return true;
+    const evt = (item.eventType || '').toUpperCase();
+    if (filterType === 'ADD_TO_CART') return evt === 'ADD_TO_CART';
+    if (filterType === 'REMOVE_FROM_CART') return evt === 'REMOVE_FROM_CART';
+    if (filterType === 'UPDATE_CART') {
+      return (
+        evt === 'UPDATE_CART' ||
+        evt === 'UPDATE_CART_QTY' ||
+        evt === 'UPDATE_QTY' ||
+        evt === 'CART_UPDATE' ||
+        evt === 'CLEAR_CART' ||
+        evt.includes('UPDATE') ||
+        evt.includes('QTY')
+      );
+    }
+    return true;
+  });
+
+  filteredStream.forEach(item => {
     const userId = item.user?._id || 'guest';
     const email = item.user?.email || 'Guest / Unauthenticated';
     const name = item.user?.name || 'Guest / Unauthenticated';
@@ -75,6 +108,25 @@ const getUserBasedAnalytics = (rawStream) => {
 const ActivityDetails = () => {
   const { type } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const queryBreakdown = searchParams.get('breakdown');
+  const queryBreakdownInterval = searchParams.get('breakdownInterval');
+  const queryStartDate = searchParams.get('startDate');
+  const queryEndDate = searchParams.get('endDate');
+
+  const getActivityStatsUrl = () => {
+    const params = [];
+    if (queryBreakdown === 'true' && queryBreakdownInterval) {
+      params.push(`breakdown=true&breakdownInterval=${queryBreakdownInterval}`);
+    }
+    if (queryStartDate) params.push(`startDate=${queryStartDate}`);
+    if (queryEndDate) params.push(`endDate=${queryEndDate}`);
+    if (params.length > 0) {
+      return `/activity/stats?${params.join('&')}`;
+    }
+    return `/activity/stats`;
+  };
 
   const [data, setData] = useState([]);
   const [extraData, setExtraData] = useState({}); // Stores lookup data like brands, categories, products
@@ -84,11 +136,13 @@ const ActivityDetails = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedRowLogins, setSelectedRowLogins] = useState(null);
   const [selectedUserAnalytics, setSelectedUserAnalytics] = useState(null);
+  const [selectedViewerBreakdown, setSelectedViewerBreakdown] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const itemsPerPage = 10;
   const [breakdownType, setBreakdownType] = useState('day'); // 'day', 'month', 'custom'
-  const [startDate, setStartDate] = useState(() => getPastDateString(14));
-  const [endDate, setEndDate] = useState(() => getTodayString());
+  const [startDate, setStartDate] = useState(() => queryStartDate || getPastDateString(14));
+  const [endDate, setEndDate] = useState(() => queryEndDate || getTodayString());
+  const [analyticsFilter, setAnalyticsFilter] = useState('ALL'); // 'ALL', 'ADD_TO_CART', 'REMOVE_FROM_CART', 'UPDATE_CART'
 
   useEffect(() => {
     const fetchData = async (isPoll = false) => {
@@ -152,7 +206,7 @@ const ActivityDetails = () => {
         } else if (type === 'users' || type === 'users-status' || type === 'installed' || type === 'uninstalled') {
           const [custRes, actRes] = await Promise.all([
             api.get('/admin/customers', { headers }),
-            api.get(`/activity/stats?startDate=${startDate}&endDate=${endDate}`, { headers }).catch(() => ({ data: { users: [] } }))
+            api.get(getActivityStatsUrl(), { headers }).catch(() => ({ data: { users: [] } }))
           ]);
           let userList = Array.isArray(custRes.data) ? custRes.data : [];
           const actUsers = actRes.data?.users || [];
@@ -204,25 +258,141 @@ const ActivityDetails = () => {
             cartMetrics: analyticsData.cartMetrics || {},
             managerPerformance: analyticsData.managerPerformance || {}
           }));
-        } else if (type === 'most-searched-brands' || type === 'most-searched-categories' || type === 'most-searched' || type === 'most-viewed-products') {
-          const res = await api.get(`/activity/stats?startDate=${startDate}&endDate=${endDate}`, { headers });
-          if (type === 'most-searched-brands') {
-            const processed = (res.data?.mostSearchedBrands || []).map(item => {
-              const count = Array.isArray(item.viewers) ? item.viewers.reduce((sum, v) => sum + (v.count || 0), 0) : 0;
+        } else if (
+          type === 'most-searched-brands' || type === 'brand-views' ||
+          type === 'most-searched-categories' || type === 'category-views' ||
+          type === 'most-searched' ||
+          type === 'most-viewed-products' || type === 'product-views'
+        ) {
+          const res = await api.get(getActivityStatsUrl(), { headers });
+          if (res.data) {
+            setExtraData(prev => ({
+              ...prev,
+              summary: res.data.summary || prev.summary || {},
+              deviceMetrics: res.data.deviceMetrics || prev.deviceMetrics || {}
+            }));
+          }
+          let activities = res.data?.recentActivities || [];
+
+          if (type === 'most-searched-brands' || type === 'brand-views') {
+            let rawBrands = res.data?.mostSearchedBrands || [];
+            if (rawBrands.length === 0 && res.data?.users) {
+              const brandMap = {};
+              res.data.users.forEach(u => {
+                if (u.activityStats?.brandViews > 0) {
+                  const key = 'all-brands';
+                  if (!brandMap[key]) {
+                    brandMap[key] = {
+                      brand: { _id: 'all-brands', name: 'App Brand Catalog' },
+                      searches: 0,
+                      viewers: []
+                    };
+                  }
+                  brandMap[key].searches += u.activityStats.brandViews;
+                  brandMap[key].viewers.push({
+                    user: { _id: u.userId, name: u.name, email: u.email, phone: u.phone },
+                    count: u.activityStats.brandViews
+                  });
+                }
+              });
+              rawBrands = Object.values(brandMap);
+            }
+            const processed = rawBrands.map(item => {
+              const count = item.searches !== undefined ? item.searches : (Array.isArray(item.viewers) ? item.viewers.reduce((sum, v) => sum + (v.count || 0), 0) : 0);
               return { ...item, searches: count };
             }).sort((a, b) => b.searches - a.searches);
             setData(processed);
-          } else if (type === 'most-searched-categories') {
-            const processed = (res.data?.mostSearchedCategories || []).map(item => {
-              const count = Array.isArray(item.viewers) ? item.viewers.reduce((sum, v) => sum + (v.count || 0), 0) : 0;
+          } else if (type === 'most-searched-categories' || type === 'category-views') {
+            let rawCategories = res.data?.mostSearchedCategories || [];
+            if (rawCategories.length === 0 && res.data?.users) {
+              const catMap = {};
+              res.data.users.forEach(u => {
+                if (u.activityStats?.categoryViews > 0) {
+                  const key = 'all-categories';
+                  if (!catMap[key]) {
+                    catMap[key] = {
+                      category: { _id: 'all-categories', name: 'App Category Catalog' },
+                      searches: 0,
+                      viewers: []
+                    };
+                  }
+                  catMap[key].searches += u.activityStats.categoryViews;
+                  catMap[key].viewers.push({
+                    user: { _id: u.userId, name: u.name, email: u.email, phone: u.phone },
+                    count: u.activityStats.categoryViews
+                  });
+                }
+              });
+              rawCategories = Object.values(catMap);
+            }
+            const processed = rawCategories.map(item => {
+              const count = item.searches !== undefined ? item.searches : (Array.isArray(item.viewers) ? item.viewers.reduce((sum, v) => sum + (v.count || 0), 0) : 0);
               return { ...item, searches: count };
             }).sort((a, b) => b.searches - a.searches);
             setData(processed);
           } else if (type === 'most-searched') {
             setData(res.data?.mostSearched || []);
-          } else if (type === 'most-viewed-products') {
-            const processed = (res.data?.mostViewedProducts || []).map(item => {
-              const count = Array.isArray(item.viewers) ? item.viewers.reduce((sum, v) => sum + (v.count || 0), 0) : 0;
+          } else if (type === 'most-viewed-products' || type === 'product-views') {
+            let rawProducts = res.data?.mostViewedProducts || [];
+            if (rawProducts.length === 0 && activities.length > 0) {
+              const pvActivities = activities.filter(act => {
+                const action = (act.action || '').toUpperCase();
+                return action === 'PRODUCT_VIEW' || action === 'PRODUCTVIEW' || action === 'PRODUCT';
+              });
+              const prodMap = {};
+              pvActivities.forEach(act => {
+                const productId = act.details?.productId || 'catalog';
+                const prod = lookup.products?.find(p => p._id === productId);
+                if (!prodMap[productId]) {
+                  prodMap[productId] = {
+                    product: {
+                      _id: productId,
+                      name: prod?.name || act.details?.productName || 'App Product Catalog',
+                      basePrice: prod?.basePrice || 0,
+                      images: prod?.images || []
+                    },
+                    views: 0,
+                    viewersMap: {}
+                  };
+                }
+                prodMap[productId].views += 1;
+                const uId = act.user?._id || act.user?.email || 'unknown';
+                if (!prodMap[productId].viewersMap[uId]) {
+                  prodMap[productId].viewersMap[uId] = {
+                    user: act.user || { name: 'Unknown User', email: 'N/A' },
+                    count: 0
+                  };
+                }
+                prodMap[productId].viewersMap[uId].count += 1;
+              });
+              rawProducts = Object.values(prodMap).map(item => ({
+                product: item.product,
+                views: item.views,
+                viewers: Object.values(item.viewersMap)
+              }));
+            } else if (rawProducts.length === 0 && res.data?.users) {
+              const prodMap = {};
+              res.data.users.forEach(u => {
+                if (u.activityStats?.productViews > 0) {
+                  const key = 'all-products';
+                  if (!prodMap[key]) {
+                    prodMap[key] = {
+                      product: { _id: 'all-products', name: 'App Product Catalog', basePrice: 0 },
+                      views: 0,
+                      viewers: []
+                    };
+                  }
+                  prodMap[key].views += u.activityStats.productViews;
+                  prodMap[key].viewers.push({
+                    user: { _id: u.userId, name: u.name, email: u.email, phone: u.phone },
+                    count: u.activityStats.productViews
+                  });
+                }
+              });
+              rawProducts = Object.values(prodMap);
+            }
+            const processed = rawProducts.map(item => {
+              const count = item.views !== undefined ? item.views : (Array.isArray(item.viewers) ? item.viewers.reduce((sum, v) => sum + (v.count || 0), 0) : 0);
               return { ...item, views: count };
             }).sort((a, b) => b.views - a.views);
             setData(processed);
@@ -232,24 +402,35 @@ const ActivityDetails = () => {
           let res = await api.get(logsUrl, { headers });
           let activities = res.data?.recentActivities || [];
 
+          if (startDate && endDate && activities.length > 0) {
+            const startMs = new Date(`${startDate}T00:00:00.000Z`).getTime();
+            const endMs = new Date(`${endDate}T23:59:59.999Z`).getTime();
+            activities = activities.filter(act => {
+              const actTime = new Date(act.createdAt || act.timestamp).getTime();
+              return !isNaN(actTime) ? (actTime >= startMs && actTime <= endMs) : true;
+            });
+          }
+
           if (type !== 'all') {
             const processedProducts = (res.data?.mostViewedProducts || []).map(item => {
-              const count = Array.isArray(item.viewers) ? item.viewers.reduce((sum, v) => sum + (v.count || 0), 0) : 0;
+              const count = item.views !== undefined ? item.views : (Array.isArray(item.viewers) ? item.viewers.reduce((sum, v) => sum + (v.count || 0), 0) : 0);
               return { ...item, views: count };
             }).sort((a, b) => b.views - a.views);
 
             const processedBrands = (res.data?.mostSearchedBrands || []).map(item => {
-              const count = Array.isArray(item.viewers) ? item.viewers.reduce((sum, v) => sum + (v.count || 0), 0) : 0;
+              const count = item.searches !== undefined ? item.searches : (Array.isArray(item.viewers) ? item.viewers.reduce((sum, v) => sum + (v.count || 0), 0) : 0);
               return { ...item, searches: count };
             }).sort((a, b) => b.searches - a.searches);
 
             const processedCategories = (res.data?.mostSearchedCategories || []).map(item => {
-              const count = Array.isArray(item.viewers) ? item.viewers.reduce((sum, v) => sum + (v.count || 0), 0) : 0;
+              const count = item.searches !== undefined ? item.searches : (Array.isArray(item.viewers) ? item.viewers.reduce((sum, v) => sum + (v.count || 0), 0) : 0);
               return { ...item, searches: count };
             }).sort((a, b) => b.searches - a.searches);
 
             setExtraData(prev => ({
               ...prev,
+              summary: res.data?.summary || prev.summary || {},
+              deviceMetrics: res.data?.deviceMetrics || prev.deviceMetrics || {},
               trends: res.data?.trends || {},
               ...(type === 'product-views' && { mostViewedProducts: processedProducts }),
               ...(type === 'brand-views' && { mostSearchedBrands: processedBrands }),
@@ -485,7 +666,7 @@ const ActivityDetails = () => {
     }, 30000);
 
     return () => clearInterval(intervalId);
-  }, [type, breakdownType, startDate, endDate]);
+  }, [type, breakdownType, startDate, endDate, queryBreakdown, queryBreakdownInterval, queryStartDate, queryEndDate]);
 
   // Derived Title & Details Configurations
   const getHeaderConfig = () => {
@@ -613,10 +794,10 @@ const ActivityDetails = () => {
         data: dailyCounts.map(d => d.count)
       }],
       options: {
-        chart: { 
-          type: 'area', 
-          toolbar: { show: false }, 
-          background: 'transparent', 
+        chart: {
+          type: 'area',
+          toolbar: { show: false },
+          background: 'transparent',
           fontFamily: 'inherit',
           dropShadow: {
             enabled: true,
@@ -668,7 +849,8 @@ const ActivityDetails = () => {
   // Filtering Logic
   const getFilteredData = () => {
     if (type === 'analytics') {
-      const aggregated = getUserBasedAnalytics(data);
+      let aggregated = getUserBasedAnalytics(data, analyticsFilter);
+
       if (!searchQuery) return aggregated;
       const query = searchQuery.toLowerCase();
       return aggregated.filter(item => {
@@ -881,7 +1063,7 @@ const ActivityDetails = () => {
 
     if (type === 'revenue') {
       return currentItems.map((item, index) => (
-        <tr key={item._id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+        <tr key={item._id} className="hover:bg-transparent transition-colors">
           <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
           <td className="py-4 px-5 text-xs font-mono text-blue-400 select-all font-semibold">#{item._id}</td>
           <td className="py-4 px-5 text-sm font-bold text-white">{item.customerName || 'Walk-in Customer'}</td>
@@ -912,7 +1094,7 @@ const ActivityDetails = () => {
         const cleanPath = (item.logo || '').replace(/\\/g, '/');
         const logoUrl = item.logo ? `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}` : '';
         return (
-          <tr key={item._id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+          <tr key={item._id} className="hover:bg-white/[0.02] transition-colors">
             <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td className="py-4 px-5 text-xs font-mono text-slate-500">#{item._id}</td>
             <td className="py-4 px-5">
@@ -940,7 +1122,7 @@ const ActivityDetails = () => {
       return currentItems.map((item, index) => {
         const variantCount = Array.isArray(item.variants) ? item.variants.length : 1;
         return (
-          <tr key={item._id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+          <tr key={item._id} className="hover:bg-transparent transition-colors">
             <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td className="py-4 px-5 text-xs font-mono text-slate-500">#{item._id}</td>
             <td className="py-4 px-5 text-sm font-bold text-white truncate max-w-[200px]" title={item.name}>{item.name}</td>
@@ -959,7 +1141,7 @@ const ActivityDetails = () => {
 
     if (type === 'variants') {
       return currentItems.map((item, index) => (
-        <tr key={item._id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+        <tr key={item._id} className="hover:bg-white/[0.02] transition-colors">
           <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
           <td className="py-4 px-5 text-xs font-mono text-slate-500">#{item.productId}</td>
           <td className="py-4 px-5 text-sm font-bold text-white truncate max-w-[200px]" title={item.productName}>{item.productName}</td>
@@ -977,7 +1159,7 @@ const ActivityDetails = () => {
 
     if (type === 'users' || type === 'users-status') {
       return currentItems.map((item, index) => (
-        <tr key={item._id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+        <tr key={item._id} className="hover:bg-white/[0.02] transition-colors">
           <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
           <td className="py-4 px-5 text-sm font-bold text-white">
             <div className="flex items-center gap-2">
@@ -1010,14 +1192,14 @@ const ActivityDetails = () => {
       return currentItems.map((item, index) => {
         const initials = (item.name || 'U').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
         return (
-          <tr key={item._id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
+          <tr key={item._id} className="hover:bg-white/[0.02] transition-colors group">
             <td className="py-6 px-3 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td className="py-6 px-3">
               <div className="flex items-center gap-2">
                 <div className="relative">
                   <div className={`w-8 h-8 rounded-lg border flex items-center justify-center font-bold text-xs tracking-wider shadow-inner ${type === 'installed'
-                      ? 'bg-gradient-to-tr from-emerald-500/20 to-teal-500/20 border-emerald-500/30 text-emerald-300'
-                      : 'bg-gradient-to-tr from-rose-500/20 to-orange-500/20 border-rose-500/30 text-rose-300'
+                    ? 'bg-gradient-to-tr from-emerald-500/20 to-teal-500/20 border-emerald-500/30 text-emerald-300'
+                    : 'bg-gradient-to-tr from-rose-500/20 to-orange-500/20 border-rose-500/30 text-rose-300'
                     }`}>
                     {initials}
                   </div>
@@ -1056,8 +1238,8 @@ const ActivityDetails = () => {
             </td>
             <td className="py-6 px-3">
               <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${type === 'installed' && item.notificationsEnabled
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                  : 'bg-slate-800 text-slate-500 border border-white/5'
+                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                : 'bg-slate-800 text-slate-500 border border-white/5'
                 }`}>
                 <FiBell className={type === 'installed' && item.notificationsEnabled ? 'text-emerald-400' : 'text-slate-500'} size={10} />
                 {type === 'installed' && item.notificationsEnabled ? 'Enabled' : 'Disabled'}
@@ -1065,8 +1247,8 @@ const ActivityDetails = () => {
             </td>
             <td className="py-6 px-3">
               <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${type === 'installed' && item.isAppLockEnabled
-                  ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20'
-                  : 'bg-slate-800 text-slate-500 border border-white/5'
+                ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20'
+                : 'bg-slate-800 text-slate-500 border border-white/5'
                 }`}>
                 <FiShield className={type === 'installed' && item.isAppLockEnabled ? 'text-teal-400' : 'text-slate-500'} size={10} />
                 {type === 'installed' && item.isAppLockEnabled ? 'Secured' : 'Inactive'}
@@ -1103,7 +1285,7 @@ const ActivityDetails = () => {
       return currentItems.map((item, index) => (
         <tr
           key={item._id}
-          className="border-b border-white/5 hover:bg-white/5 transition-colors group/row"
+          className="hover:bg-white/[0.02] transition-colors group/row"
         >
           <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
           <td className="py-4 px-5 text-sm font-bold text-white">
@@ -1123,90 +1305,6 @@ const ActivityDetails = () => {
       ));
     }
 
-    if (type === 'product-views') {
-      return currentItems.map((item, index) => (
-        <tr
-          key={item._id}
-          onClick={() => {
-            setSelectedRowLogins(item);
-            setIsModalOpen(true);
-          }}
-          className="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer group/row"
-        >
-          <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-          <td className="py-4 px-5 text-sm font-bold text-white">
-            <div className="flex items-center gap-2 group-hover/row:text-blue-400 transition-colors">
-              {item.user?.name || 'Unknown User'}
-            </div>
-          </td>
-          <td className="py-4 px-5 text-sm text-slate-300 select-all font-medium">{item.user?.email || '-'}</td>
-          <td className="py-4 px-5 text-sm font-bold text-blue-400 truncate max-w-[200px]" title={item.latestProduct}>{item.latestProduct}</td>
-          <td className="py-4 px-5">
-            <span className="px-3 py-1 rounded-full font-bold text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20">
-              {item.count} view{item.count > 1 ? 's' : ''}
-            </span>
-          </td>
-          <td className="py-4 px-5 text-sm text-slate-400 font-medium">{formatDateTime(item.createdAt)}</td>
-        </tr>
-      ));
-    }
-
-    if (type === 'brand-views') {
-      return currentItems.map((item, index) => (
-        <tr
-          key={item._id}
-          onClick={() => {
-            setSelectedRowLogins(item);
-            setIsModalOpen(true);
-          }}
-          className="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer group/row"
-        >
-          <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-          <td className="py-4 px-5 text-sm font-bold text-white">
-            <div className="flex items-center gap-2 group-hover/row:text-indigo-400 transition-colors">
-              {item.user?.name || 'Unknown User'}
-            </div>
-          </td>
-          <td className="py-4 px-5 text-sm text-slate-300 select-all font-medium">{item.user?.email || '-'}</td>
-          <td className="py-4 px-5 text-sm font-bold text-indigo-400 truncate max-w-[200px]" title={item.latestBrand}>{item.latestBrand}</td>
-          <td className="py-4 px-5">
-            <span className="px-3 py-1 rounded-full font-bold text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-              {item.count} view{item.count > 1 ? 's' : ''}
-            </span>
-          </td>
-          <td className="py-4 px-5 text-sm text-slate-400 font-medium">{formatDateTime(item.createdAt)}</td>
-        </tr>
-      ));
-    }
-
-    if (type === 'category-views') {
-      return currentItems.map((item, index) => (
-        <tr
-          key={item._id}
-          onClick={() => {
-            setSelectedRowLogins(item);
-            setIsModalOpen(true);
-          }}
-          className="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer group/row"
-        >
-          <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-          <td className="py-4 px-5 text-sm font-bold text-white">
-            <div className="flex items-center gap-2 group-hover/row:text-purple-400 transition-colors">
-              {item.user?.name || 'Unknown User'}
-            </div>
-          </td>
-          <td className="py-4 px-5 text-sm text-slate-300 select-all font-medium">{item.user?.email || '-'}</td>
-          <td className="py-4 px-5 text-sm font-bold text-purple-400 truncate max-w-[200px]" title={item.latestCategory}>{item.latestCategory}</td>
-          <td className="py-4 px-5">
-            <span className="px-3 py-1 rounded-full font-bold text-xs bg-purple-500/10 text-purple-400 border border-purple-500/20">
-              {item.count} view{item.count > 1 ? 's' : ''}
-            </span>
-          </td>
-          <td className="py-4 px-5 text-sm text-slate-400 font-medium">{formatDateTime(item.createdAt)}</td>
-        </tr>
-      ));
-    }
-
     if (type === 'request-stats') {
       return currentItems.map((item, index) => {
         const isSuperAdmin = item.user?.name === 'Super Admin' || item.user?.email === 'inizio@gmail.com';
@@ -1215,15 +1313,15 @@ const ActivityDetails = () => {
         const initials = (item.user?.name || 'G').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
         return (
-          <tr key={item._id || index} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+          <tr key={item._id || index} className="hover:bg-white/[0.02] transition-colors">
             <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td className="py-4 px-5">
               <div className="flex items-center gap-2">
                 <div className={`w-8 h-8 rounded-lg border flex items-center justify-center font-bold text-xs tracking-wider shadow-inner ${isSuperAdmin
-                    ? 'bg-gradient-to-tr from-amber-500/20 to-orange-500/20 border-amber-500/30 text-amber-300'
-                    : item.user
-                      ? 'bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 border-blue-500/30 text-blue-300'
-                      : 'bg-gradient-to-tr from-slate-500/20 to-slate-600/20 border-white/10 text-slate-400'
+                  ? 'bg-gradient-to-tr from-amber-500/20 to-orange-500/20 border-amber-500/30 text-amber-300'
+                  : item.user
+                    ? 'bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 border-blue-500/30 text-blue-300'
+                    : 'bg-gradient-to-tr from-slate-500/20 to-slate-600/20 border-white/10 text-slate-400'
                   }`}>
                   {initials}
                 </div>
@@ -1244,10 +1342,10 @@ const ActivityDetails = () => {
             </td>
             <td className="py-4 px-5">
               <span className={`px-2.5 py-1 rounded-full font-bold text-xs border ${displayCount > 10000 && !isSuperAdmin
-                  ? 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-                  : displayCount > 5000
-                    ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                    : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                ? 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                : displayCount > 5000
+                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                  : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
                 }`}>
                 {displayCount.toLocaleString()} requests
               </span>
@@ -1289,14 +1387,18 @@ const ActivityDetails = () => {
               'bg-amber-500/10 text-amber-400 border border-amber-500/20';
 
         return (
-          <tr key={item.userId || index} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+          <tr
+            key={item.userId || index}
+            onClick={() => setSelectedUserAnalytics(item)}
+            className="hover:bg-white/[0.02] transition-colors cursor-pointer group/row"
+          >
             <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td className="py-4 px-5">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg border bg-gradient-to-tr from-indigo-500/20 to-blue-500/20 border-indigo-500/30 text-indigo-300 flex items-center justify-center font-bold text-xs tracking-wider shadow-inner">
                   {initials}
                 </div>
-                <span className="text-sm font-bold text-white block">
+                <span className="text-sm font-bold text-white group-hover/row:text-indigo-400 transition-colors block">
                   {item.name || 'Guest / Unauthenticated'}
                 </span>
               </div>
@@ -1314,14 +1416,6 @@ const ActivityDetails = () => {
               </span>
             </td>
             <td className="py-4 px-5 text-sm text-slate-400 font-medium">{formatDateTime(item.lastActiveAt)}</td>
-            <td className="py-4 px-5 text-center">
-              <button
-                onClick={() => setSelectedUserAnalytics(item)}
-                className="px-3 py-1.5 bg-indigo-600/25 hover:bg-indigo-600/50 text-indigo-300 hover:text-white rounded-lg border border-indigo-500/30 text-xs font-bold transition-all cursor-pointer"
-              >
-                View Activity
-              </button>
-            </td>
           </tr>
         );
       });
@@ -1333,7 +1427,7 @@ const ActivityDetails = () => {
         const displayProductLogo = firstImg ? (firstImg.startsWith('http') || firstImg.startsWith('blob:') ? firstImg : `${BASE_URL}${firstImg.startsWith('/') ? '' : '/'}${firstImg.replace(/\\/g, '/')}`) : '';
 
         return (
-          <tr key={item._id || index} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+          <tr key={item._id || index} className="hover:bg-white/[0.02] transition-colors">
             <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td className="py-4 px-5">
               <div className="flex items-center gap-2">
@@ -1373,8 +1467,8 @@ const ActivityDetails = () => {
             </td>
             <td className="py-4 px-5 text-xs">
               <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${item.notified
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                  : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                 }`}>
                 {item.notified ? 'notified' : 'pending alert'}
               </span>
@@ -1387,16 +1481,30 @@ const ActivityDetails = () => {
       });
     }
 
-    if (type === 'most-searched-brands') {
+    if (type === 'most-searched-brands' || type === 'brand-views') {
       const maxSearches = currentItems[0]?.searches || 1;
       return currentItems.map((item, index) => {
         const globalIndex = (currentPage - 1) * itemsPerPage + index;
         const cleanLogo = (item.brand?.logo || '').replace(/\\/g, '/');
-        const logoUrl = cleanLogo ? `${BASE_URL}${cleanLogo.startsWith('/') ? '' : '/'}${cleanLogo}` : '';
+        const logoUrl = cleanLogo ? `${BASE_URL}${cleanLogo.startsWith('/') ? '' : '/'}${cleanPath}` : '';
         const rankColors = ['text-amber-400', 'text-slate-300', 'text-orange-400'];
         const rankBadgeBg = ['bg-amber-500/15 border-amber-500/30', 'bg-slate-500/15 border-slate-400/30', 'bg-orange-500/15 border-orange-500/30'];
+        const viewerCount = Array.isArray(item.viewers) ? item.viewers.length : 0;
+        const rowKey = item.brand?._id || item.brand?.name || `brand-${globalIndex}`;
         return (
-          <tr key={item.brand?._id || index} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+          <tr
+            key={rowKey}
+            onClick={() => {
+              setSelectedViewerBreakdown({
+                title: item.brand?.name || 'Unknown Brand',
+                type: 'Brand',
+                logo: logoUrl,
+                searches: item.searches || 0,
+                viewers: item.viewers || []
+              });
+            }}
+            className="hover:bg-white/[0.02] transition-colors cursor-pointer group/row"
+          >
             <td className="py-4 px-5">
               <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${globalIndex < 3 ? rankBadgeBg[globalIndex] : 'bg-slate-800/60 border-white/10 text-slate-400'} ${globalIndex < 3 ? rankColors[globalIndex] : ''}`}>
                 {globalIndex + 1}
@@ -1411,42 +1519,88 @@ const ActivityDetails = () => {
                 </div>
               )}
             </td>
-            <td className="py-4 px-5 text-sm font-bold text-white">{item.brand?.name || 'Unknown Brand'}</td>
+            <td className="py-4 px-5 text-sm font-bold text-white group-hover/row:text-indigo-400 transition-colors">{item.brand?.name || 'Unknown Brand'}</td>
             <td className="py-4 px-5">
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden max-w-[120px]">
                   <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${Math.round((item.searches / maxSearches) * 100)}%` }} />
                 </div>
-                <span className="text-indigo-400 font-extrabold text-sm">{item.searches} views</span>
+                <span className="text-indigo-400 font-extrabold text-sm">{item.searches || 0} views</span>
               </div>
+            </td>
+            <td className="py-4 px-5 text-center">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedViewerBreakdown({
+                    title: item.brand?.name || 'Unknown Brand',
+                    type: 'Brand',
+                    logo: logoUrl,
+                    searches: item.searches || 0,
+                    viewers: item.viewers || []
+                  });
+                }}
+                className="px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 hover:border-indigo-500/30 text-indigo-400 hover:text-indigo-300 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-xs"
+              >
+                View Breakdown ({viewerCount})
+              </button>
             </td>
           </tr>
         );
       });
     }
 
-    if (type === 'most-searched-categories') {
+    if (type === 'most-searched-categories' || type === 'category-views') {
       const maxSearches = currentItems[0]?.searches || 1;
       return currentItems.map((item, index) => {
         const globalIndex = (currentPage - 1) * itemsPerPage + index;
+        const viewerCount = Array.isArray(item.viewers) ? item.viewers.length : 0;
+        const rowKey = item.category?._id || item.category?.name || `cat-${globalIndex}`;
         return (
-          <tr key={item.category?._id || index} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+          <tr
+            key={rowKey}
+            onClick={() => {
+              setSelectedViewerBreakdown({
+                title: item.category?.name || 'Unknown Category',
+                type: 'Category',
+                searches: item.searches || 0,
+                viewers: item.viewers || []
+              });
+            }}
+            className="hover:bg-white/[0.02] transition-colors cursor-pointer group/row"
+          >
             <td className="py-4 px-5">
               <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${globalIndex === 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' :
-                  globalIndex === 1 ? 'bg-slate-500/15 border-slate-400/30 text-slate-300' :
-                    globalIndex === 2 ? 'bg-orange-500/15 border-orange-500/30 text-orange-400' :
-                      'bg-slate-800/60 border-white/10 text-slate-400'}`}>
+                globalIndex === 1 ? 'bg-slate-500/15 border-slate-400/30 text-slate-300' :
+                  globalIndex === 2 ? 'bg-orange-500/15 border-orange-500/30 text-orange-400' :
+                    'bg-slate-800/60 border-white/10 text-slate-400'}`}>
                 {globalIndex + 1}
               </span>
             </td>
-            <td className="py-4 px-5 text-sm font-bold text-white">{item.category?.name || 'Unknown Category'}</td>
+            <td className="py-4 px-5 text-sm font-bold text-white group-hover/row:text-purple-400 transition-colors">{item.category?.name || 'Unknown Category'}</td>
             <td className="py-4 px-5">
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden max-w-[120px]">
                   <div className="h-full bg-purple-500 rounded-full" style={{ width: `${Math.round((item.searches / maxSearches) * 100)}%` }} />
                 </div>
-                <span className="text-purple-400 font-extrabold text-sm">{item.searches} views</span>
+                <span className="text-purple-400 font-extrabold text-sm">{item.searches || 0} views</span>
               </div>
+            </td>
+            <td className="py-4 px-5 text-center">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedViewerBreakdown({
+                    title: item.category?.name || 'Unknown Category',
+                    type: 'Category',
+                    searches: item.searches || 0,
+                    viewers: item.viewers || []
+                  });
+                }}
+                className="px-3 py-1.5 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 hover:border-purple-500/30 text-purple-400 hover:text-purple-300 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-xs"
+              >
+                View Breakdown ({viewerCount})
+              </button>
             </td>
           </tr>
         );
@@ -1458,12 +1612,12 @@ const ActivityDetails = () => {
       return currentItems.map((item, index) => {
         const globalIndex = (currentPage - 1) * itemsPerPage + index;
         return (
-          <tr key={index} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+          <tr key={item._id || item.query || globalIndex} className="hover:bg-white/[0.02] transition-colors">
             <td className="py-4 px-5">
               <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${globalIndex === 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' :
-                  globalIndex === 1 ? 'bg-slate-500/15 border-slate-400/30 text-slate-300' :
-                    globalIndex === 2 ? 'bg-orange-500/15 border-orange-500/30 text-orange-400' :
-                      'bg-slate-800/60 border-white/10 text-slate-400'}`}>
+                globalIndex === 1 ? 'bg-slate-500/15 border-slate-400/30 text-slate-300' :
+                  globalIndex === 2 ? 'bg-orange-500/15 border-orange-500/30 text-orange-400' :
+                    'bg-slate-800/60 border-white/10 text-slate-400'}`}>
                 {globalIndex + 1}
               </span>
             </td>
@@ -1485,19 +1639,33 @@ const ActivityDetails = () => {
       });
     }
 
-    if (type === 'most-viewed-products') {
+    if (type === 'most-viewed-products' || type === 'product-views') {
       const maxViews = currentItems[0]?.views || 1;
       return currentItems.map((item, index) => {
         const globalIndex = (currentPage - 1) * itemsPerPage + index;
         const firstImg = item.product?.images?.[0] || '';
         const imgUrl = firstImg.startsWith('http') ? firstImg : (firstImg ? `${BASE_URL}${firstImg.startsWith('/') ? '' : '/'}${firstImg}` : '');
+        const viewerCount = Array.isArray(item.viewers) ? item.viewers.length : 0;
+        const rowKey = item.product?._id || item.product?.name || `product-${globalIndex}`;
         return (
-          <tr key={item.product?._id || index} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+          <tr
+            key={rowKey}
+            onClick={() => {
+              setSelectedViewerBreakdown({
+                title: item.product?.name || 'Unknown Product',
+                type: 'Product',
+                logo: imgUrl,
+                searches: item.views || 0,
+                viewers: item.viewers || []
+              });
+            }}
+            className="hover:bg-white/[0.02] transition-colors cursor-pointer group/row"
+          >
             <td className="py-4 px-5">
               <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${globalIndex === 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' :
-                  globalIndex === 1 ? 'bg-slate-500/15 border-slate-400/30 text-slate-300' :
-                    globalIndex === 2 ? 'bg-orange-500/15 border-orange-500/30 text-orange-400' :
-                      'bg-slate-800/60 border-white/10 text-slate-400'}`}>
+                globalIndex === 1 ? 'bg-slate-500/15 border-slate-400/30 text-slate-300' :
+                  globalIndex === 2 ? 'bg-orange-500/15 border-orange-500/30 text-orange-400' :
+                    'bg-slate-800/60 border-white/10 text-slate-400'}`}>
                 {globalIndex + 1}
               </span>
             </td>
@@ -1512,19 +1680,36 @@ const ActivityDetails = () => {
                 </div>
               )}
             </td>
-            <td className="py-4 px-5 text-sm font-bold text-white truncate max-w-[200px]" title={item.product?.name}>
+            <td className="py-4 px-5 text-sm font-bold text-white group-hover/row:text-blue-400 transition-colors truncate max-w-[200px]" title={item.product?.name}>
               {item.product?.name || 'Unknown Product'}
             </td>
-            <td className="py-4 px-5 text-sm font-extrabold text-emerald-400">
+            <td className="py-4 px-5 text-sm font-extrabold text-emerald-400 font-mono">
               ₹{(item.product?.basePrice || 0).toLocaleString('en-IN')}
             </td>
             <td className="py-4 px-5">
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden max-w-[120px]">
-                  <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.round((item.views / maxViews) * 100)}%` }} />
+                  <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.round(((item.views || 0) / maxViews) * 100)}%` }} />
                 </div>
-                <span className="text-blue-400 font-extrabold text-sm">{item.views} views</span>
+                <span className="text-blue-400 font-extrabold text-sm">{item.views || 0} views</span>
               </div>
+            </td>
+            <td className="py-4 px-5 text-center">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedViewerBreakdown({
+                    title: item.product?.name || 'Unknown Product',
+                    type: 'Product',
+                    logo: imgUrl,
+                    searches: item.views || 0,
+                    viewers: item.viewers || []
+                  });
+                }}
+                className="px-3 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 hover:border-blue-500/30 text-blue-400 hover:text-blue-300 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-xs"
+              >
+                View Breakdown ({viewerCount})
+              </button>
             </td>
           </tr>
         );
@@ -1558,7 +1743,7 @@ const ActivityDetails = () => {
       }
 
       return (
-        <tr key={item._id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+        <tr key={item._id} className="hover:bg-white/[0.02] transition-colors">
           <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
           <td className="py-4 px-5 text-xs font-mono text-slate-500">#{item._id}</td>
           <td className="py-4 px-5 text-sm font-bold text-white">{item.user?.name || 'Unknown User'}</td>
@@ -1652,40 +1837,37 @@ const ActivityDetails = () => {
       );
     }
 
-    if (type === 'product-views') {
+    if (type === 'product-views' || type === 'most-viewed-products') {
       return (
         <>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Email</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Latest Product Viewed</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Views Count</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Latest View Time</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Image</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Product Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Base Price</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Product Views</th>
+          <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Viewer Breakdown</th>
         </>
       );
     }
 
-    if (type === 'brand-views') {
+    if (type === 'brand-views' || type === 'most-searched-brands') {
       return (
         <>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Email</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Latest Brand Viewed</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Views Count</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Latest View Time</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Logo</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Brand Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Brand Views</th>
+          <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Viewer Breakdown</th>
         </>
       );
     }
-    if (type === 'category-views') {
+    if (type === 'category-views' || type === 'most-searched-categories') {
       return (
         <>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Email</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Latest Category Viewed</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Views Count</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Latest View Time</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Category Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Category Views</th>
+          <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Viewer Breakdown</th>
         </>
       );
     }
@@ -1712,7 +1894,6 @@ const ActivityDetails = () => {
           <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Total Actions</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Last Action</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Last Active At</th>
-          <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Actions</th>
         </>
       );
     }
@@ -1735,6 +1916,7 @@ const ActivityDetails = () => {
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Logo</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Brand Name</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Views</th>
+          <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Actions</th>
         </>
       );
     }
@@ -1744,6 +1926,7 @@ const ActivityDetails = () => {
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Category Name</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Views</th>
+          <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Actions</th>
         </>
       );
     }
@@ -1838,12 +2021,25 @@ const ActivityDetails = () => {
             <FiArrowLeft size={18} />
           </button>
           <div>
-            <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight flex items-center gap-3">
-              <div className={`p-2 rounded-xl ${header.bg}`}>
-                <header.icon className={`${header.color} text-xl`} />
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight flex items-center gap-3">
+                <div className={`p-2 rounded-xl ${header.bg}`}>
+                  <header.icon className={`${header.color} text-xl`} />
+                </div>
+                {header.title}
+              </h1>
+
+              {/* Selected Date / Interval Badge */}
+              <div className="px-3 py-1.5 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-300 text-xs font-bold flex items-center gap-2 shadow-sm">
+                <FiCalendar size={14} className="text-blue-400 shrink-0" />
+                <span>
+                  {queryBreakdown === 'true' && queryBreakdownInterval === 'day' ? 'Daily Breakdown' :
+                    queryBreakdown === 'true' && queryBreakdownInterval === 'month' ? 'Monthly Breakdown' :
+                      queryStartDate && queryEndDate ? `${queryStartDate}  ➔  ${queryEndDate}` :
+                        `${startDate}  ➔  ${endDate}`}
+                </span>
               </div>
-              {header.title}
-            </h1>
+            </div>
             <p className="text-xs md:text-sm text-slate-400 mt-1.5 font-medium leading-relaxed max-w-2xl">
               {header.desc}
             </p>
@@ -1878,64 +2074,35 @@ const ActivityDetails = () => {
         </div>
       </div>
 
-      {/* Date Filter Panel - visible on all date-filtered pages */}
-      {['all', 'logins', 'logouts', 'product-views', 'brand-views', 'category-views', 'search-queries', 'users', 'users-status', 'installed', 'uninstalled', 'most-searched-brands', 'most-searched-categories', 'most-searched', 'most-viewed-products'].includes(type) && (
-        <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-xl shadow-black/40 rounded-3xl p-4.5 z-10 relative flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <FiCalendar className="text-blue-400 text-lg shrink-0" />
+      {/* Total Count Summary Cards Row for Item Views */}
+      {['product-views', 'most-viewed-products', 'brand-views', 'most-searched-brands', 'category-views', 'most-searched-categories', 'search-queries', 'most-searched'].includes(type) && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 z-10 relative">
+          <div className="bg-transparent backdrop-blur-2xl border border-white/10 p-4.5 rounded-2xl flex items-center gap-4 shadow-lg">
+            <div className="p-3 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-400 shrink-0">
+              <FiEye size={22} />
+            </div>
             <div>
-              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Filter Activity Logs</span>
-              <span className="text-xs text-white font-black uppercase tracking-tight">Select custom date range</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Accumulated Views</span>
+              <span className="text-2xl font-black text-white font-mono mt-0.5 block">
+                {data.reduce((sum, item) => sum + (item.views || item.searches || item.count || 0), 0).toLocaleString()} Total Views
+              </span>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Custom Date Pickers */}
-            <div className="flex items-center gap-2">
-              <div
-                onClick={(e) => {
-                  const input = e.currentTarget.querySelector('input[type="date"]');
-                  if (input && typeof input.showPicker === 'function') {
-                    try { input.showPicker(); } catch (err) { console.error(err); }
-                  }
-                }}
-                className="flex items-center gap-2 bg-black/30 border border-white/10 hover:border-blue-500/30 transition-all cursor-pointer rounded-xl px-3 py-1.5"
-              >
-                <span className="text-[9px] text-slate-400 font-bold uppercase select-none">From:</span>
-                <input
-                  type="date"
-                  value={startDate}
-                  max={endDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  onClick={(e) => e.stopPropagation()}
-                  className="bg-transparent text-xs text-white outline-none border-none cursor-pointer font-bold font-mono"
-                />
-                <FiCalendar className="text-slate-400 hover:text-white transition-colors text-xs pointer-events-none" />
-              </div>
-
-              <div
-                onClick={(e) => {
-                  const input = e.currentTarget.querySelector('input[type="date"]');
-                  if (input && typeof input.showPicker === 'function') {
-                    try { input.showPicker(); } catch (err) { console.error(err); }
-                  }
-                }}
-                className="flex items-center gap-2 bg-black/30 border border-white/10 hover:border-blue-500/30 transition-all cursor-pointer rounded-xl px-3 py-1.5"
-              >
-                <span className="text-[9px] text-slate-400 font-bold uppercase select-none">To:</span>
-                <input
-                  type="date"
-                  value={endDate}
-                  min={startDate}
-                  max={getTodayString()}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  onClick={(e) => e.stopPropagation()}
-                  className="bg-transparent text-xs text-white outline-none border-none cursor-pointer font-bold font-mono"
-                />
-                <FiCalendar className="text-slate-400 hover:text-white transition-colors text-xs pointer-events-none" />
-              </div>
+          {/* <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 p-4.5 rounded-2xl flex items-center gap-4 shadow-lg">
+            <div className="p-3 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 shrink-0">
+              <FiCalendar size={22} />
             </div>
-          </div>
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Selected Date Filter</span>
+              <span className="text-xs font-black text-indigo-300 uppercase tracking-wide block mt-1">
+                {queryBreakdown === 'true' && queryBreakdownInterval === 'day' ? 'Daily Breakdown' :
+                 queryBreakdown === 'true' && queryBreakdownInterval === 'month' ? 'Monthly Breakdown' :
+                 queryStartDate && queryEndDate ? `${queryStartDate} to ${queryEndDate}` :
+                 `${startDate} to ${endDate}`}
+              </span>
+            </div>
+          </div> */}
         </div>
       )}
 
@@ -2090,14 +2257,80 @@ const ActivityDetails = () => {
       <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden z-10 relative">
         <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
 
+        {/* Admin Analytics Table Filter Toolbar */}
+        {type === 'analytics' && (() => {
+          const filterOptions = [
+            {
+              id: 'ALL',
+              label: 'All Activity Streams',
+              count: getUserBasedAnalytics(data, 'ALL').length,
+              activeStyle: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40 shadow-[0_0_15px_rgba(99,102,241,0.2)]'
+            },
+            {
+              id: 'ADD_TO_CART',
+              label: 'Add to Cart',
+              count: getUserBasedAnalytics(data, 'ADD_TO_CART').length,
+              activeStyle: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.2)]'
+            },
+            {
+              id: 'REMOVE_FROM_CART',
+              label: 'Remove from Cart',
+              count: getUserBasedAnalytics(data, 'REMOVE_FROM_CART').length,
+              activeStyle: 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-[0_0_15px_rgba(244,63,94,0.2)]'
+            },
+            {
+              id: 'UPDATE_CART',
+              label: 'Cart & Qty Updates',
+              count: getUserBasedAnalytics(data, 'UPDATE_CART').length,
+              activeStyle: 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.2)]'
+            }
+          ];
+
+          return (
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-6 py-4 border-b border-white/10 bg-white/[0.01] relative z-10">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                  <FiFilter size={14} />
+                </div>
+                <div>
+                  <span className="text-xs font-black text-white uppercase tracking-wider block">Segregate User Activity</span>
+                  <span className="text-[10px] text-slate-400 font-semibold block">Filter table records by cart event types</span>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {filterOptions.map(opt => (
+                  <button
+                    key={opt.id}
+                    onClick={() => {
+                      setAnalyticsFilter(opt.id);
+                      setCurrentPage(1);
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 border ${analyticsFilter === opt.id
+                        ? `${opt.activeStyle} ring-1 ring-white/20 scale-[1.02]`
+                        : 'bg-slate-900/60 hover:bg-white/10 text-slate-400 border-white/10 hover:text-white'
+                      }`}
+                  >
+                    <span>{opt.label}</span>
+                    <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-mono font-black ${analyticsFilter === opt.id ? 'bg-black/50 text-white' : 'bg-white/5 text-slate-400'
+                      }`}>
+                      {opt.count}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
         <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b border-white/10 bg-white/[0.02]">
+          <table className="w-full text-left border-collapse whitespace-nowrap divide-x divide-white/10">
+            <thead className="sticky top-0 z-20 bg-slate-950/40 backdrop-blur-xl border-b border-white/10 text-slate-300 text-sm shadow-md">
+              <tr className="divide-x divide-white/10">
                 {getTableHeaders()}
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-white/10 divide-x divide-white/10 bg-transparent">
               {renderTableContent()}
             </tbody>
           </table>
@@ -2142,8 +2375,8 @@ const ActivityDetails = () => {
                     key={pageNumber}
                     onClick={() => handlePageChange(pageNumber)}
                     className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center border ${currentPage === pageNumber
-                        ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/25'
-                        : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'
+                      ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/25'
+                      : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'
                       }`}
                   >
                     {pageNumber}
@@ -2170,8 +2403,8 @@ const ActivityDetails = () => {
         const ModalIcon = modalConfig.icon;
 
         return createPortal(
-          <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
-            <div className="bg-slate-900/95 border border-white/10 shadow-2xl rounded-3xl p-6 max-w-md w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="fixed inset-0 bg-black/75 backdrop-blur-2xl flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
+            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl p-6 max-w-md w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
               <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
 
               <div className="flex justify-between items-start mb-5 relative z-1000">
@@ -2193,7 +2426,7 @@ const ActivityDetails = () => {
               </div>
 
               {/* User Meta Card */}
-              <div className="bg-slate-950/40 border border-white/5 rounded-2xl p-4 mb-5 space-y-2 text-xs relative z-10">
+              <div className="bg-transparent backdrop-blur-2xl border border-white/10 rounded-2xl p-4 mb-5 space-y-2 text-xs relative z-10">
                 <div className="flex justify-between items-center">
                   <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px]">Email Address</span>
                   <span className="text-slate-200 font-bold select-all font-mono">{selectedRowLogins.user?.email || '-'}</span>
@@ -2218,7 +2451,7 @@ const ActivityDetails = () => {
                     Object.entries(selectedRowLogins.endpointStats || {}).map(([endpoint, count], idx) => (
                       <div
                         key={idx}
-                        className="flex justify-between items-center bg-slate-950/30 border border-white/5 p-3 rounded-xl hover:border-white/10 transition-colors animate-in fade-in duration-150 font-mono text-xs"
+                        className="flex justify-between items-center bg-transparent backdrop-blur-2xl border border-white/10 p-3 rounded-xl hover:border-white/20 transition-colors animate-in fade-in duration-150 font-mono text-xs"
                       >
                         <div className="text-left flex-1 min-w-0 pr-2">
                           <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider font-sans">Endpoint Path</span>
@@ -2234,7 +2467,7 @@ const ActivityDetails = () => {
                     selectedRowLogins.views?.map((view, index) => (
                       <div
                         key={view._id || index}
-                        className="flex justify-between items-center bg-slate-950/30 border border-white/5 p-3 rounded-xl hover:border-white/10 transition-colors animate-in fade-in duration-150"
+                        className="flex justify-between items-center bg-transparent backdrop-blur-2xl border border-white/10 p-3 rounded-xl hover:border-white/20 transition-colors animate-in fade-in duration-150"
                       >
                         <div className="text-left flex-1 min-w-0 pr-2">
                           <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider">{modalConfig.viewHeader}</span>
@@ -2254,7 +2487,7 @@ const ActivityDetails = () => {
                   {selectedRowLogins.logins?.map((login, index) => (
                     <div
                       key={login._id || index}
-                      className="flex justify-between items-center bg-slate-950/30 border border-white/5 p-3 rounded-xl hover:border-white/10 transition-colors"
+                      className="flex justify-between items-center bg-transparent backdrop-blur-2xl border border-white/10 p-3 rounded-xl hover:border-white/20 transition-colors"
                     >
                       <div className="text-left">
                         <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider">Method</span>
@@ -2286,8 +2519,8 @@ const ActivityDetails = () => {
 
       {/* User Analytics Activity Popup Modal */}
       {selectedUserAnalytics && createPortal(
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
-          <div className="bg-slate-900/95 border border-white/10 shadow-2xl rounded-3xl p-6 max-w-2xl w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-2xl flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
+          <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl p-6 max-w-2xl w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
 
             <div className="flex justify-between items-start mb-5 relative z-[1000]">
@@ -2306,7 +2539,7 @@ const ActivityDetails = () => {
             </div>
 
             {/* User Meta Card */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-950/40 border border-white/5 rounded-2xl p-4 mb-5 text-xs relative z-10">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-transparent backdrop-blur-2xl border border-white/10 rounded-2xl p-4 mb-5 text-xs relative z-10">
               <div className="flex flex-col min-w-0">
                 <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px] mb-0.5">Email Address</span>
                 <span className="text-slate-200 font-semibold select-all font-mono truncate" title={selectedUserAnalytics.email}>{selectedUserAnalytics.email || '-'}</span>
@@ -2336,7 +2569,7 @@ const ActivityDetails = () => {
                 return (
                   <div
                     key={item._id || index}
-                    className="bg-slate-950/30 border border-white/5 p-3 rounded-xl hover:border-white/10 transition-colors animate-in fade-in duration-150 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-left"
+                    className="bg-transparent backdrop-blur-2xl border border-white/10 p-3 rounded-xl hover:border-white/20 transition-colors animate-in fade-in duration-150 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-left"
                   >
                     <div className="flex flex-col gap-1 min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -2373,6 +2606,125 @@ const ActivityDetails = () => {
               className="w-full mt-6 py-2.5 bg-slate-800 border border-white/10 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md"
             >
               Close
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Viewers Breakdown Modal */}
+      {selectedViewerBreakdown && createPortal(
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-2xl flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
+          <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl p-6 max-w-lg w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+
+            {/* Header */}
+            <div className="flex justify-between items-start mb-5 relative z-10">
+              <div className="flex items-center gap-3">
+                {selectedViewerBreakdown.logo ? (
+                  <img src={selectedViewerBreakdown.logo} alt={selectedViewerBreakdown.title} className="w-10 h-10 object-contain rounded-xl bg-white border border-white/10 p-1 shrink-0" />
+                ) : (
+                  <div className={`p-2.5 rounded-xl ${selectedViewerBreakdown.type === 'Brand' ? 'bg-indigo-500/20 text-indigo-400' :
+                      selectedViewerBreakdown.type === 'Category' ? 'bg-purple-500/20 text-purple-400' :
+                        'bg-blue-500/20 text-blue-400'
+                    } shrink-0`}>
+                    {selectedViewerBreakdown.type === 'Brand' ? <FiTrendingUp size={20} /> :
+                      selectedViewerBreakdown.type === 'Category' ? <FiLayers size={20} /> :
+                        <FiBox size={20} />}
+                  </div>
+                )}
+                <div>
+                  <h3 className="text-base font-black text-white tracking-tight leading-snug truncate max-w-[260px]" title={selectedViewerBreakdown.title}>
+                    {selectedViewerBreakdown.title}
+                  </h3>
+                  <p className="text-[10px] text-slate-400 font-bold mt-0.5">
+                    {selectedViewerBreakdown.type} Search & View Breakdown
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedViewerBreakdown(null)}
+                className="p-1.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer"
+              >
+                <FiX size={16} />
+              </button>
+            </div>
+
+            {/* Total Banner Summary */}
+            <div className={`border border-white/10 bg-transparent backdrop-blur-2xl rounded-2xl p-4 mb-5 flex justify-between items-center text-xs relative z-10`}>
+              <div>
+                <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px] block">Total Views / Searches</span>
+                <span className={`text-base font-black ${selectedViewerBreakdown.type === 'Brand' ? 'text-indigo-400' :
+                    selectedViewerBreakdown.type === 'Category' ? 'text-purple-400' :
+                      'text-blue-400'
+                  }`}>
+                  {selectedViewerBreakdown.searches} views
+                </span>
+              </div>
+              <div className="text-right">
+                <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px] block">Unique Viewers</span>
+                <span className="text-sm font-extrabold text-white">
+                  {selectedViewerBreakdown.viewers.length} user{selectedViewerBreakdown.viewers.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+            </div>
+
+            {/* Viewers List */}
+            <div className="space-y-2.5 max-h-[300px] overflow-y-auto custom-scrollbar pr-1 relative z-10">
+              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block mb-1">User Engagement Breakdown</span>
+              {selectedViewerBreakdown.viewers.length === 0 ? (
+                <p className="text-xs text-slate-500 italic py-6 text-center">No individual viewer statistics recorded.</p>
+              ) : (
+                [...selectedViewerBreakdown.viewers]
+                  .sort((a, b) => (b.count || 0) - (a.count || 0))
+                  .map((item, index) => {
+                    const u = item.user || {};
+                    const initials = (u.name || 'U').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                    const percent = selectedViewerBreakdown.searches > 0
+                      ? Math.round(((item.count || 0) / selectedViewerBreakdown.searches) * 100)
+                      : 0;
+
+                    return (
+                      <div
+                        key={u._id || index}
+                        className="flex items-center justify-between bg-transparent backdrop-blur-2xl border border-white/10 p-3 rounded-xl hover:border-white/20 transition-colors"
+                      >
+                        <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
+                          <div className="w-8 h-8 rounded-lg border bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 border-white/10 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-inner">
+                            {initials}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <span className="text-xs text-white font-extrabold block truncate">{u.name || 'Unknown User'}</span>
+                            <span className="text-[9px] text-slate-400 font-mono block truncate select-all">{u.email || '-'}</span>
+                            {u.phone && (
+                              <span className="text-[9px] text-slate-500 flex items-center gap-1 mt-0.5">
+                                <FiPhone size={8} /> {u.phone}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="text-right shrink-0 flex flex-col items-end">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${selectedViewerBreakdown.type === 'Brand'
+                              ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+                              : selectedViewerBreakdown.type === 'Category'
+                                ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                                : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                            }`}>
+                            {item.count || 0} view{item.count !== 1 ? 's' : ''} ({percent}%)
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+              )}
+            </div>
+
+            <button
+              onClick={() => setSelectedViewerBreakdown(null)}
+              className="w-full mt-6 py-2.5 bg-slate-800 border border-white/10 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md"
+            >
+              Close Breakdown
             </button>
           </div>
         </div>,

@@ -3,12 +3,48 @@ import { createPortal } from 'react-dom';
 import { api, BASE_URL } from '../../../api/axios';
 import {
   FiCheck, FiLoader, FiAlertCircle,
-  FiSearch, FiUser, FiFileText, FiRefreshCcw, FiTrash2, FiUserMinus, FiLogOut, FiX
+  FiSearch, FiUser, FiFileText, FiRefreshCcw, FiTrash2, FiUserMinus, FiLogOut, FiX,
+  FiShield, FiChevronDown
 } from 'react-icons/fi';
 import { MdPhoneAndroid, MdPhoneIphone } from 'react-icons/md';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 
-const formatRelativeTime = (dateString) => {
+const hasValidAppVersion = (appVersion) => {
+  if (!appVersion) return false;
+  const str = String(appVersion).trim().toLowerCase();
+  if (!str) return false;
+  if (
+    str === 'null' ||
+    str === 'undefined' ||
+    str === 'n/a' ||
+    str === 'none' ||
+    str === 'unknown' ||
+    str === 'legacy' ||
+    str.includes('unknown') ||
+    str.includes('legacy') ||
+    str.startsWith('vunknown') ||
+    str.startsWith('vlegacy') ||
+    str === '0.0.0' ||
+    str === '0.0'
+  ) {
+    return false;
+  }
+  return true;
+};
+
+const hasRegisteredDevices = (u) => {
+  if (!u) return false;
+  const devs = u.devices || u.registeredDevices;
+  return Array.isArray(devs) && devs.length > 0;
+};
+
+const hasAppOrDevice = (u) => {
+  if (!u) return false;
+  return hasValidAppVersion(u.appVersion) || hasRegisteredDevices(u);
+};
+
+const formatRelativeTime = (dateString, u = null) => {
+  if (u && !hasAppOrDevice(u)) return 'Not Active';
   if (!dateString) return 'Not Active';
   const str = String(dateString).trim().toLowerCase();
   if (str === 'null' || str === 'undefined' || str === '' || str === 'not active') return 'Not Active';
@@ -32,6 +68,8 @@ const formatRelativeTime = (dateString) => {
 };
 
 const checkAppStatus = (u) => {
+  if (!u) return 'pending';
+
   if (!u.installedAt && !u.uninstalledAt) {
     if (u.isAppInstalled) return 'installed';
     return 'pending';
@@ -52,6 +90,7 @@ const UsersList = () => {
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [deletingUserId, setDeletingUserId] = useState(null);
   const [deletionReason, setDeletionReason] = useState('');
+  const [isSecurityDropdownOpen, setIsSecurityDropdownOpen] = useState(false);
 
   const triggerDelete = (id) => {
     setDeletingUserId(id);
@@ -62,13 +101,15 @@ const UsersList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [usersPerPage] = useState(10);
 
+  const [userTab, setUserTab] = useState('approved'); // 'approved' | 'rejected'
+
   const { setUsersUnreadCount } = useOutletContext() || {};
 
   useEffect(() => {
     Promise.resolve().then(() => {
       setCurrentPage(1);
     });
-  }, [searchQuery]);
+  }, [searchQuery, userTab]);
 
   const fetchUsers = async (isPoll = false) => {
     if (!isPoll) setLoading(true);
@@ -104,8 +145,16 @@ const UsersList = () => {
 
       allUsers = allUsers.map(u => {
         const match = actUsers.find(au => au.userId === u._id || (au.email && u.email && au.email.toLowerCase() === u.email.toLowerCase()));
-        const lastActive = u.lastActive || match?.lastActive;
-        const isOnline = u.isOnline !== undefined ? u.isOnline : (lastActive ? (new Date() - new Date(lastActive) < 5 * 60 * 1000) : false);
+        
+        const rawAppVersion = u.appVersion || match?.appVersion;
+        const matchedAppVersion = hasValidAppVersion(rawAppVersion) ? rawAppVersion : null;
+        const matchedDevices = (u.devices && u.devices.length > 0) ? u.devices : (u.registeredDevices && u.registeredDevices.length > 0) ? u.registeredDevices : (match?.devices || []);
+
+        const userHasAppOrDevice = Boolean(matchedAppVersion || (Array.isArray(matchedDevices) && matchedDevices.length > 0));
+
+        const rawLastActive = u.lastActive || match?.lastActive;
+        const lastActive = userHasAppOrDevice ? rawLastActive : null;
+        const isOnline = userHasAppOrDevice ? (u.isOnline !== undefined ? u.isOnline : (lastActive ? (new Date() - new Date(lastActive) < 5 * 60 * 1000) : false)) : false;
         
         const computedLoginCount = recentActivities.filter(act => {
           const actUserId = act.user?._id || (typeof act.user === 'string' ? act.user : null);
@@ -127,8 +176,10 @@ const UsersList = () => {
           ...u,
           lastActive,
           isOnline,
+          hasAppOrDevice: userHasAppOrDevice,
           lastLoginAt: u.lastLoginAt || match?.lastLoginAt,
-          appVersion: u.appVersion || match?.appVersion,
+          appVersion: matchedAppVersion,
+          devices: matchedDevices,
           notificationsEnabled: u.notificationsEnabled !== undefined ? u.notificationsEnabled : match?.notificationsEnabled,
           isAppInstalled: u.isAppInstalled !== undefined ? u.isAppInstalled : match?.isAppInstalled,
           loginCount: match?.activityStats?.logins !== undefined ? match.activityStats.logins : computedLoginCount,
@@ -137,7 +188,7 @@ const UsersList = () => {
       });
 
 
-      setUsers(allUsers.filter(user => user.isApproved === true || !!user.userId));
+      setUsers(allUsers);
 
       // Clear the notification badge once data is viewed
       if (setUsersUnreadCount) {
@@ -166,7 +217,11 @@ const UsersList = () => {
     return () => clearInterval(intervalId);
   }, []);
 
+  // Filter approved (isApproved: true) and rejected (isApproved: false) users
+  const approvedUsers = users.filter(u => u.isApproved === true || (u.isApproved !== false && !u.isRejected));
+  const rejectedUsers = users.filter(u => u.isApproved === false || u.isRejected === true);
 
+  const baseUsers = userTab === 'approved' ? approvedUsers : rejectedUsers;
 
   // // Undo Rejection
   // const handleUndoReject = async (id) => {
@@ -214,7 +269,7 @@ const UsersList = () => {
     }
   };
 
-  const filteredUsers = users.filter(user => {
+  const filteredUsers = baseUsers.filter(user => {
     const nameMatch = user.name?.toLowerCase().includes(searchQuery.toLowerCase());
     const emailMatch = user.email?.toLowerCase().includes(searchQuery.toLowerCase());
     const phoneMatch = user.phone?.includes(searchQuery);
@@ -316,40 +371,118 @@ const UsersList = () => {
           )}
         </div>
       </div>
-      <div className="flex flex-wrap items-center gap-3 p-3 bg-black/10 border border-white/5 rounded-xl">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-2">Security Actions:</span>
-          
-          <button 
+
+      {/* Approved vs Rejected User Section Switcher */}
+      <div className="relative z-30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-3 bg-black/20 border border-white/10 rounded-2xl backdrop-blur-xl">
+        <div className="flex items-center gap-3">
+          <button
             onClick={() => {
-              const role = prompt("Enter role to force logout (e.g., billing, warehouse, customer):");
-              if (role) handleRoleLogout(role);
+              setUserTab('approved');
+              setCurrentPage(1);
             }}
-            className="px-4 py-2 bg-orange-600/20 hover:bg-orange-600/40 text-orange-400 text-xs font-bold rounded-lg border border-orange-500/30 transition-all flex items-center gap-2"
+            className={`px-4.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
+              userTab === 'approved'
+                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
+            }`}
           >
-            <FiRefreshCcw size={12} /> Logout Role
+            <FiCheck className="text-sm" />
+            Approved Users
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold ${
+              userTab === 'approved' ? 'bg-white/20 text-white' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+            }`}>
+              {approvedUsers.length}
+            </span>
           </button>
 
-          <button 
-            onClick={() => handleGlobalLogout('all')}
-            className="px-4 py-2 bg-red-600/20 hover:bg-red-600/40 text-red-400 text-xs font-bold rounded-lg border border-red-500/30 transition-all flex items-center gap-2"
+          <button
+            onClick={() => {
+              setUserTab('rejected');
+              setCurrentPage(1);
+            }}
+            className={`px-4.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
+              userTab === 'rejected'
+                ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30'
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
+            }`}
           >
-            <FiAlertCircle size={12} /> Logout All Users
-          </button>
-
-          <button 
-            onClick={() => handleGlobalLogout('android')}
-            className="px-4 py-2 bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-400 text-xs font-bold rounded-lg border border-emerald-500/30 transition-all flex items-center gap-2"
-          >
-            <MdPhoneAndroid size={12} /> Logout Android Only
-          </button>
-
-          <button 
-            onClick={() => handleGlobalLogout('ios')}
-            className="px-4 py-2 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-400 text-xs font-bold rounded-lg border border-indigo-500/30 transition-all flex items-center gap-2"
-          >
-            <MdPhoneIphone size={12} /> Logout iOS Only
+            <FiX className="text-sm" />
+            Rejected Users
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold ${
+              userTab === 'rejected' ? 'bg-white/20 text-white' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+            }`}>
+              {rejectedUsers.length}
+            </span>
           </button>
         </div>
+
+        {/* Security Actions Dropdown */}
+        <div className="relative z-50">
+          <button
+            onClick={() => setIsSecurityDropdownOpen(!isSecurityDropdownOpen)}
+            className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 transition-all cursor-pointer flex items-center gap-2 shadow-md hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <FiShield className="text-amber-400 text-sm" />
+            <span>Security Actions</span>
+            <FiChevronDown className={`transition-transform duration-200 ${isSecurityDropdownOpen ? 'rotate-180' : ''}`} />
+          </button>
+
+          {isSecurityDropdownOpen && (
+            <>
+              <div 
+                className="fixed inset-0 z-[9998]" 
+                onClick={() => setIsSecurityDropdownOpen(false)}
+              />
+              <div className="absolute right-0 mt-2 w-56 bg-slate-900/95 border border-white/10 shadow-2xl rounded-2xl p-1.5 z-[9999] backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-150 space-y-1">
+                <button
+                  onClick={() => {
+                    setIsSecurityDropdownOpen(false);
+                    const role = prompt("Enter role to force logout (e.g., billing, warehouse, customer):");
+                    if (role) handleRoleLogout(role);
+                  }}
+                  className="w-full px-3 py-2 text-left text-xs font-bold text-orange-400 hover:bg-orange-500/15 rounded-xl transition-all flex items-center gap-2.5 cursor-pointer"
+                >
+                  <FiRefreshCcw size={14} className="shrink-0" />
+                  <span>Logout Role</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setIsSecurityDropdownOpen(false);
+                    handleGlobalLogout('all');
+                  }}
+                  className="w-full px-3 py-2 text-left text-xs font-bold text-red-400 hover:bg-red-500/15 rounded-xl transition-all flex items-center gap-2.5 cursor-pointer"
+                >
+                  <FiAlertCircle size={14} className="shrink-0" />
+                  <span>Logout All Users</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setIsSecurityDropdownOpen(false);
+                    handleGlobalLogout('android');
+                  }}
+                  className="w-full px-3 py-2 text-left text-xs font-bold text-emerald-400 hover:bg-emerald-500/15 rounded-xl transition-all flex items-center gap-2.5 cursor-pointer"
+                >
+                  <MdPhoneAndroid size={14} className="shrink-0" />
+                  <span>Logout Android Only</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setIsSecurityDropdownOpen(false);
+                    handleGlobalLogout('ios');
+                  }}
+                  className="w-full px-3 py-2 text-left text-xs font-bold text-indigo-400 hover:bg-indigo-500/15 rounded-xl transition-all flex items-center gap-2.5 cursor-pointer"
+                >
+                  <MdPhoneIphone size={14} className="shrink-0" />
+                  <span>Logout iOS Only</span>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
       {/* Content Area */}
       {loading ? (
         <div className="h-64 flex flex-col justify-center items-center bg-slate-900/50 border border-white/10 rounded-2xl">
@@ -401,9 +534,9 @@ const UsersList = () => {
                               </span>
                             ) : null}
                           </div>
-                          {(user.appVersion || user.devices?.length > 0) && (
+                          {(hasValidAppVersion(user.appVersion) || user.devices?.length > 0) && (
                             <span className="block text-[10px] text-slate-500 font-bold mt-0.5 flex items-center gap-1.5 flex-wrap">
-                              {user.appVersion && <span>v{user.appVersion}</span>}
+                              {hasValidAppVersion(user.appVersion) && <span>v{user.appVersion}</span>}
                               {user.devices?.length > 0 && (
                                 <span className="inline-flex items-center gap-1">
                                   {Array.from(new Set(user.devices.map(d => d.devicePlatform?.toLowerCase()).filter(Boolean))).map(plat => (
@@ -429,9 +562,15 @@ const UsersList = () => {
                         </span>
                       </td>
                       <td className="p-4 text-sm">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold">
-                          <FiCheck className="text-[10px]" /> Approved
-                        </span>
+                        {user.isApproved !== false ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold">
+                            <FiCheck className="text-[10px]" /> Approved
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold">
+                            <FiX className="text-[10px]" /> Rejected
+                          </span>
+                        )}
                       </td>
                       <td className="p-4 text-sm text-center">
                         <div className="flex flex-col items-center gap-1">
@@ -444,8 +583,8 @@ const UsersList = () => {
                               <span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span> Offline
                             </span>
                           )}
-                          <span className="text-[10px] text-slate-500 font-medium" title={`Raw lastActive: ${user.lastActive}`}>
-                            Active: {formatRelativeTime(user.lastActive)}
+                          <span className="text-[10px] text-slate-500 font-medium" title={`Raw lastActive: ${user.lastActive || 'None'}`}>
+                            {formatRelativeTime(user.lastActive, user) === 'Not Active' ? 'Not Active' : `Active: ${formatRelativeTime(user.lastActive, user)}`}
                           </span>
                           {user.loginCount > 0 && (
                             <span className="text-[9px] text-blue-400 font-bold bg-blue-500/5 px-1.5 py-0.5 rounded border border-blue-500/10 block mt-0.5">

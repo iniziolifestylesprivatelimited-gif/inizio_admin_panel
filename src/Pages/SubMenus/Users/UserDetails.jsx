@@ -9,7 +9,42 @@ import {
   FiRefreshCcw
 } from 'react-icons/fi';
 
-const isLastActiveValid = (lastActive) => {
+const hasValidAppVersion = (appVersion) => {
+  if (!appVersion) return false;
+  const str = String(appVersion).trim().toLowerCase();
+  if (!str) return false;
+  if (
+    str === 'null' ||
+    str === 'undefined' ||
+    str === 'n/a' ||
+    str === 'none' ||
+    str === 'unknown' ||
+    str === 'legacy' ||
+    str.includes('unknown') ||
+    str.includes('legacy') ||
+    str.startsWith('vunknown') ||
+    str.startsWith('vlegacy') ||
+    str === '0.0.0' ||
+    str === '0.0'
+  ) {
+    return false;
+  }
+  return true;
+};
+
+const hasRegisteredDevices = (u) => {
+  if (!u) return false;
+  const devs = u.devices || u.registeredDevices;
+  return Array.isArray(devs) && devs.length > 0;
+};
+
+const hasAppOrDevice = (u) => {
+  if (!u) return false;
+  return hasValidAppVersion(u.appVersion) || hasRegisteredDevices(u);
+};
+
+const isLastActiveValid = (lastActive, u = null) => {
+  if (u && !hasAppOrDevice(u)) return false;
   if (!lastActive) return false;
   const str = String(lastActive).trim().toLowerCase();
   if (str === 'null' || str === 'undefined' || str === '' || str === 'not active') return false;
@@ -17,8 +52,8 @@ const isLastActiveValid = (lastActive) => {
   return !isNaN(date.getTime()) && date.getTime() !== 0;
 };
 
-const formatRelativeTime = (dateString) => {
-  if (!isLastActiveValid(dateString)) return 'Not Active';
+const formatRelativeTime = (dateString, u = null) => {
+  if (!isLastActiveValid(dateString, u)) return 'Not Active';
   const date = new Date(dateString);
   const now = new Date();
   const diffMs = now - date;
@@ -36,6 +71,8 @@ const formatRelativeTime = (dateString) => {
 };
 
 const checkAppStatus = (u) => {
+  if (!u) return 'pending';
+
   if (!u.installedAt && !u.uninstalledAt) {
     if (u.isAppInstalled) return 'installed';
     return 'pending';
@@ -66,7 +103,7 @@ const UserDetails = () => {
   const [userActivities, setUserActivities] = useState({ products: [], brands: [], categories: [], searches: [] });
   const [loadingActivities, setLoadingActivities] = useState(false);
   const [activeActivityTab, setActiveActivityTab] = useState('products');
-  const [activeSectionTab, setActiveSectionTab] = useState('kyc');
+  const [activeSectionTab, setActiveSectionTab] = useState('sessions');
 
   // Fetch browsing activities for the user
   useEffect(() => {
@@ -157,45 +194,43 @@ const UserDetails = () => {
         });
         const categoryViewsMap = {};
         cvLogs.forEach(log => {
-          const catId = log.details?.categoryId || log.details?.id;
-          if (!catId) return;
-          const cat = categoriesList.find(c => c._id === catId);
-          if (!categoryViewsMap[catId]) {
-            categoryViewsMap[catId] = {
-              id: catId,
-              name: cat?.name || catId || 'a category',
-              image: cat?.image || '',
+          const categoryId = log.details?.categoryId || log.details?.id;
+          if (!categoryId) return;
+          const cat = categoriesList.find(c => c._id === categoryId);
+          if (!categoryViewsMap[categoryId]) {
+            categoryViewsMap[categoryId] = {
+              id: categoryId,
+              name: cat?.name || categoryId || 'a category',
               count: 0,
               latestView: log.createdAt
             };
           }
-          categoryViewsMap[catId].count += 1;
-          if (new Date(log.createdAt) > new Date(categoryViewsMap[catId].latestView)) {
-            categoryViewsMap[catId].latestView = log.createdAt;
+          categoryViewsMap[categoryId].count += 1;
+          if (new Date(log.createdAt) > new Date(categoryViewsMap[categoryId].latestView)) {
+            categoryViewsMap[categoryId].latestView = log.createdAt;
           }
         });
 
-        // 4. Process Search Queries
-        const sqLogs = userLogs.filter(act => {
+        // 4. Process Searches
+        const searchLogs = userLogs.filter(act => {
           const action = (act.action || '').toUpperCase();
-          return action === 'SEARCH';
+          return action === 'SEARCH' || action === 'SEARCH_QUERY';
         });
-        const searchQueriesMap = {};
-        sqLogs.forEach(log => {
-          const query = log.details?.query;
+        const searchesMap = {};
+        searchLogs.forEach(log => {
+          const query = log.details?.query || log.details?.searchQuery;
           if (!query) return;
-          const queryKey = query.trim().toLowerCase();
-          if (!searchQueriesMap[queryKey]) {
-            searchQueriesMap[queryKey] = {
-              id: queryKey,
-              query: query,
+          const cleanQuery = String(query).trim();
+          if (!searchesMap[cleanQuery]) {
+            searchesMap[cleanQuery] = {
+              query: cleanQuery,
               count: 0,
               latestSearch: log.createdAt
             };
           }
-          searchQueriesMap[queryKey].count += 1;
-          if (new Date(log.createdAt) > new Date(searchQueriesMap[queryKey].latestSearch)) {
-            searchQueriesMap[queryKey].latestSearch = log.createdAt;
+          searchesMap[cleanQuery].count += 1;
+          if (new Date(log.createdAt) > new Date(searchesMap[cleanQuery].latestSearch)) {
+            searchesMap[cleanQuery].latestSearch = log.createdAt;
           }
         });
 
@@ -203,21 +238,17 @@ const UserDetails = () => {
           products: Object.values(productViewsMap).sort((a, b) => b.count - a.count),
           brands: Object.values(brandViewsMap).sort((a, b) => b.count - a.count),
           categories: Object.values(categoryViewsMap).sort((a, b) => b.count - a.count),
-          searches: Object.values(searchQueriesMap).sort((a, b) => b.count - a.count)
+          searches: Object.values(searchesMap).sort((a, b) => b.count - a.count)
         });
 
-        // Update user state dynamically with login count and stats
-        const match = actRes.data?.users?.find(au => au.userId === user._id || (au.email && user.email && au.email.toLowerCase() === user.email.toLowerCase()));
-        const lastActive = user.lastActive || match?.lastActive;
-        const isOnline = user.isOnline !== undefined ? user.isOnline : (lastActive ? (new Date() - new Date(lastActive) < 5 * 60 * 1000) : false);
+        const actUsers = actRes.data?.users || [];
+        const match = actUsers.find(au => au.userId === user._id || (au.email && user.email && au.email.toLowerCase() === user.email.toLowerCase()));
+        
         const loginCount = userLogs.filter(act => (act.action || '').toUpperCase() === 'LOGIN').length;
 
         setUser(prev => prev ? {
           ...prev,
-          lastActive,
-          isOnline,
           lastLoginAt: prev.lastLoginAt || match?.lastLoginAt,
-          appVersion: prev.appVersion || match?.appVersion,
           notificationsEnabled: prev.notificationsEnabled !== undefined ? prev.notificationsEnabled : match?.notificationsEnabled,
           isAppInstalled: prev.isAppInstalled !== undefined ? prev.isAppInstalled : match?.isAppInstalled,
           loginCount
@@ -260,8 +291,16 @@ const UserDetails = () => {
       let foundUser = allUsers.find(u => u._id === id);
       if (foundUser) {
         const match = actUsers.find(au => au.userId === foundUser._id || (au.email && foundUser.email && au.email.toLowerCase() === foundUser.email.toLowerCase()));
-        const lastActive = foundUser.lastActive || match?.lastActive;
-        const isOnline = foundUser.isOnline !== undefined ? foundUser.isOnline : (lastActive ? (new Date() - new Date(lastActive) < 5 * 60 * 1000) : false);
+        
+        const rawAppVersion = foundUser.appVersion || match?.appVersion;
+        const matchedAppVersion = hasValidAppVersion(rawAppVersion) ? rawAppVersion : null;
+        const matchedDevices = (foundUser.devices && foundUser.devices.length > 0) ? foundUser.devices : (foundUser.registeredDevices && foundUser.registeredDevices.length > 0) ? foundUser.registeredDevices : (match?.devices || []);
+
+        const userHasAppOrDevice = Boolean(matchedAppVersion || (Array.isArray(matchedDevices) && matchedDevices.length > 0));
+
+        const rawLastActive = foundUser.lastActive || match?.lastActive;
+        const lastActive = userHasAppOrDevice ? rawLastActive : null;
+        const isOnline = userHasAppOrDevice ? (foundUser.isOnline !== undefined ? foundUser.isOnline : (lastActive ? (new Date() - new Date(lastActive) < 5 * 60 * 1000) : false)) : false;
 
         const loginCount = recentActivities.filter(act => {
           const actUserId = act.user?._id || (typeof act.user === 'string' ? act.user : null);
@@ -274,8 +313,10 @@ const UserDetails = () => {
           ...foundUser,
           lastActive,
           isOnline,
+          hasAppOrDevice: userHasAppOrDevice,
           lastLoginAt: foundUser.lastLoginAt || match?.lastLoginAt,
-          appVersion: foundUser.appVersion || match?.appVersion,
+          appVersion: matchedAppVersion,
+          devices: matchedDevices,
           notificationsEnabled: foundUser.notificationsEnabled !== undefined ? foundUser.notificationsEnabled : match?.notificationsEnabled,
           isAppInstalled: foundUser.isAppInstalled !== undefined ? foundUser.isAppInstalled : match?.isAppInstalled,
           loginCount
@@ -464,56 +505,8 @@ const UserDetails = () => {
               </div>
             </div>
 
-            {/* System auth status check */}
-            <div className="mt-6 p-4 rounded-2xl border border-white/5 bg-slate-800/40">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Auth Account Status</p>
-              {loadingAuthStatus ? (
-                <div className="flex items-center gap-2 text-slate-400 text-xs font-medium">
-                  <FiLoader className="animate-spin text-blue-400" /> Checking system registration...
-                </div>
-              ) : authStatus ? (
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <span className="text-white font-semibold capitalize text-sm">{authStatus.status || authStatus.message || 'Active'}</span>
-                    {authStatus.lastLogin && <p className="text-[10px] text-slate-500">Last login: {new Date(authStatus.lastLogin).toLocaleString()}</p>}
-                  </div>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${authStatus.exists ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
-                    {authStatus.exists ? 'Registered' : 'Unregistered'}
-                  </span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1.5 text-slate-500 text-xs font-medium italic">
-                  <FiAlertCircle size={14} className="text-red-400" /> Failed to retrieve authentication status.
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Main Navigation Tabs */}
-          <div className="flex border-b border-white/10 gap-6 mb-6 overflow-x-auto scrollbar-none">
-            {[
-              { id: 'kyc', name: 'Business & KYC Details', icon: <FiFileText /> },
-              { id: 'sessions', name: 'App Usage & Sessions', icon: <FiActivity /> },
-              { id: 'devices', name: 'Registered Devices', icon: <FiSmartphone /> },
-              { id: 'activity', name: 'Customer Browsing Activity', icon: <FiEye /> }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveSectionTab(tab.id)}
-                className={`pb-3 font-bold text-sm transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${activeSectionTab === tab.id
-                    ? 'text-blue-400 border-b-2 border-blue-400 font-extrabold'
-                    : 'text-slate-400 hover:text-slate-200'
-                  }`}
-              >
-                {tab.icon}
-                {tab.name}
-              </button>
-            ))}
-          </div>
-
-          {activeSectionTab === 'kyc' && (
-            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 relative overflow-hidden">
-              <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
+            {/* Business & KYC Details */}
+            <div className="mt-6 pt-4 border-t border-white/10">
               <h4 className="text-sm font-bold text-white mb-4 uppercase tracking-wider border-b border-white/10 pb-2">Business & KYC Details</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 items-end">
                 <div>
@@ -545,160 +538,225 @@ const UserDetails = () => {
                 </div>
               </div>
             </div>
-          )}
+          </div>
+
+          {/* Main Navigation Tabs */}
+          <div className="flex border-b border-white/10 gap-6 mb-6 overflow-x-auto scrollbar-none">
+            {[
+              { id: 'sessions', name: 'App Usage & Sessions', icon: <FiActivity /> },
+              { id: 'devices', name: 'Registered Devices', icon: <FiSmartphone /> },
+              { id: 'activity', name: 'Customer Browsing Activity', icon: <FiEye /> }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveSectionTab(tab.id)}
+                className={`pb-3 font-bold text-sm transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${activeSectionTab === tab.id
+                    ? 'text-blue-400 border-b-2 border-blue-400 font-extrabold'
+                    : 'text-slate-400 hover:text-slate-200'
+                  }`}
+              >
+                {tab.icon}
+                {tab.name}
+              </button>
+            ))}
+          </div>
 
           {activeSectionTab === 'sessions' && (
-            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 relative overflow-hidden">
-              <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-              <h4 className="text-sm font-bold text-white mb-5 uppercase tracking-wider border-b border-white/10 pb-2">App Usage & Sessions</h4>
+            <div className="space-y-6">
+              {/* 1. App Status & Security Overview */}
+              <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 relative overflow-hidden">
+                <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
+                <h4 className="text-xs font-bold text-slate-400 mb-4 uppercase tracking-wider flex items-center gap-2 border-b border-white/10 pb-2">
+                  <FiSmartphone className="text-blue-400" /> App Status & Security Overview
+                </h4>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {/* Online Status */}
-                <div className="bg-slate-950/30 border border-white/5 p-4 rounded-2xl">
-                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Online Status</p>
-                  <p className={`text-xs font-bold mt-1 ${user.isOnline ? 'text-emerald-400' : 'text-slate-400'}`}>
-                    {user.isOnline ? 'Online' : 'Offline'}
-                  </p>
-                </div>
-
-                {/* App Version */}
-                <div className="bg-slate-950/30 border border-white/5 p-4 rounded-2xl">
-                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">App Version</p>
-                  <p className="text-xs font-bold text-white mt-1">v{user.appVersion || 'N/A'}</p>
-                </div>
-
-                {/* App Lock Status */}
-                <div className="bg-slate-950/30 border border-white/5 p-4 rounded-2xl">
-                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">App Lock</p>
-                  <p className={`text-xs font-bold mt-1 ${user.isAppLockEnabled ? 'text-teal-400' : 'text-slate-400'}`}>
-                    {user.isAppLockEnabled ? 'Secured' : 'Inactive'}
-                  </p>
-                </div>
-
-                {/* Notifications */}
-                <div className="bg-slate-950/30 border border-white/5 p-4 rounded-2xl">
-                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Push Alerts</p>
-                  <p className={`text-xs font-bold mt-1 ${user.notificationsEnabled ? 'text-emerald-400' : 'text-slate-400'}`}>
-                    {user.notificationsEnabled ? 'Enabled' : 'Disabled'}
-                  </p>
-                </div>
-
-                {/* App Installation */}
-                <div className="bg-slate-950/30 border border-white/5 p-4 rounded-2xl">
-                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">App Installation</p>
-                  <p className={`text-xs font-bold mt-1 ${checkAppStatus(user) === 'uninstalled'
-                      ? 'text-rose-400'
-                      : checkAppStatus(user) === 'installed'
-                        ? 'text-teal-400'
-                        : 'text-slate-400'
-                    }`}>
-                    {checkAppStatus(user) === 'uninstalled' ? 'Uninstalled' : checkAppStatus(user) === 'installed' ? 'Installed' : 'Pending'}
-                  </p>
-                </div>
-
-                {/* Password Setup */}
-                <div className="bg-slate-950/30 border border-white/5 p-4 rounded-2xl">
-                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Password Setup</p>
-                  <p className="text-xs font-bold text-white mt-1 capitalize">{user.passwordSetupStatus?.replace('_', ' ') || 'Not Sent'}</p>
-                </div>
-
-                {/* Installed At */}
-                {user.isAppInstalled && user.installedAt && (
-                  <div className="sm:col-span-2 bg-slate-950/30 border border-white/5 p-4 rounded-2xl flex justify-between items-center gap-3">
-                    <div>
-                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Installed At</p>
-                      <p className="text-xs font-bold text-white mt-1 select-all">{new Date(user.installedAt).toLocaleString()}</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                  {/* Online Status */}
+                  <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl flex flex-col justify-between">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Connection</span>
+                    <div className="mt-2">
+                      {user.isOnline ? (
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 text-xs font-extrabold border border-emerald-500/30">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Online
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-500/15 text-slate-400 text-xs font-semibold border border-white/5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span> Offline
+                        </span>
+                      )}
                     </div>
-                    <span className="text-[10px] bg-teal-500/10 text-teal-400 border border-teal-500/20 px-2.5 py-0.5 rounded-md font-extrabold shrink-0">
-                      {formatRelativeTime(user.installedAt)}
-                    </span>
                   </div>
-                )}
 
-                {/* Uninstalled At */}
-                {user.uninstalledAt && (
-                  <div className="sm:col-span-2 bg-slate-950/30 border border-white/5 p-4 rounded-2xl flex justify-between items-center gap-3">
-                    <div>
-                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Uninstalled At</p>
-                      <p className="text-xs font-bold text-white mt-1 select-all">{new Date(user.uninstalledAt).toLocaleString()}</p>
-                    </div>
-                    <span className="text-[10px] bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2.5 py-0.5 rounded-md font-extrabold shrink-0">
-                      {formatRelativeTime(user.uninstalledAt)}
-                    </span>
-                  </div>
-                )}
-
-                {/* Login Count */}
-                <div className="bg-slate-950/30 border border-white/5 p-4 rounded-2xl">
-                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Login Count</p>
-                  <p className="text-xs font-bold text-white mt-1">{user.loginCount || 0} logins</p>
-                </div>
-
-                {/* Product Views */}
-                <div className="bg-slate-950/30 border border-white/5 p-4 rounded-2xl">
-                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Product Views</p>
-                  <p className="text-xs font-bold text-white mt-1">{user.activityStats?.productViews || 0} views</p>
-                </div>
-
-                {/* Brand Views */}
-                <div className="bg-slate-950/30 border border-white/5 p-4 rounded-2xl">
-                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Brand Views</p>
-                  <p className="text-xs font-bold text-white mt-1">{user.activityStats?.brandViews || 0} views</p>
-                </div>
-
-                {/* Category Views */}
-                <div className="bg-slate-950/30 border border-white/5 p-4 rounded-2xl">
-                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Category Views</p>
-                  <p className="text-xs font-bold text-white mt-1">{user.activityStats?.categoryViews || 0} views</p>
-                </div>
-
-                {/* Searches Count */}
-                <div className="bg-slate-950/30 border border-white/5 p-4 rounded-2xl">
-                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Search Queries</p>
-                  <p className="text-xs font-bold text-white mt-1">{user.activityStats?.searches || 0} queries</p>
-                </div>
-
-                {/* Total Engagement */}
-                <div className="bg-slate-950/30 border border-white/5 p-4 rounded-2xl">
-                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Total Engagement</p>
-                  <p className="text-xs font-bold text-indigo-400 mt-1">{user.activityStats?.totalEngagement || 0} actions</p>
-                </div>
-
-                {/* Last Active */}
-                <div className="sm:col-span-2 bg-slate-950/30 border border-white/5 p-4 rounded-2xl flex justify-between items-center gap-3">
-                  <div>
-                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Last Active Connection</p>
-                    <p className="text-xs font-bold text-white mt-1 select-all">
-                      {isLastActiveValid(user.lastActive)
-                        ? new Date(user.lastActive).toLocaleString()
-                        : 'Not Active'}
+                  {/* App Version */}
+                  <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl flex flex-col justify-between">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">App Version</span>
+                    <p className="text-xs font-black font-mono text-white mt-2">
+                      {hasValidAppVersion(user.appVersion) ? `v${user.appVersion}` : 'N/A'}
                     </p>
                   </div>
-                  {isLastActiveValid(user.lastActive) ? (
-                    <span className="text-[10px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2.5 py-0.5 rounded-md font-extrabold shrink-0">
-                      {formatRelativeTime(user.lastActive)}
-                    </span>
-                  ) : (
-                    <span className="text-[10px] bg-slate-800 text-slate-500 border border-white/5 px-2.5 py-0.5 rounded-md font-extrabold shrink-0">
-                      Not Active
-                    </span>
-                  )}
-                </div>
 
-                {/* Last Login */}
-                {user.lastLoginAt && (
-                  <div className="sm:col-span-2 bg-slate-950/30 border border-white/5 p-4 rounded-2xl flex justify-between items-center gap-3">
-                    <div>
-                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Last Session Authorization</p>
-                      <p className="text-xs font-bold text-white mt-1 select-all">{new Date(user.lastLoginAt).toLocaleString()}</p>
+                  {/* App Installation */}
+                  <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl flex flex-col justify-between">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Installation</span>
+                    <div className="mt-2">
+                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border ${
+                        checkAppStatus(user) === 'uninstalled'
+                          ? 'bg-rose-500/15 text-rose-400 border-rose-500/30'
+                          : checkAppStatus(user) === 'installed'
+                            ? 'bg-teal-500/15 text-teal-400 border-teal-500/30'
+                            : 'bg-slate-800 text-slate-400 border-white/5'
+                      }`}>
+                        {checkAppStatus(user) === 'uninstalled' ? 'Uninstalled' : checkAppStatus(user) === 'installed' ? 'Installed' : 'Pending'}
+                      </span>
                     </div>
-                    {user.lastLoginMethod && (
-                      <span className="text-[10px] bg-teal-500/10 text-teal-400 border border-teal-500/20 px-2.5 py-0.5 rounded-md font-extrabold uppercase tracking-wider shrink-0">
-                        via {user.lastLoginMethod}
+                  </div>
+
+                  {/* App Lock */}
+                  <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl flex flex-col justify-between">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">App Lock</span>
+                    <p className={`text-xs font-extrabold mt-2 ${user.isAppLockEnabled ? 'text-teal-400' : 'text-slate-400'}`}>
+                      {user.isAppLockEnabled ? 'Secured' : 'Inactive'}
+                    </p>
+                  </div>
+
+                  {/* Push Alerts */}
+                  <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl flex flex-col justify-between">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Push Alerts</span>
+                    <p className={`text-xs font-extrabold mt-2 ${user.notificationsEnabled ? 'text-emerald-400' : 'text-slate-400'}`}>
+                      {user.notificationsEnabled ? 'Enabled' : 'Disabled'}
+                    </p>
+                  </div>
+
+                  {/* Password Setup */}
+                  <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl flex flex-col justify-between">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Password</span>
+                    <p className="text-xs font-extrabold text-white mt-2 capitalize">
+                      {user.passwordSetupStatus?.replace('_', ' ') || 'Not Sent'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Connection & Timestamps Card */}
+              <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 relative overflow-hidden">
+                <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
+                <h4 className="text-xs font-bold text-slate-400 mb-4 uppercase tracking-wider flex items-center gap-2 border-b border-white/10 pb-2">
+                  <FiClock className="text-indigo-400" /> Connection & Session Timeline
+                </h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Last Active Connection */}
+                  <div className="p-4 bg-slate-950/30 border border-white/5 rounded-2xl flex items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Last Active Connection</span>
+                      <p className="text-xs font-mono font-bold text-white select-all">
+                        {isLastActiveValid(user.lastActive, user)
+                          ? new Date(user.lastActive).toLocaleString()
+                          : 'Not Active'}
+                      </p>
+                    </div>
+                    {isLastActiveValid(user.lastActive, user) ? (
+                      <span className="text-[10px] bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 px-2.5 py-1 rounded-lg font-mono font-bold shrink-0">
+                        {formatRelativeTime(user.lastActive, user)}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] bg-slate-800 text-slate-500 border border-white/5 px-2.5 py-1 rounded-lg font-bold shrink-0">
+                        Not Active
                       </span>
                     )}
                   </div>
-                )}
+
+                  {/* Last Login Authorization */}
+                  <div className="p-4 bg-slate-950/30 border border-white/5 rounded-2xl flex items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Last Session Login</span>
+                      <p className="text-xs font-mono font-bold text-white select-all">
+                        {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'No recorded login'}
+                      </p>
+                    </div>
+                    {user.lastLoginMethod ? (
+                      <span className="text-[10px] bg-teal-500/15 text-teal-300 border border-teal-500/30 px-2.5 py-1 rounded-lg font-bold uppercase tracking-wider shrink-0">
+                        via {user.lastLoginMethod}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] bg-slate-800 text-slate-500 border border-white/5 px-2.5 py-1 rounded-lg font-bold shrink-0">
+                        {user.lastLoginAt ? 'Standard Login' : 'N/A'}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Installed At */}
+                  {hasAppOrDevice(user) && user.isAppInstalled && user.installedAt && (
+                    <div className="p-4 bg-slate-950/30 border border-white/5 rounded-2xl flex items-center justify-between gap-4">
+                      <div className="space-y-1">
+                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">App Installed Date</span>
+                        <p className="text-xs font-mono font-bold text-white select-all">{new Date(user.installedAt).toLocaleString()}</p>
+                      </div>
+                      <span className="text-[10px] bg-teal-500/15 text-teal-300 border border-teal-500/30 px-2.5 py-1 rounded-lg font-mono font-bold shrink-0">
+                        {formatRelativeTime(user.installedAt, user)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Uninstalled At */}
+                  {user.uninstalledAt && (
+                    <div className="p-4 bg-slate-950/30 border border-white/5 rounded-2xl flex items-center justify-between gap-4">
+                      <div className="space-y-1">
+                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">App Uninstalled Date</span>
+                        <p className="text-xs font-mono font-bold text-white select-all">{new Date(user.uninstalledAt).toLocaleString()}</p>
+                      </div>
+                      <span className="text-[10px] bg-rose-500/15 text-rose-300 border border-rose-500/30 px-2.5 py-1 rounded-lg font-mono font-bold shrink-0">
+                        {formatRelativeTime(user.uninstalledAt)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 3. Usage & Engagement Metrics */}
+              <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 relative overflow-hidden">
+                <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
+                <h4 className="text-xs font-bold text-slate-400 mb-4 uppercase tracking-wider flex items-center gap-2 border-b border-white/10 pb-2">
+                  <FiActivity className="text-emerald-400" /> Usage & Engagement Metrics
+                </h4>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                  {/* Login Count */}
+                  <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl text-center">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Total Logins</span>
+                    <p className="text-lg font-extrabold text-white mt-1 font-mono">{user.loginCount || 0}</p>
+                  </div>
+
+                  {/* Product Views */}
+                  <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl text-center">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Product Views</span>
+                    <p className="text-lg font-extrabold text-blue-400 mt-1 font-mono">{user.activityStats?.productViews || 0}</p>
+                  </div>
+
+                  {/* Brand Views */}
+                  <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl text-center">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Brand Views</span>
+                    <p className="text-lg font-extrabold text-indigo-400 mt-1 font-mono">{user.activityStats?.brandViews || 0}</p>
+                  </div>
+
+                  {/* Category Views */}
+                  <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl text-center">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Category Views</span>
+                    <p className="text-lg font-extrabold text-purple-400 mt-1 font-mono">{user.activityStats?.categoryViews || 0}</p>
+                  </div>
+
+                  {/* Search Queries */}
+                  <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl text-center">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Search Queries</span>
+                    <p className="text-lg font-extrabold text-teal-400 mt-1 font-mono">{user.activityStats?.searches || 0}</p>
+                  </div>
+
+                  {/* Total Engagement */}
+                  <div className="p-3.5 bg-black/20 border border-white/5 rounded-2xl text-center">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Total Actions</span>
+                    <p className="text-lg font-extrabold text-emerald-400 mt-1 font-mono">{user.activityStats?.totalEngagement || 0}</p>
+                  </div>
+                </div>
               </div>
             </div>
           )}
