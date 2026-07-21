@@ -6,17 +6,20 @@ import {
 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
-import ReactApexChart from 'react-apexcharts';
-import Card from '../Components/Card';
+import {
+  VisxAreaChart,
+  VisxStackedBarChart,
+  VisxDonutChart,
+  VisxAppVersionsChart,
+  VisxNotificationsDonutChart,
+  VisxPriceTierGroupedBarChart
+} from '../Components/VisxCharts';
 import PageHeader from '../Components/PageHeader';
 import { KPISkeleton, TableRowSkeleton } from '../Components/Skeleton';
+import { formatDateDDMMYYYY, formatYYYYMMDDToDDMMYYYY } from '../utils/dateUtils';
+import Card from '../Components/Card';
 
-const getImageUrl = (path) => {
-  if (!path) return '';
-  if (path.startsWith('http') || path.startsWith('blob:')) return path;
-  const cleanPath = path.replace(/\\/g, '/');
-  return `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
-};
+
 
 const formatActivityTime = (dateString) => {
   if (!dateString) return '';
@@ -29,7 +32,7 @@ const formatActivityTime = (dateString) => {
   if (diffMins < 1) return 'Just now';
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
-  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  return formatDateDDMMYYYY(date);
 };
 
 const checkAppStatus = (u) => {
@@ -49,7 +52,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [brands, setBrands] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [activityStats, setActivityStats] = useState(null);
@@ -63,7 +66,6 @@ const Dashboard = () => {
     return d.toISOString().split('T')[0];
   });
   const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
-  const [activeActivityTab, setActiveActivityTab] = useState('ALL');
   const [selectedProductViews, setSelectedProductViews] = useState(null);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const navigate = useNavigate();
@@ -143,7 +145,7 @@ const Dashboard = () => {
         const fetchedOrders = Array.isArray(ordersResponse.data) ? ordersResponse.data : ordersResponse.data?.orders || [];
         setOrders(fetchedOrders);
         if (!isPoll) setLoading(false);
-      } catch (err) {
+      } catch {
         if (!isPoll) {
           setError('Failed to load dashboard data.');
           setLoading(false);
@@ -280,23 +282,36 @@ const Dashboard = () => {
       }
     });
 
-    // Brand Share: group products by brand
+    // Brand Share: group products by brand accurately
     const brandCounts = {};
-    products.forEach(p => {
-      const brandId = p.brand?._id || p.brand;
-      if (brandId) {
-        brandCounts[brandId] = (brandCounts[brandId] || 0) + 1;
+    (products || []).forEach(p => {
+      let brandName = 'Unassigned';
+      if (p.brand) {
+        if (typeof p.brand === 'object' && p.brand !== null) {
+          brandName = p.brand.name || (brands.find(b => String(b._id) === String(p.brand._id))?.name) || 'Other Brand';
+        } else {
+          const matchedBrand = (brands || []).find(b => String(b._id) === String(p.brand));
+          brandName = matchedBrand ? matchedBrand.name : 'Other Brand';
+        }
       }
+      brandCounts[brandName] = (brandCounts[brandName] || 0) + 1;
     });
 
-    // Map brand names and counts, sorted descending
-    let brandShare = Object.entries(brandCounts).map(([brandId, count]) => {
-      const brandName = brands.find(b => b._id === brandId)?.name || 'Other';
-      return { name: brandName, value: count };
-    }).sort((a, b) => b.value - a.value).slice(0, 6);
+    const brandShareSorted = Object.entries(brandCounts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+
+    let brandShare = [];
+    if (brandShareSorted.length > 5) {
+      const top5 = brandShareSorted.slice(0, 5);
+      const otherSum = brandShareSorted.slice(5).reduce((sum, item) => sum + item.value, 0);
+      brandShare = [...top5, { name: 'Other Brands', value: otherSum }];
+    } else {
+      brandShare = brandShareSorted;
+    }
 
     if (brandShare.length === 0 && products.length > 0) {
-      brandShare = [{ name: 'Other Brands', value: products.length }];
+      brandShare = [{ name: 'All Products', value: products.length }];
     }
 
     return { labels, salesData, deliveredCountData, processingCountData, cancelledCountData, brandShare, totalRev };
@@ -304,138 +319,39 @@ const Dashboard = () => {
 
   const { labels: chartLabels, salesData, deliveredCountData, processingCountData, cancelledCountData, brandShare, totalRev } = processChartData();
 
-  const salesChartConfig = {
-    series: [{ name: 'Revenue', data: salesData }],
-    options: {
-      chart: {
-        type: 'area',
-        toolbar: { show: false },
-        background: 'transparent',
-        fontFamily: 'inherit',
-        dropShadow: {
-          enabled: true,
-          top: 6,
-          left: 0,
-          blur: 8,
-          color: '#3b82f6',
-          opacity: 0.25
-        }
-      },
-      colors: ['#3b82f6'],
-      fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0, stops: [0, 100] } },
-      dataLabels: { enabled: false },
-      stroke: { curve: 'smooth', width: 3 },
-      xaxis: { categories: chartLabels, axisBorder: { show: false }, axisTicks: { show: false }, labels: { style: { colors: '#94a3b8', fontWeight: 600 } } },
-      yaxis: { labels: { style: { colors: '#94a3b8', fontWeight: 600 }, formatter: (value) => `₹${value.toLocaleString('en-IN')}` } },
-      grid: { borderColor: 'rgba(255, 255, 255, 0.1)', strokeDashArray: 3, xaxis: { lines: { show: false } }, yaxis: { lines: { show: true } } },
-      markers: {
-        size: 0,
-        colors: ['#3b82f6'],
-        strokeColors: 'rgba(255, 255, 255, 0.8)',
-        strokeWidth: 2,
-        hover: { size: 8 }
-      },
-      tooltip: { theme: 'dark', y: { formatter: (val) => `₹${val.toLocaleString('en-IN')}` } }
-    },
-    type: 'area'
-  };
-
   const ordersChartConfig = {
     series: [
       { name: 'Delivered', data: deliveredCountData },
       { name: 'Processing', data: processingCountData },
       { name: 'Cancelled', data: cancelledCountData }
-    ],
-    options: {
-      chart: { type: 'bar', stacked: true, toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit' },
-      colors: ['#10b981', '#3b82f6', '#f43f5e'],
-      plotOptions: { bar: { borderRadius: 6, columnWidth: '55%' } },
-      dataLabels: { enabled: false },
-      xaxis: { categories: chartLabels, axisBorder: { show: false }, axisTicks: { show: false }, labels: { style: { colors: '#94a3b8', fontWeight: 600 } } },
-      yaxis: { labels: { style: { colors: '#94a3b8', fontWeight: 600 }, formatter: (val) => Math.round(val) } },
-      grid: { borderColor: 'rgba(255, 255, 255, 0.1)', strokeDashArray: 3, yaxis: { lines: { show: true } } },
-      legend: { show: true, position: 'top', horizontalAlign: 'right', labels: { colors: '#94a3b8', fontWeight: 600 } },
-      tooltip: { theme: 'dark', y: { formatter: (val) => `${val} orders` } }
-    },
-    type: 'bar'
+    ]
   };
 
-  const brandsChartConfig = {
-    series: brandShare.map(b => b.value),
-    options: {
-      chart: { type: 'donut', background: 'transparent', fontFamily: 'inherit' },
-      labels: brandShare.map(b => b.name),
-      colors: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#6366f1', '#f43f5e'],
-      dataLabels: { enabled: true, formatter: (val) => `${Math.round(val)}%` },
-      legend: { position: 'bottom', labels: { colors: '#94a3b8' } },
-      stroke: { colors: ['rgba(255,255,255,0.05)'], width: 1 },
-      theme: { mode: 'dark' },
-      tooltip: { theme: 'dark', y: { formatter: (val) => `${val} products` } }
-    },
-    type: 'donut'
-  };
+  // Notification Push Alert Metrics calculation across ALL registered users
+  const notificationsMetrics = React.useMemo(() => {
+    let enabled = 0;
+    let disabled = 0;
 
-  // Device metrics: dynamic charts
-  const notificationsChartConfig = {
-    series: [
-      activityStats?.deviceMetrics?.notificationsEnabled || 0,
-      activityStats?.deviceMetrics?.notificationsDisabled || 0
-    ],
-    options: {
-      chart: { type: 'donut', background: 'transparent', fontFamily: 'inherit' },
-      labels: ['Enabled', 'Disabled'],
-      colors: ['#10b981', '#f43f5e'],
-      dataLabels: { enabled: true, formatter: (val) => `${Math.round(val)}%` },
-      legend: { position: 'bottom', labels: { colors: '#94a3b8' } },
-      stroke: { colors: ['rgba(255,255,255,0.05)'], width: 1 },
-      theme: { mode: 'dark' },
-      tooltip: { theme: 'dark', y: { formatter: (val) => `${val} users` } }
-    },
-    type: 'donut'
-  };
+    (users || []).forEach(u => {
+      const isEnabled = u.notificationsEnabled === true || (Array.isArray(u.devices) && u.devices.some(d => d.notificationsEnabled === true));
+      if (isEnabled) {
+        enabled++;
+      } else {
+        disabled++;
+      }
+    });
 
-  const appVersionsData = activityStats?.deviceMetrics?.appVersions || [];
-  const appVersionsLabels = appVersionsData.map(av => av.version || 'Unknown');
-  const appVersionsCounts = appVersionsData.map(av => av.count || 0);
+    if (users && users.length > 0) {
+      return { enabled, disabled };
+    }
 
-  const appVersionsChartConfig = {
-    series: [{
-      name: 'Devices',
-      data: appVersionsCounts
-    }],
-    options: {
-      chart: { type: 'bar', toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit' },
-      colors: ['#6366f1'],
-      plotOptions: {
-        bar: {
-          borderRadius: 6,
-          horizontal: true,
-          barHeight: '60%',
-          distributed: true
-        }
-      },
-      dataLabels: { enabled: true, formatter: (val) => `${val}`, style: { colors: ['#fff'] } },
-      xaxis: {
-        categories: appVersionsLabels,
-        axisBorder: { show: false },
-        axisTicks: { show: false },
-        labels: { style: { colors: '#94a3b8', fontWeight: 600 } }
-      },
-      yaxis: {
-        labels: { style: { colors: '#94a3b8', fontWeight: 600 } }
-      },
-      grid: {
-        borderColor: 'rgba(255, 255, 255, 0.1)',
-        strokeDashArray: 3,
-        xaxis: { lines: { show: true } },
-        yaxis: { lines: { show: false } }
-      },
-      legend: { show: false },
-      theme: { mode: 'dark' },
-      tooltip: { theme: 'dark', y: { formatter: (val) => `${val} devices` } }
-    },
-    type: 'bar'
-  };
+    return {
+      enabled: Number(activityStats?.deviceMetrics?.notificationsEnabled) || 0,
+      disabled: Number(activityStats?.deviceMetrics?.notificationsDisabled) || 0
+    };
+  }, [users, activityStats]);
+
+
 
   // Calculate Product Price Tier Engagement (Grouped Bar Chart)
   const priceTierEngagementData = React.useMemo(() => {
@@ -522,116 +438,12 @@ const Dashboard = () => {
     };
   }, [products, activityStats, analyticsData]);
 
-  const priceTierChartConfig = {
-    series: [
-      {
-        name: 'Total Views',
-        data: priceTierEngagementData.views
-      },
-      {
-        name: 'Cart Additions',
-        data: priceTierEngagementData.cartAdds
-      }
-    ],
-    options: {
-      chart: {
-        type: 'bar',
-        toolbar: { show: false },
-        background: 'transparent',
-        fontFamily: 'inherit',
-      },
-      colors: ['#3b82f6', '#10b981'],
-      plotOptions: {
-        bar: {
-          horizontal: false,
-          columnWidth: '55%',
-          borderRadius: 6,
-          dataLabels: { position: 'top' }
-        }
-      },
-      dataLabels: { enabled: false },
-      stroke: {
-        show: true,
-        width: 2,
-        colors: ['transparent']
-      },
-      xaxis: {
-        categories: priceTierEngagementData.categories,
-        axisBorder: { show: false },
-        axisTicks: { show: false },
-        labels: { style: { colors: '#94a3b8', fontWeight: 600, fontSize: '10px' } }
-      },
-      yaxis: {
-        labels: {
-          style: { colors: '#94a3b8', fontWeight: 600 },
-          formatter: (value) => Math.round(value).toLocaleString('en-IN')
-        }
-      },
-      grid: {
-        borderColor: 'rgba(255, 255, 255, 0.1)',
-        strokeDashArray: 3,
-        xaxis: { lines: { show: false } },
-        yaxis: { lines: { show: true } }
-      },
-      theme: { mode: 'dark' },
-      tooltip: {
-        theme: 'dark',
-        y: { formatter: (val) => `${val.toLocaleString('en-IN')} actions` }
-      },
-      legend: {
-        position: 'top',
-        horizontalAlign: 'right',
-        labels: { colors: '#94a3b8' },
-        markers: { width: 8, height: 8, radius: 12 }
-      }
-    },
-    type: 'bar'
-  };
 
-  // Calculate activity-related values
+
   const totalProductViews = (activityStats?.mostViewedProducts?.reduce((sum, item) => sum + (item.views !== undefined ? item.views : (Array.isArray(item.viewers) ? item.viewers.reduce((s, v) => s + (v.count || 0), 0) : 0)), 0)) || (activityStats?.recentActivities?.filter(act => {
     const action = (act.action || '').toUpperCase();
     return action === 'PRODUCT_VIEW' || action === 'PRODUCTVIEW' || action === 'PRODUCT';
   }).length) || (activityStats?.users?.reduce((sum, u) => sum + (u.activityStats?.productViews || 0), 0)) || 0;
-  const recentActivitiesCount = activityStats?.recentActivities?.length || 0;
-
-  const getFilteredActivities = () => {
-    if (!activityStats?.recentActivities) return [];
-    let list = activityStats.recentActivities;
-
-    if (startDate && endDate && list.length > 0) {
-      const startMs = new Date(`${startDate}T00:00:00.000Z`).getTime();
-      const endMs = new Date(`${endDate}T23:59:59.999Z`).getTime();
-      list = list.filter(act => {
-        const actTime = new Date(act.createdAt || act.timestamp).getTime();
-        return !isNaN(actTime) ? (actTime >= startMs && actTime <= endMs) : true;
-      });
-    }
-
-    switch (activeActivityTab) {
-      case 'SESSIONS':
-        return list.filter(act => {
-          const actionUpper = (act.action || '').toUpperCase();
-          return actionUpper === 'LOGIN' || actionUpper === 'LOGOUT';
-        });
-      case 'VIEWS':
-        return list.filter(act => {
-          const actionUpper = (act.action || '').toUpperCase();
-          return actionUpper === 'PRODUCT_VIEW' || actionUpper === 'PRODUCTVIEW' ||
-            actionUpper === 'BRAND_VIEW' || actionUpper === 'BRANDVIEW' ||
-            actionUpper === 'CATEGORY_VIEW' || actionUpper === 'CATEGORYVIEW';
-        });
-      case 'SEARCHES':
-        return list.filter(act => {
-          const actionUpper = (act.action || '').toUpperCase();
-          return actionUpper === 'SEARCH';
-        });
-      case 'ALL':
-      default:
-        return list;
-    }
-  };
-  const filteredActivities = getFilteredActivities();
 
   const sortedMostViewedProducts = React.useMemo(() => {
     return activityStats?.mostViewedProducts || [];
@@ -656,7 +468,10 @@ const Dashboard = () => {
     return Object.entries(map)
       .map(([date, count]) => ({ date, count }))
       .sort((a, b) => a.date.localeCompare(b.date));
-  }, [activityStats?.trends]);
+  }, [activityStats]);
+
+  const dailyLabels = React.useMemo(() => dailyCounts.map(d => formatYYYYMMDDToDDMMYYYY(d.date)), [dailyCounts]);
+  const dailyValues = React.useMemo(() => dailyCounts.map(d => d.count), [dailyCounts]);
 
   // Extract top trending highlights to display in the side list
   const trendingHighlights = React.useMemo(() => {
@@ -666,7 +481,7 @@ const Dashboard = () => {
         list.push({
           name: p.productName || 'Unknown Product',
           type: 'Product',
-          date: p.date,
+          date: formatYYYYMMDDToDDMMYYYY(p.date),
           count: p.count || 0
         });
       });
@@ -676,7 +491,7 @@ const Dashboard = () => {
         list.push({
           name: b.brandName || 'Unknown Brand',
           type: 'Brand',
-          date: b.date,
+          date: formatYYYYMMDDToDDMMYYYY(b.date),
           count: b.count || 0
         });
       });
@@ -686,7 +501,7 @@ const Dashboard = () => {
         list.push({
           name: c.categoryName || 'Unknown Category',
           type: 'Category',
-          date: c.date,
+          date: formatYYYYMMDDToDDMMYYYY(c.date),
           count: c.count || 0
         });
       });
@@ -696,73 +511,13 @@ const Dashboard = () => {
         list.push({
           name: `"${s.query}"`,
           type: 'Search',
-          date: s.date,
+          date: formatYYYYMMDDToDDMMYYYY(s.date),
           count: s.count || 0
         });
       });
     }
     return list.sort((a, b) => b.count - a.count).slice(0, 10);
-  }, [activityStats?.trends]);
-
-  // Trends Line/Area Chart Config
-  const trendsChartConfig = React.useMemo(() => {
-    return {
-      series: [{
-        name: 'Total Activities',
-        data: dailyCounts.map(d => d.count)
-      }],
-      options: {
-        chart: {
-          type: 'area',
-          toolbar: { show: false },
-          background: 'transparent',
-          fontFamily: 'inherit',
-          dropShadow: {
-            enabled: true,
-            top: 6,
-            left: 0,
-            blur: 8,
-            color: '#3b82f6',
-            opacity: 0.25
-          }
-        },
-        colors: ['#3b82f6'],
-        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0, stops: [0, 100] } },
-        dataLabels: { enabled: false },
-        stroke: { curve: 'smooth', width: 3 },
-        xaxis: {
-          categories: dailyCounts.map(d => d.date),
-          axisBorder: { show: false },
-          axisTicks: { show: false },
-          labels: { style: { colors: '#94a3b8', fontWeight: 600, fontSize: '9px' } }
-        },
-        yaxis: {
-          labels: {
-            style: { colors: '#94a3b8', fontWeight: 600 },
-            formatter: (value) => value.toLocaleString('en-IN')
-          }
-        },
-        grid: {
-          borderColor: 'rgba(255, 255, 255, 0.1)',
-          strokeDashArray: 3,
-          xaxis: { lines: { show: false } },
-          yaxis: { lines: { show: true } }
-        },
-        markers: {
-          size: 4,
-          colors: ['#3b82f6'],
-          strokeColors: 'rgba(255, 255, 255, 0.8)',
-          strokeWidth: 2,
-          hover: { size: 6 }
-        },
-        theme: { mode: 'dark' },
-        tooltip: {
-          theme: 'dark',
-          y: { formatter: (val) => `${val.toLocaleString('en-IN')} activities` }
-        }
-      }
-    };
-  }, [dailyCounts]);
+  }, [activityStats]);
 
   // Dynamic data metrics
   const metrics = [
@@ -951,88 +706,6 @@ const Dashboard = () => {
     }
   ];
 
-  // ApexCharts Data & Options
-  const apexSeries = [
-    {
-      name: 'Sales',
-      data: salesData
-    }
-  ];
-
-  const apexOptions = {
-    chart: {
-      type: 'area',
-      toolbar: { show: false },
-      background: 'transparent',
-      fontFamily: 'inherit',
-    },
-    colors: ['#3b82f6'],
-    fill: {
-      type: 'gradient',
-      gradient: {
-        shadeIntensity: 1,
-        opacityFrom: 0.4,
-        opacityTo: 0,
-        stops: [0, 100]
-      }
-    },
-    dataLabels: {
-      enabled: false
-    },
-    stroke: {
-      curve: 'smooth',
-      width: 3
-    },
-    markers: {
-      size: 0,
-      colors: ['#3b82f6'],
-      strokeColors: 'rgba(255, 255, 255, 0.8)',
-      strokeWidth: 2,
-      hover: {
-        size: 8,
-      }
-    },
-    xaxis: {
-      categories: chartLabels,
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-      labels: {
-        style: {
-          colors: '#94a3b8',
-          fontWeight: 600,
-        }
-      }
-    },
-    yaxis: {
-      labels: {
-        style: {
-          colors: '#94a3b8',
-          fontWeight: 600,
-        },
-        formatter: (value) => `₹${value / 1000}k`
-      }
-    },
-    grid: {
-      borderColor: 'rgba(255, 255, 255, 0.1)',
-      strokeDashArray: 3,
-      xaxis: {
-        lines: { show: false }
-      },
-      yaxis: {
-        lines: { show: true }
-      }
-    },
-    theme: {
-      mode: 'dark'
-    },
-    tooltip: {
-      theme: 'dark',
-      y: {
-        formatter: (val) => `₹${val.toLocaleString('en-IN')}`
-      }
-    }
-  };
-
   if (loading) {
     return (
       <div className="relative space-y-6 min-h-full z-0 isolate w-full">
@@ -1111,7 +784,7 @@ const Dashboard = () => {
             <div className="text-[10px] md:text-xs">
               <span className="text-slate-400 font-bold uppercase tracking-wider block text-[9px]">Live Connection</span>
               <span className="text-white font-extrabold font-mono mt-0.5 block">
-                {new Date().toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}
+                {formatDateDDMMYYYY(new Date())}
               </span>
             </div>
           </div>
@@ -1398,19 +1071,7 @@ const Dashboard = () => {
             </div>
 
             <div className="relative flex-1 w-full z-10">
-              {dailyCounts.length === 0 ? (
-                <div className="text-center text-slate-500 text-xs py-12 italic">
-                  No historical trend data available.
-                </div>
-              ) : (
-                <ReactApexChart
-                  options={trendsChartConfig.options}
-                  series={trendsChartConfig.series}
-                  type="area"
-                  height="100%"
-                  width="100%"
-                />
-              )}
+              <VisxAreaChart labels={dailyLabels} data={dailyValues} color="#3b82f6" valueSuffix=" actions" />
             </div>
           </Card>
 
@@ -1468,13 +1129,7 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="relative flex-1 w-full z-10">
-            <ReactApexChart
-              options={salesChartConfig.options}
-              series={salesChartConfig.series}
-              type={salesChartConfig.type}
-              height="100%"
-              width="100%"
-            />
+            <VisxAreaChart labels={chartLabels} data={salesData} color="#3b82f6" valuePrefix="₹" />
           </div>
         </Card>
 
@@ -1488,13 +1143,7 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="relative flex-1 w-full z-10">
-            <ReactApexChart
-              options={ordersChartConfig.options}
-              series={ordersChartConfig.series}
-              type={ordersChartConfig.type}
-              height="100%"
-              width="100%"
-            />
+            <VisxStackedBarChart labels={chartLabels} series={ordersChartConfig.series} />
           </div>
         </Card>
 
@@ -1508,19 +1157,7 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="relative flex-1 w-full z-10 flex items-center justify-center">
-            {brandShare.length === 0 ? (
-              <div className="text-center text-slate-500 text-xs py-10 italic">
-                No brand data available for distribution.
-              </div>
-            ) : (
-              <ReactApexChart
-                options={brandsChartConfig.options}
-                series={brandsChartConfig.series}
-                type={brandsChartConfig.type}
-                height="100%"
-                width="100%"
-              />
-            )}
+            <VisxDonutChart data={brandShare} centerLabel="Products" />
           </div>
         </Card>
 
@@ -1539,19 +1176,7 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="relative flex-1 w-full z-10">
-            {appVersionsCounts.length === 0 ? (
-              <div className="text-center text-slate-500 text-xs py-10 italic">
-                No app version data available.
-              </div>
-            ) : (
-              <ReactApexChart
-                options={appVersionsChartConfig.options}
-                series={appVersionsChartConfig.series}
-                type={appVersionsChartConfig.type}
-                height="100%"
-                width="100%"
-              />
-            )}
+            <VisxAppVersionsChart data={activityStats?.deviceMetrics?.appVersions || []} />
           </div>
         </Card>
 
@@ -1565,19 +1190,10 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="relative flex-1 w-full z-10 flex items-center justify-center">
-            {notificationsChartConfig.series[0] === 0 && notificationsChartConfig.series[1] === 0 ? (
-              <div className="text-center text-slate-500 text-xs py-10 italic">
-                No device permissions recorded.
-              </div>
-            ) : (
-              <ReactApexChart
-                options={notificationsChartConfig.options}
-                series={notificationsChartConfig.series}
-                type={notificationsChartConfig.type}
-                height="100%"
-                width="100%"
-              />
-            )}
+            <VisxNotificationsDonutChart
+              enabled={notificationsMetrics.enabled}
+              disabled={notificationsMetrics.disabled}
+            />
           </div>
         </Card>
 
@@ -1588,33 +1204,18 @@ const Dashboard = () => {
           <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                {/* <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> */}
                 Product Price Tier Engagement
               </h3>
               <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Views vs cart additions by price tier</p>
             </div>
-            {/* <button
-              onClick={() => navigate(`/dashboard/details/product-views${getFilterQueryParams()}`)}
-              className="text-[10px] text-blue-400 hover:text-blue-300 font-bold uppercase tracking-wider transition-colors cursor-pointer whitespace-nowrap"
-            >
-              View Details &rarr;
-            </button> */}
           </div>
 
           <div className="relative flex-1 w-full z-10">
-            {priceTierEngagementData.views.every(v => v === 0) && priceTierEngagementData.cartAdds.every(c => c === 0) ? (
-              <div className="text-center text-slate-500 text-xs py-16 italic">
-                No product engagement data recorded for price tiers.
-              </div>
-            ) : (
-              <ReactApexChart
-                options={priceTierChartConfig.options}
-                series={priceTierChartConfig.series}
-                type={priceTierChartConfig.type}
-                height="100%"
-                width="100%"
-              />
-            )}
+            <VisxPriceTierGroupedBarChart
+              categories={priceTierEngagementData.categories}
+              views={priceTierEngagementData.views}
+              cartAdds={priceTierEngagementData.cartAdds}
+            />
           </div>
         </Card>
 

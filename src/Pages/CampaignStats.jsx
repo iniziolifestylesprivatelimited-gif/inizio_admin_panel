@@ -13,6 +13,7 @@ import {
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { api, BASE_URL } from '../api/axios';
+import { formatDateTimeDDMMYYYY } from '../utils/dateUtils';
 import Card from '../Components/Card';
 import PageHeader from '../Components/PageHeader';
 import { KPISkeleton, TableRowSkeleton } from '../Components/Skeleton';
@@ -289,7 +290,7 @@ const CampaignStats = () => {
                         {item.message}
                       </div>
                       <div className="text-[10px] text-slate-500 font-semibold mt-1">
-                        {item.createdAt ? new Date(item.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+                        {item.createdAt ? formatDateTimeDDMMYYYY(item.createdAt) : 'N/A'}
                       </div>
                     </td>
 

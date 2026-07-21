@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { api } from '../../../api/axios';
 import {
-  FiSearch, FiLoader, FiAlertCircle, FiRefreshCcw,
-  FiActivity, FiKey, FiUsers, FiClock, FiMail, FiCheck, FiX
+  FiSearch, FiRefreshCcw, FiUsers, FiClock, FiActivity, FiKey, FiX
 } from 'react-icons/fi';
+import { formatDateTimeDDMMYYYY } from '../../../utils/dateUtils';
 
 const checkAppStatus = (u) => {
   if (!u.installedAt && !u.uninstalledAt) {
@@ -109,17 +109,7 @@ const ActiveUsers = () => {
   const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredData.length / usersPerPage);
 
-  const formatDateTime = (dateStr) => {
-    if (!dateStr) return 'N/A';
-    try {
-      return new Date(dateStr).toLocaleString('en-IN', {
-        dateStyle: 'medium',
-        timeStyle: 'short'
-      });
-    } catch {
-      return dateStr;
-    }
-  };
+  const formatDateTime = (dateStr) => formatDateTimeDDMMYYYY(dateStr);
 
   return (
     <div className="relative space-y-6 min-h-full z-0 isolate w-full">

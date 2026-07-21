@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { formatDateDDMMYYYY } from '../utils/dateUtils';
 import { api, BASE_URL } from '../api/axios';
 import { 
   FiUpload, FiTrash2, FiFileText, FiLoader, 
@@ -198,7 +199,7 @@ export const Ledgers = () => {
                       <td className="p-5 text-sm text-white font-medium">{ledger.title}</td>
                       <td className="p-5 text-sm text-slate-300">{getUserName(ledger.user)}</td>
                       <td className="p-5 text-sm text-slate-300">
-                        {new Date(ledger.createdAt).toLocaleDateString()}
+                        {formatDateDDMMYYYY(ledger.createdAt)}
                       </td>
                       <td className="p-5 flex items-center justify-center gap-2">
                         <a 

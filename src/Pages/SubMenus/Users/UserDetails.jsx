@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
+import PageHeader from '../../../Components/PageHeader';
+import { TableRowSkeleton } from '../../../Components/Skeleton';
+import { formatDateDDMMYYYY, formatDateTimeDDMMYYYY } from '../../../utils/dateUtils';
 import { api, BASE_URL } from '../../../api/axios';
 import {
   FiArrowLeft, FiCheck, FiX, FiLoader, FiAlertCircle,
@@ -67,7 +70,7 @@ const formatRelativeTime = (dateString, u = null) => {
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 30) return `${diffDays}d ago`;
-  return date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+  return formatDateDDMMYYYY(date);
 };
 
 const checkAppStatus = (u) => {
@@ -90,10 +93,7 @@ const UserDetails = () => {
 
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  const [authStatus, setAuthStatus] = useState(null);
-  const [loadingAuthStatus, setLoadingAuthStatus] = useState(false);
+  const [devices, setDevices] = useState([]);
 
   const [isDeleting, setIsDeleting] = useState(false);
   const [deletionReason, setDeletionReason] = useState('Uploaded GST certificate PDF is expired. Please upload the latest active certificate.');
@@ -248,10 +248,11 @@ const UserDetails = () => {
 
         setUser(prev => prev ? {
           ...prev,
+          activityStats: match?.activityStats || prev.activityStats || null,
           lastLoginAt: prev.lastLoginAt || match?.lastLoginAt,
           notificationsEnabled: prev.notificationsEnabled !== undefined ? prev.notificationsEnabled : match?.notificationsEnabled,
           isAppInstalled: prev.isAppInstalled !== undefined ? prev.isAppInstalled : match?.isAppInstalled,
-          loginCount
+          loginCount: loginCount || match?.activityStats?.logins || prev.loginCount || 0
         } : null);
       } catch (err) {
         console.error('Failed to process user activities:', err);
@@ -311,6 +312,7 @@ const UserDetails = () => {
 
         foundUser = {
           ...foundUser,
+          activityStats: match?.activityStats || foundUser.activityStats || null,
           lastActive,
           isOnline,
           hasAppOrDevice: userHasAppOrDevice,
@@ -501,7 +503,7 @@ const UserDetails = () => {
               </div>
               <div>
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Registration Date</p>
-                <p className="text-white font-medium text-base">{user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}</p>
+                <p className="text-white font-medium text-base">{user.createdAt ? formatDateDDMMYYYY(user.createdAt) : 'N/A'}</p>
               </div>
             </div>
 
@@ -651,7 +653,7 @@ const UserDetails = () => {
                       <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Last Active Connection</span>
                       <p className="text-xs font-mono font-bold text-white select-all">
                         {isLastActiveValid(user.lastActive, user)
-                          ? new Date(user.lastActive).toLocaleString()
+                          ? formatDateTimeDDMMYYYY(user.lastActive)
                           : 'Not Active'}
                       </p>
                     </div>
@@ -671,7 +673,7 @@ const UserDetails = () => {
                     <div className="space-y-1">
                       <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Last Session Login</span>
                       <p className="text-xs font-mono font-bold text-white select-all">
-                        {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'No recorded login'}
+                        {user.lastLoginAt ? formatDateTimeDDMMYYYY(user.lastLoginAt) : 'No recorded login'}
                       </p>
                     </div>
                     {user.lastLoginMethod ? (
@@ -690,7 +692,7 @@ const UserDetails = () => {
                     <div className="p-4 bg-slate-950/30 border border-white/5 rounded-2xl flex items-center justify-between gap-4">
                       <div className="space-y-1">
                         <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">App Installed Date</span>
-                        <p className="text-xs font-mono font-bold text-white select-all">{new Date(user.installedAt).toLocaleString()}</p>
+                        <p className="text-xs font-mono font-bold text-white select-all">{formatDateTimeDDMMYYYY(user.installedAt)}</p>
                       </div>
                       <span className="text-[10px] bg-teal-500/15 text-teal-300 border border-teal-500/30 px-2.5 py-1 rounded-lg font-mono font-bold shrink-0">
                         {formatRelativeTime(user.installedAt, user)}
@@ -703,7 +705,7 @@ const UserDetails = () => {
                     <div className="p-4 bg-slate-950/30 border border-white/5 rounded-2xl flex items-center justify-between gap-4">
                       <div className="space-y-1">
                         <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">App Uninstalled Date</span>
-                        <p className="text-xs font-mono font-bold text-white select-all">{new Date(user.uninstalledAt).toLocaleString()}</p>
+                        <p className="text-xs font-mono font-bold text-white select-all">{formatDateTimeDDMMYYYY(user.uninstalledAt)}</p>
                       </div>
                       <span className="text-[10px] bg-rose-500/15 text-rose-300 border border-rose-500/30 px-2.5 py-1 rounded-lg font-mono font-bold shrink-0">
                         {formatRelativeTime(user.uninstalledAt)}
@@ -720,43 +722,54 @@ const UserDetails = () => {
                   <FiActivity className="text-emerald-400" /> Usage & Engagement Metrics
                 </h4>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                  {/* Login Count */}
-                  <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl text-center">
-                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Total Logins</span>
-                    <p className="text-lg font-extrabold text-white mt-1 font-mono">{user.loginCount || 0}</p>
-                  </div>
+                {(() => {
+                  const productViewsCount = user.activityStats?.productViews ?? userActivities.products.reduce((sum, item) => sum + (item.count || 0), 0);
+                  const brandViewsCount = user.activityStats?.brandViews ?? userActivities.brands.reduce((sum, item) => sum + (item.count || 0), 0);
+                  const categoryViewsCount = user.activityStats?.categoryViews ?? userActivities.categories.reduce((sum, item) => sum + (item.count || 0), 0);
+                  const searchQueriesCount = user.activityStats?.searches ?? userActivities.searches.reduce((sum, item) => sum + (item.count || 0), 0);
+                  const totalLoginsCount = user.loginCount || user.activityStats?.logins || 0;
+                  const totalActionsCount = user.activityStats?.totalEngagement || user.activityStats?.totalActions || (totalLoginsCount + productViewsCount + brandViewsCount + categoryViewsCount + searchQueriesCount);
 
-                  {/* Product Views */}
-                  <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl text-center">
-                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Product Views</span>
-                    <p className="text-lg font-extrabold text-blue-400 mt-1 font-mono">{user.activityStats?.productViews || 0}</p>
-                  </div>
+                  return (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                      {/* Login Count */}
+                      <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl text-center">
+                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Total Logins</span>
+                        <p className="text-lg font-extrabold text-white mt-1 font-mono">{totalLoginsCount}</p>
+                      </div>
 
-                  {/* Brand Views */}
-                  <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl text-center">
-                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Brand Views</span>
-                    <p className="text-lg font-extrabold text-indigo-400 mt-1 font-mono">{user.activityStats?.brandViews || 0}</p>
-                  </div>
+                      {/* Product Views */}
+                      <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl text-center">
+                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Product Views</span>
+                        <p className="text-lg font-extrabold text-blue-400 mt-1 font-mono">{productViewsCount}</p>
+                      </div>
 
-                  {/* Category Views */}
-                  <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl text-center">
-                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Category Views</span>
-                    <p className="text-lg font-extrabold text-purple-400 mt-1 font-mono">{user.activityStats?.categoryViews || 0}</p>
-                  </div>
+                      {/* Brand Views */}
+                      <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl text-center">
+                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Brand Views</span>
+                        <p className="text-lg font-extrabold text-indigo-400 mt-1 font-mono">{brandViewsCount}</p>
+                      </div>
 
-                  {/* Search Queries */}
-                  <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl text-center">
-                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Search Queries</span>
-                    <p className="text-lg font-extrabold text-teal-400 mt-1 font-mono">{user.activityStats?.searches || 0}</p>
-                  </div>
+                      {/* Category Views */}
+                      <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl text-center">
+                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Category Views</span>
+                        <p className="text-lg font-extrabold text-purple-400 mt-1 font-mono">{categoryViewsCount}</p>
+                      </div>
 
-                  {/* Total Engagement */}
-                  <div className="p-3.5 bg-black/20 border border-white/5 rounded-2xl text-center">
-                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Total Actions</span>
-                    <p className="text-lg font-extrabold text-emerald-400 mt-1 font-mono">{user.activityStats?.totalEngagement || 0}</p>
-                  </div>
-                </div>
+                      {/* Search Queries */}
+                      <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl text-center">
+                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Search Queries</span>
+                        <p className="text-lg font-extrabold text-teal-400 mt-1 font-mono">{searchQueriesCount}</p>
+                      </div>
+
+                      {/* Total Engagement */}
+                      <div className="p-3.5 bg-black/20 border border-white/5 rounded-2xl text-center">
+                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Total Actions</span>
+                        <p className="text-lg font-extrabold text-emerald-400 mt-1 font-mono">{totalActionsCount}</p>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           )}
@@ -803,7 +816,7 @@ const UserDetails = () => {
                         </div>
                         <div className="col-span-2 border-t border-white/5 pt-1.5 mt-0.5">
                           <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Last Active</p>
-                          <p className="text-slate-300 font-medium">{device.lastActive ? new Date(device.lastActive).toLocaleString() : 'N/A'}</p>
+                          <p className="text-slate-300 font-medium">{device.lastActive ? formatDateTimeDDMMYYYY(device.lastActive) : 'N/A'}</p>
                         </div>
                       </div>
 
@@ -887,7 +900,7 @@ const UserDetails = () => {
                               </td>
                               <td className="p-3 text-sm text-slate-300 font-medium">{item.brand}</td>
                               <td className="p-3 text-center font-bold text-sm text-blue-400">{item.count}</td>
-                              <td className="p-3 text-right text-xs text-slate-400 font-medium">{new Date(item.latestView).toLocaleString()}</td>
+                              <td className="p-3 text-right text-xs text-slate-400 font-medium">{formatDateTimeDDMMYYYY(item.latestView)}</td>
                             </tr>
                           ))
                         )}
@@ -927,7 +940,7 @@ const UserDetails = () => {
                                 </div>
                               </td>
                               <td className="p-3 text-center font-bold text-sm text-blue-400">{item.count}</td>
-                              <td className="p-3 text-right text-xs text-slate-400 font-medium">{new Date(item.latestView).toLocaleString()}</td>
+                              <td className="p-3 text-right text-xs text-slate-400 font-medium">{formatDateTimeDDMMYYYY(item.latestView)}</td>
                             </tr>
                           ))
                         )}
@@ -967,7 +980,7 @@ const UserDetails = () => {
                                 </div>
                               </td>
                               <td className="p-3 text-center font-bold text-sm text-blue-400">{item.count}</td>
-                              <td className="p-3 text-right text-xs text-slate-400 font-medium">{new Date(item.latestView).toLocaleString()}</td>
+                              <td className="p-3 text-right text-xs text-slate-400 font-medium">{formatDateTimeDDMMYYYY(item.latestView)}</td>
                             </tr>
                           ))
                         )}
@@ -1001,7 +1014,7 @@ const UserDetails = () => {
                                 </div>
                               </td>
                               <td className="p-3 text-center font-bold text-sm text-blue-400">{item.count}</td>
-                              <td className="p-3 text-right text-xs text-slate-400 font-medium">{new Date(item.latestSearch).toLocaleString()}</td>
+                              <td className="p-3 text-right text-xs text-slate-400 font-medium">{formatDateTimeDDMMYYYY(item.latestSearch)}</td>
                             </tr>
                           ))
                         )}

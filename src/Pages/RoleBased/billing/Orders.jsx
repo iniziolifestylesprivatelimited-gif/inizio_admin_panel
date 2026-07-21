@@ -8,7 +8,8 @@ import {
   FiFileText, FiUpload, FiDownload, FiCheckCircle, FiTrash2, FiInfo, FiRefreshCcw, FiCheck,
   FiTruck
 } from 'react-icons/fi';
-import CustomDropdown from '../Components/CustomDropdown';
+import CustomDropdown from '../../../Components/CustomDropdown';
+import { formatDateDDMMYYYY, formatDateTimeDDMMYYYY } from '../../../utils/dateUtils';
 import { useOutletContext } from 'react-router-dom';
 
 const getImageUrl = (path) => {
@@ -404,7 +405,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                         <td className="p-4 text-sm text-slate-300 whitespace-nowrap">
                           <div className="flex items-center gap-2">
                             <FiCalendar className="text-slate-500 shrink-0" />
-                            {new Date(order.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            {formatDateDDMMYYYY(order.createdAt)}
                           </div>
                         </td>
                         <td className="p-4 text-sm">
@@ -770,7 +771,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                           <span className="block text-xs text-slate-500 mb-0.5">Expected Delivery</span>
                           <span className="font-bold text-white">
                             {trackingData.expectedDeliveryDate 
-                              ? new Date(trackingData.expectedDeliveryDate).toLocaleDateString(undefined, { dateStyle: 'medium' }) 
+                              ? formatDateDDMMYYYY(trackingData.expectedDeliveryDate) 
                               : 'Pending Courier Update'}
                           </span>
                         </div>

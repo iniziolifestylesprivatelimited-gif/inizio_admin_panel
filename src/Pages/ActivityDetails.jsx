@@ -2,6 +2,9 @@ import { useState, useEffect, useMemo } from 'react';
 import ReactApexChart from 'react-apexcharts';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
+import PageHeader from '../Components/PageHeader';
+import { TableRowSkeleton } from '../Components/Skeleton';
+import { formatDateTimeDDMMYYYY } from '../utils/dateUtils';
 import { api, BASE_URL } from '../api/axios';
 import {
   FiArrowLeft, FiSearch, FiActivity, FiUsers, FiBox,
@@ -32,19 +35,7 @@ const getPastDateString = (daysAgo) => {
   return d.toISOString().split('T')[0];
 };
 
-const formatDateTimeSmall = (dateStr) => {
-  if (!dateStr) return 'N/A';
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return dateStr;
-  return d.toLocaleString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
-  });
-};
+const formatDateTimeSmall = (dateStr) => formatDateTimeDDMMYYYY(dateStr);
 
 const getUserBasedAnalytics = (rawStream, filterType = 'ALL') => {
   const userMap = {};
@@ -211,17 +202,31 @@ const ActivityDetails = () => {
           let userList = Array.isArray(custRes.data) ? custRes.data : [];
           const actUsers = actRes.data?.users || [];
 
+          const isLegacyOrUnknownVersion = (version) => {
+            if (!version || typeof version !== 'string') return true;
+            const v = version.trim().toLowerCase();
+            if (!v || v === 'unknown' || v === 'legacy' || v === 'unknown/legacy' || v === 'n/a' || v === 'none' || v === 'undefined' || v === 'null' || v === '0.0.0' || v === 'v0.0.0') return true;
+            if (v.includes('unknown') || v.includes('legacy') || v.includes('n/a')) return true;
+            const isSemver = /^[vV]?\d+\.\d+/.test(v);
+            return !isSemver;
+          };
+
           // Merge dynamic lastActive and other app metrics from activity stats users list
           userList = userList.map(u => {
             const match = actUsers.find(au => au.userId === u._id || (au.email && u.email && au.email.toLowerCase() === u.email.toLowerCase()));
-            const lastActive = u.lastActive || match?.lastActive;
-            const isOnline = u.isOnline !== undefined ? u.isOnline : (lastActive ? (new Date() - new Date(lastActive) < 5 * 60 * 1000) : false);
+            const rawAppVer = u.appVersion || match?.appVersion;
+            const isUnknownOrLegacy = isLegacyOrUnknownVersion(rawAppVer);
+
+            const rawLastActive = u.lastActive || match?.lastActive;
+            const lastActive = isUnknownOrLegacy ? null : rawLastActive;
+            const isOnline = isUnknownOrLegacy ? false : (u.isOnline !== undefined ? u.isOnline : (lastActive ? (new Date() - new Date(lastActive) < 5 * 60 * 1000) : false));
+
             return {
               ...u,
               lastActive,
               isOnline,
-              lastLoginAt: u.lastLoginAt || match?.lastLoginAt,
-              appVersion: u.appVersion || match?.appVersion,
+              lastLoginAt: isUnknownOrLegacy ? null : (u.lastLoginAt || match?.lastLoginAt),
+              appVersion: isUnknownOrLegacy ? 'unknown/legacy' : rawAppVer,
               notificationsEnabled: u.notificationsEnabled !== undefined ? u.notificationsEnabled : match?.notificationsEnabled,
               isAppInstalled: u.isAppInstalled !== undefined ? u.isAppInstalled : match?.isAppInstalled
             };
@@ -232,12 +237,27 @@ const ActivityDetails = () => {
           } else if (type === 'uninstalled') {
             userList = userList.filter(u => checkAppStatus(u) === 'uninstalled');
           }
+
           userList.sort((a, b) => {
+            const aActive = Boolean(a.lastActive && !isLegacyOrUnknownVersion(a.appVersion));
+            const bActive = Boolean(b.lastActive && !isLegacyOrUnknownVersion(b.appVersion));
+
+            // 1. Online users at the top
             if (a.isOnline && !b.isOnline) return -1;
             if (!a.isOnline && b.isOnline) return 1;
-            const dateA = a.lastActive ? new Date(a.lastActive) : 0;
-            const dateB = b.lastActive ? new Date(b.lastActive) : 0;
-            return dateB - dateA;
+
+            // 2. Active users next, Not Active users pushed to the bottom
+            if (aActive && !bActive) return -1;
+            if (!aActive && bActive) return 1;
+
+            // 3. Sort active users by most recent lastActive timestamp
+            if (aActive && bActive) {
+              const timeA = new Date(a.lastActive).getTime();
+              const timeB = new Date(b.lastActive).getTime();
+              return timeB - timeA;
+            }
+
+            return 0;
           });
           setData(userList);
         } else if (type === 'request-stats') {
@@ -980,17 +1000,7 @@ const ActivityDetails = () => {
     }
   };
 
-  const formatDateTime = (dateStr) => {
-    if (!dateStr) return 'N/A';
-    try {
-      return new Date(dateStr).toLocaleString('en-IN', {
-        dateStyle: 'medium',
-        timeStyle: 'short'
-      });
-    } catch {
-      return dateStr;
-    }
-  };
+  const formatDateTime = (dateStr) => formatDateTimeDDMMYYYY(dateStr);
 
   const getModalHeader = (action) => {
     const actionUpper = (action || '').toUpperCase();
@@ -1178,41 +1188,95 @@ const ActivityDetails = () => {
     }
 
     if (type === 'users' || type === 'users-status') {
-      return currentItems.map((item, index) => (
-        <tr key={item._id} className="hover:bg-white/[0.02] transition-colors">
-          <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-          <td className="py-4 px-5 text-sm font-bold text-white">
-            <div className="flex items-center gap-2">
-              <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${item.isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-600'}`}></div>
-              {item.name || 'Unknown User'}
-            </div>
-          </td>
-          <td className="py-4 px-5 text-sm text-slate-300 select-all font-medium">{item.email}</td>
-          <td className="py-4 px-5 text-xs font-bold text-blue-400 font-mono">{item.appVersion || 'unknown'}</td>
-          <td className="py-4 px-5 text-xs">
-            <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${item.notificationsEnabled ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-500 border border-white/5'
-              }`}>
-              {item.notificationsEnabled ? 'enabled' : 'disabled'}
-            </span>
-          </td>
-          <td className="py-4 px-5 text-xs">
-            <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${item.isAppLockEnabled ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20' : 'bg-slate-800 text-slate-500 border border-white/5'
-              }`}>
-              {item.isAppLockEnabled ? 'secured' : 'inactive'}
-            </span>
-          </td>
-          <td className="py-4 px-5 text-sm text-slate-400 font-medium">
-            {item.lastActive ? formatDateTime(item.lastActive) : 'Not Active'}
-          </td>
-        </tr>
-      ));
+      return currentItems.map((item, index) => {
+        const initials = (item.name || 'U').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        const userId = item._id || item.userId;
+        return (
+          <tr 
+            key={userId || index} 
+            onClick={() => userId && navigate(`/users/list/${userId}`)}
+            className="hover:bg-white/[0.04] transition-colors cursor-pointer group"
+          >
+            <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+            <td className="py-4 px-5">
+              <div className="flex items-center gap-3">
+                <div className="relative shrink-0">
+                  <div className="w-9 h-9 rounded-xl border border-blue-500/30 bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 text-indigo-300 flex items-center justify-center font-extrabold text-xs tracking-wider shadow-inner">
+                    {initials}
+                  </div>
+                  <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-slate-950 ${item.isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-600'}`} title={item.isOnline ? 'Online' : 'Offline'}></div>
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-white group-hover:text-blue-400 transition-colors flex items-center gap-1.5">
+                    {item.name || 'Unknown User'}
+                  </div>
+                  {item.phone && (
+                    <div className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1 font-mono">
+                      <FiPhone className="text-slate-500 text-[9px]" />
+                      <span>{item.phone}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </td>
+            <td className="py-4 px-5">
+              <div className="flex items-center gap-1.5 text-xs text-slate-300 font-medium select-all truncate max-w-[200px]" title={item.email}>
+                <FiMail className="text-slate-500 shrink-0" size={12} />
+                <span>{item.email || '-'}</span>
+              </div>
+            </td>
+            <td className="py-4 px-5">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-bold font-mono">
+                <FiSmartphone className="text-blue-400/80" size={11} />
+                {item.appVersion || 'unknown'}
+              </span>
+            </td>
+            <td className="py-4 px-5">
+              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${item.notificationsEnabled
+                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                : 'bg-slate-800/80 text-slate-500 border border-white/5'
+                }`}>
+                <FiBell className={item.notificationsEnabled ? 'text-emerald-400' : 'text-slate-500'} size={11} />
+                {item.notificationsEnabled ? 'Enabled' : 'Disabled'}
+              </span>
+            </td>
+            <td className="py-4 px-5">
+              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${item.isAppLockEnabled
+                ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20'
+                : 'bg-slate-800/80 text-slate-500 border border-white/5'
+                }`}>
+                <FiShield className={item.isAppLockEnabled ? 'text-teal-400' : 'text-slate-500'} size={11} />
+                {item.isAppLockEnabled ? 'Secured' : 'Inactive'}
+              </span>
+            </td>
+            <td className="py-4 px-5">
+              {item.isOnline && item.appVersion !== 'unknown/legacy' ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  Online Now
+                </span>
+              ) : (
+                <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+                  <FiClock className="text-slate-500 shrink-0" size={12} />
+                  <span>{item.appVersion !== 'unknown/legacy' && item.lastActive ? formatDateTime(item.lastActive) : 'Not Active'}</span>
+                </div>
+              )}
+            </td>
+          </tr>
+        );
+      });
     }
 
     if (type === 'installed' || type === 'uninstalled') {
       return currentItems.map((item, index) => {
         const initials = (item.name || 'U').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        const userId = item._id || item.userId;
         return (
-          <tr key={item._id} className="hover:bg-white/[0.02] transition-colors group">
+          <tr 
+            key={userId || index} 
+            onClick={() => userId && navigate(`/users/list/${userId}`)}
+            className="hover:bg-white/[0.04] transition-colors cursor-pointer group"
+          >
             <td className="py-6 px-3 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td className="py-6 px-3">
               <div className="flex items-center gap-2">
@@ -2115,21 +2179,51 @@ const ActivityDetails = () => {
               </span>
             </div>
           </div>
+        </div>
+      )}
 
-          {/* <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 p-4.5 rounded-2xl flex items-center gap-4 shadow-lg">
-            <div className="p-3 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 shrink-0">
-              <FiCalendar size={22} />
+      {/* Summary Cards Grid for Users Status */}
+      {(type === 'users' || type === 'users-status') && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 z-10 relative">
+          <div className="bg-transparent backdrop-blur-2xl border border-white/10 p-4 rounded-2xl flex items-center gap-3.5 shadow-lg">
+            <div className="p-3 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-400 shrink-0">
+              <FiUsers size={20} />
             </div>
             <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Selected Date Filter</span>
-              <span className="text-xs font-black text-indigo-300 uppercase tracking-wide block mt-1">
-                {queryBreakdown === 'true' && queryBreakdownInterval === 'day' ? 'Daily Breakdown' :
-                 queryBreakdown === 'true' && queryBreakdownInterval === 'month' ? 'Monthly Breakdown' :
-                 queryStartDate && queryEndDate ? `${queryStartDate} to ${queryEndDate}` :
-                 `${startDate} to ${endDate}`}
-              </span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Registered Users</span>
+              <span className="text-xl font-black text-white font-mono mt-0.5 block">{data.length}</span>
             </div>
-          </div> */}
+          </div>
+
+          <div className="bg-transparent backdrop-blur-2xl border border-white/10 p-4 rounded-2xl flex items-center gap-3.5 shadow-lg">
+            <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 shrink-0">
+              <FiActivity size={20} />
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Online Now</span>
+              <span className="text-xl font-black text-emerald-400 font-mono mt-0.5 block">{data.filter(u => u.isOnline).length} Active</span>
+            </div>
+          </div>
+
+          <div className="bg-transparent backdrop-blur-2xl border border-white/10 p-4 rounded-2xl flex items-center gap-3.5 shadow-lg">
+            <div className="p-3 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-400 shrink-0">
+              <FiBell size={20} />
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Notifications Enabled</span>
+              <span className="text-xl font-black text-purple-300 font-mono mt-0.5 block">{data.filter(u => u.notificationsEnabled).length} Users</span>
+            </div>
+          </div>
+
+          <div className="bg-transparent backdrop-blur-2xl border border-white/10 p-4 rounded-2xl flex items-center gap-3.5 shadow-lg">
+            <div className="p-3 rounded-xl bg-teal-500/15 border border-teal-500/30 text-teal-400 shrink-0">
+              <FiShield size={20} />
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">App Lock Secured</span>
+              <span className="text-xl font-black text-teal-300 font-mono mt-0.5 block">{data.filter(u => u.isAppLockEnabled).length} Users</span>
+            </div>
+          </div>
         </div>
       )}
 

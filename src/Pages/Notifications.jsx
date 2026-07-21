@@ -13,6 +13,7 @@ import { api, BASE_URL } from '../api/axios';
 import CustomDropdown from '../Components/CustomDropdown';
 import Card from '../Components/Card';
 import PageHeader from '../Components/PageHeader';
+import { formatDateDDMMYYYY } from '../utils/dateUtils';
 import { TableRowSkeleton } from '../Components/Skeleton';
 
 const Notifications = () => {
@@ -795,7 +796,7 @@ const Notifications = () => {
                             <FiCopy size={12} /> Reuse
                           </button>
                           <span className="text-[9px] text-slate-400 font-semibold bg-white/5 px-2 py-0.5 rounded border border-white/10">
-                            {item.createdAt ? new Date(item.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
+                            {item.createdAt ? formatDateDDMMYYYY(item.createdAt) : ''}
                           </span>
                         </div>
                       </div>

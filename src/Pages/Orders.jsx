@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
-import { BASE_URL, api } from '../api/axios';
+import { BASE_URL } from '../api/axios';
 import { 
   FiBox, FiLoader, FiAlertCircle, FiChevronDown, FiCalendar, 
   FiX, FiMapPin, FiCreditCard, FiUser, FiPhone, FiMail, 
@@ -10,6 +10,7 @@ import {
 } from 'react-icons/fi';
 import CustomDropdown from '../Components/CustomDropdown';
 import { useOutletContext } from 'react-router-dom';
+import { formatDateDDMMYYYY, formatDateTimeDDMMYYYY } from '../utils/dateUtils';
 
 const getImageUrl = (path) => {
   if (!path) return '';
@@ -404,7 +405,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                         <td className="p-4 text-sm text-slate-300 whitespace-nowrap">
                           <div className="flex items-center gap-2">
                             <FiCalendar className="text-slate-500 shrink-0" />
-                            {new Date(order.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            {formatDateDDMMYYYY(order.createdAt)}
                           </div>
                         </td>
                         <td className="p-4 text-sm">
@@ -685,7 +686,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                 <div className="px-4 py-2 bg-slate-800 border border-white/5 rounded-xl flex items-center gap-2 text-sm">
                   <FiCalendar className="text-slate-400" />
                   <span className="text-slate-200">Date:</span>
-                  <span className="font-bold text-white">{new Date(selectedOrder.createdAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                  <span className="font-bold text-white">{formatDateTimeDDMMYYYY(selectedOrder.createdAt)}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-slate-400 text-sm font-medium">Status:</span>
@@ -718,7 +719,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                   <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-2 text-sm">
                     <FiCalendar className="text-emerald-400" />
                     <span className="text-emerald-200">Delivered:</span>
-                    <span className="font-bold text-emerald-400">{new Date(selectedOrder.deliveredAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                    <span className="font-bold text-emerald-400">{formatDateTimeDDMMYYYY(selectedOrder.deliveredAt)}</span>
                   </div>
                 )}
               </div>
@@ -859,7 +860,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                           <span className="block text-xs text-slate-500 mb-0.5">Expected Delivery</span>
                           <span className="font-bold text-white">
                             {trackingData.expectedDeliveryDate 
-                              ? new Date(trackingData.expectedDeliveryDate).toLocaleDateString(undefined, { dateStyle: 'medium' }) 
+                              ? formatDateDDMMYYYY(trackingData.expectedDeliveryDate) 
                               : 'Pending Courier Update'}
                           </span>
                         </div>
@@ -884,7 +885,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                                   {act.location && (
                                     <span>Location: <strong className="text-slate-300">{act.location}</strong></span>
                                   )}
-                                  <span>Time: <strong className="text-slate-300">{new Date(act.timestamp).toLocaleString()}</strong></span>
+                                  <span>Time: <strong className="text-slate-300">{formatDateTimeDDMMYYYY(act.timestamp)}</strong></span>
                                 </div>
                               </div>
                             </div>

@@ -5,6 +5,7 @@ import {
   FiTrash2, FiX, FiFileText, FiDownload, FiLoader
 } from 'react-icons/fi';
 import { api, BASE_URL } from '../api/axios';
+import { formatDateDDMMYYYY } from '../utils/dateUtils';
 import { useOutletContext } from 'react-router-dom';
 
 const getImageUrl = (path) => {
@@ -31,7 +32,7 @@ const formatDividerDate = (dateString) => {
   } else if (msgDate.getTime() === yesterday.getTime()) {
     return 'Yesterday';
   } else {
-    return date.toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' });
+    return formatDateDDMMYYYY(date);
   }
 };
 
@@ -52,7 +53,7 @@ const formatLastMessageDate = (dateString) => {
   } else if (msgDate.getTime() === yesterday.getTime()) {
     return 'Yesterday';
   } else {
-    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    return formatDateDDMMYYYY(date);
   }
 };
 

@@ -8,6 +8,7 @@ import {
 } from 'react-icons/fi';
 import { MdPhoneAndroid, MdPhoneIphone } from 'react-icons/md';
 import { useOutletContext, useNavigate } from 'react-router-dom';
+import { formatDateDDMMYYYY } from '../../../utils/dateUtils';
 
 const hasValidAppVersion = (appVersion) => {
   if (!appVersion) return false;
@@ -64,7 +65,7 @@ const formatRelativeTime = (dateString, u = null) => {
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 30) return `${diffDays}d ago`;
-  return date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+  return formatDateDDMMYYYY(date);
 };
 
 const checkAppStatus = (u) => {
@@ -297,7 +298,7 @@ const UsersList = () => {
       try {
         await api.post('/admin/users/logout-role', { role });
         alert(`All ${role} users have been logged out.`);
-      } catch (err) {
+      } catch {
         alert('Failed to logout role.');
       }
     };
