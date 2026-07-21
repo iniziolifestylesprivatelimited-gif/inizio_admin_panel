@@ -441,54 +441,86 @@ const Dashboard = () => {
   const priceTierEngagementData = React.useMemo(() => {
     const tiers = {
       budget: { label: 'Budget (< ₹1k)', views: 0, cartAdds: 0 },
-      mid: { label: 'Mid-Tier (₹1k-5k)', views: 0, cartAdds: 0 },
-      premium: { label: 'Premium (₹5k-20k)', views: 0, cartAdds: 0 },
-      luxury: { label: 'Luxury (> ₹20k)', views: 0, cartAdds: 0 }
+      mid: { label: 'Mid-Tier (₹1k-10k)', views: 0, cartAdds: 0 },
+      premium: { label: 'Premium (₹10k-20k)', views: 0, cartAdds: 0 }
     };
 
     const getTierKey = (price) => {
       const p = Number(price) || 0;
       if (p < 1000) return 'budget';
-      if (p <= 5000) return 'mid';
-      if (p <= 20000) return 'premium';
-      return 'luxury';
+      if (p < 10000) return 'mid';
+      return 'premium';
     };
 
     const productPriceMap = {};
     (products || []).forEach(prod => {
       if (prod && prod._id) {
-        productPriceMap[prod._id] = Number(prod.basePrice) || 0;
+        productPriceMap[prod._id] = Number(prod.offerPrice || prod.basePrice) || 0;
       }
     });
 
-    // Accumulate views per price tier
+    const stream = [
+      ...(activityStats?.recentActivities || []),
+      ...(activityStats?.activityStream || []),
+      ...(analyticsData?.activityStream || [])
+    ];
+
+    const productViewsMap = {};
+
+    // 1. Accumulate views from mostViewedProducts API
     const mostViewed = activityStats?.mostViewedProducts || [];
     mostViewed.forEach(item => {
-      const prodId = item.productId || item.product?._id || item.product;
-      const price = item.product?.basePrice ?? productPriceMap[prodId] ?? 0;
-      const views = Number(item.views || item.count) || 0;
-      const key = getTierKey(price);
-      tiers[key].views += views;
+      const prodId = item.productId || (typeof item.product === 'object' ? item.product?._id : item.product);
+      if (!prodId) return;
+
+      let views = Number(item.views || item.count || 0);
+      if (!views && Array.isArray(item.viewers)) {
+        views = item.viewers.reduce((s, v) => s + (v.count || 1), 0);
+      }
+
+      productViewsMap[prodId] = (productViewsMap[prodId] || 0) + views;
     });
 
-    // Accumulate cart additions per price tier
-    const stream = activityStats?.recentActivities || activityStats?.activityStream || [];
+    // 2. Accumulate views from activity streams for products not in mostViewed
+    const seenEvents = new Set();
     stream.forEach(evt => {
-      const action = (evt.action || evt.eventType || '').toUpperCase();
-      if (action.includes('CART') || action.includes('ADD_TO_CART')) {
-        const prodId = evt.details?.productId || evt.productId;
-        const price = evt.details?.price ?? productPriceMap[prodId] ?? 0;
+      const eventKey = evt._id || `${evt.userId || evt.user?._id || ''}-${evt.timestamp || evt.createdAt || ''}-${evt.eventType || evt.action || ''}`;
+      if (seenEvents.has(eventKey)) return;
+      seenEvents.add(eventKey);
+
+      const action = (evt.action || evt.eventType || evt.type || '').toUpperCase();
+      const isProductView = action === 'PRODUCT_VIEW' || action === 'PRODUCTVIEW' || action === 'VIEW_PRODUCT' || (action.includes('PRODUCT') && action.includes('VIEW'));
+
+      if (isProductView) {
+        const prodId = evt.details?.productId || evt.productId || (typeof evt.product === 'object' ? evt.product?._id : evt.product);
+        if (prodId && !mostViewed.some(mv => (mv.productId || (typeof mv.product === 'object' ? mv.product?._id : mv.product)) === prodId)) {
+          productViewsMap[prodId] = (productViewsMap[prodId] || 0) + 1;
+        }
+      }
+
+      // Accumulate cart additions per price tier
+      if (action === 'ADD_TO_CART' || action === 'CART_ADD' || (action.includes('CART') && !action.includes('REMOVE') && !action.includes('CLEAR'))) {
+        const prodId = evt.details?.productId || evt.productId || (typeof evt.product === 'object' ? evt.product?._id : evt.product);
+        const price = (evt.details?.offerPrice || evt.details?.price || (typeof evt.product === 'object' ? (evt.product?.offerPrice || evt.product?.basePrice) : undefined)) ?? productPriceMap[prodId] ?? 0;
         const key = getTierKey(price);
         tiers[key].cartAdds += 1;
       }
     });
 
+    // 3. Map views to price tiers
+    Object.entries(productViewsMap).forEach(([prodId, views]) => {
+      const prodObj = (products || []).find(p => p._id === prodId);
+      const price = (prodObj?.offerPrice || prodObj?.basePrice) ?? productPriceMap[prodId] ?? 0;
+      const key = getTierKey(price);
+      tiers[key].views += views;
+    });
+
     return {
-      categories: [tiers.budget.label, tiers.mid.label, tiers.premium.label, tiers.luxury.label],
-      views: [tiers.budget.views, tiers.mid.views, tiers.premium.views, tiers.luxury.views],
-      cartAdds: [tiers.budget.cartAdds, tiers.mid.cartAdds, tiers.premium.cartAdds, tiers.luxury.cartAdds]
+      categories: [tiers.budget.label, tiers.mid.label, tiers.premium.label],
+      views: [tiers.budget.views, tiers.mid.views, tiers.premium.views],
+      cartAdds: [tiers.budget.cartAdds, tiers.mid.cartAdds, tiers.premium.cartAdds]
     };
-  }, [products, activityStats]);
+  }, [products, activityStats, analyticsData]);
 
   const priceTierChartConfig = {
     series: [
@@ -1221,7 +1253,7 @@ const Dashboard = () => {
           {/* Main Activity Details Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
             {/* Left Column: Engagement Categories Grid */}
-            <Card className="lg:col-span-2 h-fit gap-6">
+            <Card className="lg:col-span-2 h-full gap-6">
               <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
 
               <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 z-10">
@@ -1231,7 +1263,7 @@ const Dashboard = () => {
                     onClick={() => navigate(`${card.path}${getFilterQueryParams()}`)}
                     className="bg-slate-950/20 border border-white/5 hover:border-white/15 p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col justify-between min-h-[145px] group hover:bg-slate-950/45 hover:shadow-xl shadow-black/30"
                   >
-                    <div className="flex justify-between items-start mb-3">
+                    <div className="flex justify-between items-center mb-3">
                       <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider group-hover:text-white transition-colors">{card.title}</span>
                       <div className={`p-2 rounded-xl ${card.bg}`}>
                         <card.icon className={`${card.color} text-lg`} />
@@ -1249,7 +1281,7 @@ const Dashboard = () => {
             </Card>
 
             {/* Right Column: Most Viewed Products */}
-            <Card className="lg:min-h-[580px] min-h-fit bg-transparent backdrop-blur-2xl border border-white/10">
+            <Card className="lg:min-h-full min-h-fit bg-transparent backdrop-blur-2xl border border-white/10">
               <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
 
               <div className="relative border-b border-white/5 pb-4 mb-6 z-10 flex items-center justify-between">
@@ -1264,7 +1296,7 @@ const Dashboard = () => {
                 </button>
               </div>
 
-              <div className="relative z-10 flex-1 max-h-[460px] overflow-y-auto space-y-3 custom-scrollbar pr-1">
+              <div className="relative z-10 flex-1 max-h-[620px] overflow-y-auto space-y-3 p-0.5 custom-scrollbar pr-1">
                 {!sortedMostViewedProducts || sortedMostViewedProducts.length === 0 ? (
                   <div className="text-center py-12">
                     <FiBox className="mx-auto text-slate-600 text-3xl mb-2" />
@@ -1322,9 +1354,16 @@ const Dashboard = () => {
                           <p className="text-xs font-extrabold text-white truncate group-hover:text-blue-400 transition-colors leading-snug" title={prod.name || 'Unknown Product'}>
                             {prod.name || 'Unknown Product'}
                           </p>
-                          <p className="text-[10px] text-emerald-400 font-extrabold font-mono mt-1">
-                            ₹{(prod.basePrice || 0).toLocaleString('en-IN')}
-                          </p>
+                          <div className="flex items-center gap-1.5 mt-1 font-mono">
+                            <span className="text-[10px] text-emerald-400 font-extrabold">
+                              ₹{(prod.offerPrice && Number(prod.offerPrice) > 0 ? Number(prod.offerPrice) : Number(prod.basePrice || 0)).toLocaleString('en-IN')}
+                            </span>
+                            {prod.offerPrice && Number(prod.offerPrice) > 0 && Number(prod.offerPrice) < Number(prod.basePrice || 0) && (
+                              <span className="text-[9px] text-slate-500 line-through">
+                                ₹{(prod.basePrice || 0).toLocaleString('en-IN')}
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         {/* Views counter */}
@@ -1549,17 +1588,17 @@ const Dashboard = () => {
           <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                {/* <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> */}
                 Product Price Tier Engagement
               </h3>
               <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Views vs cart additions by price tier</p>
             </div>
-            <button
+            {/* <button
               onClick={() => navigate(`/dashboard/details/product-views${getFilterQueryParams()}`)}
               className="text-[10px] text-blue-400 hover:text-blue-300 font-bold uppercase tracking-wider transition-colors cursor-pointer whitespace-nowrap"
             >
               View Details &rarr;
-            </button>
+            </button> */}
           </div>
 
           <div className="relative flex-1 w-full z-10">
@@ -1596,7 +1635,16 @@ const Dashboard = () => {
                   <h3 className="text-base font-black text-white tracking-tight leading-snug truncate max-w-[240px]" title={selectedProductViews.product.name}>
                     {selectedProductViews.product.name}
                   </h3>
-                  <p className="text-[10px] text-emerald-400 font-extrabold font-mono mt-0.5">Base Price: ₹{(selectedProductViews.product.basePrice || 0).toLocaleString('en-IN')}</p>
+                  <div className="flex items-center gap-1.5 text-[10px] font-mono mt-0.5">
+                    <span className="text-emerald-400 font-extrabold">
+                      Price: ₹{(selectedProductViews.product.offerPrice && Number(selectedProductViews.product.offerPrice) > 0 ? Number(selectedProductViews.product.offerPrice) : Number(selectedProductViews.product.basePrice || 0)).toLocaleString('en-IN')}
+                    </span>
+                    {selectedProductViews.product.offerPrice && Number(selectedProductViews.product.offerPrice) > 0 && Number(selectedProductViews.product.offerPrice) < Number(selectedProductViews.product.basePrice || 0) && (
+                      <span className="text-slate-500 line-through">
+                        ₹{(selectedProductViews.product.basePrice || 0).toLocaleString('en-IN')}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
               <button

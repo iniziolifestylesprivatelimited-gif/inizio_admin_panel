@@ -1121,12 +1121,21 @@ const ActivityDetails = () => {
     if (type === 'products') {
       return currentItems.map((item, index) => {
         const variantCount = Array.isArray(item.variants) ? item.variants.length : 1;
+        const baseP = Number(item.basePrice || 0);
+        const offerP = Number(item.offerPrice || 0);
+        const hasOffer = offerP > 0 && offerP < baseP;
+        const displayP = offerP > 0 ? offerP : baseP;
         return (
           <tr key={item._id} className="hover:bg-transparent transition-colors">
             <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td className="py-4 px-5 text-xs font-mono text-slate-500">#{item._id}</td>
             <td className="py-4 px-5 text-sm font-bold text-white truncate max-w-[200px]" title={item.name}>{item.name}</td>
-            <td className="py-4 px-5 text-sm text-emerald-400 font-extrabold">₹{(item.basePrice || 0).toLocaleString('en-IN')}</td>
+            <td className="py-4 px-5 text-sm font-mono">
+              <span className="text-emerald-400 font-extrabold">₹{displayP.toLocaleString('en-IN')}</span>
+              {hasOffer && (
+                <span className="ml-1.5 text-xs text-slate-500 line-through font-medium">₹{baseP.toLocaleString('en-IN')}</span>
+              )}
+            </td>
             <td className="py-4 px-5 text-sm text-slate-300 font-bold">{variantCount}</td>
             <td className="py-4 px-5 text-xs">
               <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${item.isActive !== false ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
@@ -1140,21 +1149,32 @@ const ActivityDetails = () => {
     }
 
     if (type === 'variants') {
-      return currentItems.map((item, index) => (
-        <tr key={item._id} className="hover:bg-white/[0.02] transition-colors">
-          <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-          <td className="py-4 px-5 text-xs font-mono text-slate-500">#{item.productId}</td>
-          <td className="py-4 px-5 text-sm font-bold text-white truncate max-w-[200px]" title={item.productName}>{item.productName}</td>
-          <td className="py-4 px-5 text-sm text-blue-400 font-bold">{item.name}</td>
-          <td className="py-4 px-5 text-sm text-emerald-400 font-extrabold">₹{(item.price || 0).toLocaleString('en-IN')}</td>
-          <td className="py-4 px-5 text-xs">
-            <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${item.isActive !== false ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-              }`}>
-              {item.isActive !== false ? 'active' : 'inactive'}
-            </span>
-          </td>
-        </tr>
-      ));
+      return currentItems.map((item, index) => {
+        const baseP = Number(item.basePrice || item.price || 0);
+        const offerP = Number(item.offerPrice || 0);
+        const hasOffer = offerP > 0 && offerP < baseP;
+        const displayP = offerP > 0 ? offerP : baseP;
+        return (
+          <tr key={item._id} className="hover:bg-white/[0.02] transition-colors">
+            <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+            <td className="py-4 px-5 text-xs font-mono text-slate-500">#{item.productId}</td>
+            <td className="py-4 px-5 text-sm font-bold text-white truncate max-w-[200px]" title={item.productName}>{item.productName}</td>
+            <td className="py-4 px-5 text-sm text-blue-400 font-bold">{item.name}</td>
+            <td className="py-4 px-5 text-sm font-mono">
+              <span className="text-emerald-400 font-extrabold">₹{displayP.toLocaleString('en-IN')}</span>
+              {hasOffer && (
+                <span className="ml-1.5 text-xs text-slate-500 line-through font-medium">₹{baseP.toLocaleString('en-IN')}</span>
+              )}
+            </td>
+            <td className="py-4 px-5 text-xs">
+              <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${item.isActive !== false ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                }`}>
+                {item.isActive !== false ? 'active' : 'inactive'}
+              </span>
+            </td>
+          </tr>
+        );
+      });
     }
 
     if (type === 'users' || type === 'users-status') {
@@ -1427,7 +1447,7 @@ const ActivityDetails = () => {
         const displayProductLogo = firstImg ? (firstImg.startsWith('http') || firstImg.startsWith('blob:') ? firstImg : `${BASE_URL}${firstImg.startsWith('/') ? '' : '/'}${firstImg.replace(/\\/g, '/')}`) : '';
 
         return (
-          <tr key={item._id || index} className="hover:bg-white/[0.02] transition-colors">
+          <tr key={item._id || index} className="bg-transparent hover:bg-white/[0.02] transition-colors">
             <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td className="py-4 px-5">
               <div className="flex items-center gap-2">
@@ -1486,7 +1506,7 @@ const ActivityDetails = () => {
       return currentItems.map((item, index) => {
         const globalIndex = (currentPage - 1) * itemsPerPage + index;
         const cleanLogo = (item.brand?.logo || '').replace(/\\/g, '/');
-        const logoUrl = cleanLogo ? `${BASE_URL}${cleanLogo.startsWith('/') ? '' : '/'}${cleanPath}` : '';
+        const logoUrl = cleanLogo ? (cleanLogo.startsWith('http') || cleanLogo.startsWith('blob:') ? cleanLogo : `${BASE_URL}${cleanLogo.startsWith('/') ? '' : '/'}${cleanLogo}`) : '';
         const rankColors = ['text-amber-400', 'text-slate-300', 'text-orange-400'];
         const rankBadgeBg = ['bg-amber-500/15 border-amber-500/30', 'bg-slate-500/15 border-slate-400/30', 'bg-orange-500/15 border-orange-500/30'];
         const viewerCount = Array.isArray(item.viewers) ? item.viewers.length : 0;
@@ -1503,7 +1523,7 @@ const ActivityDetails = () => {
                 viewers: item.viewers || []
               });
             }}
-            className="hover:bg-white/[0.02] transition-colors cursor-pointer group/row"
+            className="bg-transparent hover:bg-white/[0.02] transition-colors cursor-pointer group/row"
           >
             <td className="py-4 px-5">
               <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${globalIndex < 3 ? rankBadgeBg[globalIndex] : 'bg-slate-800/60 border-white/10 text-slate-400'} ${globalIndex < 3 ? rankColors[globalIndex] : ''}`}>
@@ -1567,7 +1587,7 @@ const ActivityDetails = () => {
                 viewers: item.viewers || []
               });
             }}
-            className="hover:bg-white/[0.02] transition-colors cursor-pointer group/row"
+            className="bg-transparent hover:bg-white/[0.02] transition-colors cursor-pointer group/row"
           >
             <td className="py-4 px-5">
               <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${globalIndex === 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' :
@@ -1612,7 +1632,7 @@ const ActivityDetails = () => {
       return currentItems.map((item, index) => {
         const globalIndex = (currentPage - 1) * itemsPerPage + index;
         return (
-          <tr key={item._id || item.query || globalIndex} className="hover:bg-white/[0.02] transition-colors">
+          <tr key={item._id || item.query || globalIndex} className="bg-transparent hover:bg-white/[0.02] transition-colors">
             <td className="py-4 px-5">
               <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${globalIndex === 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' :
                 globalIndex === 1 ? 'bg-slate-500/15 border-slate-400/30 text-slate-300' :
@@ -1659,7 +1679,7 @@ const ActivityDetails = () => {
                 viewers: item.viewers || []
               });
             }}
-            className="hover:bg-white/[0.02] transition-colors cursor-pointer group/row"
+            className="bg-transparent hover:bg-white/[0.02] transition-colors cursor-pointer group/row"
           >
             <td className="py-4 px-5">
               <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${globalIndex === 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' :
@@ -1683,8 +1703,15 @@ const ActivityDetails = () => {
             <td className="py-4 px-5 text-sm font-bold text-white group-hover/row:text-blue-400 transition-colors truncate max-w-[200px]" title={item.product?.name}>
               {item.product?.name || 'Unknown Product'}
             </td>
-            <td className="py-4 px-5 text-sm font-extrabold text-emerald-400 font-mono">
-              ₹{(item.product?.basePrice || 0).toLocaleString('en-IN')}
+            <td className="py-4 px-5 text-sm font-mono">
+              <span className="text-emerald-400 font-extrabold">
+                ₹{(item.product?.offerPrice && Number(item.product.offerPrice) > 0 ? Number(item.product.offerPrice) : Number(item.product?.basePrice || 0)).toLocaleString('en-IN')}
+              </span>
+              {item.product?.offerPrice && Number(item.product.offerPrice) > 0 && Number(item.product.offerPrice) < Number(item.product?.basePrice || 0) && (
+                <span className="ml-1.5 text-xs text-slate-500 line-through font-medium">
+                  ₹{(item.product?.basePrice || 0).toLocaleString('en-IN')}
+                </span>
+              )}
             </td>
             <td className="py-4 px-5">
               <div className="flex items-center gap-3">
@@ -1787,7 +1814,7 @@ const ActivityDetails = () => {
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Product ID</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Product Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Base Price</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Price / Offer Price</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">No. of Variants</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
         </>
@@ -1843,7 +1870,7 @@ const ActivityDetails = () => {
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Image</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Product Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Base Price</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Price / Offer Price</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Product Views</th>
           <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Viewer Breakdown</th>
         </>
