@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Group } from '@visx/group';
 import { BarGroup, BarStack, Pie, AreaClosed, LinePath, Line } from '@visx/shape';
 import { scaleBand, scaleLinear, scaleOrdinal } from '@visx/scale';
@@ -295,8 +295,17 @@ export function VisxAppVersionsChart({ data = [] }) {
 // ----------------------------------------------------
 // 2. Visx Notifications Donut Chart Component (Animated)
 // ----------------------------------------------------
-function NotificationsDonutChart({ enabled, disabled, width, height }) {
+function NotificationsDonutChart({ enabled, disabled, width, height, onClick }) {
   const [selectedSegment, setSelectedSegment] = useState(null);
+  const [animationCompleted, setAnimationCompleted] = useState(false);
+
+  useEffect(() => {
+    setAnimationCompleted(false);
+    const timer = setTimeout(() => {
+      setAnimationCompleted(true);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [enabled, disabled]);
 
   const {
     tooltipOpen,
@@ -332,6 +341,13 @@ function NotificationsDonutChart({ enabled, disabled, width, height }) {
 
   const selectedItem = data.find(d => d.label === selectedSegment);
 
+  const handleClick = (type) => {
+    if (!animationCompleted) return;
+    if (onClick) {
+      onClick(type);
+    }
+  };
+
   return (
     <div ref={containerRef} className="relative w-full h-full">
       <svg width={width} height={height}>
@@ -364,29 +380,66 @@ function NotificationsDonutChart({ enabled, disabled, width, height }) {
               />
             )}
           </Pie>
+          
+          {/* Clickable center background area after animation completes */}
+          {animationCompleted && (
+            <circle
+              r={innerRadius * 0.95}
+              fill="rgba(59, 130, 246, 0.02)"
+              className="cursor-pointer hover:fill-blue-500/5 transition-all duration-300"
+              onClick={() => handleClick(selectedItem ? selectedItem.label : 'All')}
+            />
+          )}
+
           {/* Donut Center Label */}
           <text
             textAnchor="middle"
-            dy="-0.3em"
+            dy={animationCompleted ? "-0.7em" : "-0.3em"}
             fill="#ffffff"
             fontSize={selectedItem ? 18 : 22}
             fontWeight={900}
-            className="font-mono cursor-pointer"
-            onClick={() => setSelectedSegment(null)}
+            className="font-mono cursor-pointer select-none"
+            onClick={() => {
+              if (animationCompleted) {
+                handleClick(selectedItem ? selectedItem.label : 'All');
+              } else {
+                setSelectedSegment(null);
+              }
+            }}
           >
             {selectedItem ? selectedItem.value : formatCompactNumber(total)}
           </text>
           <text
             textAnchor="middle"
-            dy="1.4em"
+            dy={animationCompleted ? "0.6em" : "1.4em"}
             fill="#94a3b8"
             fontSize={10}
             fontWeight={700}
-            className="uppercase tracking-wider cursor-pointer"
-            onClick={() => setSelectedSegment(null)}
+            className="uppercase tracking-wider cursor-pointer select-none"
+            onClick={() => {
+              if (animationCompleted) {
+                handleClick(selectedItem ? selectedItem.label : 'All');
+              } else {
+                setSelectedSegment(null);
+              }
+            }}
           >
             {selectedItem ? selectedItem.label : 'Total Users'}
           </text>
+
+          {animationCompleted && (
+            <text
+              textAnchor="middle"
+              dy="2.1em"
+              fill="#60a5fa"
+              fontSize={8}
+              fontWeight={800}
+              className="uppercase tracking-wider cursor-pointer select-none animate-pulse hover:fill-blue-300 transition-colors"
+              onClick={() => handleClick(selectedItem ? selectedItem.label : 'All')}
+            >
+              Click for Details
+            </text>
+          )}
         </Group>
       </svg>
 
@@ -425,7 +478,7 @@ function NotificationsDonutChart({ enabled, disabled, width, height }) {
   );
 }
 
-export function VisxNotificationsDonutChart({ enabled = 0, disabled = 0 }) {
+export function VisxNotificationsDonutChart({ enabled = 0, disabled = 0, onClick }) {
   if (enabled === 0 && disabled === 0) {
     return (
       <div className="text-center text-slate-500 text-xs py-10 italic">
@@ -437,7 +490,7 @@ export function VisxNotificationsDonutChart({ enabled = 0, disabled = 0 }) {
   return (
     <ParentSize>
       {({ width, height }) => (
-        <NotificationsDonutChart enabled={enabled} disabled={disabled} width={width} height={height} />
+        <NotificationsDonutChart enabled={enabled} disabled={disabled} width={width} height={height} onClick={onClick} />
       )}
     </ParentSize>
   );
@@ -687,6 +740,14 @@ function InnerAreaChart({ labels, data, color, valuePrefix, valueSuffix, width, 
     range: [yMax, 0]
   });
 
+  const tickValues = React.useMemo(() => {
+    if (labels.length > 15) {
+      const step = Math.ceil(labels.length / 6);
+      return labels.filter((_, i) => i % step === 0 || i === labels.length - 1);
+    }
+    return undefined;
+  }, [labels]);
+
   if (width < 10 || height < 10) return null;
 
   const getX = (d) => (xScale(d.label) || 0) + xScale.bandwidth() / 2;
@@ -799,6 +860,7 @@ function InnerAreaChart({ labels, data, color, valuePrefix, valueSuffix, width, 
           <AxisBottom
             top={yMax}
             scale={xScale}
+            tickValues={tickValues}
             stroke="rgba(255,255,255,0.1)"
             tickStroke="transparent"
             tickLabelProps={{

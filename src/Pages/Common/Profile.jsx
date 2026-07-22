@@ -87,7 +87,7 @@ const Profile = () => {
               <h3 className="text-xl font-bold text-white flex items-center gap-2">
                 <FiUser className="text-blue-400" /> Personal Information
               </h3>
-              <button 
+              <button
                 type="button"
                 onClick={() => setIsEditing(!isEditing)}
                 className="flex items-center px-4 py-2 bg-transparent text-slate-300 hover:bg-white/10 hover:text-white rounded-xl transition-all shadow-sm text-sm font-bold border border-white/10 backdrop-blur-md"
@@ -100,8 +100,8 @@ const Profile = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Full Name</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
@@ -111,8 +111,8 @@ const Profile = () => {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Email Address</label>
-                  <input 
-                    type="email" 
+                  <input
+                    type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
@@ -129,8 +129,8 @@ const Profile = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
                     <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Current Password</label>
-                    <input 
-                      type="password" 
+                    <input
+                      type="password"
                       name="currentPassword"
                       value={formData.currentPassword}
                       onChange={handleChange}
@@ -141,8 +141,8 @@ const Profile = () => {
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">New Password</label>
-                    <input 
-                      type="password" 
+                    <input
+                      type="password"
                       name="newPassword"
                       value={formData.newPassword}
                       onChange={handleChange}
@@ -161,8 +161,8 @@ const Profile = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
                     <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Support Number</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       name="supportNumber"
                       value={formData.supportNumber}
                       onChange={handleChange}
@@ -173,8 +173,8 @@ const Profile = () => {
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Support Email</label>
-                    <input 
-                      type="email" 
+                    <input
+                      type="email"
                       name="supportEmail"
                       value={formData.supportEmail}
                       onChange={handleChange}
@@ -188,7 +188,7 @@ const Profile = () => {
 
               {isEditing && (
                 <div className="flex justify-end pt-4">
-                  <button 
+                  <button
                     type="submit"
                     className="flex items-center justify-center px-6 py-2.5 bg-blue-600/50 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30"
                   >

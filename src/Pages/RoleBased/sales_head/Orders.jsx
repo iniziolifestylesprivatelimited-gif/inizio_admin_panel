@@ -42,6 +42,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
 
   // Delivered tab configuration
   const [activeDeliveredTab, setActiveDeliveredTab] = useState('orders'); // 'orders' or 'returns'
+  const [paymentFilter, setPaymentFilter] = useState('all'); // 'all', 'paid', 'pending'
   
   // Return requests state
   const [returnsList, setReturnsList] = useState([]);
@@ -287,11 +288,28 @@ const Orders = ({ defaultStatus = 'all' }) => {
     }
   };
 
-  // Filter orders according to sub-menu state
+  // Filter orders according to sub-menu state and payment status
   const filteredOrders = orders.filter(order => {
-    if (defaultStatus === 'all') return true;
-    return order.orderStatus?.toLowerCase() === defaultStatus.toLowerCase();
+    // 1. Filter by orderStatus
+    if (defaultStatus !== 'all') {
+      if (order.orderStatus?.toLowerCase() !== defaultStatus.toLowerCase()) return false;
+    }
+    
+    // 2. Filter by paymentStatus
+    if (paymentFilter === 'paid') {
+      return order.paymentStatus?.toLowerCase() === 'paid';
+    }
+    if (paymentFilter === 'pending') {
+      return order.paymentStatus?.toLowerCase() !== 'paid';
+    }
+    
+    return true;
   });
+
+  const handlePaymentFilterChange = (filter) => {
+    setPaymentFilter(filter);
+    setCurrentPage(1);
+  };
 
   // Pagination for orders
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -360,6 +378,40 @@ const Orders = ({ defaultStatus = 'all' }) => {
                   <span className="absolute -top-1 -right-3 w-2 h-2 rounded-full bg-red-500"></span>
                 )}
               </button>
+            </div>
+          )}
+
+          {/* Payment Status Filter Switching Section */}
+          {(defaultStatus !== 'delivered' || activeDeliveredTab === 'orders') && (
+            <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-3.5 border-b border-white/10 bg-slate-900/20">
+              <div className="flex bg-slate-950/40 p-1 rounded-xl border border-white/5 w-fit">
+                {[
+                  { id: 'all', label: 'All Payments' },
+                  { id: 'paid', label: 'Paid Only' },
+                  { id: 'pending', label: 'Pending Only' }
+                ].map((tab) => {
+                  const count = orders.filter(order => {
+                    if (defaultStatus !== 'all' && order.orderStatus?.toLowerCase() !== defaultStatus.toLowerCase()) return false;
+                    if (tab.id === 'paid') return order.paymentStatus?.toLowerCase() === 'paid';
+                    if (tab.id === 'pending') return order.paymentStatus?.toLowerCase() !== 'paid';
+                    return true;
+                  }).length;
+
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => handlePaymentFilterChange(tab.id)}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                        paymentFilter === tab.id
+                          ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                          : 'text-slate-400 hover:text-slate-200 border border-transparent'
+                      }`}
+                    >
+                      {tab.label} ({count})
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
 

@@ -15,6 +15,14 @@ import { isRouteAllowed } from '../utils/rbac';
 const Layout = () => {
   const { user, logout, userPermissions } = useAuth();
   const location = useLocation();
+  const mainRef = useRef(null);
+
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0;
+    }
+  }, [location.pathname]);
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [openMenus, setOpenMenus] = useState({});
@@ -846,7 +854,7 @@ const Layout = () => {
         </header>
 
         {/* DYNAMIC PAGE CONTENT */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
+        <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
           <div className="w-full mx-auto p-4 sm:p-6 lg:p-8 min-h-full">
             <Outlet context={{ setChatUnreadCount, setOrdersUnreadCount, setUsersUnreadCount, setUsersVerifyUnreadCount, setUsersDeletionUnreadCount }} />
           </div>

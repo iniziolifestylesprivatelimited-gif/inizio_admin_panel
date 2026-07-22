@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 import { api } from '../../../api/axios';
-import { 
-  FiCheck, FiLoader, FiAlertCircle, FiShield, FiUserPlus, 
-  FiUsers, FiLayers, FiMapPin, FiSettings, FiCheckSquare, 
+import {
+  FiCheck, FiLoader, FiAlertCircle, FiShield, FiUserPlus,
+  FiUsers, FiLayers, FiMapPin, FiSettings, FiCheckSquare,
   FiPlus, FiX, FiCheckCircle, FiLock, FiUnlock, FiGrid, FiList
 } from 'react-icons/fi';
 
 const RolesPermissions = () => {
   // Tabs: 'CREATE_USER' or 'PERMISSIONS'
   const [activeTab, setActiveTab] = useState('CREATE_USER');
-  
+
   // Roles list & Counts
   const [rolesList, setRolesList] = useState([]);
   const [roleCounts, setRoleCounts] = useState({});
@@ -83,7 +83,7 @@ const RolesPermissions = () => {
       // Usually format: { success: true, permissions: [...], mappings: [...], availablePermissions: [...] }
       // We will parse it and fallback to safe defaults.
       const data = res.data || {};
-      
+
       const availPerms = data.availablePermissions || data.permissions || [
         'orders_view', 'orders_manage', 'customers_view', 'customers_manage',
         'ledgers_manage', 'invoices_upload', 'banners_manage', 'notifications_send',
@@ -171,7 +171,7 @@ const RolesPermissions = () => {
         .map(t => t.trim())
         .filter(t => t !== '');
       payload.salesHead = createUserForm.salesHead;
-      
+
       if (!payload.salesHead) {
         setCreateErrorMsg('Reporting Sales Head is required for TSM role.');
         setCreatingUser(false);
@@ -280,7 +280,7 @@ const RolesPermissions = () => {
     try {
       const savedUser = JSON.parse(sessionStorage.getItem('user') || '{}');
       const userId = savedUser._id || savedUser.id || '';
-      
+
       let path = apiDoc.path;
       // Strip /api if it exists since axios baseURL already has /api
       if (path.startsWith('/api/')) {
@@ -306,7 +306,7 @@ const RolesPermissions = () => {
       }
 
       const finalUrl = path + (queryParams.length > 0 ? `?${queryParams.join('&')}` : '');
-      
+
       const res = await api.get(finalUrl, { headers });
       setApiTestResponse(res.data);
     } catch (err) {
@@ -378,21 +378,19 @@ const RolesPermissions = () => {
         <div className="flex bg-white/[0.03] border border-white/10 rounded-2xl p-1 gap-1 w-full md:w-auto">
           <button
             onClick={() => setActiveTab('CREATE_USER')}
-            className={`flex-1 md:flex-initial px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
-              activeTab === 'CREATE_USER'
+            className={`flex-1 md:flex-initial px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'CREATE_USER'
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/35 border border-blue-500/35'
                 : 'text-slate-400 hover:text-white hover:bg-white/5'
-            }`}
+              }`}
           >
             <FiUserPlus /> Register Staff
           </button>
           <button
             onClick={() => setActiveTab('PERMISSIONS')}
-            className={`flex-1 md:flex-initial px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
-              activeTab === 'PERMISSIONS'
+            className={`flex-1 md:flex-initial px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'PERMISSIONS'
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/35 border border-blue-500/35'
                 : 'text-slate-400 hover:text-white hover:bg-white/5'
-            }`}
+              }`}
           >
             <FiShield /> Access Control
           </button>
@@ -410,21 +408,19 @@ const RolesPermissions = () => {
             Object.entries(roleCounts).map(([role, count]) => {
               const isSelected = selectedRoleForUsers === role;
               return (
-                <div 
-                  key={role} 
+                <div
+                  key={role}
                   onClick={() => handleSelectRoleForUsers(role)}
-                  className={`bg-transparent backdrop-blur-2xl border shadow-lg rounded-2xl p-4 flex flex-col justify-between overflow-hidden relative group hover:border-white/30 hover:bg-white/[0.02] cursor-pointer transition-all active:scale-95 ${
-                    isSelected ? 'border-blue-500/50 bg-blue-500/[0.03] ring-1 ring-blue-500/30' : 'border-white/10'
-                  }`}
+                  className={`bg-transparent backdrop-blur-2xl border shadow-lg rounded-2xl p-4 flex flex-col justify-between overflow-hidden relative group hover:border-white/30 hover:bg-white/[0.02] cursor-pointer transition-all active:scale-95 ${isSelected ? 'border-blue-500/50 bg-blue-500/[0.03] ring-1 ring-blue-500/30' : 'border-white/10'
+                    }`}
                 >
                   <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">
                       {role.replace('_', ' ')}
                     </span>
-                    <div className={`p-1.5 rounded-lg shrink-0 transition-colors ${
-                      isSelected ? 'bg-blue-500 text-white' : 'bg-blue-500/10 text-blue-400'
-                    }`}>
+                    <div className={`p-1.5 rounded-lg shrink-0 transition-colors ${isSelected ? 'bg-blue-500 text-white' : 'bg-blue-500/10 text-blue-400'
+                      }`}>
                       <FiUsers size={12} />
                     </div>
                   </div>
@@ -439,21 +435,19 @@ const RolesPermissions = () => {
             ['admin', 'sales_head', 'tsm', 'billing', 'warehouse', 'customer'].map(role => {
               const isSelected = selectedRoleForUsers === role;
               return (
-                <div 
-                  key={role} 
+                <div
+                  key={role}
                   onClick={() => handleSelectRoleForUsers(role)}
-                  className={`bg-transparent backdrop-blur-2xl border shadow-lg rounded-2xl p-4 flex flex-col justify-between overflow-hidden relative hover:border-white/35 cursor-pointer transition-all active:scale-95 ${
-                    isSelected ? 'border-blue-500/50 bg-blue-500/[0.03] ring-1 ring-blue-500/30' : 'border-white/10'
-                  }`}
+                  className={`bg-transparent backdrop-blur-2xl border shadow-lg rounded-2xl p-4 flex flex-col justify-between overflow-hidden relative hover:border-white/35 cursor-pointer transition-all active:scale-95 ${isSelected ? 'border-blue-500/50 bg-blue-500/[0.03] ring-1 ring-blue-500/30' : 'border-white/10'
+                    }`}
                 >
                   <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">
                       {role.replace('_', ' ')}
                     </span>
-                    <div className={`p-1.5 rounded-lg shrink-0 transition-colors ${
-                      isSelected ? 'bg-blue-500 text-white' : 'bg-slate-800 text-slate-500'
-                    }`}>
+                    <div className={`p-1.5 rounded-lg shrink-0 transition-colors ${isSelected ? 'bg-blue-500 text-white' : 'bg-slate-800 text-slate-500'
+                      }`}>
                       <FiUsers size={12} />
                     </div>
                   </div>
@@ -472,7 +466,7 @@ const RolesPermissions = () => {
       {selectedRoleForUsers && (
         <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden relative p-6 space-y-6">
           <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-          
+
           <div className="flex justify-between items-center border-b border-white/10 pb-4">
             <div className="flex items-center gap-3">
               <FiUsers className="text-blue-400 text-xl" />
@@ -481,7 +475,7 @@ const RolesPermissions = () => {
                 <p className="text-xs text-slate-400 font-medium">Select a user profile to retrieve detailed hierarchy and logs.</p>
               </div>
             </div>
-            <button 
+            <button
               onClick={() => {
                 setSelectedRoleForUsers(null);
                 setRoleUsersList([]);
@@ -498,7 +492,7 @@ const RolesPermissions = () => {
             {/* Left Column: Users List */}
             <div className="lg:col-span-1 border-r border-white/5 pr-0 lg:pr-6 space-y-3">
               <span className="text-xs font-black text-slate-500 uppercase tracking-widest block mb-2">User Registry ({roleUsersList.length})</span>
-              
+
               {loadingRoleUsers ? (
                 <div className="py-12 flex flex-col justify-center items-center gap-2">
                   <FiLoader className="animate-spin text-lg text-blue-400" />
@@ -513,14 +507,13 @@ const RolesPermissions = () => {
                   {roleUsersList.map(u => {
                     const isUserSelected = selectedDetailedUser === u._id;
                     return (
-                      <div 
+                      <div
                         key={u._id}
                         onClick={() => handleFetchDetailedUser(u._id)}
-                        className={`p-3.5 rounded-2xl border text-left cursor-pointer transition-all active:scale-98 ${
-                          isUserSelected 
-                            ? 'bg-blue-600/15 border-blue-500/40 text-white shadow-md' 
+                        className={`p-3.5 rounded-2xl border text-left cursor-pointer transition-all active:scale-98 ${isUserSelected
+                            ? 'bg-blue-600/15 border-blue-500/40 text-white shadow-md'
                             : 'bg-white/[0.02] border-white/5 hover:border-white/10 text-slate-300'
-                        }`}
+                          }`}
                       >
                         <div className="font-bold text-sm truncate">{u.name}</div>
                         <div className="text-xs text-slate-500 font-medium truncate font-mono mt-0.5">{u.email}</div>
@@ -548,7 +541,7 @@ const RolesPermissions = () => {
                 </div>
               ) : detailedUserInfo ? (
                 <div className="bg-black/25 border border-white/5 rounded-2xl p-5 space-y-5 text-left animate-in fade-in">
-                  
+
                   {/* User Profile Header */}
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/5 pb-4">
                     <div className="flex items-center gap-3">
@@ -621,11 +614,10 @@ const RolesPermissions = () => {
                         {detailedUserInfo.devices.map((dev, i) => (
                           <div key={i} className="p-3.5 bg-black/40 border border-white/5 rounded-xl space-y-2 text-xs relative overflow-hidden">
                             <div className="flex justify-between items-center border-b border-white/5 pb-1.5">
-                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Device #{i+1}</span>
-                              <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border uppercase shrink-0 ${
-                                dev.devicePlatform === 'ios' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' :
-                                'bg-orange-500/10 text-orange-400 border-orange-500/20'
-                              }`}>
+                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Device #{i + 1}</span>
+                              <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border uppercase shrink-0 ${dev.devicePlatform === 'ios' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' :
+                                  'bg-orange-500/10 text-orange-400 border-orange-500/20'
+                                }`}>
                                 {dev.devicePlatform || 'unknown'}
                               </span>
                             </div>
@@ -680,7 +672,7 @@ const RolesPermissions = () => {
       {activeTab === 'CREATE_USER' && (
         <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden relative p-6">
           <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-          
+
           <div className="max-w-2xl mx-auto">
             <div className="mb-6 flex items-center gap-3 border-b border-white/10 pb-4">
               <FiUserPlus className="text-blue-400 text-xl" />
@@ -867,7 +859,7 @@ const RolesPermissions = () => {
 
       {activeTab === 'PERMISSIONS' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-          
+
           {/* Left Column: Role Selector & Permissions Form */}
           <div className="lg:col-span-2 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden relative p-6 space-y-6">
             <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
@@ -923,14 +915,13 @@ const RolesPermissions = () => {
                   {availablePermissions.map(perm => {
                     const isChecked = roleActivePermissions.includes(perm);
                     return (
-                      <div 
+                      <div
                         key={perm}
                         onClick={() => handleTogglePermission(perm)}
-                        className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group ${
-                          isChecked 
-                            ? 'bg-blue-600/15 border-blue-500/40 text-white' 
+                        className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group ${isChecked
+                            ? 'bg-blue-600/15 border-blue-500/40 text-white'
                             : 'bg-white/[0.02] border-white/5 text-slate-400 hover:border-white/10 hover:text-white'
-                        }`}
+                          }`}
                       >
                         <div className="flex flex-col text-left">
                           <code className="text-xs font-mono font-bold">{perm}</code>
@@ -980,11 +971,10 @@ const RolesPermissions = () => {
                       <div key={idx} className="p-3.5 rounded-2xl bg-black/25 border border-white/5 hover:border-white/10 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left">
                         <div className="space-y-1 min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded shrink-0 ${
-                              api.method === 'GET' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-                              api.method === 'POST' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
-                              'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                            }`}>
+                            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded shrink-0 ${api.method === 'GET' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                                api.method === 'POST' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
+                                  'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                              }`}>
                               {api.method}
                             </span>
                             <code className="text-xs font-bold text-blue-300 font-mono break-all">{api.path}</code>
@@ -1023,7 +1013,7 @@ const RolesPermissions = () => {
                         <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                         <h3 className="text-sm font-bold text-white uppercase tracking-wider">Live Response Viewer</h3>
                       </div>
-                      <button 
+                      <button
                         onClick={() => {
                           setActiveApiTest(null);
                           setApiTestResponse(null);
@@ -1102,8 +1092,8 @@ const RolesPermissions = () => {
                   </div>
                 ) : (
                   roleMappings.map((log, idx) => (
-                    <div 
-                      key={log._id || idx} 
+                    <div
+                      key={log._id || idx}
                       className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col gap-2 relative overflow-hidden"
                     >
                       <div className="flex justify-between items-start">
@@ -1116,7 +1106,7 @@ const RolesPermissions = () => {
                           </span>
                         )}
                       </div>
-                      
+
                       <div className="flex flex-wrap gap-1">
                         {log.permissions && log.permissions.map(p => (
                           <span key={p} className="text-[9px] bg-blue-500/10 border border-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded font-mono">

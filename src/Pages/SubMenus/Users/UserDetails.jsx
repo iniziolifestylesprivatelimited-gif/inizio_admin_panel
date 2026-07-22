@@ -246,7 +246,7 @@ const UserDetails = () => {
 
         const actUsers = actRes.data?.users || [];
         const match = actUsers.find(au => au.userId === user._id || (au.email && user.email && au.email.toLowerCase() === user.email.toLowerCase()));
-        
+
         const loginCount = userLogs.filter(act => (act.action || '').toUpperCase() === 'LOGIN').length;
 
         setUser(prev => prev ? {
@@ -295,7 +295,7 @@ const UserDetails = () => {
       let foundUser = allUsers.find(u => u._id === id);
       if (foundUser) {
         const match = actUsers.find(au => au.userId === foundUser._id || (au.email && foundUser.email && au.email.toLowerCase() === foundUser.email.toLowerCase()));
-        
+
         const rawAppVersion = foundUser.appVersion || match?.appVersion;
         const matchedAppVersion = hasValidAppVersion(rawAppVersion) ? rawAppVersion : null;
         const matchedDevices = (foundUser.devices && foundUser.devices.length > 0) ? foundUser.devices : (foundUser.registeredDevices && foundUser.registeredDevices.length > 0) ? foundUser.registeredDevices : (match?.devices || []);
@@ -556,8 +556,8 @@ const UserDetails = () => {
                 key={tab.id}
                 onClick={() => setActiveSectionTab(tab.id)}
                 className={`pb-3 font-bold text-sm transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${activeSectionTab === tab.id
-                    ? 'text-blue-400 border-b-2 border-blue-400 font-extrabold'
-                    : 'text-slate-400 hover:text-slate-200'
+                  ? 'text-blue-400 border-b-2 border-blue-400 font-extrabold'
+                  : 'text-slate-400 hover:text-slate-200'
                   }`}
               >
                 {tab.icon}
@@ -604,13 +604,12 @@ const UserDetails = () => {
                   <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl flex flex-col justify-between">
                     <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Installation</span>
                     <div className="mt-2">
-                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border ${
-                        checkAppStatus(user) === 'uninstalled'
+                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border ${checkAppStatus(user) === 'uninstalled'
                           ? 'bg-rose-500/15 text-rose-400 border-rose-500/30'
                           : checkAppStatus(user) === 'installed'
                             ? 'bg-teal-500/15 text-teal-400 border-teal-500/30'
                             : 'bg-slate-800 text-slate-400 border-white/5'
-                      }`}>
+                        }`}>
                         {checkAppStatus(user) === 'uninstalled' ? 'Uninstalled' : checkAppStatus(user) === 'installed' ? 'Installed' : 'Pending'}
                       </span>
                     </div>
@@ -807,8 +806,8 @@ const UserDetails = () => {
                         <div>
                           <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Notifications</p>
                           <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${device.notificationsEnabled
-                              ? 'bg-emerald-500/10 text-emerald-400'
-                              : 'bg-slate-500/10 text-slate-400'
+                            ? 'bg-emerald-500/10 text-emerald-400'
+                            : 'bg-slate-500/10 text-slate-400'
                             }`}>
                             {device.notificationsEnabled ? 'Enabled' : 'Disabled'}
                           </span>
@@ -852,8 +851,8 @@ const UserDetails = () => {
                     key={tab.id}
                     onClick={() => setActiveActivityTab(tab.id)}
                     className={`pb-3 font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 ${activeActivityTab === tab.id
-                        ? 'text-blue-400 border-b-2 border-blue-400 font-extrabold'
-                        : 'text-slate-400 hover:text-slate-200'
+                      ? 'text-blue-400 border-b-2 border-blue-400 font-extrabold'
+                      : 'text-slate-400 hover:text-slate-200'
                       }`}
                   >
                     {tab.icon}

@@ -1624,15 +1624,38 @@ const ProductList = () => {
                       <td className="px-4 py-3 text-sm text-slate-300 font-medium">{getCategoryName(product.category)}</td>
                       <td className="px-4 py-3 text-sm text-white font-bold">
                         <div>{product.name || '-'}</div>
-                        {product.isActive === false ? (
-                          <span className="inline-block text-[9px] font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-1.5 py-0.5 rounded mt-1">
-                            Deactivated Product
-                          </span>
-                        ) : product.variants && product.variants.some(v => v.isActive === false) ? (
-                          <span className="inline-block text-[9px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded mt-1">
-                            {product.variants.filter(v => v.isActive === false).length} Variant(s) Inactive
-                          </span>
-                        ) : null}
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {product.isActive === false ? (
+                            <span className="inline-block text-[9px] font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-1.5 py-0.5 rounded">
+                              Deactivated Product
+                            </span>
+                          ) : product.variants && product.variants.some(v => v.isActive === false) ? (
+                            <span className="inline-block text-[9px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded">
+                              {product.variants.filter(v => v.isActive === false).length} Variant(s) Inactive
+                            </span>
+                          ) : null}
+
+                          {(() => {
+                            const validSlabs = (product.quantityPricing || []).filter(qp => Number(qp.minQty) > 0 && Number(qp.price) > 0);
+                            if (validSlabs.length === 0) return null;
+                            return (
+                              <span 
+                                className="inline-flex items-center gap-1 text-[9px] font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.5 rounded"
+                                title={validSlabs.map(qp => `Qty: ${qp.minQty}+ → ₹${qp.price}`).join('\n')}
+                              >
+                                <span className="w-1 h-1 rounded-full bg-blue-400 animate-pulse"></span>
+                                {validSlabs.length} Qty Slab{validSlabs.length > 1 ? 's' : ''}
+                              </span>
+                            );
+                          })()}
+
+                          {product.variants && product.variants.some(v => (v.quantityPricing || []).some(qp => Number(qp.minQty) > 0 && Number(qp.price) > 0)) && (
+                            <span className="inline-flex items-center gap-1 text-[9px] font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.5 rounded">
+                              <span className="w-1 h-1 rounded-full bg-indigo-400 animate-pulse"></span>
+                              Variant Slabs
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-400 font-bold">{product.basePrice ?? '-'}</td>
                       <td className="px-4 py-3 text-sm text-emerald-400 font-bold">{product.offerPrice ?? '-'}</td>
@@ -1770,9 +1793,9 @@ const ProductList = () => {
 
       {/* Product Details Modal */}
       {isDetailsModalOpen && currentProductForView && createPortal(
-        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={() => setIsDetailsModalOpen(false)}></div>
-          <div className="relative bg-slate-900 border border-white/10 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={() => setIsDetailsModalOpen(false)}></div>
+          <div className="relative bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
             
             <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-800/50">
               <div className="flex items-center gap-3">
@@ -2030,9 +2053,9 @@ const ProductList = () => {
 
       {/* Add Product Modal */}
       {isAddModalOpen && createPortal(
-        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeAddModal}></div>
-          <div className="relative bg-slate-900 border border-white/10 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={closeAddModal}></div>
+          <div className="relative bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
             
             <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-800/50">
               <div className="flex items-center gap-3">
@@ -2361,10 +2384,10 @@ const ProductList = () => {
 
       {/* Deactivate Products Conditions Modal */}
       {isDeactivateModalOpen && createPortal(
-        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={() => !isBulkUpdating && setIsDeactivateModalOpen(false)}></div>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={() => !isBulkUpdating && setIsDeactivateModalOpen(false)}></div>
           
-          <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-800/50">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-red-900/50 text-red-400 flex items-center justify-center text-lg">
@@ -2524,10 +2547,10 @@ const ProductList = () => {
 
       {/* Activate Products Conditions Modal */}
       {isActivateModalOpen && createPortal(
-        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={() => !isBulkUpdating && setIsActivateModalOpen(false)}></div>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={() => !isBulkUpdating && setIsActivateModalOpen(false)}></div>
           
-          <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-800/50">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-emerald-900/50 text-emerald-400 flex items-center justify-center text-lg">
@@ -2687,9 +2710,9 @@ const ProductList = () => {
 
       {/* Image View Modal */}
       {isImageViewOpen && currentProductForView && createPortal(
-        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-900/90 backdrop-blur-sm" onClick={() => setIsImageViewOpen(false)}></div>
-          <div className="relative bg-slate-900 border border-white/10 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={() => setIsImageViewOpen(false)}></div>
+          <div className="relative bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-800/50">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-900/50 text-blue-400 flex items-center justify-center text-lg">

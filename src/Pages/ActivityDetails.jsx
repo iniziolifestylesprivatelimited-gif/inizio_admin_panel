@@ -1074,9 +1074,10 @@ const ActivityDetails = () => {
     if (type === 'revenue') {
       return currentItems.map((item, index) => (
         <tr key={item._id} className="hover:bg-transparent transition-colors">
+          {console.log(item)}
           <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
           <td className="py-4 px-5 text-xs font-mono text-blue-400 select-all font-semibold">#{item._id}</td>
-          <td className="py-4 px-5 text-sm font-bold text-white">{item.customerName || 'Walk-in Customer'}</td>
+          <td className="py-4 px-5 text-sm font-bold text-white">{item.address.name || 'Walk-in Customer'}</td>
           <td className="py-4 px-5 text-sm text-slate-300 font-medium">{formatDateTime(item.createdAt)}</td>
           <td className="py-4 px-5 text-sm text-emerald-400 font-extrabold">₹{(item.totalAmount || 0).toLocaleString('en-IN')}</td>
           <td className="py-4 px-5 text-xs">
@@ -1192,8 +1193,8 @@ const ActivityDetails = () => {
         const initials = (item.name || 'U').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
         const userId = item._id || item.userId;
         return (
-          <tr 
-            key={userId || index} 
+          <tr
+            key={userId || index}
             onClick={() => userId && navigate(`/users/list/${userId}`)}
             className="hover:bg-white/[0.04] transition-colors cursor-pointer group"
           >
@@ -1272,8 +1273,8 @@ const ActivityDetails = () => {
         const initials = (item.name || 'U').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
         const userId = item._id || item.userId;
         return (
-          <tr 
-            key={userId || index} 
+          <tr
+            key={userId || index}
             onClick={() => userId && navigate(`/users/list/${userId}`)}
             className="hover:bg-white/[0.04] transition-colors cursor-pointer group"
           >
@@ -2428,8 +2429,8 @@ const ActivityDetails = () => {
                       setCurrentPage(1);
                     }}
                     className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 border ${analyticsFilter === opt.id
-                        ? `${opt.activeStyle} ring-1 ring-white/20 scale-[1.02]`
-                        : 'bg-slate-900/60 hover:bg-white/10 text-slate-400 border-white/10 hover:text-white'
+                      ? `${opt.activeStyle} ring-1 ring-white/20 scale-[1.02]`
+                      : 'bg-slate-900/60 hover:bg-white/10 text-slate-400 border-white/10 hover:text-white'
                       }`}
                   >
                     <span>{opt.label}</span>
@@ -2524,8 +2525,8 @@ const ActivityDetails = () => {
         const ModalIcon = modalConfig.icon;
 
         return createPortal(
-          <div className="fixed inset-0 bg-black/75 backdrop-blur-2xl flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
-            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl p-6 max-w-md w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
+            <div className="bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 shadow-2xl rounded-3xl p-6 max-w-md w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
               <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
 
               <div className="flex justify-between items-start mb-5 relative z-1000">
@@ -2640,8 +2641,8 @@ const ActivityDetails = () => {
 
       {/* User Analytics Activity Popup Modal */}
       {selectedUserAnalytics && createPortal(
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-2xl flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
-          <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl p-6 max-w-2xl w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
+          <div className="bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 shadow-2xl rounded-3xl p-6 max-w-2xl w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
 
             <div className="flex justify-between items-start mb-5 relative z-[1000]">
@@ -2735,8 +2736,8 @@ const ActivityDetails = () => {
 
       {/* Viewers Breakdown Modal */}
       {selectedViewerBreakdown && createPortal(
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-2xl flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
-          <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl p-6 max-w-lg w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
+          <div className="bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 shadow-2xl rounded-3xl p-6 max-w-lg w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
 
             {/* Header */}
@@ -2746,8 +2747,8 @@ const ActivityDetails = () => {
                   <img src={selectedViewerBreakdown.logo} alt={selectedViewerBreakdown.title} className="w-10 h-10 object-contain rounded-xl bg-white border border-white/10 p-1 shrink-0" />
                 ) : (
                   <div className={`p-2.5 rounded-xl ${selectedViewerBreakdown.type === 'Brand' ? 'bg-indigo-500/20 text-indigo-400' :
-                      selectedViewerBreakdown.type === 'Category' ? 'bg-purple-500/20 text-purple-400' :
-                        'bg-blue-500/20 text-blue-400'
+                    selectedViewerBreakdown.type === 'Category' ? 'bg-purple-500/20 text-purple-400' :
+                      'bg-blue-500/20 text-blue-400'
                     } shrink-0`}>
                     {selectedViewerBreakdown.type === 'Brand' ? <FiTrendingUp size={20} /> :
                       selectedViewerBreakdown.type === 'Category' ? <FiLayers size={20} /> :
@@ -2776,8 +2777,8 @@ const ActivityDetails = () => {
               <div>
                 <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px] block">Total Views / Searches</span>
                 <span className={`text-base font-black ${selectedViewerBreakdown.type === 'Brand' ? 'text-indigo-400' :
-                    selectedViewerBreakdown.type === 'Category' ? 'text-purple-400' :
-                      'text-blue-400'
+                  selectedViewerBreakdown.type === 'Category' ? 'text-purple-400' :
+                    'text-blue-400'
                   }`}>
                   {selectedViewerBreakdown.searches} views
                 </span>
@@ -2827,10 +2828,10 @@ const ActivityDetails = () => {
 
                         <div className="text-right shrink-0 flex flex-col items-end">
                           <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${selectedViewerBreakdown.type === 'Brand'
-                              ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
-                              : selectedViewerBreakdown.type === 'Category'
-                                ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
-                                : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                            ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+                            : selectedViewerBreakdown.type === 'Category'
+                              ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                              : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
                             }`}>
                             {item.count || 0} view{item.count !== 1 ? 's' : ''} ({percent}%)
                           </span>
