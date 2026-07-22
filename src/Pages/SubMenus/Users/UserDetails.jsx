@@ -93,7 +93,10 @@ const UserDetails = () => {
 
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [devices, setDevices] = useState([]);
+  const [authStatus, setAuthStatus] = useState(null);
+  const [loadingAuthStatus, setLoadingAuthStatus] = useState(false);
 
   const [isDeleting, setIsDeleting] = useState(false);
   const [deletionReason, setDeletionReason] = useState('Uploaded GST certificate PDF is expired. Please upload the latest active certificate.');
