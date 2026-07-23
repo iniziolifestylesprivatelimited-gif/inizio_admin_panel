@@ -89,14 +89,7 @@ const UsersList = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const [isActionLoading, setIsActionLoading] = useState(false);
-  const [deletingUserId, setDeletingUserId] = useState(null);
-  const [deletionReason, setDeletionReason] = useState('');
   const [isSecurityDropdownOpen, setIsSecurityDropdownOpen] = useState(false);
-
-  const triggerDelete = (id) => {
-    setDeletingUserId(id);
-    setDeletionReason('Uploaded GST certificate PDF is expired. Please upload the latest active certificate.');
-  };
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -243,24 +236,18 @@ const UsersList = () => {
   // };
 
   // Delete User
-  const handleDelete = async (id, reasonText) => {
-    if (!reasonText || !reasonText.trim()) {
-      alert('A deletion reason is required.');
-      return;
-    }
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this user?')) return;
 
     setIsActionLoading(true);
     try {
       const token = sessionStorage.getItem('accessToken');
       // Note: Adjust the endpoint below to match your backend route for deleting users
-      await api.delete(`/admin/reject/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-        data: { reason: reasonText }
+      await api.put(`/admin/soft-delete/${id}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       
       setUsers((prevUsers) => prevUsers.filter((user) => user._id !== id));
-      setDeletingUserId(null);
-      setDeletionReason('');
       alert('User deleted successfully.');
     } catch (err) {
       console.error('Delete error:', err);
@@ -611,7 +598,7 @@ const UsersList = () => {
                       <td className="p-4 text-sm text-yellow-400 font-mono font-semibold">{user.gstNumber || 'N/A'}</td>
                       <td className="p-4 flex items-center justify-center gap-2">
                         <button 
-                          onClick={(e) => { e.stopPropagation(); triggerDelete(user._id); }} 
+                          onClick={(e) => { e.stopPropagation(); handleDelete(user._id); }} 
                           disabled={isActionLoading} 
                           className="p-2.5 text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50 cursor-pointer transform-gpu" 
                           title="Permanently Delete User"
@@ -711,44 +698,6 @@ const UsersList = () => {
 
 
 
-      {/* Delete User Reason Popup Modal */}
-      {deletingUserId && createPortal(
-        <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={() => { setDeletingUserId(null); setDeletionReason(''); }}></div>
-          
-          <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl p-6 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-              <FiUserMinus className="text-red-400" /> Delete User Account
-            </h3>
-            <p className="text-xs text-slate-400 mb-4 font-medium font-sans">Please provide a reason to notify the customer about their account deletion.</p>
-            
-            <textarea
-              required
-              rows="4"
-              value={deletionReason}
-              onChange={(e) => setDeletionReason(e.target.value)}
-              placeholder="Provide a detailed reason..."
-              className="w-full px-3.5 py-2.5 bg-slate-950 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-white text-sm"
-            ></textarea>
-            
-            <div className="flex gap-3 justify-end mt-5">
-              <button
-                onClick={() => { setDeletingUserId(null); setDeletionReason(''); }}
-                className="px-4 py-2 bg-slate-800 text-slate-300 text-sm font-bold rounded-xl hover:bg-slate-700 transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleDelete(deletingUserId, deletionReason)}
-                disabled={isActionLoading || !deletionReason.trim()}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isActionLoading ? <FiLoader className="animate-spin text-xs" /> : <FiTrash2 size={14} />} Confirm Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      , document.body)}
     </div>
   );
 };

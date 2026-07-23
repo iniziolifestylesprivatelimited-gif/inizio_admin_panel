@@ -98,8 +98,6 @@ const UserDetails = () => {
   const [authStatus, setAuthStatus] = useState(null);
   const [loadingAuthStatus, setLoadingAuthStatus] = useState(false);
 
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [deletionReason, setDeletionReason] = useState('Uploaded GST certificate PDF is expired. Please upload the latest active certificate.');
   const [isActionLoading, setIsActionLoading] = useState(false);
 
   // Browsing Activities State
@@ -377,18 +375,14 @@ const UserDetails = () => {
     fetchAuthStatus();
   }, [user?.email]);
 
-  const handleDelete = async (reasonText) => {
-    if (!reasonText || !reasonText.trim()) {
-      alert('A deletion reason is required.');
-      return;
-    }
+  const handleDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this user account?')) return;
 
     setIsActionLoading(true);
     try {
       const token = sessionStorage.getItem('accessToken');
-      await api.delete(`/admin/reject/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-        data: { reason: reasonText }
+      await api.put(`/admin/soft-delete/${id}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       alert('User deleted successfully.');
       navigate('/users/list');
@@ -397,7 +391,6 @@ const UserDetails = () => {
       alert(err.response?.data?.message || 'Failed to delete user.');
     } finally {
       setIsActionLoading(false);
-      setIsDeleting(false);
     }
   };
 
@@ -1045,7 +1038,7 @@ const UserDetails = () => {
 
               {/* Delete Account Button */}
               <button
-                onClick={() => setIsDeleting(true)}
+                onClick={handleDelete}
                 disabled={isActionLoading}
                 className="flex items-center justify-center px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all cursor-pointer text-sm shadow-md shadow-red-600/10 shrink-0"
               >
@@ -1056,45 +1049,6 @@ const UserDetails = () => {
 
         </div>
       ) : null}
-
-      {/* Delete User Reason Popup Modal */}
-      {isDeleting && createPortal(
-        <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={() => setIsDeleting(false)}></div>
-
-          <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl p-6 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-              <FiUserMinus className="text-red-400" /> Delete User Account
-            </h3>
-            <p className="text-xs text-slate-400 mb-4 font-medium">Please provide a reason to notify the customer about their account deletion.</p>
-
-            <textarea
-              required
-              rows="4"
-              value={deletionReason}
-              onChange={(e) => setDeletionReason(e.target.value)}
-              placeholder="Provide a detailed reason..."
-              className="w-full px-3.5 py-2.5 bg-slate-950 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-white text-sm"
-            ></textarea>
-
-            <div className="flex gap-3 justify-end mt-5">
-              <button
-                onClick={() => setIsDeleting(false)}
-                className="px-4 py-2 bg-slate-800 text-slate-300 text-sm font-bold rounded-xl hover:bg-slate-700 transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleDelete(deletionReason)}
-                disabled={isActionLoading || !deletionReason.trim()}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isActionLoading ? <FiLoader className="animate-spin text-xs" /> : <FiTrash2 size={14} />} Confirm Delete
-              </button>
-            </div>
-          </div>
-        </div>
-        , document.body)}
     </div>
   );
 };
