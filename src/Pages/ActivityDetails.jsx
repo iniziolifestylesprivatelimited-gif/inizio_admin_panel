@@ -9,7 +9,7 @@ import { api, BASE_URL } from '../api/axios';
 import {
   FiArrowLeft, FiSearch, FiActivity, FiUsers, FiBox,
   FiDollarSign, FiLayers, FiTrendingUp, FiEye, FiLogIn,
-  FiLogOut, FiClock, FiSettings, FiCheck, FiX, FiPhone, FiMail, FiSmartphone, FiBell, FiShield, FiCalendar, FiFilter
+  FiLogOut, FiClock, FiSettings, FiCheck, FiTrash2, FiX, FiPhone, FiMail, FiSmartphone, FiBell, FiShield, FiCalendar, FiFilter
 } from 'react-icons/fi';
 
 const checkAppStatus = (u) => {
@@ -1210,6 +1210,11 @@ const ActivityDetails = () => {
                 <div>
                   <div className="text-sm font-bold text-white group-hover:text-blue-400 transition-colors flex items-center gap-1.5">
                     {item.name || 'Unknown User'}
+                    {item.deleteRequested && (
+                      <span className="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 text-[9px] font-extrabold border border-rose-500/20 shrink-0">
+                        Deleted
+                      </span>
+                    )}
                   </div>
                   {item.phone && (
                     <div className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1 font-mono">
@@ -1299,6 +1304,11 @@ const ActivityDetails = () => {
                   <div className={`text-xs font-bold text-white transition-colors flex items-center gap-1 ${type === 'installed' ? 'group-hover:text-emerald-400' : 'group-hover:text-rose-400'
                     }`}>
                     {item.name || 'Unknown User'}
+                    {item.deleteRequested && (
+                      <span className="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 text-[9px] font-extrabold border border-rose-500/20 shrink-0">
+                        Deleted
+                      </span>
+                    )}
                   </div>
                   {item.phone && (
                     <div className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1">
@@ -1897,7 +1907,7 @@ const ActivityDetails = () => {
         </>
       );
     }
-    if (type === 'users' || type === 'users-status' || type === 'installed' || type === 'uninstalled') {
+    if (type === 'users' || type === 'users-status' || type === 'installed' || type === 'uninstalled' || type === 'deleted') {
       return (
         <>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>

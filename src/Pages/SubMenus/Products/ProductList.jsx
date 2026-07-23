@@ -6,12 +6,37 @@ import { FiEdit2, FiTrash2, FiPlus, FiLoader, FiSearch, FiUpload, FiX, FiSave, F
 import { api, BASE_URL } from '../../../api/axios';
 import CustomDropdown from '../../../Components/CustomDropdown';
 import * as XLSX from 'xlsx';
+import { formatDateTimeDDMMYYYY } from '../../../utils/dateUtils';
 
 const getImageUrl = (path) => {
   if (!path) return '';
   if (path.startsWith('http') || path.startsWith('blob:')) return path;
   const cleanPath = path.replace(/\\/g, '/');
   return `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
+};
+
+const CopyButton = ({ text, className = "text-slate-600 hover:text-slate-300", size = 12 }) => {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = (e) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+  return (
+    <button 
+      onClick={handleCopy}
+      type="button"
+      className={`${className} p-0.5 rounded transition-colors shrink-0 flex items-center justify-center`}
+      title={copied ? "Copied!" : "Copy ID"}
+    >
+      {copied ? (
+        <FiCheck className="text-emerald-400" size={size} />
+      ) : (
+        <FiCopy size={size} />
+      )}
+    </button>
+  );
 };
 
 const ProductList = () => {
@@ -266,7 +291,7 @@ const ProductList = () => {
     fetchData();
   }, []);
 
-// console.log(products)
+console.log(products)
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this Product?')) {
@@ -1587,8 +1612,8 @@ const ProductList = () => {
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">Offer Price</th>
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs text-center">Total Qty</th>
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">Variants</th>
+                <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs text-center">Date Info</th>
                 {/* <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">EAN</th> */}
-                <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs text-center">Images</th>
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs text-center">Action</th>
               </tr>
             </thead>
@@ -1623,7 +1648,40 @@ const ProductList = () => {
                       <td className="px-4 py-3 text-sm text-slate-300 font-medium">{getBrandName(product.brand)}</td>
                       <td className="px-4 py-3 text-sm text-slate-300 font-medium">{getCategoryName(product.category)}</td>
                       <td className="px-4 py-3 text-sm text-white font-bold">
-                        <div>{product.name || '-'}</div>
+                        <div className="flex items-center gap-3">
+                          {product.images && product.images.length > 0 ? (
+                            <div 
+                              onClick={(e) => { e.stopPropagation(); openImageView(product); }}
+                              className="w-12 h-12 bg-white rounded-lg overflow-hidden border border-white/10 cursor-pointer hover:border-blue-500 transition-colors relative group/img shrink-0 animate-in fade-in zoom-in-95 duration-200"
+                              title="Click to view images"
+                            >
+                              <img src={getImageUrl(product.images[0])} alt={product.name} className="w-full h-full object-cover" />
+                              {product.images.length > 1 && (
+                                <span className="absolute bottom-0 right-0 bg-slate-950/80 border-t border-l border-white/10 text-[9px] font-black text-white px-1 py-0.25 rounded-tl-md">
+                                  +{product.images.length - 1}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <div 
+                              onClick={(e) => { e.stopPropagation(); openImageView(product); }}
+                              className="w-12 h-12 bg-slate-800 text-slate-500 hover:bg-slate-700 hover:text-white rounded-lg border border-white/10 flex flex-col items-center justify-center transition-colors cursor-pointer shrink-0"
+                              title="No Images"
+                            >
+                              <FiImage className="text-lg" />
+                            </div>
+                          )}
+                          <div>
+                            <div>{product.name || '-'}</div>
+                            <div className="flex items-center gap-1 mt-0.5">
+                              <span className="text-xs text-slate-600 font-bold font-mono">{product._id}</span>
+                              <CopyButton text={product._id} />
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-slate-400 font-bold">{product.basePrice ?? '-'}</td>
+                      <td className="px-4 py-3 text-sm text-emerald-400 font-bold">{product.offerPrice ?? '-'}
                         <div className="flex flex-wrap gap-1 mt-1">
                           {product.isActive === false ? (
                             <span className="inline-block text-[9px] font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-1.5 py-0.5 rounded">
@@ -1657,33 +1715,13 @@ const ProductList = () => {
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-400 font-bold">{product.basePrice ?? '-'}</td>
-                      <td className="px-4 py-3 text-sm text-emerald-400 font-bold">{product.offerPrice ?? '-'}</td>
                       <td className="px-4 py-3 text-center">{getQuantityBadge(product)}</td>
                       <td className="px-4 py-3 text-sm text-slate-400 text-center">{product.variants ? product.variants.length>1 ? `${product.variants.length}`: `0` : '-'}</td>
-                      <td className="px-4 py-3 text-center">
-                        {product.images && product.images.length > 0 ? (
-                          <div 
-                            onClick={(e) => { e.stopPropagation(); openImageView(product); }}
-                            className="w-12 h-12 bg-white rounded-lg overflow-hidden border border-white/10 mx-auto cursor-pointer hover:border-blue-500 transition-colors relative group/img"
-                            title="Click to view images"
-                          >
-                            <img src={getImageUrl(product.images[0])} alt={product.name} className="w-full h-full object-cover" />
-                            {product.images.length > 1 && (
-                              <span className="absolute bottom-0 right-0 bg-slate-950/80 border-t border-l border-white/10 text-[9px] font-black text-white px-1 py-0.25 rounded-tl-md">
-                                +{product.images.length - 1}
-                              </span>
-                            )}
-                          </div>
-                        ) : (
-                          <div 
-                            onClick={(e) => { e.stopPropagation(); openImageView(product); }}
-                            className="w-12 h-12 bg-slate-800 text-slate-500 hover:bg-slate-700 hover:text-white rounded-lg border border-white/10 flex flex-col items-center justify-center mx-auto transition-colors cursor-pointer"
-                            title="No Images"
-                          >
-                            <FiImage className="text-lg" />
-                          </div>
-                        )}
+                      <td className="px-4 py-3 text-[11px] text-slate-400 font-medium leading-relaxed">
+                        <div className="flex flex-col gap-0.5">
+                          <div><span className="text-[9px] text-slate-500 font-bold uppercase mr-1">Created:</span>{formatDateTimeDDMMYYYY(product.createdAt)}</div>
+                          <div><span className="text-[9px] text-slate-500 font-bold uppercase mr-1">Updated:</span>{formatDateTimeDDMMYYYY(product.updatedAt)}</div>
+                        </div>
                       </td>
                       <td className="px-4 py-3 text-center space-x-2">
                         <button 
@@ -1818,6 +1856,10 @@ const ProductList = () => {
                   <div className="sm:col-span-2 md:col-span-3">
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Product Name</p>
                     <p className="text-white font-medium text-lg">{currentProductForView.name || 'N/A'}</p>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <span className='text-xs text-slate-500 font-mono'>{currentProductForView._id}</span>
+                      <CopyButton text={currentProductForView._id} className="text-slate-500 hover:text-slate-300" size={10} />
+                    </div>
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Brand</p>
@@ -1849,6 +1891,14 @@ const ProductList = () => {
                         {isTogglingActive ? 'Updating...' : (currentProductForView.isActive !== false ? 'Deactivate' : 'Activate')}
                       </button>
                     </div>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Created At</p>
+                    <p className="text-white font-medium text-sm">{formatDateTimeDDMMYYYY(currentProductForView.createdAt)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Updated At</p>
+                    <p className="text-white font-medium text-sm">{formatDateTimeDDMMYYYY(currentProductForView.updatedAt)}</p>
                   </div>
                 </div>
               </div>
@@ -1977,6 +2027,10 @@ const ProductList = () => {
                             <div>
                               <p className="text-xs text-slate-500 uppercase tracking-wider mb-1 font-bold">Variant Name</p>
                               <p className="text-sm text-white font-medium">{variant.name || 'N/A'}</p>
+                              <div className="flex items-center gap-1 mt-0.5">
+                                <span className='text-xs text-slate-600 font-mono'>{variant._id}</span>
+                                <CopyButton text={variant._id} className="text-slate-600 hover:text-slate-300" size={10} />
+                              </div>
                             </div>
                             <div>
                               <p className="text-xs text-slate-500 uppercase tracking-wider mb-1 font-bold">Quantity</p>

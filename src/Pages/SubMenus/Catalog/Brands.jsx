@@ -1,14 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiTag, FiImage, FiLoader, FiSearch } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiTag, FiImage, FiLoader, FiSearch, FiCopy, FiCheck } from 'react-icons/fi';
 
 import { api, BASE_URL } from '../../../api/axios';
+import { formatDateTimeDDMMYYYY } from '../../../utils/dateUtils';
 
 const getImageUrl = (path) => {
   if (!path) return '';
   if (path.startsWith('http') || path.startsWith('blob:')) return path;
   const cleanPath = path.replace(/\\/g, '/');
   return `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
+};
+
+const CopyButton = ({ text, className = "text-slate-600 hover:text-slate-300", size = 12 }) => {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = (e) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+  return (
+    <button 
+      onClick={handleCopy}
+      type="button"
+      className={`${className} p-0.5 rounded transition-colors shrink-0 flex items-center justify-center`}
+      title={copied ? "Copied!" : "Copy ID"}
+    >
+      {copied ? (
+        <FiCheck className="text-emerald-400" size={size} />
+      ) : (
+        <FiCopy size={size} />
+      )}
+    </button>
+  );
 };
 
 const Brands = () => {
@@ -358,14 +383,15 @@ const Brands = () => {
                   <tr>
                     <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider w-16">S.No.</th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider">Brand Name</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider">Products Count</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider">Products</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider">Date Info</th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/10">
                   {loading ? (
                     <tr>
-                      <td colSpan="4" className="px-6 py-12 text-center text-slate-400 font-medium">
+                      <td colSpan="5" className="px-6 py-12 text-center text-slate-400 font-medium">
                         <FiLoader className="animate-spin text-3xl mx-auto mb-3 text-blue-400" />
                         Loading brands...
                       </td>
@@ -385,6 +411,10 @@ const Brands = () => {
                             )}
                           <div className="flex flex-col">
                             <span className="font-bold text-white">{brand.name}</span>
+                            <div className="flex items-center gap-1 mt-0.5">
+                              <span className="text-xs text-slate-600 font-bold font-mono">{brand._id}</span>
+                              <CopyButton text={brand._id} />
+                            </div>
                             {brand.description && (
                               <span className="text-slate-400 text-xs mt-0.5 line-clamp-1 max-w-[200px]" title={brand.description}>{brand.description}</span>
                             )}
@@ -401,8 +431,14 @@ const Brands = () => {
                           </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm font-semibold text-slate-300">
+                        <td className="px-6 py-4 text-sm font-semibold text-slate-300 text-center">
                           {brand.productCount || 0}
+                        </td>
+                        <td className="px-6 py-4 text-[11px] text-slate-400 font-medium leading-relaxed">
+                          <div className="flex flex-col gap-0.5">
+                            <div><span className="text-[9px] text-slate-500 font-bold uppercase mr-1">Created:</span>{formatDateTimeDDMMYYYY(brand.createdAt)}</div>
+                            <div><span className="text-[9px] text-slate-500 font-bold uppercase mr-1">Updated:</span>{formatDateTimeDDMMYYYY(brand.updatedAt)}</div>
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-right space-x-2">
                           <button onClick={() => handleEdit(brand)} className="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-900/30 rounded-lg transition-colors cursor-pointer" title="Edit Brand">
@@ -416,7 +452,7 @@ const Brands = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="4" className="px-6 py-12 text-center text-slate-400 font-medium">
+                      <td colSpan="5" className="px-6 py-12 text-center text-slate-400 font-medium">
                         {searchTerm ? 'No brands matching your search.' : 'No brands found. Create your first brand using the form.'}
                       </td>
                     </tr>

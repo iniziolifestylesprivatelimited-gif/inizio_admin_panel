@@ -9,7 +9,7 @@ import {
   FiArrowLeft, FiCheck, FiX, FiLoader, FiAlertCircle,
   FiUser, FiFileText, FiTrash2, FiUserMinus, FiEye, FiLayers,
   FiSmartphone, FiTablet, FiBell, FiBellOff, FiClock, FiActivity, FiTag, FiSearch,
-  FiRefreshCcw
+  FiRefreshCcw, FiCopy
 } from 'react-icons/fi';
 
 const hasValidAppVersion = (appVersion) => {
@@ -44,6 +44,30 @@ const hasRegisteredDevices = (u) => {
 const hasAppOrDevice = (u) => {
   if (!u) return false;
   return hasValidAppVersion(u.appVersion) || hasRegisteredDevices(u);
+};
+
+const CopyButton = ({ text, className = "text-slate-500 hover:text-slate-300", size = 12 }) => {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = (e) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+  return (
+    <button 
+      onClick={handleCopy}
+      type="button"
+      className={`${className} p-0.5 rounded transition-colors shrink-0 flex items-center justify-center`}
+      title={copied ? "Copied!" : "Copy ID"}
+    >
+      {copied ? (
+        <FiCheck className="text-emerald-400" size={size} />
+      ) : (
+        <FiCopy size={size} />
+      )}
+    </button>
+  );
 };
 
 const isLastActiveValid = (lastActive, u = null) => {
@@ -394,6 +418,24 @@ const UserDetails = () => {
     }
   };
 
+  const handleReactivate = async () => {
+    if (!window.confirm('Are you sure you want to reactivate this user account? All their data will be restored.')) return;
+    setIsActionLoading(true);
+    try {
+      const token = sessionStorage.getItem('accessToken');
+      const response = await api.put(`/admin/reactivate/${id}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUser((prev) => prev ? { ...prev, deleteRequested: false } : null);
+      alert(response.data?.message || 'Account reactivated successfully.');
+    } catch (err) {
+      console.error('Reactivate error:', err);
+      alert(err.response?.data?.message || 'Failed to reactivate user.');
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
   const getDocumentUrl = (path) => {
     if (!path) return '';
     if (path.startsWith('http') || path.startsWith('blob:')) return path;
@@ -498,8 +540,19 @@ const UserDetails = () => {
                 <p className="text-white font-medium capitalize text-base">{user.role || 'customer'}</p>
               </div>
               <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Registration Date</p>
-                <p className="text-white font-medium text-base">{user.createdAt ? formatDateDDMMYYYY(user.createdAt) : 'N/A'}</p>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Database User ID</p>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <span className="text-white font-mono text-sm font-semibold select-all">{user._id}</span>
+                  <CopyButton text={user._id} className="text-slate-400 hover:text-white" size={12} />
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Created At</p>
+                <p className="text-white font-medium text-base">{user.createdAt ? formatDateTimeDDMMYYYY(user.createdAt) : 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Updated At</p>
+                <p className="text-white font-medium text-base">{user.updatedAt ? formatDateTimeDDMMYYYY(user.updatedAt) : 'N/A'}</p>
               </div>
             </div>
 
@@ -1036,14 +1089,24 @@ const UserDetails = () => {
                 <FiRefreshCcw className="mr-2 text-base" /> Force Logout User
               </button>
 
-              {/* Delete Account Button */}
-              <button
-                onClick={handleDelete}
-                disabled={isActionLoading}
-                className="flex items-center justify-center px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all cursor-pointer text-sm shadow-md shadow-red-600/10 shrink-0"
-              >
-                <FiTrash2 className="mr-2 text-base" /> Delete User Account
-              </button>
+              {/* Delete / Reactivate Account Button */}
+              {user?.deleteRequested ? (
+                <button
+                  onClick={handleReactivate}
+                  disabled={isActionLoading}
+                  className="flex items-center justify-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all cursor-pointer text-sm shadow-md shadow-emerald-600/10 shrink-0"
+                >
+                  <FiRefreshCcw className="mr-2 text-base" /> Reactivate User Account
+                </button>
+              ) : (
+                <button
+                  onClick={handleDelete}
+                  disabled={isActionLoading}
+                  className="flex items-center justify-center px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all cursor-pointer text-sm shadow-md shadow-red-600/10 shrink-0"
+                >
+                  <FiTrash2 className="mr-2 text-base" /> Delete User Account
+                </button>
+              )}
             </div>
           </div>
 

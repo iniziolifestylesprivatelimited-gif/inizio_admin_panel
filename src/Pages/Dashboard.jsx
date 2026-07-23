@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { api, BASE_URL } from '../api/axios';
 import {
   FiTrendingUp, FiUsers, FiBox, FiDollarSign, FiLayers,
-  FiActivity, FiEye, FiSearch, FiLogIn, FiLogOut, FiX, FiCheck, FiBell, FiCalendar, FiPhone
+  FiActivity, FiEye, FiSearch, FiLogIn, FiLogOut, FiX, FiCheck, FiBell, FiCalendar, FiPhone, FiTrash2
 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';

@@ -4,7 +4,7 @@ import { api, BASE_URL } from '../../../api/axios';
 import {
   FiCheck, FiLoader, FiAlertCircle,
   FiSearch, FiUser, FiFileText, FiRefreshCcw, FiTrash2, FiUserMinus, FiLogOut, FiX,
-  FiShield, FiChevronDown
+  FiShield, FiChevronDown, FiCopy
 } from 'react-icons/fi';
 import { MdPhoneAndroid, MdPhoneIphone } from 'react-icons/md';
 import { useOutletContext, useNavigate } from 'react-router-dom';
@@ -42,6 +42,30 @@ const hasRegisteredDevices = (u) => {
 const hasAppOrDevice = (u) => {
   if (!u) return false;
   return hasValidAppVersion(u.appVersion) || hasRegisteredDevices(u);
+};
+
+const CopyButton = ({ text, className = "text-slate-600 hover:text-slate-300", size = 12 }) => {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = (e) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+  return (
+    <button 
+      onClick={handleCopy}
+      type="button"
+      className={`${className} p-0.5 rounded transition-colors shrink-0 flex items-center justify-center`}
+      title={copied ? "Copied!" : "Copy ID"}
+    >
+      {copied ? (
+        <FiCheck className="text-emerald-400" size={size} />
+      ) : (
+        <FiCopy size={size} />
+      )}
+    </button>
+  );
 };
 
 const formatRelativeTime = (dateString, u = null) => {
@@ -211,11 +235,16 @@ const UsersList = () => {
     return () => clearInterval(intervalId);
   }, []);
 
-  // Filter approved (isApproved: true) and rejected (isApproved: false) users
-  const approvedUsers = users.filter(u => u.isApproved === true || (u.isApproved !== false && !u.isRejected));
-  const rejectedUsers = users.filter(u => u.isApproved === false || u.isRejected === true);
+  // Filter approved, rejected and deleted users
+  const deletedUsers = users.filter(u => u.deleteRequested === true);
+  const approvedUsers = users.filter(u => u.deleteRequested !== true && (u.isApproved === true || (u.isApproved !== false && !u.isRejected)));
+  const rejectedUsers = users.filter(u => u.deleteRequested !== true && (u.isApproved === false || u.isRejected === true));
 
-  const baseUsers = userTab === 'approved' ? approvedUsers : rejectedUsers;
+  const baseUsers = userTab === 'approved' 
+    ? approvedUsers 
+    : userTab === 'rejected' 
+      ? rejectedUsers 
+      : deletedUsers;
 
   // // Undo Rejection
   // const handleUndoReject = async (id) => {
@@ -252,6 +281,28 @@ const UsersList = () => {
     } catch (err) {
       console.error('Delete error:', err);
       alert(err.response?.data?.message || 'Failed to delete user.');
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  // Reactivate User
+  const handleReactivate = async (id) => {
+    if (!window.confirm('Are you sure you want to reactivate this user account? All their data will be restored.')) return;
+    setIsActionLoading(true);
+    try {
+      const token = sessionStorage.getItem('accessToken');
+      const response = await api.put(`/admin/reactivate/${id}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      // Move reactivated user back to approved state locally
+      setUsers((prevUsers) => 
+        prevUsers.map((u) => u._id === id ? { ...u, deleteRequested: false } : u)
+      );
+      alert(response.data?.message || 'Account reactivated successfully.');
+    } catch (err) {
+      console.error('Reactivate error:', err);
+      alert(err.response?.data?.message || 'Failed to reactivate user.');
     } finally {
       setIsActionLoading(false);
     }
@@ -402,6 +453,26 @@ const UsersList = () => {
               {rejectedUsers.length}
             </span>
           </button>
+
+          <button
+            onClick={() => {
+              setUserTab('deleted');
+              setCurrentPage(1);
+            }}
+            className={`px-4.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
+              userTab === 'deleted'
+                ? 'bg-red-600 text-white shadow-lg shadow-red-600/30'
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <FiTrash2 className="text-sm" />
+            Deleted Users
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold ${
+              userTab === 'deleted' ? 'bg-white/20 text-white' : 'bg-red-500/10 text-red-400 border border-red-500/20'
+            }`}>
+              {deletedUsers.length}
+            </span>
+          </button>
         </div>
 
         {/* Security Actions Dropdown */}
@@ -522,6 +593,10 @@ const UsersList = () => {
                               </span>
                             ) : null}
                           </div>
+                          <div className="flex items-center gap-1 mt-0.5">
+                            <span className="text-xs text-slate-600 font-bold font-mono">{user._id}</span>
+                            <CopyButton text={user._id} />
+                          </div>
                           {(hasValidAppVersion(user.appVersion) || user.devices?.length > 0) && (
                             <span className="block text-[10px] text-slate-500 font-bold mt-0.5 flex items-center gap-1.5 flex-wrap">
                               {hasValidAppVersion(user.appVersion) && <span>v{user.appVersion}</span>}
@@ -550,7 +625,11 @@ const UsersList = () => {
                         </span>
                       </td>
                       <td className="p-4 text-sm">
-                        {user.isApproved !== false ? (
+                        {user.deleteRequested ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold">
+                            <FiTrash2 className="text-[10px]" /> Deleted
+                          </span>
+                        ) : user.isApproved !== false ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold">
                             <FiCheck className="text-[10px]" /> Approved
                           </span>
@@ -597,14 +676,25 @@ const UsersList = () => {
                       {/* <td className="p-4 text-sm text-emerald-400 font-mono font-semibold">{user.userId || 'N/A'}</td> */}
                       <td className="p-4 text-sm text-yellow-400 font-mono font-semibold">{user.gstNumber || 'N/A'}</td>
                       <td className="p-4 flex items-center justify-center gap-2">
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleDelete(user._id); }} 
-                          disabled={isActionLoading} 
-                          className="p-2.5 text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50 cursor-pointer transform-gpu" 
-                          title="Permanently Delete User"
-                        >
-                          <FiTrash2 />
-                        </button>
+                        {user.deleteRequested ? (
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleReactivate(user._id); }} 
+                            disabled={isActionLoading} 
+                            className="p-2.5 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg transition-all disabled:opacity-50 cursor-pointer transform-gpu" 
+                            title="Reactivate User"
+                          >
+                            <FiRefreshCcw />
+                          </button>
+                        ) : (
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleDelete(user._id); }} 
+                            disabled={isActionLoading} 
+                            className="p-2.5 text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50 cursor-pointer transform-gpu" 
+                            title="Delete User"
+                          >
+                            <FiTrash2 />
+                          </button>
+                        )}
                         <button 
                           onClick={(e) => { e.stopPropagation(); handleForceLogout(user._id); }} 
                           disabled={isActionLoading} 
@@ -619,7 +709,14 @@ const UsersList = () => {
                 ) : (
                   <tr>
                     <td colSpan={8} className="p-12 text-center text-slate-400 italic">
-                      {searchQuery ? 'No matching users found.' : `No approved customers found.`}
+                      {searchQuery 
+                        ? 'No matching users found.' 
+                        : userTab === 'approved' 
+                          ? 'No approved customers found.' 
+                          : userTab === 'rejected' 
+                            ? 'No rejected customers found.' 
+                            : 'No deleted customers found.'
+                      }
                     </td>
                   </tr>
                 )}
