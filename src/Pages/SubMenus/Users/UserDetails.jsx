@@ -146,6 +146,18 @@ const UserDetails = () => {
 
   const [isActionLoading, setIsActionLoading] = useState(false);
 
+  // Custom Confirmation & Alert States
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [typedConfirmName, setTypedConfirmName] = useState('');
+  
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+
+  const showAlert = (msg) => {
+    setAlertMessage(msg);
+    setAlertOpen(true);
+  };
+
   // Browsing Activities State
   const [userActivities, setUserActivities] = useState({ products: [], brands: [], categories: [], searches: [] });
   const [loadingActivities, setLoadingActivities] = useState(false);
@@ -422,26 +434,23 @@ const UserDetails = () => {
   }, [user?.email]);
 
   const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this user account?')) return;
-
     setIsActionLoading(true);
     try {
       const token = sessionStorage.getItem('accessToken');
       await api.put(`/admin/soft-delete/${id}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert('User deleted successfully.');
-      navigate('/users/list');
+      showAlert('User deleted successfully.');
+      setTimeout(() => navigate('/users/list'), 1500);
     } catch (err) {
       console.error('Delete error:', err);
-      alert(err.response?.data?.message || 'Failed to delete user.');
+      showAlert(err.response?.data?.message || 'Failed to delete user.');
     } finally {
       setIsActionLoading(false);
     }
   };
 
   const handleReactivate = async () => {
-    if (!window.confirm('Are you sure you want to reactivate this user account? All their data will be restored.')) return;
     setIsActionLoading(true);
     try {
       const token = sessionStorage.getItem('accessToken');
@@ -449,10 +458,10 @@ const UserDetails = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUser((prev) => prev ? { ...prev, deleteRequested: false } : null);
-      alert(response.data?.message || 'Account reactivated successfully.');
+      showAlert(response.data?.message || 'Account reactivated successfully.');
     } catch (err) {
       console.error('Reactivate error:', err);
-      alert(err.response?.data?.message || 'Failed to reactivate user.');
+      showAlert(err.response?.data?.message || 'Failed to reactivate user.');
     } finally {
       setIsActionLoading(false);
     }
@@ -1122,7 +1131,7 @@ const UserDetails = () => {
                 </button>
               ) : (
                 <button
-                  onClick={handleDelete}
+                  onClick={() => setDeleteConfirmOpen(true)}
                   disabled={isActionLoading}
                   className="flex items-center justify-center px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all cursor-pointer text-sm shadow-md shadow-red-600/10 shrink-0"
                 >
@@ -1134,6 +1143,74 @@ const UserDetails = () => {
 
         </div>
       ) : null}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmOpen && user && createPortal(
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setTypedConfirmName(''); }}></div>
+          <div className="relative bg-slate-900 border border-red-500/20 rounded-2xl p-6 shadow-2xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+              <FiAlertCircle className="text-red-500 animate-pulse" /> Confirm Deletion
+            </h3>
+            <p className="text-slate-400 text-sm mb-4 leading-relaxed">
+              This action cannot be undone. To permanently delete the user account for <strong className="text-white">"{user.name}"</strong>, please type their name below to proceed:
+            </p>
+            <input
+              type="text"
+              placeholder="Type user's name to confirm"
+              value={typedConfirmName}
+              onChange={(e) => setTypedConfirmName(e.target.value)}
+              className="w-full px-4 py-2.5 bg-black/20 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-sm font-medium mb-5"
+            />
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => { setDeleteConfirmOpen(false); setTypedConfirmName(''); }}
+                className="flex-1 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={typedConfirmName !== user.name}
+                onClick={() => {
+                  handleDelete();
+                  setDeleteConfirmOpen(false);
+                  setTypedConfirmName('');
+                }}
+                className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all text-sm shadow-lg shadow-red-600/10"
+              >
+                Proceed Delete
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Custom Alert Modal */}
+      {alertOpen && createPortal(
+        <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => setAlertOpen(false)}></div>
+          <div className="relative bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+              <FiAlertCircle className="text-blue-400" /> Alert
+            </h3>
+            <p className="text-slate-300 text-sm mb-5 leading-relaxed">
+              {alertMessage}
+            </p>
+            <button
+              type="button"
+              onClick={() => setAlertOpen(false)}
+              className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors text-sm shadow-lg shadow-blue-600/10"
+            >
+              OK
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
+
     </div>
   );
 };

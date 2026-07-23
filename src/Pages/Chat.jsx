@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import {
   FiSearch, FiSend, FiPaperclip, FiMoreVertical, FiPhone, FiVideo,
   FiSmile, FiInfo, FiArrowLeft, FiCheck, FiCornerUpLeft, FiEdit2,
-  FiTrash2, FiX, FiFileText, FiDownload, FiLoader
+  FiTrash2, FiX, FiFileText, FiDownload, FiLoader, FiAlertCircle
 } from 'react-icons/fi';
 import { api, BASE_URL } from '../api/axios';
 import { formatDateDDMMYYYY } from '../utils/dateUtils';
@@ -74,6 +75,20 @@ const Chat = () => {
   const [editingMessage, setEditingMessage] = useState(null); // message object being edited
   const fileInputRef = useRef(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Custom Confirmation & Alert States
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [messageToDelete, setMessageToDelete] = useState(null);
+  const [typedConfirmName, setTypedConfirmName] = useState('');
+  const [showSendPreview, setShowSendPreview] = useState(false);
+  
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+
+  const showAlert = (msg) => {
+    setAlertMessage(msg);
+    setAlertOpen(true);
+  };
 
   const popularEmojis = [
     '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥸', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🫣', '🤭', '🫢', '🫡', '🤫', '🫠', '🤥', '😶', '🫥', '😐', '😑', '😬', '🫨', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '😵‍💫', '🫵', '👍', '👎', '👊', '✊', '🤛', '🤜', '🤞', '✌️', '🤟', '🤘', '👌', '🤌', '🤏', '👈', '👉', '👆', '👇', '✋', '🤚', '🖐️', '🖖', '👋', '🤙', '💪', '🦾', '🖕', '✍️', '🙏', '🤝', '👏', '🙌', '🫶', '👐', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '💬', '💭', '✉️', '📦', '🎁', '🎈', '🎉', '🌟', '✨', '🔥', '💯', '🚀'
@@ -216,7 +231,7 @@ const Chat = () => {
       }
     } catch (err) {
       console.error('Failed to upload file:', err);
-      alert('Failed to upload file.');
+      showAlert('Failed to upload file.');
     } finally {
       setUploadingFile(false);
     }
@@ -228,7 +243,6 @@ const Chat = () => {
   };
 
   const handleDeleteMessage = async (messageId) => {
-    if (!window.confirm('Are you sure you want to delete this message?')) return;
     try {
       const token = sessionStorage.getItem('accessToken');
       await api.delete(`/chat/delete/${messageId}`, {
@@ -237,12 +251,12 @@ const Chat = () => {
       fetchMessages(activeContact);
     } catch (err) {
       console.error('Failed to delete message:', err);
-      alert('Failed to delete message.');
+      showAlert('Failed to delete message.');
     }
   };
 
   const handleSend = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     if ((!message.trim() && !attachment) || !activeContact) return;
 
     const messageText = message.trim();
@@ -260,56 +274,66 @@ const Chat = () => {
         fetchMessages(activeContact);
       } catch (err) {
         console.error('Failed to edit message:', err);
-        alert('Failed to edit message.');
+        showAlert('Failed to edit message.');
       }
     } else {
-      const currentAttachment = attachment;
-      setMessage(''); // Optimistic clear
-      setAttachment(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      setShowSendPreview(true);
+    }
+  };
 
-      // Optimistic UI update
-      const tempId = Date.now().toString();
-      setMessages(prev => [
-        ...prev,
-        {
-          _id: tempId,
-          senderId: 'admin',
-          message: messageText,
-          fileUrl: currentAttachment?.fileUrl,
-          fileName: currentAttachment?.fileName,
-          fileType: currentAttachment?.fileType,
-          replyTo: replyToMessage,
-          createdAt: new Date().toISOString()
-        }
-      ]);
+  const confirmAndSendMessage = async () => {
+    if ((!message.trim() && !attachment) || !activeContact) return;
 
-      try {
-        const payload = {
-          receiverId: activeContact,
-          message: messageText || undefined
-        };
+    const messageText = message.trim();
+    const token = sessionStorage.getItem('accessToken');
+    const currentAttachment = attachment;
 
-        if (currentAttachment) {
-          payload.fileUrl = currentAttachment.fileUrl;
-          payload.fileName = currentAttachment.fileName;
-          payload.fileType = currentAttachment.fileType;
-        }
+    setMessage(''); // Optimistic clear
+    setAttachment(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    setShowSendPreview(false);
 
-        if (replyToMessage) {
-          payload.replyTo = replyToMessage._id || replyToMessage.id;
-          setReplyToMessage(null);
-        }
-
-        await api.post('/chat/send', payload, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        fetchMessages(activeContact);
-        fetchContacts();
-      } catch (err) {
-        console.error('Failed to send message:', err);
+    // Optimistic UI update
+    const tempId = Date.now().toString();
+    setMessages(prev => [
+      ...prev,
+      {
+        _id: tempId,
+        senderId: 'admin',
+        message: messageText,
+        fileUrl: currentAttachment?.fileUrl,
+        fileName: currentAttachment?.fileName,
+        fileType: currentAttachment?.fileType,
+        replyTo: replyToMessage,
+        createdAt: new Date().toISOString()
       }
+    ]);
+
+    try {
+      const payload = {
+        receiverId: activeContact,
+        message: messageText || undefined
+      };
+
+      if (currentAttachment) {
+        payload.fileUrl = currentAttachment.fileUrl;
+        payload.fileName = currentAttachment.fileName;
+        payload.fileType = currentAttachment.fileType;
+      }
+
+      if (replyToMessage) {
+        payload.replyTo = replyToMessage._id || replyToMessage.id;
+        setReplyToMessage(null);
+      }
+
+      await api.post('/chat/send', payload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      fetchMessages(activeContact);
+      fetchContacts();
+    } catch (err) {
+      console.error('Failed to send message:', err);
     }
   };
 
@@ -505,7 +529,7 @@ const Chat = () => {
                                   </button>
                                   <button
                                     type="button"
-                                    onClick={() => handleDeleteMessage(msg._id || msg.id)}
+                                    onClick={() => { setMessageToDelete(msg); setDeleteConfirmOpen(true); }}
                                     className="p-1 text-slate-400 hover:text-red-400 rounded-md transition-colors cursor-pointer"
                                     title="Delete"
                                   >
@@ -663,6 +687,8 @@ const Chat = () => {
                   </div>
                 )}
 
+
+
                 <form onSubmit={handleSend} className="flex items-end gap-2">
                   <div className="flex-1 bg-black/20 border border-white/10 rounded-2xl flex items-end p-1 focus-within:border-blue-500/50 focus-within:bg-black/40 shadow-inner backdrop-blur-md transition-all min-w-0">
                     <div className="relative shrink-0 flex items-center" ref={emojiPickerRef}>
@@ -740,6 +766,131 @@ const Chat = () => {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmOpen && messageToDelete && createPortal(
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setMessageToDelete(null); }}></div>
+          <div className="relative bg-slate-900 border border-red-500/20 rounded-2xl p-6 shadow-2xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+              <FiAlertCircle className="text-red-500 animate-pulse" /> Confirm Deletion
+            </h3>
+            <p className="text-slate-400 text-sm mb-5 leading-relaxed">
+              Are you sure you want to permanently delete this message? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => { setDeleteConfirmOpen(false); setMessageToDelete(null); }}
+                className="flex-1 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  handleDeleteMessage(messageToDelete._id || messageToDelete.id);
+                  setDeleteConfirmOpen(false);
+                  setMessageToDelete(null);
+                }}
+                className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all text-sm shadow-lg shadow-red-600/10"
+              >
+                Proceed Delete
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Send Preview Confirmation Modal */}
+      {showSendPreview && createPortal(
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => setShowSendPreview(false)}></div>
+          <div className="relative bg-slate-900 border border-blue-500/20 rounded-2xl p-6 shadow-2xl w-full max-w-lg animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center mb-4 pb-2 border-b border-white/10">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <FiSend className="text-blue-400" /> Preview Outgoing Message
+              </h3>
+              <button onClick={() => setShowSendPreview(false)} className="p-1 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-colors">
+                <FiX size={18} />
+              </button>
+            </div>
+            
+            <p className="text-slate-400 text-xs mb-3 font-semibold uppercase tracking-wider">How it will look in the chat:</p>
+            
+            <div className="bg-black/20 border border-white/5 p-4 rounded-xl mb-6">
+              <div className="flex justify-end">
+                <div className="px-4 py-2.5 rounded-2xl bg-blue-600 text-white rounded-br-sm shadow-sm max-w-[90%] text-left">
+                  {replyToMessage && (
+                    <div className="mb-1.5 p-1.5 rounded-lg bg-black/30 border-l-2 border-indigo-400 text-slate-400 text-[11px] truncate max-w-full">
+                      <span className="font-bold block text-indigo-400 text-[9px] uppercase tracking-wider mb-0.5">Replied to message</span>
+                      {replyToMessage.message || replyToMessage.text}
+                    </div>
+                  )}
+                  {attachment && (
+                    attachment.fileType.startsWith('image/') ? (
+                      <div className="mb-1.5 rounded-lg overflow-hidden border border-white/5 bg-slate-900 flex items-center justify-center max-w-64">
+                        <img src={getImageUrl(attachment.fileUrl)} alt="Preview" className="max-w-full max-h-48 object-contain" />
+                      </div>
+                    ) : (
+                      <div className="mb-1.5 flex items-center gap-2 p-2 bg-black/25 border border-white/5 rounded-lg text-xs max-w-64 select-none">
+                        <FiFileText className="text-lg shrink-0" />
+                        <span className="truncate">{attachment.fileName}</span>
+                      </div>
+                    )
+                  )}
+                  {message && message.trim() && (
+                    <p className="text-[13px] sm:text-sm leading-relaxed wrap-break-word whitespace-pre-wrap">{message.trim()}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowSendPreview(false)}
+                className="flex-1 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors text-sm"
+              >
+                Cancel / Edit
+              </button>
+              <button
+                type="button"
+                onClick={confirmAndSendMessage}
+                className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all text-sm shadow-lg shadow-blue-600/20 animate-pulse"
+              >
+                Confirm & Send
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Custom Alert Modal */}
+      {alertOpen && createPortal(
+        <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => setAlertOpen(false)}></div>
+          <div className="relative bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+              <FiInfo className="text-blue-400" /> Alert
+            </h3>
+            <p className="text-slate-300 text-sm mb-5 leading-relaxed">
+              {alertMessage}
+            </p>
+            <button
+              type="button"
+              onClick={() => setAlertOpen(false)}
+              className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors text-sm shadow-lg shadow-blue-600/10"
+            >
+              OK
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
+
     </div>
   );
 };

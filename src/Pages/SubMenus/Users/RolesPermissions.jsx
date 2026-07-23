@@ -3,7 +3,8 @@ import { api } from '../../../api/axios';
 import {
   FiCheck, FiLoader, FiAlertCircle, FiShield, FiUserPlus,
   FiUsers, FiLayers, FiMapPin, FiSettings, FiCheckSquare,
-  FiPlus, FiX, FiCheckCircle, FiLock, FiUnlock, FiGrid, FiList
+  FiPlus, FiX, FiCheckCircle, FiLock, FiUnlock, FiGrid, FiList,
+  FiEye, FiEyeOff
 } from 'react-icons/fi';
 
 const RolesPermissions = () => {
@@ -27,6 +28,7 @@ const RolesPermissions = () => {
     salesHead: ''
   });
   const [salesHeads, setSalesHeads] = useState([]);
+  const [showPassword, setShowPassword] = useState(false);
   const [creatingUser, setCreatingUser] = useState(false);
   const [createSuccessMsg, setCreateSuccessMsg] = useState('');
   const [createErrorMsg, setCreateErrorMsg] = useState('');
@@ -760,16 +762,25 @@ const RolesPermissions = () => {
 
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Password</label>
-                <input
-                  type="password"
-                  name="password"
-                  required
-                  minLength={6}
-                  value={createUserForm.password}
-                  onChange={handleFormChange}
-                  placeholder="Set temporary secure password"
-                  className="w-full px-4 py-2.5 bg-black/25 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-semibold"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    required
+                    minLength={6}
+                    value={createUserForm.password}
+                    onChange={handleFormChange}
+                    placeholder="Set temporary secure password"
+                    className="w-full pl-4 pr-11 py-2.5 bg-black/25 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-semibold"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer p-1 rounded-md"
+                  >
+                    {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                  </button>
+                </div>
               </div>
 
               {/* Conditional Fields based on Role selection */}

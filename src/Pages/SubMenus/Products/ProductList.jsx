@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { FiEdit2, FiTrash2, FiPlus, FiLoader, FiSearch, FiUpload, FiX, FiSave, FiImage, FiPackage, FiChevronDown, FiChevronUp, FiArrowUp, FiArrowDown, FiCopy, FiDownload, FiFileText, FiCheck } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiPlus, FiAlertCircle, FiLoader, FiSearch, FiUpload, FiX, FiSave, FiImage, FiPackage, FiChevronDown, FiChevronUp, FiArrowUp, FiArrowDown, FiCopy, FiDownload, FiFileText, FiCheck } from 'react-icons/fi';
 import { api, BASE_URL } from '../../../api/axios';
 import CustomDropdown from '../../../Components/CustomDropdown';
 import * as XLSX from 'xlsx';
@@ -66,6 +66,19 @@ const ProductList = () => {
   const [brands, setBrands] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Custom Confirmation & Alert States
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState(null);
+  const [typedConfirmName, setTypedConfirmName] = useState('');
+  
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+
+  const showAlert = (msg) => {
+    setAlertMessage(msg);
+    setAlertOpen(true);
+  };
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
   const searchTerm = searchParams.get('search') || '';
@@ -316,17 +329,15 @@ const ProductList = () => {
 console.log(products)
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this Product?')) {
-      try {
-        const token = sessionStorage.getItem('accessToken');
-        await axios.delete(`${BASE_URL}/api/products/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setProducts(products.filter(p => p._id !== id));
-      } catch (error) {
-        console.error('Failed to delete product', error);
-        alert('Failed to delete product');
-      }
+    try {
+      const token = sessionStorage.getItem('accessToken');
+      await axios.delete(`${BASE_URL}/api/products/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setProducts(products.filter(p => p._id !== id));
+    } catch (error) {
+      console.error('Failed to delete product', error);
+      showAlert('Failed to delete product');
     }
   };
 
@@ -1747,7 +1758,7 @@ console.log(products)
                       </td>
                       <td className="px-4 py-3 text-center space-x-2">
                         <button 
-                          onClick={(e) => { e.stopPropagation(); handleDelete(product._id); }} 
+                          onClick={(e) => { e.stopPropagation(); setProductToDelete(product); setDeleteConfirmOpen(true); }} 
                           className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-900/30 rounded-lg transition-colors cursor-pointer" 
                           title="Delete Product"
                         >
@@ -2835,6 +2846,74 @@ console.log(products)
           </div>
         </div>
       , document.body)}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmOpen && productToDelete && createPortal(
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setProductToDelete(null); setTypedConfirmName(''); }}></div>
+          <div className="relative bg-slate-900 border border-red-500/20 rounded-2xl p-6 shadow-2xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+              <FiAlertCircle className="text-red-500 animate-pulse" /> Confirm Deletion
+            </h3>
+            <p className="text-slate-400 text-sm mb-4 leading-relaxed">
+              This action cannot be undone. To permanently delete the product <strong className="text-white">"{productToDelete.name}"</strong>, please type its name below to proceed:
+            </p>
+            <input
+              type="text"
+              placeholder="Type product name to confirm"
+              value={typedConfirmName}
+              onChange={(e) => setTypedConfirmName(e.target.value)}
+              className="w-full px-4 py-2.5 bg-black/20 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-sm font-medium mb-5"
+            />
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => { setDeleteConfirmOpen(false); setProductToDelete(null); setTypedConfirmName(''); }}
+                className="flex-1 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={typedConfirmName !== productToDelete.name}
+                onClick={() => {
+                  handleDelete(productToDelete._id);
+                  setDeleteConfirmOpen(false);
+                  setProductToDelete(null);
+                  setTypedConfirmName('');
+                }}
+                className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all text-sm shadow-lg shadow-red-600/10"
+              >
+                Proceed Delete
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Custom Alert Modal */}
+      {alertOpen && createPortal(
+        <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => setAlertOpen(false)}></div>
+          <div className="relative bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+              <FiInfo className="text-blue-400" /> Alert
+            </h3>
+            <p className="text-slate-300 text-sm mb-5 leading-relaxed">
+              {alertMessage}
+            </p>
+            <button
+              type="button"
+              onClick={() => setAlertOpen(false)}
+              className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors text-sm shadow-lg shadow-blue-600/10"
+            >
+              OK
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };

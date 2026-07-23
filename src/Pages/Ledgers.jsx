@@ -4,7 +4,7 @@ import { formatDateDDMMYYYY } from '../utils/dateUtils';
 import { api, BASE_URL } from '../api/axios';
 import { 
   FiUpload, FiTrash2, FiFileText, FiLoader, 
-  FiAlertCircle, FiX, FiDownloadCloud 
+  FiAlertCircle, FiX, FiDownloadCloud, FiEye, FiDownload
 } from 'react-icons/fi';
 
 const getFileUrl = (path) => {
@@ -32,6 +32,8 @@ export const Ledgers = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [isUserSelectOpen, setIsUserSelectOpen] = useState(false);
+  const [previewPdfUrl, setPreviewPdfUrl] = useState(null);
+  const [isPendingUpload, setIsPendingUpload] = useState(false);
 
   const fetchLedgersAndUsers = async () => {
     setLoading(true);
@@ -93,12 +95,18 @@ export const Ledgers = () => {
     setFile(e.target.files[0]);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (!selectedUser || !title || !file) {
       alert('Please select a user, provide a title, and choose a file.');
       return;
     }
+    setPreviewPdfUrl(URL.createObjectURL(file));
+    setIsPendingUpload(true);
+  };
+
+  const confirmAndUploadLedger = async () => {
+    if (!selectedUser || !title || !file) return;
     setIsSubmitting(true);
     
     const formData = new FormData();
@@ -117,6 +125,8 @@ export const Ledgers = () => {
       alert('Ledger uploaded successfully!');
       await fetchLedgersAndUsers(); // Refresh data
       closeModal();
+      setPreviewPdfUrl(null);
+      setIsPendingUpload(false);
     } catch (err) {
       console.error('Upload error:', err);
       alert(err.response?.data?.message || 'Failed to upload ledger.');
@@ -202,12 +212,20 @@ export const Ledgers = () => {
                         {formatDateDDMMYYYY(ledger.createdAt)}
                       </td>
                       <td className="p-5 flex items-center justify-center gap-2">
+                        <button 
+                          type="button"
+                          onClick={() => setPreviewPdfUrl(getFileUrl(ledger.fileUrl))} 
+                          className="p-2.5 text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all cursor-pointer" 
+                          title="Preview Ledger"
+                        >
+                          <FiEye />
+                        </button>
                         <a 
                           href={getFileUrl(ledger.fileUrl)} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="p-2.5 text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all cursor-pointer" 
-                          title="View Ledger"
+                          className="p-2.5 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg transition-all cursor-pointer" 
+                          title="Download Ledger"
                         >
                           <FiDownloadCloud />
                         </a>
@@ -422,6 +440,107 @@ export const Ledgers = () => {
           </div>
         </div>
       , document.body)}
+
+      {/* PDF Preview Modal */}
+      {previewPdfUrl && createPortal(
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => {
+            if (!isSubmitting) {
+              setPreviewPdfUrl(null);
+              setIsPendingUpload(false);
+            }
+          }}></div>
+          <div className="relative bg-slate-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-800/50">
+              <div className="flex items-center gap-3">
+                <FiFileText className="text-blue-400 text-xl" />
+                <h3 className="text-lg font-bold text-white">
+                  {isPendingUpload ? 'Confirm Ledger PDF Before Uploading' : 'Ledger PDF Preview'}
+                </h3>
+              </div>
+              <button 
+                onClick={() => {
+                  setPreviewPdfUrl(null);
+                  setIsPendingUpload(false);
+                }} 
+                disabled={isSubmitting}
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors disabled:opacity-50"
+              >
+                <FiX className="text-xl" />
+              </button>
+            </div>
+            
+            <div className="p-4 bg-slate-950 flex-1 flex flex-col min-h-0">
+              <iframe 
+                src={`${previewPdfUrl}#toolbar=0&navpanes=0&view=FitH`}
+                className="w-full h-[60vh] min-h-[450px] rounded-xl bg-slate-900 border border-white/5" 
+                title="Ledger PDF" 
+              />
+              <div className="mt-3 text-center sm:text-left">
+                <p className="text-xs text-slate-500">
+                  {isPendingUpload 
+                    ? 'Please review the ledger details. Click "Confirm & Upload" to save this ledger document.'
+                    : 'Note: If the PDF does not display, you can download it directly using the button below.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t border-white/10 bg-slate-800/50 flex justify-end gap-3">
+              {isPendingUpload ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPreviewPdfUrl(null);
+                      setIsPendingUpload(false);
+                    }}
+                    disabled={isSubmitting}
+                    className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl transition-colors text-sm cursor-pointer disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={confirmAndUploadLedger}
+                    disabled={isSubmitting}
+                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors text-sm flex items-center gap-2 cursor-pointer shadow-lg shadow-blue-600/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <FiLoader className="animate-spin" /> Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <FiUpload /> Confirm & Upload
+                      </>
+                    )}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <a 
+                    href={previewPdfUrl} 
+                    download
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-colors text-sm flex items-center gap-2 cursor-pointer shadow-lg shadow-emerald-600/10"
+                  >
+                    <FiDownload /> Download PDF
+                  </a>
+                  <button 
+                    onClick={() => setPreviewPdfUrl(null)}
+                    className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl transition-colors text-sm cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
     </div>
   );
 }

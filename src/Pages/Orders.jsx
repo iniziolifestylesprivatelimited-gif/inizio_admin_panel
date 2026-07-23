@@ -6,7 +6,7 @@ import {
   FiBox, FiLoader, FiAlertCircle, FiChevronDown, FiCalendar, 
   FiX, FiMapPin, FiCreditCard, FiUser, FiPhone, FiMail, 
   FiFileText, FiUpload, FiDownload, FiCheckCircle, FiTrash2, FiInfo, FiRefreshCcw, FiCheck,
-  FiTruck, FiCopy
+  FiTruck, FiCopy, FiEye
 } from 'react-icons/fi';
 import CustomDropdown from '../Components/CustomDropdown';
 import { useOutletContext } from 'react-router-dom';
@@ -75,6 +75,9 @@ const Orders = ({ defaultStatus = 'all' }) => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isUploadingInvoice, setIsUploadingInvoice] = useState(false);
+  const [previewPdfUrl, setPreviewPdfUrl] = useState(null);
+  const [pendingInvoiceFile, setPendingInvoiceFile] = useState(null);
+  const [isPendingUpload, setIsPendingUpload] = useState(false);
 
   // Shipping details state for 'Shipped' status
   const [shippingInputOpen, setShippingInputOpen] = useState(false);
@@ -292,7 +295,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
     setRejectionReasonText('');
   };
 
-  const handleInvoiceUpload = async (e) => {
+  const handleInvoiceUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -301,11 +304,19 @@ const Orders = ({ defaultStatus = 'all' }) => {
       return;
     }
 
+    setPendingInvoiceFile(file);
+    setPreviewPdfUrl(URL.createObjectURL(file));
+    setIsPendingUpload(true);
+  };
+
+  const confirmAndUploadInvoice = async () => {
+    if (!pendingInvoiceFile) return;
+
     setIsUploadingInvoice(true);
     try {
       const token = sessionStorage.getItem('accessToken');
       const formData = new FormData();
-      formData.append('invoice', file);
+      formData.append('invoice', pendingInvoiceFile);
       const response = await axios.post(
         `${BASE_URL}/api/admin/orders/${selectedOrder._id}/invoice`,
         formData,
@@ -326,6 +337,9 @@ const Orders = ({ defaultStatus = 'all' }) => {
       ));
 
       alert('✅ Invoice uploaded & email sent successfully');
+      setPreviewPdfUrl(getImageUrl(updatedInvoiceUrl));
+      setIsPendingUpload(false);
+      setPendingInvoiceFile(null);
     } catch (err) {
       console.error('Invoice upload failed', err);
       alert(`Error: ${err.response?.data?.message || 'Failed to upload invoice.'}`);
@@ -1125,14 +1139,23 @@ const Orders = ({ defaultStatus = 'all' }) => {
                   
                   <div className="flex flex-wrap gap-3 items-center w-full md:w-auto justify-end">
                     {selectedOrder.invoiceUrl && (
-                      <a
-                        href={getImageUrl(selectedOrder.invoiceUrl)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-lg transition-colors text-sm font-medium border border-emerald-500/20 flex items-center gap-2 cursor-pointer"
-                      >
-                        <FiDownload /> Download Invoice
-                      </a>
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setPreviewPdfUrl(getImageUrl(selectedOrder.invoiceUrl))}
+                          className="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-lg transition-colors text-sm font-medium border border-blue-500/20 flex items-center gap-2 cursor-pointer"
+                        >
+                          <FiEye /> Preview Invoice
+                        </button>
+                        <a
+                          href={getImageUrl(selectedOrder.invoiceUrl)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-lg transition-colors text-sm font-medium border border-emerald-500/20 flex items-center gap-2 cursor-pointer"
+                        >
+                          <FiDownload /> Download Invoice
+                        </a>
+                      </>
                     )}
                     
                     <label className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer ${
@@ -1369,6 +1392,110 @@ const Orders = ({ defaultStatus = 'all' }) => {
           </div>
         </div>
       , document.body)}
+
+      {/* PDF Preview Modal */}
+      {previewPdfUrl && createPortal(
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => {
+            if (!isUploadingInvoice) {
+              setPreviewPdfUrl(null);
+              setPendingInvoiceFile(null);
+              setIsPendingUpload(false);
+            }
+          }}></div>
+          <div className="relative bg-slate-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-800/50">
+              <div className="flex items-center gap-3">
+                <FiFileText className="text-blue-400 text-xl" />
+                <h3 className="text-lg font-bold text-white">
+                  {isPendingUpload ? 'Confirm Invoice PDF Before Uploading' : 'Invoice PDF Preview'}
+                </h3>
+              </div>
+              <button 
+                onClick={() => {
+                  setPreviewPdfUrl(null);
+                  setPendingInvoiceFile(null);
+                  setIsPendingUpload(false);
+                }} 
+                disabled={isUploadingInvoice}
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors disabled:opacity-50"
+              >
+                <FiX className="text-xl" />
+              </button>
+            </div>
+            
+            <div className="p-4 bg-slate-950 flex-1 flex flex-col min-h-0">
+              <iframe 
+                src={`${previewPdfUrl}#toolbar=0&navpanes=0&view=FitH`}
+                className="w-full h-[60vh] min-h-[450px] rounded-xl bg-slate-900 border border-white/5" 
+                title="Invoice PDF" 
+              />
+              <div className="mt-3 text-center sm:text-left">
+                <p className="text-xs text-slate-500">
+                  {isPendingUpload 
+                    ? 'Please review the invoice details. Click "Confirm & Upload" to save the file and notify the customer.'
+                    : 'Note: If the PDF does not display, you can download it directly using the button below.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t border-white/10 bg-slate-800/50 flex justify-end gap-3">
+              {isPendingUpload ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPreviewPdfUrl(null);
+                      setPendingInvoiceFile(null);
+                      setIsPendingUpload(false);
+                    }}
+                    disabled={isUploadingInvoice}
+                    className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl transition-colors text-sm cursor-pointer disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={confirmAndUploadInvoice}
+                    disabled={isUploadingInvoice}
+                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors text-sm flex items-center gap-2 cursor-pointer shadow-lg shadow-blue-600/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isUploadingInvoice ? (
+                      <>
+                        <FiLoader className="animate-spin" /> Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <FiUpload /> Confirm & Upload
+                      </>
+                    )}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <a 
+                    href={previewPdfUrl} 
+                    download
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-colors text-sm flex items-center gap-2 cursor-pointer shadow-lg shadow-emerald-600/10"
+                  >
+                    <FiDownload /> Download PDF
+                  </a>
+                  <button 
+                    onClick={() => setPreviewPdfUrl(null)}
+                    className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl transition-colors text-sm cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
     </div>
   );
 };

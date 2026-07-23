@@ -137,6 +137,19 @@ const UsersList = () => {
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [isSecurityDropdownOpen, setIsSecurityDropdownOpen] = useState(false);
 
+  // Custom Confirmation & Alert States
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [typedConfirmName, setTypedConfirmName] = useState('');
+  
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+
+  const showAlert = (msg) => {
+    setAlertMessage(msg);
+    setAlertOpen(true);
+  };
+
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [usersPerPage] = useState(10);
@@ -288,21 +301,18 @@ const UsersList = () => {
 
   // Delete User
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) return;
-
     setIsActionLoading(true);
     try {
       const token = sessionStorage.getItem('accessToken');
-      // Note: Adjust the endpoint below to match your backend route for deleting users
       await api.put(`/admin/soft-delete/${id}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
       setUsers((prevUsers) => prevUsers.filter((user) => user._id !== id));
-      alert('User deleted successfully.');
+      showAlert('User deleted successfully.');
     } catch (err) {
       console.error('Delete error:', err);
-      alert(err.response?.data?.message || 'Failed to delete user.');
+      showAlert(err.response?.data?.message || 'Failed to delete user.');
     } finally {
       setIsActionLoading(false);
     }
@@ -310,21 +320,19 @@ const UsersList = () => {
 
   // Reactivate User
   const handleReactivate = async (id) => {
-    if (!window.confirm('Are you sure you want to reactivate this user account? All their data will be restored.')) return;
     setIsActionLoading(true);
     try {
       const token = sessionStorage.getItem('accessToken');
       const response = await api.put(`/admin/reactivate/${id}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      // Move reactivated user back to approved state locally
       setUsers((prevUsers) => 
         prevUsers.map((u) => u._id === id ? { ...u, deleteRequested: false } : u)
       );
-      alert(response.data?.message || 'Account reactivated successfully.');
+      showAlert(response.data?.message || 'Account reactivated successfully.');
     } catch (err) {
       console.error('Reactivate error:', err);
-      alert(err.response?.data?.message || 'Failed to reactivate user.');
+      showAlert(err.response?.data?.message || 'Failed to reactivate user.');
     } finally {
       setIsActionLoading(false);
     }
@@ -709,7 +717,7 @@ const UsersList = () => {
                           </button>
                         ) : (
                           <button 
-                            onClick={(e) => { e.stopPropagation(); handleDelete(user._id); }} 
+                            onClick={(e) => { e.stopPropagation(); setUserToDelete(user); setDeleteConfirmOpen(true); }}
                             disabled={isActionLoading} 
                             className="p-2.5 text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50 cursor-pointer transform-gpu" 
                             title="Delete User"
@@ -815,7 +823,73 @@ const UsersList = () => {
         </div>
       )}
 
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmOpen && userToDelete && createPortal(
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setUserToDelete(null); setTypedConfirmName(''); }}></div>
+          <div className="relative bg-slate-900 border border-red-500/20 rounded-2xl p-6 shadow-2xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+              <FiAlertCircle className="text-red-500 animate-pulse" /> Confirm Deletion
+            </h3>
+            <p className="text-slate-400 text-sm mb-4 leading-relaxed">
+              This action cannot be undone. To permanently delete the user account for <strong className="text-white">"{userToDelete.name}"</strong>, please type their name below to proceed:
+            </p>
+            <input
+              type="text"
+              placeholder="Type user's name to confirm"
+              value={typedConfirmName}
+              onChange={(e) => setTypedConfirmName(e.target.value)}
+              className="w-full px-4 py-2.5 bg-black/20 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-sm font-medium mb-5"
+            />
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => { setDeleteConfirmOpen(false); setUserToDelete(null); setTypedConfirmName(''); }}
+                className="flex-1 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={typedConfirmName !== userToDelete.name}
+                onClick={() => {
+                  handleDelete(userToDelete._id);
+                  setDeleteConfirmOpen(false);
+                  setUserToDelete(null);
+                  setTypedConfirmName('');
+                }}
+                className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all text-sm shadow-lg shadow-red-600/10"
+              >
+                Proceed Delete
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
+      {/* Custom Alert Modal */}
+      {alertOpen && createPortal(
+        <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => setAlertOpen(false)}></div>
+          <div className="relative bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+              <FiAlertCircle className="text-blue-400" /> Alert
+            </h3>
+            <p className="text-slate-300 text-sm mb-5 leading-relaxed">
+              {alertMessage}
+            </p>
+            <button
+              type="button"
+              onClick={() => setAlertOpen(false)}
+              className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors text-sm shadow-lg shadow-blue-600/10"
+            >
+              OK
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
 
     </div>
   );

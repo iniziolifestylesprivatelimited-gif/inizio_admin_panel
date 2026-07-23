@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import axios from 'axios';
-import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiTag, FiImage, FiLoader, FiSearch, FiGrid, FiCopy, FiCheck } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiAlertCircle, FiTag, FiImage, FiLoader, FiSearch, FiGrid, FiCopy, FiCheck } from 'react-icons/fi';
 
 import { api, BASE_URL } from '../../../api/axios';
 import { formatDateTimeDDMMYYYY } from '../../../utils/dateUtils';
@@ -72,6 +73,19 @@ const Category = () => {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
+
+  // Custom Confirmation & Alert States
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState(null);
+  const [typedConfirmName, setTypedConfirmName] = useState('');
+  
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+
+  const showAlert = (msg) => {
+    setAlertMessage(msg);
+    setAlertOpen(true);
+  };
 
   // Fetch Categories
   const fetchCategories = async () => {
@@ -148,7 +162,7 @@ const Category = () => {
       cancelEdit();
     } catch (err) {
       console.error('Submission failed', err);
-      alert(err.response?.data?.message || err.response?.data?.error || 'Failed to save category.');
+      showAlert(err.response?.data?.message || err.response?.data?.error || 'Failed to save category.');
     } finally {
       setIsSubmitting(false);
     }
@@ -166,17 +180,15 @@ const Category = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this category?')) {
-      try {
-        const token = sessionStorage.getItem('accessToken');
-        await axios.delete(`${BASE_URL}/api/categories/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setCategories(categories.filter(c => c._id !== id));
-      } catch (err) {
-        console.error(err);
-        alert('Failed to delete category.');
-      }
+    try {
+      const token = sessionStorage.getItem('accessToken');
+      await axios.delete(`${BASE_URL}/api/categories/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setCategories(categories.filter(c => c._id !== id));
+    } catch (err) {
+      console.error(err);
+      showAlert('Failed to delete category.');
     }
   };
 
@@ -449,7 +461,7 @@ const Category = () => {
                           <button onClick={() => handleEdit(category)} className="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-900/30 rounded-lg transition-colors cursor-pointer" title="Edit Category">
                             <FiEdit2 />
                           </button>
-                          <button onClick={() => handleDelete(category._id)} className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-900/30 rounded-lg transition-colors cursor-pointer" title="Delete Category">
+                          <button onClick={() => { setCategoryToDelete(category); setDeleteConfirmOpen(true); }} className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-900/30 rounded-lg transition-colors cursor-pointer" title="Delete Category">
                             <FiTrash2 />
                           </button>
                         </td>
@@ -538,6 +550,75 @@ const Category = () => {
         </div>
 
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmOpen && categoryToDelete && createPortal(
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setCategoryToDelete(null); setTypedConfirmName(''); }}></div>
+          <div className="relative bg-slate-900 border border-red-500/20 rounded-2xl p-6 shadow-2xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+              <FiAlertCircle className="text-red-500 animate-pulse" /> Confirm Deletion
+            </h3>
+            <p className="text-slate-400 text-sm mb-4 leading-relaxed">
+              This action cannot be undone. To permanently delete the category <strong className="text-white">"{categoryToDelete.name}"</strong>, please type its name below to proceed:
+            </p>
+            <input
+              type="text"
+              placeholder="Type category name to confirm"
+              value={typedConfirmName}
+              onChange={(e) => setTypedConfirmName(e.target.value)}
+              className="w-full px-4 py-2.5 bg-black/20 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-sm font-medium mb-5"
+            />
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => { setDeleteConfirmOpen(false); setCategoryToDelete(null); setTypedConfirmName(''); }}
+                className="flex-1 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={typedConfirmName !== categoryToDelete.name}
+                onClick={() => {
+                  handleDelete(categoryToDelete._id);
+                  setDeleteConfirmOpen(false);
+                  setCategoryToDelete(null);
+                  setTypedConfirmName('');
+                }}
+                className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all text-sm shadow-lg shadow-red-600/10"
+              >
+                Proceed Delete
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Custom Alert Modal */}
+      {alertOpen && createPortal(
+        <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => setAlertOpen(false)}></div>
+          <div className="relative bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+              <FiInfo className="text-blue-400" /> Alert
+            </h3>
+            <p className="text-slate-300 text-sm mb-5 leading-relaxed">
+              {alertMessage}
+            </p>
+            <button
+              type="button"
+              onClick={() => setAlertOpen(false)}
+              className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors text-sm shadow-lg shadow-blue-600/10"
+            >
+              OK
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
+
     </div>
   );
 };
