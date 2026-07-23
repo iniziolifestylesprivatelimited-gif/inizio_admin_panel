@@ -6,7 +6,7 @@ import {
   FiBox, FiLoader, FiAlertCircle, FiChevronDown, FiCalendar, 
   FiX, FiMapPin, FiCreditCard, FiUser, FiPhone, FiMail, 
   FiFileText, FiUpload, FiDownload, FiCheckCircle, FiTrash2, FiInfo, FiRefreshCcw, FiCheck,
-  FiTruck
+  FiTruck, FiCopy
 } from 'react-icons/fi';
 import CustomDropdown from '../Components/CustomDropdown';
 import { useOutletContext } from 'react-router-dom';
@@ -17,6 +17,52 @@ const getImageUrl = (path) => {
   if (path.startsWith('http') || path.startsWith('blob:')) return path;
   const cleanPath = path.replace(/\\/g, '/');
   return `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
+};
+
+const CopyButton = ({ text, className = "text-slate-600 hover:text-slate-300", size = 12 }) => {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = (e) => {
+    e.stopPropagation();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text)
+        .then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1500);
+        })
+        .catch((err) => {
+          console.error("Failed to copy using clipboard API:", err);
+        });
+    } else {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      } catch (err) {
+        console.error('Fallback copy failed', err);
+      }
+      document.body.removeChild(textarea);
+    }
+  };
+  return (
+    <button 
+      onClick={handleCopy}
+      type="button"
+      className={`${className} p-0.5 rounded transition-colors shrink-0 flex items-center justify-center`}
+      title={copied ? "Copied!" : "Copy ID"}
+    >
+      {copied ? (
+        <FiCheck className="text-emerald-400" size={size} />
+      ) : (
+        <FiCopy size={size} />
+      )}
+    </button>
+  );
 };
 
 const Orders = ({ defaultStatus = 'all' }) => {
@@ -446,7 +492,10 @@ const Orders = ({ defaultStatus = 'all' }) => {
                         </td>
                         <td className="p-4 font-mono text-sm text-blue-300 font-medium" title={order._id}>
                           <div className="flex flex-col">
-                            <span>{order._id}</span>
+                            <div className="flex items-center gap-1">
+                              <span>{order._id}</span>
+                              <CopyButton text={order._id} className="text-blue-400/60 hover:text-blue-300" size={10} />
+                            </div>
                             {order.invoiceUrl && (
                               <span className="text-[10px] text-emerald-400 font-sans mt-0.5 flex items-center gap-1">
                                 <FiFileText className="shrink-0" /> Invoiced
@@ -600,7 +649,10 @@ const Orders = ({ defaultStatus = 'all' }) => {
                                 {(currentReturnsPage - 1) * itemsPerPage + index + 1}
                               </td>
                               <td className="p-4 font-mono text-sm text-blue-300 font-medium">
-                                {returnId}
+                                <div className="flex items-center gap-1">
+                                  <span>{returnId}</span>
+                                  <CopyButton text={returnId} className="text-blue-400/60 hover:text-blue-300" size={10} />
+                                </div>
                               </td>
                               {/* <td className="p-4 font-mono text-sm text-slate-400">
                                 {orderId}
@@ -723,7 +775,10 @@ const Orders = ({ defaultStatus = 'all' }) => {
                   <FiBox className="text-blue-400" />
                   Order Details
                 </h3>
-                <p className="text-sm font-mono text-slate-400 mt-1">#{selectedOrder._id}</p>
+                <div className="flex items-center gap-1 mt-1">
+                  <span className="text-sm font-mono text-slate-400">#{selectedOrder._id}</span>
+                  <CopyButton text={selectedOrder._id} className="text-slate-400 hover:text-white" size={12} />
+                </div>
               </div>
               <button onClick={closeModal} className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors cursor-pointer">
                 <FiX className="text-2xl" />
