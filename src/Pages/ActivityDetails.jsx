@@ -294,9 +294,64 @@ const ActivityDetails = () => {
           }
           let activities = res.data?.recentActivities || [];
 
+          if (queryBreakdown === 'true') {
+            if (queryBreakdownInterval === 'day') {
+              let targetDateStr = new Date().toISOString().split('T')[0];
+              const allDates = activities.map(act => act.createdAt?.split('T')[0]).filter(Boolean);
+              if (allDates.length > 0 && !activities.some(act => act.createdAt?.startsWith(targetDateStr))) {
+                allDates.sort((a, b) => b.localeCompare(a));
+                targetDateStr = allDates[0];
+              }
+              activities = activities.filter(act => act.createdAt?.startsWith(targetDateStr));
+            } else if (queryBreakdownInterval === 'month') {
+              let currentMonthStr = new Date().toISOString().slice(0, 7);
+              const allMonths = activities.map(act => act.createdAt?.slice(0, 7)).filter(Boolean);
+              if (allMonths.length > 0 && !activities.some(act => act.createdAt?.startsWith(currentMonthStr))) {
+                allMonths.sort((a, b) => b.localeCompare(a));
+                currentMonthStr = allMonths[0];
+              }
+              activities = activities.filter(act => act.createdAt?.startsWith(currentMonthStr));
+            }
+          }
+
           if (type === 'most-searched-brands' || type === 'brand-views') {
-            let rawBrands = res.data?.mostSearchedBrands || [];
-            if (rawBrands.length === 0 && res.data?.users) {
+            let rawBrands = (queryBreakdown === 'true' ? [] : (res.data?.mostSearchedBrands || []));
+            if (rawBrands.length === 0 && activities.length > 0) {
+              const brandMap = {};
+              activities.forEach(act => {
+                const action = (act.action || '').toUpperCase();
+                if (action === 'BRAND_VIEW' || action === 'BRAND') {
+                  const brandId = act.details?.brandId || act.details?.id || 'unknown';
+                  const brand = lookup.brands?.find(b => b._id === brandId);
+                  const key = brandId;
+                  if (!brandMap[key]) {
+                    brandMap[key] = {
+                      brand: brand || { _id: brandId, name: act.details?.brandName || 'Unknown Brand' },
+                      searches: 0,
+                      viewers: []
+                    };
+                  }
+                  brandMap[key].searches += 1;
+                  const uId = act.user?._id || act.user?.email || 'unknown';
+                  const matchedViewer = brandMap[key].viewers.find(v => (v.user?._id || v.user?.email) === uId);
+                  if (matchedViewer) {
+                    matchedViewer.count += 1;
+                    const newTime = new Date(act.createdAt || act.timestamp).getTime();
+                    const oldTime = matchedViewer.lastViewedAt ? new Date(matchedViewer.lastViewedAt).getTime() : 0;
+                    if (newTime > oldTime) {
+                      matchedViewer.lastViewedAt = act.createdAt || act.timestamp;
+                    }
+                  } else {
+                    brandMap[key].viewers.push({
+                      user: act.user || { name: 'Unknown User', email: 'N/A' },
+                      count: 1,
+                      lastViewedAt: act.createdAt || act.timestamp
+                    });
+                  }
+                }
+              });
+              rawBrands = Object.values(brandMap);
+            } else if (rawBrands.length === 0 && res.data?.users) {
               const brandMap = {};
               res.data.users.forEach(u => {
                 if (u.activityStats?.brandViews > 0) {
@@ -323,8 +378,43 @@ const ActivityDetails = () => {
             }).sort((a, b) => b.searches - a.searches);
             setData(processed);
           } else if (type === 'most-searched-categories' || type === 'category-views') {
-            let rawCategories = res.data?.mostSearchedCategories || [];
-            if (rawCategories.length === 0 && res.data?.users) {
+            let rawCategories = (queryBreakdown === 'true' ? [] : (res.data?.mostSearchedCategories || []));
+            if (rawCategories.length === 0 && activities.length > 0) {
+              const catMap = {};
+              activities.forEach(act => {
+                const action = (act.action || '').toUpperCase();
+                if (action === 'CATEGORY_VIEW' || action === 'CATEGORY') {
+                  const catId = act.details?.categoryId || act.details?.id || 'unknown';
+                  const cat = lookup.categories?.find(c => c._id === catId);
+                  const key = catId;
+                  if (!catMap[key]) {
+                    catMap[key] = {
+                      category: cat || { _id: catId, name: act.details?.categoryName || 'Unknown Category' },
+                      searches: 0,
+                      viewers: []
+                    };
+                  }
+                  catMap[key].searches += 1;
+                  const uId = act.user?._id || act.user?.email || 'unknown';
+                  const matchedViewer = catMap[key].viewers.find(v => (v.user?._id || v.user?.email) === uId);
+                  if (matchedViewer) {
+                    matchedViewer.count += 1;
+                    const newTime = new Date(act.createdAt || act.timestamp).getTime();
+                    const oldTime = matchedViewer.lastViewedAt ? new Date(matchedViewer.lastViewedAt).getTime() : 0;
+                    if (newTime > oldTime) {
+                      matchedViewer.lastViewedAt = act.createdAt || act.timestamp;
+                    }
+                  } else {
+                    catMap[key].viewers.push({
+                      user: act.user || { name: 'Unknown User', email: 'N/A' },
+                      count: 1,
+                      lastViewedAt: act.createdAt || act.timestamp
+                    });
+                  }
+                }
+              });
+              rawCategories = Object.values(catMap);
+            } else if (rawCategories.length === 0 && res.data?.users) {
               const catMap = {};
               res.data.users.forEach(u => {
                 if (u.activityStats?.categoryViews > 0) {
@@ -351,9 +441,23 @@ const ActivityDetails = () => {
             }).sort((a, b) => b.searches - a.searches);
             setData(processed);
           } else if (type === 'most-searched') {
-            setData(res.data?.mostSearched || []);
+            let rawSearches = res.data?.mostSearched || [];
+            if (queryBreakdown === 'true' && activities.length > 0) {
+              const searchMap = {};
+              activities.forEach(act => {
+                if ((act.action || '').toUpperCase() === 'SEARCH' && act.details?.query) {
+                  const query = act.details.query.trim();
+                  searchMap[query] = (searchMap[query] || 0) + 1;
+                }
+              });
+              rawSearches = Object.entries(searchMap).map(([query, count]) => ({
+                query,
+                count
+              })).sort((a, b) => b.count - a.count);
+            }
+            setData(rawSearches);
           } else if (type === 'most-viewed-products' || type === 'product-views') {
-            let rawProducts = res.data?.mostViewedProducts || [];
+            let rawProducts = (queryBreakdown === 'true' ? [] : (res.data?.mostViewedProducts || []));
             if (rawProducts.length === 0 && activities.length > 0) {
               const pvActivities = activities.filter(act => {
                 const action = (act.action || '').toUpperCase();
@@ -380,10 +484,16 @@ const ActivityDetails = () => {
                 if (!prodMap[productId].viewersMap[uId]) {
                   prodMap[productId].viewersMap[uId] = {
                     user: act.user || { name: 'Unknown User', email: 'N/A' },
-                    count: 0
+                    count: 0,
+                    lastViewedAt: act.createdAt || act.timestamp
                   };
                 }
                 prodMap[productId].viewersMap[uId].count += 1;
+                const newTime = new Date(act.createdAt || act.timestamp).getTime();
+                const oldTime = prodMap[productId].viewersMap[uId].lastViewedAt ? new Date(prodMap[productId].viewersMap[uId].lastViewedAt).getTime() : 0;
+                if (newTime > oldTime) {
+                  prodMap[productId].viewersMap[uId].lastViewedAt = act.createdAt || act.timestamp;
+                }
               });
               rawProducts = Object.values(prodMap).map(item => ({
                 product: item.product,
@@ -418,11 +528,29 @@ const ActivityDetails = () => {
             setData(processed);
           }
         } else {
-          const logsUrl = `/activity/stats?startDate=${startDate}&endDate=${endDate}`;
+          const logsUrl = getActivityStatsUrl();
           let res = await api.get(logsUrl, { headers });
           let activities = res.data?.recentActivities || [];
 
-          if (startDate && endDate && activities.length > 0) {
+          if (queryBreakdown === 'true') {
+            if (queryBreakdownInterval === 'day') {
+              let targetDateStr = new Date().toISOString().split('T')[0];
+              const allDates = activities.map(act => act.createdAt?.split('T')[0]).filter(Boolean);
+              if (allDates.length > 0 && !activities.some(act => act.createdAt?.startsWith(targetDateStr))) {
+                allDates.sort((a, b) => b.localeCompare(a));
+                targetDateStr = allDates[0];
+              }
+              activities = activities.filter(act => act.createdAt?.startsWith(targetDateStr));
+            } else if (queryBreakdownInterval === 'month') {
+              let currentMonthStr = new Date().toISOString().slice(0, 7);
+              const allMonths = activities.map(act => act.createdAt?.slice(0, 7)).filter(Boolean);
+              if (allMonths.length > 0 && !activities.some(act => act.createdAt?.startsWith(currentMonthStr))) {
+                allMonths.sort((a, b) => b.localeCompare(a));
+                currentMonthStr = allMonths[0];
+              }
+              activities = activities.filter(act => act.createdAt?.startsWith(currentMonthStr));
+            }
+          } else if (startDate && endDate && activities.length > 0) {
             const startMs = new Date(`${startDate}T00:00:00.000Z`).getTime();
             const endMs = new Date(`${endDate}T23:59:59.999Z`).getTime();
             activities = activities.filter(act => {
@@ -2833,6 +2961,12 @@ const ActivityDetails = () => {
                                 <FiPhone size={8} /> {u.phone}
                               </span>
                             )}
+                            {(item.lastViewedAt || item.timestamp || item.createdAt || u.lastActive) ? (
+                              <span className="text-[9px] text-indigo-300/80 flex items-center gap-1 mt-1 font-mono">
+                                <FiClock size={9} />
+                                {formatDateTime(item.lastViewedAt || item.timestamp || item.createdAt || u.lastActive)}
+                              </span>
+                            ) : null}
                           </div>
                         </div>
 

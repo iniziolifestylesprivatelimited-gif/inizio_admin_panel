@@ -47,6 +47,7 @@ const PAGES = {
     subMenus: [
       { path: '/products/list', name: 'Product List', icon: FiPackage, permission: 'products_view' },
       { path: '/products/mapping', name: 'Product Mapping', icon: FiFilter, permission: 'products_manage' },
+      { path: '/products/slabs', name: 'Quantity Slabs', icon: FiSliders, permission: 'products_manage' }
     ]
   },
 
@@ -74,6 +75,7 @@ const PAGES = {
   },
 
   COUPONS: { path: '/coupons', name: 'Coupons', icon: FiPercent, permission: 'products_manage' },
+  QUOTES: { path: '/quotes', name: 'Quotes Requests', icon: FiFileText, permission: 'orders_view' },
 };
 
 export const getAccessibleMenus = (userPermissions = [], userRole = '') => {
@@ -85,6 +87,7 @@ export const getAccessibleMenus = (userPermissions = [], userRole = '') => {
     PAGES.ORDERS,
     PAGES.LEDGERS,
     PAGES.COUPONS,
+    PAGES.QUOTES,
     PAGES.BANNERS, 
     PAGES.CHAT,
     PAGES.NOTIFICATIONS, 

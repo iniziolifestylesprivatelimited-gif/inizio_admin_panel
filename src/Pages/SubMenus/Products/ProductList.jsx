@@ -5,6 +5,7 @@ import axios from 'axios';
 import { FiEdit2, FiTrash2, FiPlus, FiAlertCircle, FiLoader, FiSearch, FiUpload, FiX, FiSave, FiImage, FiPackage, FiChevronDown, FiChevronUp, FiArrowUp, FiArrowDown, FiCopy, FiDownload, FiFileText, FiCheck } from 'react-icons/fi';
 import { api, BASE_URL } from '../../../api/axios';
 import CustomDropdown from '../../../Components/CustomDropdown';
+import CopyButton from '../../../Components/CopyButton';
 import * as XLSX from 'xlsx';
 import { formatDateTimeDDMMYYYY } from '../../../utils/dateUtils';
 
@@ -13,52 +14,6 @@ const getImageUrl = (path) => {
   if (path.startsWith('http') || path.startsWith('blob:')) return path;
   const cleanPath = path.replace(/\\/g, '/');
   return `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
-};
-
-const CopyButton = ({ text, className = "text-slate-600 hover:text-slate-300", size = 12 }) => {
-  const [copied, setCopied] = useState(false);
-  const handleCopy = (e) => {
-    e.stopPropagation();
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text)
-        .then(() => {
-          setCopied(true);
-          setTimeout(() => setCopied(false), 1500);
-        })
-        .catch((err) => {
-          console.error("Failed to copy using clipboard API:", err);
-        });
-    } else {
-      const textarea = document.createElement('textarea');
-      textarea.value = text;
-      textarea.style.position = 'fixed';
-      textarea.style.opacity = '0';
-      document.body.appendChild(textarea);
-      textarea.select();
-      try {
-        document.execCommand('copy');
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
-      } catch (err) {
-        console.error('Fallback copy failed', err);
-      }
-      document.body.removeChild(textarea);
-    }
-  };
-  return (
-    <button 
-      onClick={handleCopy}
-      type="button"
-      className={`${className} p-0.5 rounded transition-colors shrink-0 flex items-center justify-center`}
-      title={copied ? "Copied!" : "Copy ID"}
-    >
-      {copied ? (
-        <FiCheck className="text-emerald-400" size={size} />
-      ) : (
-        <FiCopy size={size} />
-      )}
-    </button>
-  );
 };
 
 const ProductList = () => {
@@ -81,6 +36,7 @@ const ProductList = () => {
   };
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
+  const lastPushedSearchRef = useRef(searchParams.get('search') || '');
   const searchTerm = searchParams.get('search') || '';
   const currentPage = parseInt(searchParams.get('page') || '1', 10);
 
@@ -114,7 +70,11 @@ const ProductList = () => {
 
   // Sync local input with URL search param changes (e.g. back navigation or reset)
   useEffect(() => {
-    setSearchInput(searchParams.get('search') || '');
+    const urlSearch = searchParams.get('search') || '';
+    if (urlSearch !== lastPushedSearchRef.current) {
+      setSearchInput(urlSearch);
+      lastPushedSearchRef.current = urlSearch;
+    }
   }, [searchParams]);
 
   // Debounce search updates to searchParams to prevent lag during fast typing
@@ -130,6 +90,7 @@ const ProductList = () => {
           prev.delete('search');
         }
         prev.set('page', '1');
+        lastPushedSearchRef.current = searchInput;
         return prev;
       }, { replace: true });
     }, 300);

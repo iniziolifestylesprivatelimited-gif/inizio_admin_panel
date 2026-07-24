@@ -67,13 +67,13 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await api.post('/admin/login', { email, password });
-      
+
       const { token, _id, role, name, email: userEmail } = response.data;
-      
+
       sessionStorage.setItem('accessToken', token);
       const userData = { _id, role, name, email: userEmail };
       sessionStorage.setItem('user', JSON.stringify(userData));
-      
+
       setUser({ ...userData, token });
       return response.data;
     } catch (err) {

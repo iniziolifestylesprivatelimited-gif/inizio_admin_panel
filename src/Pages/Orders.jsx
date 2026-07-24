@@ -9,6 +9,7 @@ import {
   FiTruck, FiCopy, FiEye
 } from 'react-icons/fi';
 import CustomDropdown from '../Components/CustomDropdown';
+import CopyButton from '../Components/CopyButton';
 import { useOutletContext } from 'react-router-dom';
 import { formatDateDDMMYYYY, formatDateTimeDDMMYYYY } from '../utils/dateUtils';
 
@@ -17,52 +18,6 @@ const getImageUrl = (path) => {
   if (path.startsWith('http') || path.startsWith('blob:')) return path;
   const cleanPath = path.replace(/\\/g, '/');
   return `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
-};
-
-const CopyButton = ({ text, className = "text-slate-600 hover:text-slate-300", size = 12 }) => {
-  const [copied, setCopied] = useState(false);
-  const handleCopy = (e) => {
-    e.stopPropagation();
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text)
-        .then(() => {
-          setCopied(true);
-          setTimeout(() => setCopied(false), 1500);
-        })
-        .catch((err) => {
-          console.error("Failed to copy using clipboard API:", err);
-        });
-    } else {
-      const textarea = document.createElement('textarea');
-      textarea.value = text;
-      textarea.style.position = 'fixed';
-      textarea.style.opacity = '0';
-      document.body.appendChild(textarea);
-      textarea.select();
-      try {
-        document.execCommand('copy');
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
-      } catch (err) {
-        console.error('Fallback copy failed', err);
-      }
-      document.body.removeChild(textarea);
-    }
-  };
-  return (
-    <button 
-      onClick={handleCopy}
-      type="button"
-      className={`${className} p-0.5 rounded transition-colors shrink-0 flex items-center justify-center`}
-      title={copied ? "Copied!" : "Copy ID"}
-    >
-      {copied ? (
-        <FiCheck className="text-emerald-400" size={size} />
-      ) : (
-        <FiCopy size={size} />
-      )}
-    </button>
-  );
 };
 
 const Orders = ({ defaultStatus = 'all' }) => {
@@ -83,6 +38,10 @@ const Orders = ({ defaultStatus = 'all' }) => {
   const [shippingInputOpen, setShippingInputOpen] = useState(false);
   const [awbNumberText, setAwbNumberText] = useState('');
   const [courierNameText, setCourierNameText] = useState('');
+
+  // Status change confirmation popup state
+  const [statusConfirmOpen, setStatusConfirmOpen] = useState(false);
+  const [statusConfirmData, setStatusConfirmData] = useState(null);
 
   // Tracking details state
   const [trackingData, setTrackingData] = useState(null);
@@ -825,7 +784,8 @@ const Orders = ({ defaultStatus = 'all' }) => {
                             setAwbNumberText(selectedOrder.awbNumber || '');
                             setCourierNameText(selectedOrder.courierName || '');
                           } else {
-                            handleStatusChange(selectedOrder._id, newStatus);
+                            setStatusConfirmData({ orderId: selectedOrder._id, newStatus, shippingInfo: {} });
+                            setStatusConfirmOpen(true);
                           }
                         }}
                         options={['Processing', 'Shipped', 'Delivered', 'Cancelled']}
@@ -877,7 +837,14 @@ const Orders = ({ defaultStatus = 'all' }) => {
                   </div>
                   <div className="flex gap-2 justify-end">
                     <button
-                      onClick={() => handleStatusChange(selectedOrder._id, 'Shipped', { awbNumber: awbNumberText, courierName: courierNameText })}
+                      onClick={() => {
+                        setStatusConfirmData({
+                          orderId: selectedOrder._id,
+                          newStatus: 'Shipped',
+                          shippingInfo: { awbNumber: awbNumberText, courierName: courierNameText }
+                        });
+                        setStatusConfirmOpen(true);
+                      }}
                       disabled={!courierNameText.trim() || !awbNumberText.trim()}
                       className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
@@ -1490,6 +1457,81 @@ const Orders = ({ defaultStatus = 'all' }) => {
                   </button>
                 </>
               )}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Status Change Confirmation Modal */}
+      {statusConfirmOpen && statusConfirmData && createPortal(
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm animate-fade-in" 
+            onClick={() => setStatusConfirmOpen(false)}
+          ></div>
+          <div className="relative bg-slate-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-800/50">
+              <div className="flex items-center gap-3">
+                <FiAlertCircle className="text-amber-400 text-xl" />
+                <h3 className="text-lg font-bold text-white">Confirm Status Change</h3>
+              </div>
+              <button 
+                onClick={() => setStatusConfirmOpen(false)} 
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors cursor-pointer"
+              >
+                <FiX className="text-xl" />
+              </button>
+            </div>
+            
+            <div className="p-6 bg-slate-950/40 text-slate-300 space-y-4">
+              <p className="text-sm leading-relaxed">
+                Are you sure you want to change the status of this order to{' '}
+                <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold border uppercase tracking-wider ${getStatusColor(statusConfirmData.newStatus)}`}>
+                  {statusConfirmData.newStatus}
+                </span>?
+              </p>
+
+              {statusConfirmData.newStatus === 'Cancelled' && (
+                <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl flex items-start gap-2 leading-relaxed">
+                  <FiAlertCircle className="shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Warning:</strong> Cancelling an order will cancel its processing. This action may notify the customer and cannot be undone.
+                  </span>
+                </div>
+              )}
+
+              {statusConfirmData.newStatus === 'Shipped' && statusConfirmData.shippingInfo && (
+                <div className="p-3 bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs rounded-xl space-y-1.5 font-medium">
+                  <div className="font-bold text-white uppercase text-[10px] tracking-wider">Shipping Details:</div>
+                  <div>Courier: {statusConfirmData.shippingInfo.courierName}</div>
+                  <div>AWB Number: {statusConfirmData.shippingInfo.awbNumber}</div>
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 py-4 border-t border-white/10 bg-slate-800/50 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setStatusConfirmOpen(false)}
+                className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  handleStatusChange(
+                    statusConfirmData.orderId, 
+                    statusConfirmData.newStatus, 
+                    statusConfirmData.shippingInfo
+                  );
+                  setStatusConfirmOpen(false);
+                }}
+                className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer"
+              >
+                Confirm & Save
+              </button>
             </div>
           </div>
         </div>,

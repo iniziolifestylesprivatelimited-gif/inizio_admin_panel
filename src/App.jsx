@@ -8,6 +8,7 @@ import Login from './Pages/Auth/Login';
 import Dashboard from './Pages/Dashboard';
 import ProductList from './Pages/SubMenus/Products/ProductList';
 import ProductMapping from './Pages/SubMenus/Products/ProductMapping';
+import QuantitySlabs from './Pages/SubMenus/Products/QuantitySlabs';
 import Category from './Pages/SubMenus/Catalog/Category';
 import Brands from './Pages/SubMenus/Catalog/Brands';
 import HomeOrdering from './Pages/SubMenus/Catalog/HomeOrdering';
@@ -33,6 +34,7 @@ import Orders from './Pages/Orders';
 import { Ledgers } from './Pages/Ledgers';
 import Coupons from './Pages/Coupons';
 import ActivityDetails from './Pages/ActivityDetails';
+import Quotes from './Pages/Quotes';
 
 function App() {
   return (
@@ -53,6 +55,7 @@ function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/products/list" element={<ProductList />} />
               <Route path="/products/mapping" element={<ProductMapping />} />
+              <Route path="/products/slabs" element={<QuantitySlabs />} />
               <Route path="/products/categories" element={<Category />} />
               <Route path="/products/brands" element={<Brands />} />
               <Route path="/products/home-order" element={<HomeOrdering />} />
@@ -69,6 +72,7 @@ function App() {
               <Route path="/orders/delivered" element={<Orders defaultStatus="delivered" />} />
               <Route path="/ledgers" element={<Ledgers />} />
               <Route path="/coupons" element={<Coupons />} />
+              <Route path="/quotes" element={<Quotes />} />
               <Route path="/chat" element={<Chat/>} />
               <Route path='/users/list' element={<UsersList/>}/>
               <Route path='/users/list/:id' element={<UserDetails/>}/>

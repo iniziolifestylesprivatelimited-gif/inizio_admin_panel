@@ -465,14 +465,47 @@ const Dashboard = () => {
 
 
 
-  const totalProductViews = (activityStats?.mostViewedProducts?.reduce((sum, item) => sum + (item.views !== undefined ? item.views : (Array.isArray(item.viewers) ? item.viewers.reduce((s, v) => s + (v.count || 0), 0) : 0)), 0)) || (activityStats?.recentActivities?.filter(act => {
-    const action = (act.action || '').toUpperCase();
-    return action === 'PRODUCT_VIEW' || action === 'PRODUCTVIEW' || action === 'PRODUCT';
-  }).length) || (activityStats?.users?.reduce((sum, u) => sum + (u.activityStats?.productViews || 0), 0)) || 0;
+  const todayStr = React.useMemo(() => {
+    let target = new Date().toISOString().split('T')[0];
+    const allDates = (activityStats?.recentActivities || [])
+      .map(act => act.createdAt?.split('T')[0])
+      .filter(Boolean);
+    if (allDates.length > 0 && !(activityStats?.recentActivities || []).some(act => act.createdAt?.startsWith(target))) {
+      allDates.sort((a, b) => b.localeCompare(a));
+      target = allDates[0];
+    }
+    return target;
+  }, [activityStats]);
+
+  const totalProductViews = breakdownType === 'day'
+    ? (activityStats?.recentActivities || []).filter(act => {
+        const action = (act.action || '').toUpperCase();
+        return (action === 'PRODUCT_VIEW' || action === 'PRODUCTVIEW' || action === 'PRODUCT') && act.createdAt?.startsWith(todayStr);
+      }).length
+    : ((activityStats?.mostViewedProducts?.reduce((sum, item) => sum + (item.views !== undefined ? item.views : (Array.isArray(item.viewers) ? item.viewers.reduce((s, v) => s + (v.count || 0), 0) : 0)), 0)) || (activityStats?.recentActivities?.filter(act => {
+        const action = (act.action || '').toUpperCase();
+        return action === 'PRODUCT_VIEW' || action === 'PRODUCTVIEW' || action === 'PRODUCT';
+      }).length) || (activityStats?.users?.reduce((sum, u) => sum + (u.activityStats?.productViews || 0), 0)) || 0);
 
   const sortedMostViewedProducts = React.useMemo(() => {
+    if (breakdownType === 'day') {
+      const todayProductViewsMap = {};
+      (activityStats?.recentActivities || []).forEach(act => {
+        const action = (act.action || '').toUpperCase();
+        const isProductView = action === 'PRODUCT_VIEW' || action === 'PRODUCTVIEW' || action === 'PRODUCT';
+        if (isProductView && act.createdAt?.startsWith(todayStr)) {
+          const resolvedProductId = act.productId || act.details?.productId;
+          if (resolvedProductId) {
+            todayProductViewsMap[resolvedProductId] = (todayProductViewsMap[resolvedProductId] || 0) + 1;
+          }
+        }
+      });
+      return Object.entries(todayProductViewsMap)
+        .map(([productId, views]) => ({ productId, views }))
+        .sort((a, b) => b.views - a.views);
+    }
     return activityStats?.mostViewedProducts || [];
-  }, [activityStats]);
+  }, [activityStats, breakdownType, todayStr]);
 
   // Calculate aggregate daily counts for trends chart
   const dailyCounts = React.useMemo(() => {
@@ -498,7 +531,7 @@ const Dashboard = () => {
   const dailyLabels = React.useMemo(() => dailyCounts.map(d => formatYYYYMMDDToDDMMYYYY(d.date)), [dailyCounts]);
   const dailyValues = React.useMemo(() => dailyCounts.map(d => d.count), [dailyCounts]);
 
-  const { trendsLabels, trendsValues } = React.useMemo(() => {
+  const { trendsLabels, trendsValues, trendsBreakdowns } = React.useMemo(() => {
     const isTrendAction = (actionStr) => {
       const act = (actionStr || '').toUpperCase();
       return (
@@ -507,6 +540,46 @@ const Dashboard = () => {
         act.includes('CATEGORY') ||
         act.includes('SEARCH')
       );
+    };
+
+    const getActionBreakdown = (logs) => {
+      const counts = {};
+      logs.forEach(log => {
+        let type = 'Other';
+        const act = (log.action || '').toUpperCase();
+        if (act.includes('LOGIN')) type = 'Login';
+        else if (act.includes('LOGOUT')) type = 'Logout';
+        else if (act.includes('VIEW') || act.includes('GET')) {
+          if (act.includes('PRODUCT')) type = 'Product View';
+          else if (act.includes('BRAND')) type = 'Brand View';
+          else if (act.includes('CATEGORY')) type = 'Category View';
+          else type = 'Page View';
+        }
+        else if (act.includes('CREATE') || act.includes('ADD') || act.includes('POST')) {
+          if (act.includes('PRODUCT')) type = 'Product Add';
+          else if (act.includes('BRAND')) type = 'Brand Add';
+          else if (act.includes('CATEGORY')) type = 'Category Add';
+          else type = 'Item Creation';
+        }
+        else if (act.includes('UPDATE') || act.includes('EDIT') || act.includes('PUT')) {
+          if (act.includes('PRODUCT')) type = 'Product Edit';
+          else if (act.includes('BRAND')) type = 'Brand Edit';
+          else if (act.includes('CATEGORY')) type = 'Category Edit';
+          else type = 'Item Edit';
+        }
+        else if (act.includes('DELETE')) {
+          if (act.includes('PRODUCT')) type = 'Product Delete';
+          else if (act.includes('BRAND')) type = 'Brand Delete';
+          else if (act.includes('CATEGORY')) type = 'Category Delete';
+          else type = 'Item Delete';
+        }
+        else if (act.includes('SEARCH')) {
+          type = 'Search Query';
+        }
+        
+        counts[type] = (counts[type] || 0) + 1;
+      });
+      return counts;
     };
 
     // Calculate synchronized count for a specific date
@@ -545,7 +618,8 @@ const Dashboard = () => {
 
       const hours = Array.from({ length: 24 }, (_, i) => ({
         hourNum: i,
-        count: 0
+        count: 0,
+        breakdown: {}
       }));
 
       const targetLogs = (activityStats?.recentActivities || []).filter(act => act.createdAt?.startsWith(targetDateStr));
@@ -557,6 +631,14 @@ const Dashboard = () => {
         }
       });
 
+      hours.forEach(h => {
+        const hourLogs = targetLogs.filter(act => {
+          const d = new Date(act.createdAt);
+          return d.getHours() === h.hourNum;
+        });
+        h.breakdown = getActionBreakdown(hourLogs);
+      });
+
       const labels = hours.map(h => {
         const h12 = h.hourNum % 12 === 0 ? 12 : h.hourNum % 12;
         const ampm = h.hourNum < 12 ? 'AM' : 'PM';
@@ -564,7 +646,11 @@ const Dashboard = () => {
       });
       const values = hours.map(h => h.count);
 
-      return { trendsLabels: labels, trendsValues: values };
+      return { 
+        trendsLabels: labels, 
+        trendsValues: values,
+        trendsBreakdowns: hours.map(h => h.breakdown)
+      };
 
     } else if (trendsRange === '1y') {
       // 2. One Year (12 months)
@@ -585,7 +671,8 @@ const Dashboard = () => {
         last12Months.push({
           yearMonth,
           label: d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
-          count: 0
+          count: 0,
+          breakdown: {}
         });
       }
 
@@ -597,11 +684,9 @@ const Dashboard = () => {
             monthDates.add(d.date);
           }
         });
-        (activityStats?.recentActivities || []).forEach(act => {
-          if (act.createdAt && act.createdAt.startsWith(month.yearMonth)) {
-            monthDates.add(act.createdAt.split('T')[0]);
-          }
-        });
+        const monthLogs = (activityStats?.recentActivities || []).filter(act =>
+          act.createdAt && act.createdAt.startsWith(month.yearMonth)
+        );
 
         let monthSum = 0;
         monthDates.forEach(dateStr => {
@@ -609,22 +694,21 @@ const Dashboard = () => {
         });
 
         if (monthSum === 0) {
-          const rawLogsCount = (activityStats?.recentActivities || []).filter(act =>
-            act.createdAt && act.createdAt.startsWith(month.yearMonth)
-          ).length;
-          monthSum = rawLogsCount;
+          monthSum = monthLogs.length;
         }
 
         month.count = monthSum;
+        month.breakdown = getActionBreakdown(monthLogs);
       });
 
       return {
         trendsLabels: last12Months.map(m => m.label),
-        trendsValues: last12Months.map(m => m.count)
+        trendsValues: last12Months.map(m => m.count),
+        trendsBreakdowns: last12Months.map(m => m.breakdown)
       };
 
     } else if (trendsRange === '1m') {
-      // 2. One Month (30 days)
+      // 3. One Month (30 days)
       let targetDateStr = new Date().toISOString().split('T')[0];
       const allDates = (activityStats?.recentActivities || [])
         .map(act => act.createdAt?.split('T')[0])
@@ -643,21 +727,27 @@ const Dashboard = () => {
         last30Days.push({
           dateStr,
           label: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          count: 0
+          count: 0,
+          breakdown: {}
         });
       }
 
       last30Days.forEach(day => {
         day.count = getSynchronizedCount(day.dateStr);
+        const dayLogs = (activityStats?.recentActivities || []).filter(act =>
+          act.createdAt && act.createdAt.startsWith(day.dateStr)
+        );
+        day.breakdown = getActionBreakdown(dayLogs);
       });
 
       return {
         trendsLabels: last30Days.map(d => d.label),
-        trendsValues: last30Days.map(d => d.count)
+        trendsValues: last30Days.map(d => d.count),
+        trendsBreakdowns: last30Days.map(d => d.breakdown)
       };
 
     } else {
-      // 3. One Week (7 days) - default
+      // 4. One Week (7 days) - default
       let targetDateStr = new Date().toISOString().split('T')[0];
       const allDates = (activityStats?.recentActivities || [])
         .map(act => act.createdAt?.split('T')[0])
@@ -676,23 +766,30 @@ const Dashboard = () => {
         last7Days.push({
           dateStr,
           label: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
-          count: 0
+          count: 0,
+          breakdown: {}
         });
       }
 
       last7Days.forEach(day => {
         day.count = getSynchronizedCount(day.dateStr);
+        const dayLogs = (activityStats?.recentActivities || []).filter(act =>
+          act.createdAt && act.createdAt.startsWith(day.dateStr)
+        );
+        day.breakdown = getActionBreakdown(dayLogs);
       });
 
       return {
         trendsLabels: last7Days.map(d => d.label),
-        trendsValues: last7Days.map(d => d.count)
+        trendsValues: last7Days.map(d => d.count),
+        trendsBreakdowns: last7Days.map(d => d.breakdown)
       };
     }
   }, [trendsRange, dailyCounts, activityStats]);
 
   const [activeLabels, setActiveLabels] = useState(() => trendsLabels);
   const [activeValues, setActiveValues] = useState(() => trendsValues);
+  const [activeBreakdowns, setActiveBreakdowns] = useState(() => trendsBreakdowns);
   const [chartOpacity, setChartOpacity] = useState(1);
 
   useEffect(() => {
@@ -701,14 +798,16 @@ const Dashboard = () => {
       const t = setTimeout(() => {
         setActiveLabels(trendsLabels);
         setActiveValues(trendsValues);
+        setActiveBreakdowns(trendsBreakdowns);
         setChartOpacity(1);
       }, 150);
       return () => clearTimeout(t);
     } else {
       setActiveLabels(trendsLabels);
       setActiveValues(trendsValues);
+      setActiveBreakdowns(trendsBreakdowns);
     }
-  }, [trendsRange, trendsLabels, trendsValues]);
+  }, [trendsRange, trendsLabels, trendsValues, trendsBreakdowns]);
 
   // Extract top trending highlights to display in the side list
   const trendingHighlights = React.useMemo(() => {
@@ -811,22 +910,34 @@ const Dashboard = () => {
   ];
 
   // Dynamic activity metrics cards configurations
-  const brandViewsCount = (activityStats?.mostSearchedBrands?.reduce((sum, item) => sum + (item.searches !== undefined ? item.searches : (Array.isArray(item.viewers) ? item.viewers.reduce((s, v) => s + (v.count || 0), 0) : 0)), 0)) || (activityStats?.recentActivities?.filter(act => {
-    const action = (act.action || '').toUpperCase();
-    return action === 'BRAND_VIEW' || action === 'BRAND';
-  }).length) || (activityStats?.users?.reduce((sum, u) => sum + (u.activityStats?.brandViews || 0), 0)) || 0;
+  const brandViewsCount = breakdownType === 'day'
+    ? (activityStats?.recentActivities || []).filter(act => {
+        const action = (act.action || '').toUpperCase();
+        return (action === 'BRAND_VIEW' || action === 'BRAND') && act.createdAt?.startsWith(todayStr);
+      }).length
+    : ((activityStats?.mostSearchedBrands?.reduce((sum, item) => sum + (item.searches !== undefined ? item.searches : (Array.isArray(item.viewers) ? item.viewers.reduce((s, v) => s + (v.count || 0), 0) : 0)), 0)) || (activityStats?.recentActivities?.filter(act => {
+        const action = (act.action || '').toUpperCase();
+        return action === 'BRAND_VIEW' || action === 'BRAND';
+      }).length) || (activityStats?.users?.reduce((sum, u) => sum + (u.activityStats?.brandViews || 0), 0)) || 0);
 
-  const categoryViewsCount = (activityStats?.mostSearchedCategories?.reduce((sum, item) => sum + (item.searches !== undefined ? item.searches : (Array.isArray(item.viewers) ? item.viewers.reduce((s, v) => s + (v.count || 0), 0) : 0)), 0)) || (activityStats?.recentActivities?.filter(act => {
-    const action = (act.action || '').toUpperCase();
-    return action === 'CATEGORY_VIEW' || action === 'CATEGORY';
-  }).length) || (activityStats?.users?.reduce((sum, u) => sum + (u.activityStats?.categoryViews || 0), 0)) || 0;
+  const categoryViewsCount = breakdownType === 'day'
+    ? (activityStats?.recentActivities || []).filter(act => {
+        const action = (act.action || '').toUpperCase();
+        return (action === 'CATEGORY_VIEW' || action === 'CATEGORY') && act.createdAt?.startsWith(todayStr);
+      }).length
+    : ((activityStats?.mostSearchedCategories?.reduce((sum, item) => sum + (item.searches !== undefined ? item.searches : (Array.isArray(item.viewers) ? item.viewers.reduce((s, v) => s + (v.count || 0), 0) : 0)), 0)) || (activityStats?.recentActivities?.filter(act => {
+        const action = (act.action || '').toUpperCase();
+        return action === 'CATEGORY_VIEW' || action === 'CATEGORY';
+      }).length) || (activityStats?.users?.reduce((sum, u) => sum + (u.activityStats?.categoryViews || 0), 0)) || 0);
 
   const activityMetricCards = [
     {
       title: "Total Logins",
-      value: (activityStats?.summary?.totalLogins !== undefined && activityStats?.summary?.totalLogins !== null)
-        ? activityStats.summary.totalLogins
-        : ((activityStats?.users?.reduce((sum, u) => sum + (u.activityStats?.logins || 0), 0)) || (activityStats?.recentActivities?.filter(act => (act.action || '').toUpperCase() === 'LOGIN').length) || 0),
+      value: breakdownType === 'day'
+        ? (activityStats?.recentActivities || []).filter(act => (act.action || '').toUpperCase() === 'LOGIN' && act.createdAt?.startsWith(todayStr)).length
+        : ((activityStats?.summary?.totalLogins !== undefined && activityStats?.summary?.totalLogins !== null)
+            ? activityStats.summary.totalLogins
+            : ((activityStats?.users?.reduce((sum, u) => sum + (u.activityStats?.logins || 0), 0)) || (activityStats?.recentActivities?.filter(act => (act.action || '').toUpperCase() === 'LOGIN').length) || 0)),
       desc: "Active user logins log",
       path: "/dashboard/details/logins",
       icon: FiLogIn,
@@ -839,9 +950,11 @@ const Dashboard = () => {
     },
     {
       title: "Total Logouts",
-      value: (activityStats?.summary?.totalLogouts !== undefined && activityStats?.summary?.totalLogouts !== null)
-        ? activityStats.summary.totalLogouts
-        : ((activityStats?.users?.reduce((sum, u) => sum + (u.activityStats?.logouts || 0), 0)) || (activityStats?.recentActivities?.filter(act => (act.action || '').toUpperCase() === 'LOGOUT').length) || 0),
+      value: breakdownType === 'day'
+        ? (activityStats?.recentActivities || []).filter(act => (act.action || '').toUpperCase() === 'LOGOUT' && act.createdAt?.startsWith(todayStr)).length
+        : ((activityStats?.summary?.totalLogouts !== undefined && activityStats?.summary?.totalLogouts !== null)
+            ? activityStats.summary.totalLogouts
+            : ((activityStats?.users?.reduce((sum, u) => sum + (u.activityStats?.logouts || 0), 0)) || (activityStats?.recentActivities?.filter(act => (act.action || '').toUpperCase() === 'LOGOUT').length) || 0)),
       desc: "Active user logouts log",
       path: "/dashboard/details/logouts",
       icon: FiLogOut,
@@ -893,7 +1006,9 @@ const Dashboard = () => {
     },
     {
       title: "Search Queries",
-      value: (activityStats?.recentActivities?.filter(act => (act.action || '').toUpperCase() === 'SEARCH').length) || (activityStats?.mostSearched?.reduce((sum, item) => sum + (item.count || 0), 0)) || (activityStats?.users?.reduce((sum, u) => sum + (u.activityStats?.searches || 0), 0)) || 0,
+      value: breakdownType === 'day'
+        ? (activityStats?.recentActivities || []).filter(act => (act.action || '').toUpperCase() === 'SEARCH' && act.createdAt?.startsWith(todayStr)).length
+        : ((activityStats?.recentActivities?.filter(act => (act.action || '').toUpperCase() === 'SEARCH').length) || (activityStats?.mostSearched?.reduce((sum, item) => sum + (item.count || 0), 0)) || (activityStats?.users?.reduce((sum, u) => sum + (u.activityStats?.searches || 0), 0)) || 0),
       desc: "Catalog searches made",
       path: "/dashboard/details/search-queries",
       icon: FiSearch,
@@ -990,7 +1105,7 @@ const Dashboard = () => {
         <PageHeader
           title="Dashboard Overview"
           icon={FiTrendingUp}
-          description="Welcome back to Inizio. Here is a summary of your system health, metrics, and logs."
+          description="Live metrics covering sales performance, user behavior, and catalog analytics."
         />
 
         <KPISkeleton cards={5} />
@@ -1055,7 +1170,7 @@ const Dashboard = () => {
       <PageHeader
         title="Dashboard Overview"
         icon={FiTrendingUp}
-        description="Welcome back to Inizio. Here is a summary of your system health, metrics, and logs."
+        description="Live metrics covering sales performance, user behavior, and catalog analytics."
         action={
           <div className="bg-slate-900/60 backdrop-blur-md border border-white/10 px-4.5 py-2 rounded-2xl flex items-center gap-3 shadow-lg shrink-0 w-fit self-start md:self-center">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
@@ -1351,7 +1466,7 @@ const Dashboard = () => {
               className="relative w-full h-[220px] z-10 transition-all duration-200 ease-in-out"
               style={{ opacity: chartOpacity, transform: `scale(${chartOpacity === 0 ? 0.98 : 1})` }}
             >
-              <VisxAreaChart labels={activeLabels} data={activeValues} color="#3b82f6" valueSuffix=" actions" />
+              <VisxAreaChart labels={activeLabels} data={activeValues} breakdowns={activeBreakdowns} color="#3b82f6" valueSuffix=" actions" />
             </div>
           </Card>
 

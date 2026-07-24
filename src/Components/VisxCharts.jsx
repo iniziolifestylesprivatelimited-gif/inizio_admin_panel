@@ -703,7 +703,7 @@ export function VisxPriceTierGroupedBarChart({ categories = [], views = [], cart
 // ----------------------------------------------------
 // 4. Visx Area Trend Chart Component (Animated Spring Reveal)
 // ----------------------------------------------------
-function InnerAreaChart({ labels, data, color, valuePrefix, valueSuffix, width, height }) {
+function InnerAreaChart({ labels, data, breakdowns = [], color, valuePrefix, valueSuffix, width, height }) {
   const { tooltipOpen, tooltipLeft, tooltipTop, tooltipData, showTooltip, hideTooltip } = useTooltip();
 
   const { containerRef, TooltipInPortal } = useTooltipInPortal({
@@ -724,6 +724,7 @@ function InnerAreaChart({ labels, data, color, valuePrefix, valueSuffix, width, 
   const chartData = labels.map((label, idx) => ({
     label,
     value: Number(data[idx]) || 0,
+    breakdown: breakdowns[idx] || null,
     idx
   }));
 
@@ -770,9 +771,15 @@ function InnerAreaChart({ labels, data, color, valuePrefix, valueSuffix, width, 
     });
 
     if (closest) {
+      const breakdownItemsCount = closest.breakdown ? Object.keys(closest.breakdown).length : 0;
+      const estimatedHeight = 60 + breakdownItemsCount * 18;
+      
+      const isLowerHalf = coords.y > yMax / 2;
+      const tooltipTopCalculated = isLowerHalf ? coords.y - estimatedHeight : coords.y + 15;
+
       showTooltip({
-        tooltipLeft: coords.x,
-        tooltipTop: coords.y,
+        tooltipLeft: coords.x + 10,
+        tooltipTop: tooltipTopCalculated,
         tooltipData: closest
       });
     }
@@ -847,13 +854,6 @@ function InnerAreaChart({ labels, data, color, valuePrefix, valueSuffix, width, 
                 </text>
               </g>
 
-              {/* X-Axis Date Glassmorphic Badge Pill */}
-              <g transform={`translate(${Math.max(40, Math.min(getX(tooltipData), xMax - 40))}, ${yMax + 14})`}>
-                <rect x={-40} y={0} width={80} height={20} rx={6} fill="rgba(15, 23, 42, 0.75)" stroke="rgba(255, 255, 255, 0.15)" strokeWidth={1} />
-                <text x={0} y={14} textAnchor="middle" fill="#f8fafc" fontSize={10} fontWeight={700}>
-                  {tooltipData.label}
-                </text>
-              </g>
             </g>
           )}
 
@@ -889,12 +889,28 @@ function InnerAreaChart({ labels, data, color, valuePrefix, valueSuffix, width, 
       </svg>
       {tooltipOpen && tooltipData && (
         <TooltipInPortal top={tooltipTop} left={tooltipLeft} style={tooltipCustomStyles}>
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{tooltipData.label}</div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 border-b border-white/10 pb-1 mb-1">
               <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }}></span>
-              <span><strong className="text-white font-mono">{valuePrefix}{tooltipData.value.toLocaleString('en-IN')}{valueSuffix}</strong></span>
+              <span>
+                Total: <strong className="text-white font-mono">{valuePrefix}{tooltipData.value.toLocaleString('en-IN')}{valueSuffix}</strong>
+              </span>
             </div>
+
+            {/* Action Breakdown Details */}
+            {tooltipData.breakdown && Object.keys(tooltipData.breakdown).length > 0 ? (
+              <div className="space-y-1 text-[10px] text-slate-300 font-medium">
+                {Object.entries(tooltipData.breakdown)
+                  .sort((a, b) => b[1] - a[1]) // Sort by count descending
+                  .map(([actionType, count]) => (
+                    <div key={actionType} className="flex justify-between items-center gap-4">
+                      <span className="text-slate-400">{actionType}</span>
+                      <span className="text-white font-bold font-mono">{count}</span>
+                    </div>
+                  ))}
+              </div>
+            ) : null}
           </div>
         </TooltipInPortal>
       )}
@@ -902,7 +918,7 @@ function InnerAreaChart({ labels, data, color, valuePrefix, valueSuffix, width, 
   );
 }
 
-export function VisxAreaChart({ labels = [], data = [], color = '#3b82f6', valuePrefix = '', valueSuffix = '' }) {
+export function VisxAreaChart({ labels = [], data = [], breakdowns = [], color = '#3b82f6', valuePrefix = '', valueSuffix = '' }) {
   if (!data || data.length === 0 || data.every(v => v === 0)) {
     return (
       <div className="text-center text-slate-500 text-xs py-12 italic">
@@ -917,6 +933,7 @@ export function VisxAreaChart({ labels = [], data = [], color = '#3b82f6', value
         <InnerAreaChart
           labels={labels}
           data={data}
+          breakdowns={breakdowns}
           color={color}
           valuePrefix={valuePrefix}
           valueSuffix={valueSuffix}

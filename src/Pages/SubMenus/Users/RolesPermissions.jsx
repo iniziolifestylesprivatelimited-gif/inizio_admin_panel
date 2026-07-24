@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../../../api/axios';
+import CustomDropdown from '../../../Components/CustomDropdown';
 import {
   FiCheck, FiLoader, FiAlertCircle, FiShield, FiUserPlus,
   FiUsers, FiLayers, FiMapPin, FiSettings, FiCheckSquare,
@@ -184,7 +185,7 @@ const RolesPermissions = () => {
     try {
       const res = await api.post('/admin/users/create', payload, { headers });
       if (res.data?.success || res.status === 200 || res.status === 201) {
-        setCreateSuccessMsg(`User Registered Successfully with role: ${createUserForm.role.replace('_', ' ').toUpperCase()}`);
+        setCreateSuccessMsg(`User Registered Successfully with role: ${getRoleLabel(createUserForm.role)}`);
         setCreateUserForm({
           name: '',
           email: '',
@@ -359,7 +360,12 @@ const RolesPermissions = () => {
   };
 
   const getRoleLabel = (r) => {
-    return r.replace('_', ' ').toUpperCase();
+    if (!r) return '';
+    if (r.toLowerCase() === 'tsm') return 'TSM';
+    return r
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   };
 
   return (
@@ -403,7 +409,7 @@ const RolesPermissions = () => {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         {loadingRoles ? (
           [...Array(6)].map((_, i) => (
-            <div key={i} className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 animate-pulse h-24"></div>
+            <div key={i} className="bg-slate-900/20 border border-white/5 rounded-2xl p-4 animate-pulse h-24"></div>
           ))
         ) : (
           Object.keys(roleCounts).length > 0 ? (
@@ -413,13 +419,13 @@ const RolesPermissions = () => {
                 <div
                   key={role}
                   onClick={() => handleSelectRoleForUsers(role)}
-                  className={`bg-transparent backdrop-blur-2xl border shadow-lg rounded-2xl p-4 flex flex-col justify-between overflow-hidden relative group hover:border-white/30 hover:bg-white/[0.02] cursor-pointer transition-all active:scale-95 ${isSelected ? 'border-blue-500/50 bg-blue-500/[0.03] ring-1 ring-blue-500/30' : 'border-white/10'
+                  className={`bg-slate-900/40 backdrop-blur-2xl border shadow-lg rounded-2xl p-4 flex flex-col justify-between overflow-hidden relative group hover:border-white/30 hover:bg-slate-900/60 cursor-pointer transition-all active:scale-95 ${isSelected ? 'border-blue-500/50 bg-blue-500/[0.05] ring-1 ring-blue-500/30' : 'border-white/10'
                     }`}
                 >
                   <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">
-                      {role.replace('_', ' ')}
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
+                      {getRoleLabel(role)}
                     </span>
                     <div className={`p-1.5 rounded-lg shrink-0 transition-colors ${isSelected ? 'bg-blue-500 text-white' : 'bg-blue-500/10 text-blue-400'
                       }`}>
@@ -440,13 +446,13 @@ const RolesPermissions = () => {
                 <div
                   key={role}
                   onClick={() => handleSelectRoleForUsers(role)}
-                  className={`bg-transparent backdrop-blur-2xl border shadow-lg rounded-2xl p-4 flex flex-col justify-between overflow-hidden relative hover:border-white/35 cursor-pointer transition-all active:scale-95 ${isSelected ? 'border-blue-500/50 bg-blue-500/[0.03] ring-1 ring-blue-500/30' : 'border-white/10'
+                  className={`bg-slate-900/40 backdrop-blur-2xl border shadow-lg rounded-2xl p-4 flex flex-col justify-between overflow-hidden relative group hover:border-white/30 hover:bg-slate-900/60 cursor-pointer transition-all active:scale-95 ${isSelected ? 'border-blue-500/50 bg-blue-500/[0.05] ring-1 ring-blue-500/30' : 'border-white/10'
                     }`}
                 >
                   <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">
-                      {role.replace('_', ' ')}
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
+                      {getRoleLabel(role)}
                     </span>
                     <div className={`p-1.5 rounded-lg shrink-0 transition-colors ${isSelected ? 'bg-blue-500 text-white' : 'bg-slate-800 text-slate-500'
                       }`}>
@@ -473,7 +479,7 @@ const RolesPermissions = () => {
             <div className="flex items-center gap-3">
               <FiUsers className="text-blue-400 text-xl" />
               <div>
-                <h2 className="text-lg font-bold text-white uppercase tracking-wider">{selectedRoleForUsers.replace('_', ' ')} Accounts</h2>
+                <h2 className="text-lg font-bold text-white uppercase tracking-wider">{getRoleLabel(selectedRoleForUsers)} Accounts</h2>
                 <p className="text-xs text-slate-400 font-medium">Select a user profile to retrieve detailed hierarchy and logs.</p>
               </div>
             </div>
@@ -502,7 +508,7 @@ const RolesPermissions = () => {
                 </div>
               ) : roleUsersList.length === 0 ? (
                 <div className="py-12 text-slate-500 italic text-xs text-center">
-                  No active {selectedRoleForUsers.replace('_', ' ')} accounts found.
+                  No active {getRoleLabel(selectedRoleForUsers)} accounts found.
                 </div>
               ) : (
                 <div className="space-y-2 max-h-[450px] overflow-y-auto custom-scrollbar pr-1">
@@ -715,18 +721,18 @@ const RolesPermissions = () => {
 
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Role Category</label>
-                  <select
-                    name="role"
+                  <CustomDropdown
                     value={createUserForm.role}
-                    onChange={handleFormChange}
-                    className="w-full px-4 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-semibold"
-                  >
-                    <option value="sales_head">Sales Head</option>
-                    <option value="tsm">Territory Sales Manager (TSM)</option>
-                    <option value="billing">Billing Operator</option>
-                    <option value="warehouse">Warehouse Manager</option>
-                    <option value="admin">Administrator</option>
-                  </select>
+                    options={[
+                      { value: 'sales_head', label: 'Sales Head' },
+                      { value: 'tsm', label: 'Territory Sales Manager (TSM)' },
+                      { value: 'billing', label: 'Billing Operator' },
+                      { value: 'warehouse', label: 'Warehouse Manager' },
+                      { value: 'admin', label: 'Administrator' }
+                    ]}
+                    onChange={(val) => setCreateUserForm(prev => ({ ...prev, role: val }))}
+                    statusColor="bg-black/25 text-white border-white/10 text-xs font-semibold w-full text-left"
+                  />
                 </div>
               </div>
 
@@ -808,22 +814,16 @@ const RolesPermissions = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-xs font-black text-purple-400 uppercase tracking-wider block">Reporting Sales Head</label>
-                      <select
-                        name="salesHead"
-                        required
+                      <CustomDropdown
                         value={createUserForm.salesHead}
-                        onChange={handleFormChange}
-                        className="w-full px-4 py-2.5 bg-slate-900 border border-purple-500/25 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-semibold"
-                      >
-                        <option value="">-- Choose Sales Head --</option>
-                        {salesHeads.length > 0 ? (
-                          salesHeads.map(sh => (
-                            <option key={sh._id} value={sh._id}>{sh.name} ({sh.email})</option>
-                          ))
-                        ) : (
-                          <option value="" disabled>No active Sales Heads registered</option>
-                        )}
-                      </select>
+                        options={
+                          salesHeads.length > 0 
+                            ? salesHeads.map(sh => ({ value: sh._id, label: `${sh.name} (${sh.email})` })) 
+                            : [{ value: '', label: 'No active Sales Heads registered' }]
+                        }
+                        onChange={(val) => setCreateUserForm(prev => ({ ...prev, salesHead: val }))}
+                        statusColor="bg-black/25 text-white border-purple-500/25 text-xs font-semibold w-full text-left"
+                      />
                     </div>
 
                     <div className="space-y-1">
@@ -886,18 +886,21 @@ const RolesPermissions = () => {
 
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <span className="text-xs font-bold text-slate-400 uppercase shrink-0">Role:</span>
-                <select
-                  value={selectedRoleForPermissions}
-                  onChange={(e) => setSelectedRoleForPermissions(e.target.value)}
-                  className="w-full sm:w-48 px-3 py-1.5 bg-slate-900 border border-white/10 rounded-xl text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                >
-                  <option value="admin">Administrator</option>
-                  <option value="sales_head">Sales Head</option>
-                  <option value="tsm">TSM</option>
-                  <option value="billing">Billing Operator</option>
-                  <option value="warehouse">Warehouse Manager</option>
-                  <option value="customer">Customer</option>
-                </select>
+                <div className="w-full sm:w-48">
+                  <CustomDropdown
+                    value={selectedRoleForPermissions}
+                    options={[
+                      { value: 'admin', label: 'Administrator' },
+                      { value: 'sales_head', label: 'Sales Head' },
+                      { value: 'tsm', label: 'TSM' },
+                      { value: 'billing', label: 'Billing Operator' },
+                      { value: 'warehouse', label: 'Warehouse Manager' },
+                      { value: 'customer', label: 'Customer' }
+                    ]}
+                    onChange={(val) => setSelectedRoleForPermissions(val)}
+                    statusColor="bg-slate-900 border-white/10 text-white text-xs font-bold py-1.5 w-full text-left"
+                  />
+                </div>
               </div>
             </div>
 
@@ -935,9 +938,9 @@ const RolesPermissions = () => {
                           }`}
                       >
                         <div className="flex flex-col text-left">
-                          <code className="text-xs font-mono font-bold">{perm}</code>
-                          <span className="text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
-                            {perm.replace('_', ' ')} Access
+                          <code className="text-xs font-mono font-bold text-slate-300">{perm}</code>
+                          <span className="text-[10px] text-slate-500 font-bold mt-0.5 tracking-wider">
+                            {getRoleLabel(perm)} Access
                           </span>
                         </div>
 
