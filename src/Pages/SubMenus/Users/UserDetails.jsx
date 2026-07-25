@@ -142,7 +142,7 @@ const UserDetails = () => {
         const categoriesList = catRes.data || [];
         const activities = actRes.data?.recentActivities || [];
 
-        // Filter activities for this user
+        // Filter activities for this user from recent activities
         const userLogs = activities.filter(act => {
           const actUserId = act.user?._id || (typeof act.user === 'string' ? act.user : null);
           const actUserEmail = act.user?.email;
@@ -150,6 +150,17 @@ const UserDetails = () => {
           return (actUserId && (actUserId === user._id || actUserId === user.userId || actUserId === id)) ||
             (actUserEmail && user.email && actUserEmail.toLowerCase() === user.email.toLowerCase());
         });
+
+        // Helper to match user details in viewers array
+        const findUserViewer = (viewers) => {
+          if (!Array.isArray(viewers)) return null;
+          return viewers.find(v => {
+            const vId = v.user?._id || (typeof v.user === 'string' ? v.user : null);
+            const vEmail = v.user?.email;
+            return (vId && (vId === user._id || vId === user.userId || vId === id)) ||
+              (vEmail && user.email && vEmail.toLowerCase() === user.email.toLowerCase());
+          });
+        };
 
         // 1. Process Product Views
         const pvLogs = userLogs.filter(act => {
@@ -174,6 +185,29 @@ const UserDetails = () => {
           productViewsMap[productId].count += 1;
           if (new Date(log.createdAt) > new Date(productViewsMap[productId].latestView)) {
             productViewsMap[productId].latestView = log.createdAt;
+          }
+        });
+
+        // Merge with mostViewedProducts
+        const mostViewedProducts = actRes.data?.mostViewedProducts || [];
+        mostViewedProducts.forEach(item => {
+          const prodId = item.product?._id;
+          if (!prodId) return;
+          const viewer = findUserViewer(item.viewers);
+          if (viewer) {
+            const prod = productsList.find(p => p._id === prodId);
+            if (!productViewsMap[prodId]) {
+              productViewsMap[prodId] = {
+                id: prodId,
+                name: item.product?.name || prod?.name || prodId || 'a product',
+                image: item.product?.images?.[0] || prod?.images?.[0] || '',
+                brand: prod?.brand?.name || (prod?.brand ? (brandsList.find(b => b._id === prod.brand)?.name) : '') || 'N/A',
+                count: viewer.count || 0,
+                latestView: user.lastActive || null
+              };
+            } else {
+              productViewsMap[prodId].count = Math.max(productViewsMap[prodId].count, viewer.count || 0);
+            }
           }
         });
 
@@ -202,6 +236,28 @@ const UserDetails = () => {
           }
         });
 
+        // Merge with mostSearchedBrands
+        const mostSearchedBrands = actRes.data?.mostSearchedBrands || [];
+        mostSearchedBrands.forEach(item => {
+          const brandId = item.brand?._id;
+          if (!brandId) return;
+          const viewer = findUserViewer(item.viewers);
+          if (viewer) {
+            const brand = brandsList.find(b => b._id === brandId);
+            if (!brandViewsMap[brandId]) {
+              brandViewsMap[brandId] = {
+                id: brandId,
+                name: item.brand?.name || brand?.name || brandId || 'a brand',
+                logo: item.brand?.logo || brand?.logo || '',
+                count: viewer.count || 0,
+                latestView: user.lastActive || null
+              };
+            } else {
+              brandViewsMap[brandId].count = Math.max(brandViewsMap[brandId].count, viewer.count || 0);
+            }
+          }
+        });
+
         // 3. Process Category Views
         const cvLogs = userLogs.filter(act => {
           const action = (act.action || '').toUpperCase();
@@ -223,6 +279,27 @@ const UserDetails = () => {
           categoryViewsMap[categoryId].count += 1;
           if (new Date(log.createdAt) > new Date(categoryViewsMap[categoryId].latestView)) {
             categoryViewsMap[categoryId].latestView = log.createdAt;
+          }
+        });
+
+        // Merge with mostSearchedCategories
+        const mostSearchedCategories = actRes.data?.mostSearchedCategories || [];
+        mostSearchedCategories.forEach(item => {
+          const categoryId = item.category?._id;
+          if (!categoryId) return;
+          const viewer = findUserViewer(item.viewers);
+          if (viewer) {
+            const cat = categoriesList.find(c => c._id === categoryId);
+            if (!categoryViewsMap[categoryId]) {
+              categoryViewsMap[categoryId] = {
+                id: categoryId,
+                name: item.category?.name || cat?.name || categoryId || 'a category',
+                count: viewer.count || 0,
+                latestView: user.lastActive || null
+              };
+            } else {
+              categoryViewsMap[categoryId].count = Math.max(categoryViewsMap[categoryId].count, viewer.count || 0);
+            }
           }
         });
 
@@ -249,11 +326,47 @@ const UserDetails = () => {
           }
         });
 
+        // Merge with mostSearched
+        const mostSearched = actRes.data?.mostSearched || [];
+        mostSearched.forEach(item => {
+          const viewer = findUserViewer(item.viewers);
+          if (viewer) {
+            const query = item.query;
+            if (!query) return;
+            const cleanQuery = String(query).trim();
+            if (!searchesMap[cleanQuery]) {
+              searchesMap[cleanQuery] = {
+                query: cleanQuery,
+                count: viewer.count || 0,
+                latestSearch: user.lastActive || null
+              };
+            } else {
+              searchesMap[cleanQuery].count = Math.max(searchesMap[cleanQuery].count, viewer.count || 0);
+            }
+          }
+        });
+
         setUserActivities({
-          products: Object.values(productViewsMap).sort((a, b) => b.count - a.count),
-          brands: Object.values(brandViewsMap).sort((a, b) => b.count - a.count),
-          categories: Object.values(categoryViewsMap).sort((a, b) => b.count - a.count),
-          searches: Object.values(searchesMap).sort((a, b) => b.count - a.count)
+          products: Object.values(productViewsMap).sort((a, b) => {
+            const dateA = a.latestView ? new Date(a.latestView).getTime() : 0;
+            const dateB = b.latestView ? new Date(b.latestView).getTime() : 0;
+            return dateB - dateA;
+          }),
+          brands: Object.values(brandViewsMap).sort((a, b) => {
+            const dateA = a.latestView ? new Date(a.latestView).getTime() : 0;
+            const dateB = b.latestView ? new Date(b.latestView).getTime() : 0;
+            return dateB - dateA;
+          }),
+          categories: Object.values(categoryViewsMap).sort((a, b) => {
+            const dateA = a.latestView ? new Date(a.latestView).getTime() : 0;
+            const dateB = b.latestView ? new Date(b.latestView).getTime() : 0;
+            return dateB - dateA;
+          }),
+          searches: Object.values(searchesMap).sort((a, b) => {
+            const dateA = a.latestSearch ? new Date(a.latestSearch).getTime() : 0;
+            const dateB = b.latestSearch ? new Date(b.latestSearch).getTime() : 0;
+            return dateB - dateA;
+          })
         });
 
         const actUsers = actRes.data?.users || [];
@@ -681,7 +794,7 @@ const UserDetails = () => {
                   <FiClock className="text-indigo-400" /> Connection & Session Timeline
                 </h4>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex justify-evenly gap-4">
                   {/* Last Active Connection */}
                   <div className="p-4 bg-slate-950/30 border border-white/5 rounded-2xl flex items-center justify-between gap-4">
                     <div className="space-y-1">

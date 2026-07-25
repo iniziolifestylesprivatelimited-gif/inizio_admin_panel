@@ -19,6 +19,7 @@ import { KPISkeleton, TableRowSkeleton } from '../Components/Skeleton';
 import { formatDateDDMMYYYY, formatYYYYMMDDToDDMMYYYY } from '../utils/dateUtils';
 import Card from '../Components/Card';
 import CustomDropdown from '../Components/CustomDropdown';
+import CustomDatePicker from '../Components/CustomDatePicker';
 
 
 
@@ -863,7 +864,7 @@ const Dashboard = () => {
       icon: FiDollarSign,
       color: "text-emerald-400",
       bg: "bg-emerald-500/20",
-      fromColor: "from-emerald-500/20",
+      fromColor: "from-emerald-500/25",
       hoverBorder: "hover:border-emerald-500/30",
       hoverGlow: "hover:shadow-[0_0_20px_rgba(16,185,129,0.2)]"
     },
@@ -873,7 +874,7 @@ const Dashboard = () => {
       icon: FiTrendingUp,
       color: "text-blue-400",
       bg: "bg-blue-500/20",
-      fromColor: "from-blue-500/20",
+      fromColor: "from-blue-500/25",
       hoverBorder: "hover:border-blue-500/30",
       hoverGlow: "hover:shadow-[0_0_20px_rgba(59,130,246,0.2)]"
     },
@@ -883,7 +884,7 @@ const Dashboard = () => {
       icon: FiBox,
       color: "text-purple-400",
       bg: "bg-purple-500/20",
-      fromColor: "from-purple-500/20",
+      fromColor: "from-purple-500/25",
       hoverBorder: "hover:border-purple-500/30",
       hoverGlow: "hover:shadow-[0_0_20px_rgba(139,92,246,0.2)]"
     },
@@ -893,9 +894,9 @@ const Dashboard = () => {
       icon: FiLayers,
       color: "text-rose-400",
       bg: "bg-rose-500/20",
-      fromColor: "from-rose-500/20",
+      fromColor: "from-rose-500/25",
       hoverBorder: "hover:border-rose-500/30",
-      hoverGlow: "hover:shadow-[0_0_20px_rgba(255,0,0,0.2)]"
+      hoverGlow: "hover:shadow-[0_0_20px_rgba(255,0,0,0.3)]"
     },
     {
       title: "Total Users",
@@ -903,7 +904,7 @@ const Dashboard = () => {
       icon: FiUsers,
       color: "text-amber-400",
       bg: "bg-amber-500/20",
-      fromColor: "from-amber-500/20",
+      fromColor: "from-amber-500/25",
       hoverBorder: "hover:border-orange-500/20",
       hoverGlow: "hover:shadow-[0_0_20px_rgba(245,158,11,0.2)]"
     },
@@ -1220,9 +1221,9 @@ const Dashboard = () => {
             <h2 className="text-2xl font-bold text-white tracking-tight flex items-center gap-3">
               <FiActivity className="text-blue-400" /> Activity & Engagement Analytics
             </h2>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center justify-start sm:justify-end gap-3 flex-1">
               {/* Interval Selection Dropdown */}
-              <div className="flex items-center gap-2 w-48">
+              <div className="flex items-center gap-2 w-64">
                 <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider shrink-0">Interval:</span>
                 <CustomDropdown
                   value={breakdownType}
@@ -1239,48 +1240,19 @@ const Dashboard = () => {
               {/* Custom Date Pickers */}
               {breakdownType === 'custom' && (
                 <div className="flex items-center gap-2 animate-in fade-in duration-200">
-                  <div
-                    onClick={(e) => {
-                      const input = e.currentTarget.querySelector('input[type="date"]');
-                      if (input && typeof input.showPicker === 'function') {
-                        try { input.showPicker(); } catch (err) { console.error(err); }
-                      }
-                    }}
-                    className="flex items-center gap-2 bg-slate-800 border border-white/10 hover:border-blue-500/30 transition-all cursor-pointer rounded-xl px-3 py-1"
-                  >
-                    <span className="text-[9px] text-slate-400 font-bold uppercase select-none">From:</span>
-                    <input
-                      type="date"
-                      value={startDate}
-                      max={endDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      onClick={(e) => e.stopPropagation()}
-                      className="bg-transparent text-xs text-white outline-none border-none cursor-pointer font-bold font-mono p-0 w-24"
-                    />
-                    <FiCalendar className="text-slate-400 hover:text-white transition-colors text-xs pointer-events-none" />
-                  </div>
-
-                  <div
-                    onClick={(e) => {
-                      const input = e.currentTarget.querySelector('input[type="date"]');
-                      if (input && typeof input.showPicker === 'function') {
-                        try { input.showPicker(); } catch (err) { console.error(err); }
-                      }
-                    }}
-                    className="flex items-center gap-2 bg-slate-800 border border-white/10 hover:border-blue-500/30 transition-all cursor-pointer rounded-xl px-3 py-1"
-                  >
-                    <span className="text-[9px] text-slate-400 font-bold uppercase select-none">To:</span>
-                    <input
-                      type="date"
-                      value={endDate}
-                      min={startDate}
-                      max={new Date().toISOString().split('T')[0]}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      onClick={(e) => e.stopPropagation()}
-                      className="bg-transparent text-xs text-white outline-none border-none cursor-pointer font-bold font-mono p-0 w-24"
-                    />
-                    <FiCalendar className="text-slate-400 hover:text-white transition-colors text-xs pointer-events-none" />
-                  </div>
+                  <CustomDatePicker
+                    label="From"
+                    value={startDate}
+                    max={endDate}
+                    onChange={setStartDate}
+                  />
+                  <CustomDatePicker
+                    label="To"
+                    value={endDate}
+                    min={startDate}
+                    max={new Date().toISOString().split('T')[0]}
+                    onChange={setEndDate}
+                  />
                 </div>
               )}
 

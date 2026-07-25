@@ -142,7 +142,7 @@ function AnimatedHorizontalBarItem({ x, y, width, height, fill, rx, ry, onMouseM
   );
 }
 
-function AnimatedVerticalBarItem({ x, y, width, height, yMax, fill, rx, ry, onMouseMove, onMouseLeave, className }) {
+function AnimatedVerticalBarItem({ x, y, width, height, yMax, fill, rx, ry, onMouseMove, onMouseLeave, className, opacity }) {
   const spring = useSpring({
     from: { y: yMax, height: 0 },
     to: { y, height },
@@ -156,6 +156,7 @@ function AnimatedVerticalBarItem({ x, y, width, height, yMax, fill, rx, ry, onMo
       width={width}
       height={spring.height}
       fill={fill}
+      opacity={opacity}
       rx={rx}
       ry={ry}
       onMouseMove={onMouseMove}
@@ -1034,7 +1035,8 @@ function InnerStackedBarChart({ labels, series, width, height }) {
                       width={bar.width}
                       height={bar.height}
                       yMax={yMax}
-                      fill={isHovered ? '#ffffff' : bar.color}
+                      fill={bar.color}
+                      opacity={isHovered ? 0.75 : 1}
                       rx={2}
                       ry={2}
                       onMouseMove={(event) => {

@@ -37,6 +37,7 @@ const Layout = () => {
   const [usersUnreadCount, setUsersUnreadCount] = useState(0);
   const [usersVerifyUnreadCount, setUsersVerifyUnreadCount] = useState(0);
   const [usersDeletionUnreadCount, setUsersDeletionUnreadCount] = useState(0);
+  const [quotesUnreadCount, setQuotesUnreadCount] = useState(0);
   const [showPermissionBanner, setShowPermissionBanner] = useState(false);
   const navigation = useNavigate();
   const prevContactsRef = useRef([]);
@@ -45,6 +46,7 @@ const Layout = () => {
   const prevUsersRef = useRef(null);
   const prevPendingRef = useRef(null);
   const prevDeletionRef = useRef(null);
+  const prevQuotesRef = useRef(null);
   const isInitialDataLoad = useRef(true);
   const [toastMsg, setToastMsg] = useState(null);
 
@@ -154,11 +156,21 @@ const Layout = () => {
         color: 'text-indigo-400 bg-indigo-500/10'
       });
     }
+    if (quotesUnreadCount > 0) {
+      list.push({
+        id: 'quotes',
+        title: 'New Quote Requests',
+        description: `You have ${quotesUnreadCount} new quote request${quotesUnreadCount > 1 ? 's' : ''} to review.`,
+        path: '/quotes',
+        icon: '📋',
+        color: 'text-blue-400 bg-blue-500/10'
+      });
+    }
     return list;
   };
 
   const notificationsList = getNotificationsList();
-  const totalUnreadCount = chatUnreadCount + ordersUnreadCount + usersUnreadCount + usersVerifyUnreadCount + usersDeletionUnreadCount;
+  const totalUnreadCount = chatUnreadCount + ordersUnreadCount + usersUnreadCount + usersVerifyUnreadCount + usersDeletionUnreadCount + quotesUnreadCount;
 
   // Request Browser Notification Permission on load / show banner
   useEffect(() => {
@@ -303,6 +315,9 @@ const Layout = () => {
     if (location.pathname === '/users/deletion-requests') {
       setUsersDeletionUnreadCount(0);
     }
+    if (location.pathname === '/quotes') {
+      setQuotesUnreadCount(0);
+    }
   }, [location.pathname]);
 
   // Poll orders and users
@@ -313,11 +328,12 @@ const Layout = () => {
         const token = sessionStorage.getItem('accessToken');
         const headers = { Authorization: `Bearer ${token}` };
 
-        const [ordersRes, usersRes, pendingRes, deletionRes] = await Promise.all([
+        const [ordersRes, usersRes, pendingRes, deletionRes, quotesRes] = await Promise.all([
           api.get('/orders/all', { headers }).catch(() => ({ data: [] })),
           api.get('/admin/customers', { headers }).catch(() => ({ data: [] })),
           api.get('/admin/pending', { headers }).catch(() => ({ data: [] })),
-          api.get('/admin/deletion-requests', { headers }).catch(() => ({ data: [] }))
+          api.get('/admin/deletion-requests', { headers }).catch(() => ({ data: [] })),
+          api.get('/quotes/admin/all', { headers }).catch(() => ({ data: [] }))
         ]);
 
         const orders = Array.isArray(ordersRes.data) ? ordersRes.data : ordersRes.data?.orders || [];
@@ -332,6 +348,14 @@ const Layout = () => {
           deletionUsers = deletionsData;
         } else if (deletionsData && typeof deletionsData === 'object') {
           deletionUsers = deletionsData.users || deletionsData.data || [];
+        }
+
+        const quotesData = quotesRes.data;
+        let quotes = [];
+        if (Array.isArray(quotesData)) {
+          quotes = quotesData;
+        } else if (quotesData && typeof quotesData === 'object') {
+          quotes = quotesData.quotes || quotesData.data || [];
         }
 
         if (!isInitialDataLoad.current) {
@@ -358,12 +382,19 @@ const Layout = () => {
           if (currentDeletionCount > prevDeletionCount && location.pathname !== '/users/deletion-requests') {
             setUsersDeletionUnreadCount(prev => prev + (currentDeletionCount - prevDeletionCount));
           }
+
+          const prevQuotesCount = prevQuotesRef.current?.length || 0;
+          const currentQuotesCount = quotes.length;
+          if (currentQuotesCount > prevQuotesCount && location.pathname !== '/quotes') {
+            setQuotesUnreadCount(prev => prev + (currentQuotesCount - prevQuotesCount));
+          }
         }
 
         prevOrdersRef.current = orders;
         prevUsersRef.current = users;
         prevPendingRef.current = pendingUsers;
         prevDeletionRef.current = deletionUsers;
+        prevQuotesRef.current = quotes;
         isInitialDataLoad.current = false;
 
       } catch (error) {
@@ -378,13 +409,13 @@ const Layout = () => {
 
   // Update browser tab title with total unread notification counts
   useEffect(() => {
-    const totalNotifications = chatUnreadCount + ordersUnreadCount + usersUnreadCount + usersVerifyUnreadCount + usersDeletionUnreadCount;
+    const totalNotifications = chatUnreadCount + ordersUnreadCount + usersUnreadCount + usersVerifyUnreadCount + usersDeletionUnreadCount + quotesUnreadCount;
     if (totalNotifications > 0) {
       document.title = `(${totalNotifications}) Inizio`;
     } else {
       document.title = 'Inizio';
     }
-  }, [chatUnreadCount, ordersUnreadCount, usersUnreadCount, usersVerifyUnreadCount, usersDeletionUnreadCount]);
+  }, [chatUnreadCount, ordersUnreadCount, usersUnreadCount, usersVerifyUnreadCount, usersDeletionUnreadCount, quotesUnreadCount]);
 
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -396,6 +427,7 @@ const Layout = () => {
     if (path === '/users/list') return usersUnreadCount;
     if (path === '/users/verify') return usersVerifyUnreadCount;
     if (path === '/users/deletion-requests') return usersDeletionUnreadCount;
+    if (path === '/quotes') return quotesUnreadCount;
     return 0;
   };
 
@@ -830,7 +862,7 @@ const Layout = () => {
 
               {/* Dropdown Menu */}
               {isProfileDropdownOpen && (
-                <div className="absolute right-0 mt-3 w-48 bg-slate-900/80 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl shadow-black/50 py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                <div className="absolute right-0 mt-3 w-48 bg-slate-900/90 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl shadow-black/50 py-2 z-50 animate-in fade-in slide-in-from-top-2">
                   <div className="px-4 py-2 border-b border-white/10 mb-1">
                     <p className="text-sm font-semibold text-white line-clamp-1">{user.email || 'User'}</p>
                     <p className="text-xs text-slate-400 capitalize">Administrator</p>
@@ -856,7 +888,7 @@ const Layout = () => {
         {/* DYNAMIC PAGE CONTENT */}
         <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
           <div className="w-full mx-auto p-4 sm:p-6 lg:p-8 min-h-full">
-            <Outlet context={{ setChatUnreadCount, setOrdersUnreadCount, setUsersUnreadCount, setUsersVerifyUnreadCount, setUsersDeletionUnreadCount }} />
+            <Outlet context={{ setChatUnreadCount, setOrdersUnreadCount, setUsersUnreadCount, setUsersVerifyUnreadCount, setUsersDeletionUnreadCount, setQuotesUnreadCount }} />
           </div>
         </main>
 

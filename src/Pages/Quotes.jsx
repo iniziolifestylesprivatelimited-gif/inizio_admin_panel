@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { api } from '../api/axios';
-import { 
-  FiFileText, FiTrash2, FiSearch, FiEdit2, FiCheckCircle, 
-  FiXCircle, FiClock, FiAlertCircle, FiLoader, FiUser, 
+import {
+  FiFileText, FiTrash2, FiSearch, FiEdit2, FiCheckCircle,
+  FiXCircle, FiClock, FiAlertCircle, FiLoader, FiUser,
   FiPhone, FiMail, FiCheck, FiX, FiActivity, FiTag
 } from 'react-icons/fi';
 import CustomDropdown from '../Components/CustomDropdown';
@@ -27,6 +28,7 @@ const CopyIdBadge = ({ id }) => {
 };
 
 const Quotes = () => {
+  const { setQuotesUnreadCount } = useOutletContext() || {};
   const [quotes, setQuotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -39,6 +41,7 @@ const Quotes = () => {
   const [editStatus, setEditStatus] = useState('pending');
   const [editAdminNotes, setEditAdminNotes] = useState('');
   const [updating, setUpdating] = useState(false);
+  const [confirmStatusModalOpen, setConfirmStatusModalOpen] = useState(false);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [quoteToDelete, setQuoteToDelete] = useState(null);
@@ -63,6 +66,7 @@ const Quotes = () => {
       } else {
         setQuotes(response.data || []);
       }
+      if (setQuotesUnreadCount) setQuotesUnreadCount(0);
     } catch (err) {
       console.error('Error fetching quotes:', err);
       setError('Failed to retrieve quote requests.');
@@ -72,11 +76,20 @@ const Quotes = () => {
   };
 
   useEffect(() => {
+    if (setQuotesUnreadCount) setQuotesUnreadCount(0);
+  }, [setQuotesUnreadCount]);
+
+  useEffect(() => {
     fetchQuotes();
   }, []);
 
-  const handleUpdateStatus = async (e) => {
+  const handleUpdateStatusSubmit = (e) => {
     e.preventDefault();
+    if (!selectedQuote) return;
+    setConfirmStatusModalOpen(true);
+  };
+
+  const handleUpdateStatus = async () => {
     if (!selectedQuote) return;
     setUpdating(true);
     try {
@@ -84,9 +97,10 @@ const Quotes = () => {
         status: editStatus,
         adminNotes: editAdminNotes
       });
-      
+
       if (response.status === 200 || response.data?.success) {
         setQuotes(prev => prev.map(q => q._id === selectedQuote._id ? { ...q, status: editStatus, adminNotes: editAdminNotes, updatedAt: new Date().toISOString() } : q));
+        setConfirmStatusModalOpen(false);
         setEditModalOpen(false);
         showAlert('Quote status updated successfully.');
       } else {
@@ -102,7 +116,7 @@ const Quotes = () => {
 
   const handleDeleteQuote = async () => {
     if (!quoteToDelete) return;
-    
+
     // Validate matching name
     const requesterName = (quoteToDelete.name || quoteToDelete.user?.name || '').trim().toLowerCase();
     if (typedConfirmName.trim().toLowerCase() !== requesterName) {
@@ -149,10 +163,10 @@ const Quotes = () => {
     const prodStr = (q.productName || q.product?.name || '').toLowerCase();
     const searchLower = searchTerm.toLowerCase();
 
-    const matchesSearch = nameStr.includes(searchLower) || 
-                          phoneStr.includes(searchLower) || 
-                          emailStr.includes(searchLower) || 
-                          prodStr.includes(searchLower);
+    const matchesSearch = nameStr.includes(searchLower) ||
+      phoneStr.includes(searchLower) ||
+      emailStr.includes(searchLower) ||
+      prodStr.includes(searchLower);
 
     const matchesStatus = statusFilter === 'all' || q.status === statusFilter;
 
@@ -170,7 +184,7 @@ const Quotes = () => {
 
   return (
     <div className="relative space-y-6 min-h-full z-0 w-full pb-10">
-      
+
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -193,11 +207,10 @@ const Quotes = () => {
             <button
               key={tab.id}
               onClick={() => setStatusFilter(tab.id)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                statusFilter === tab.id
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${statusFilter === tab.id
                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/35 border border-blue-500/35'
                   : 'text-slate-400 hover:text-white hover:bg-white/5'
-              }`}
+                }`}
             >
               {tab.label}
             </button>
@@ -230,9 +243,9 @@ const Quotes = () => {
       {/* Search Filter Box */}
       <div className="relative w-full">
         <FiSearch className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-slate-400" />
-        <input 
-          type="text" 
-          placeholder="Search by client name, email, phone, or product requested..." 
+        <input
+          type="text"
+          placeholder="Search by client name, email, phone, or product requested..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full pl-10 pr-4 py-3 bg-slate-900/40 border border-white/10 text-white rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md transition-all text-sm font-medium placeholder-slate-400"
@@ -262,11 +275,11 @@ const Quotes = () => {
             const clientPhone = q.phone || q.user?.phone || 'No phone';
             const clientEmail = q.user?.email || 'No email';
             const productName = q.productName || q.product?.name || 'Product';
-            
+
             const expected = Number(q.expectedPrice) || 0;
             const quantity = Number(q.quantity) || 0;
             const totalExpectedValue = expected * quantity;
-            
+
             const basePrice = q.product?.basePrice || 0;
             const offerPrice = q.product?.offerPrice || 0;
             const productImage = q.product?.images?.[0] || '';
@@ -274,16 +287,15 @@ const Quotes = () => {
             return (
               <div key={q._id} className="bg-slate-900/40 backdrop-blur-2xl border border-white/10 rounded-3xl p-5 space-y-4 relative flex flex-col justify-between overflow-hidden shadow-2xl group hover:border-white/20 transition-all">
                 <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-                
+
                 {/* Header Status & ID */}
                 <div className="flex justify-between items-center border-b border-white/5 pb-3">
                   <div className="flex items-center gap-2">
-                    <span className={`text-[10px] font-black px-2 py-0.5 rounded border uppercase shrink-0 ${
-                      q.status === 'pending' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
-                      q.status === 'contacted' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                      q.status === 'resolved' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                      'bg-rose-500/10 text-rose-400 border-rose-500/20'
-                    }`}>
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded border uppercase shrink-0 ${q.status === 'pending' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                        q.status === 'contacted' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                          q.status === 'resolved' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                            'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                      }`}>
                       {q.status || 'pending'}
                     </span>
                     {q.createdAt && (
@@ -402,7 +414,7 @@ const Quotes = () => {
             <h3 className="text-lg font-bold text-white mb-1">Update Quote Status</h3>
             <p className="text-xs text-slate-400 mb-4">Modify the state of quote request and append follow-up notes.</p>
 
-            <form onSubmit={handleUpdateStatus} className="space-y-4 text-left">
+            <form onSubmit={handleUpdateStatusSubmit} className="space-y-4 text-left">
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Status</label>
                 <CustomDropdown
@@ -455,14 +467,14 @@ const Quotes = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setDeleteModalOpen(false)}></div>
           <div className="bg-slate-900 border border-white/15 rounded-3xl p-6 w-full max-w-md relative z-10 shadow-2xl animate-in fade-in zoom-in-95 text-center">
-            
+
             <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-400 flex items-center justify-center mx-auto mb-3">
               <FiTrash2 size={24} />
             </div>
 
             <h3 className="text-lg font-bold text-white mb-1">Delete Quote Request</h3>
             <p className="text-xs text-slate-400 mb-4">
-              Are you sure you want to delete this quote request? To proceed, please type the client's name: 
+              Are you sure you want to delete this quote request? To proceed, please type the client's name:
               <strong className="text-white block mt-1 select-all font-mono font-black">
                 {(quoteToDelete.name || quoteToDelete.user?.name || '')}
               </strong>
@@ -496,12 +508,60 @@ const Quotes = () => {
         </div>
       )}
 
+      {/* Confirmation Status Modal */}
+      {confirmStatusModalOpen && selectedQuote && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setConfirmStatusModalOpen(false)}></div>
+          <div className="bg-slate-900 border border-white/15 rounded-3xl p-6 w-full max-w-md relative z-10 shadow-2xl animate-in fade-in zoom-in-95 text-center">
+
+            <div className="w-12 h-12 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center mx-auto mb-3 animate-bounce">
+              <FiAlertCircle size={24} />
+            </div>
+
+            <h3 className="text-lg font-bold text-white mb-2">Confirm Status Change</h3>
+            <p className="text-xs text-slate-400 mb-6 flex flex-col items-center gap-2">
+              <span>Are you sure you want to change the status of the quote request for <span className="text-white font-semibold">{(selectedQuote.name || selectedQuote.user?.name || 'this client')}</span>?</span>
+              <span className="flex items-center gap-2 mt-2">
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded border uppercase ${selectedQuote.status === 'pending' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                    selectedQuote.status === 'contacted' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                      selectedQuote.status === 'resolved' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                        'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                  }`}>{selectedQuote.status || 'pending'}</span>
+                <span className="text-slate-500">→</span>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded border uppercase ${editStatus === 'pending' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                    editStatus === 'contacted' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                      editStatus === 'resolved' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                        'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                  }`}>{editStatus}</span>
+              </span>
+            </p>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmStatusModalOpen(false)}
+                className="flex-1 py-2 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer border border-white/5"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateStatus}
+                disabled={updating}
+                className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-30 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-lg shadow-blue-600/35 border border-blue-500/35"
+              >
+                {updating ? <FiLoader className="animate-spin" /> : 'Yes, Update'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Global Alert Notification Popup */}
       {alertOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setAlertOpen(false)}></div>
           <div className="bg-slate-900 border border-white/15 rounded-3xl p-6 w-full max-w-sm relative z-10 shadow-2xl animate-in fade-in zoom-in-95 text-center">
-            
+
             <div className="w-12 h-12 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center mx-auto mb-3">
               <FiCheckCircle size={24} />
             </div>

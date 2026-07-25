@@ -287,7 +287,7 @@ const Notifications = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left Side: Compose Notification */}
-        <Card className="sm:p-8 h-fit">
+        <Card className="sm:p-8 h-fit !overflow-visible">
           <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
             <MdSend className="text-blue-400" /> Send Notification
           </h2>
@@ -677,6 +677,9 @@ const Notifications = () => {
                                     setActionId(prod._id);
                                     setIsActionDropdownOpen(false);
                                     setSearchTerm('');
+                                    if (Array.isArray(prod.images) && prod.images.length > 0) {
+                                      setImageUrl(prod.images[0]);
+                                    }
                                   }}
                                   className={`px-4 py-2 text-sm cursor-pointer hover:bg-blue-600/30 hover:text-white transition-colors ${actionId === prod._id ? 'bg-blue-600/50 text-white font-semibold' : 'text-slate-300'}`}
                                 >
@@ -689,6 +692,33 @@ const Notifications = () => {
                         </div>
                       </div>
                     )}
+
+                    {/* Display Product Images Selector */}
+                    {actionId && (() => {
+                      const selectedProduct = products.find(p => p._id === actionId);
+                      if (!selectedProduct || !Array.isArray(selectedProduct.images) || selectedProduct.images.length === 0) return null;
+                      return (
+                        <div className="mt-4 space-y-2">
+                          <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Product Image</label>
+                          <div className="flex flex-wrap gap-3">
+                            {selectedProduct.images.map((img, idx) => {
+                              const isSelected = imageUrl === img;
+                              return (
+                                <div
+                                  key={idx}
+                                  onClick={() => setImageUrl(img)}
+                                  className={`w-16 h-16 rounded-xl overflow-hidden border-2 cursor-pointer bg-white flex items-center justify-center p-1 transition-all hover:scale-105 ${
+                                    isSelected ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-white/10 hover:border-white/30'
+                                  }`}
+                                >
+                                  <img src={img} alt={`Product ${idx}`} className="max-w-full max-h-full object-contain" />
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
               </div>

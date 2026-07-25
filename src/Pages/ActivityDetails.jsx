@@ -2306,7 +2306,7 @@ const ActivityDetails = () => {
 
       {/* Total Count Summary Cards Row for Item Views */}
       {['product-views', 'most-viewed-products', 'brand-views', 'most-searched-brands', 'category-views', 'most-searched-categories', 'search-queries', 'most-searched'].includes(type) && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 z-10 relative">
+        <div className="flex gap-4 z-10 relative">
           <div className="bg-transparent backdrop-blur-2xl border border-white/10 p-4.5 rounded-2xl flex items-center gap-4 shadow-lg">
             <div className="p-3 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-400 shrink-0">
               <FiEye size={22} />

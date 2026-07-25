@@ -51,9 +51,49 @@ table td:not(:last-child) {
   border-right: 1px solid rgba(255, 255, 255, 0.04);
 }
 
-/* Native Date Picker Dark Theme Override */
+/* Native Date Picker Dark Theme Override & Styling */
+:root {
+  color-scheme: dark;
+}
+
 input[type="date"] {
   color-scheme: dark;
+}
+
+/* Hide WebKit calendar picker indicator */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+}
+
+/* Custom Webkit date editing fields styling to match the theme */
+input[type="date"]::-webkit-datetime-edit {
+  color: #ffffff;
+  padding: 0;
+}
+
+input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+  padding: 0;
+}
+
+input[type="date"]::-webkit-datetime-edit-text {
+  color: rgba(255, 255, 255, 0.3);
+  padding: 0 2px;
+}
+
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-year-field {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+input[type="date"]::-webkit-datetime-edit-month-field:focus,
+input[type="date"]::-webkit-datetime-edit-day-field:focus,
+input[type="date"]::-webkit-datetime-edit-year-field:focus {
+  background-color: rgba(37, 99, 235, 0.4);
+  color: #3b82f6;
+  border-radius: 4px;
 }
 
 html, body {

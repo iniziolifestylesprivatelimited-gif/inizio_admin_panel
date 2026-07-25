@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { FiMail, FiLock, FiArrowRight, FiHexagon, FiAlertCircle, FiLoader } from 'react-icons/fi';
-import darkThemeImg from '../../assets/3d_login_image.png';
+import darkThemeImg from '../../assets/new_login_image_1.png';
 import logoImg from '../../assets/logos.png';
 
 const Login = () => {
@@ -43,12 +43,12 @@ const Login = () => {
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 transform-gpu"></div>
 
         {/* Subtle glow behind the image */}
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[70%] h-[70%] bg-blue-600/20 rounded-full mix-blend-screen filter blur-[100px] z-0 transform-gpu"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[70%] h-[70%] bg-blue-600/60 rounded-full mix-blend-screen filter blur-[100px] z-0 transform-gpu"></div>
 
         <img 
           src={darkThemeImg}
           alt="Dashboard Preview" 
-          className="absolute scale-85 object-cover bg-white/0 drop-shadow-[0_0_30px_rgba(37,99,235,0.3)] z-10"
+          className="absolute scale-75 object-cover bg-white/0 drop-shadow-[0_0_30px_rgba(37,99,235,0.3)] z-10"
         />
       </div>
 
@@ -56,7 +56,7 @@ const Login = () => {
       <div className="w-full lg:w-1/2 flex items-center justify-center relative transform-gpu">
         
         {/* Decorative blurred blobs for depth */}
-        {/* <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob transform-gpu"></div> */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob transform-gpu"></div>
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 transform-gpu"></div>
 
         {/* Glassmorphism Login Card */}
