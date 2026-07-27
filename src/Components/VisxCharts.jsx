@@ -206,7 +206,7 @@ function AppVersionsHorizontalChart({ data, width, height }) {
   return (
     <div ref={containerRef} className="relative w-full h-full">
       <svg width={width} height={height}>
-        <LinearGradient id="visx-app-bar-grad" from="#6366f1" to="#818cf8" fromOpacity={0.9} toOpacity={0.55} />
+        <LinearGradient id="visx-app-bar-grad" from="#6366f1" to="#3d458cff" fromOpacity={1} toOpacity={0.65} />
         <Group left={margin.left} top={margin.top}>
           {data.map((d, idx) => {
             const version = d.version || 'Unknown';

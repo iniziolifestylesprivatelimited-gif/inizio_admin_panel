@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { api, BASE_URL } from '../api/axios';
 import {
-  FiTrendingUp, FiUsers, FiBox, FiDollarSign, FiLayers,
+  FiTrendingUp, FiUsers, FiBox, FiLayers,
   FiActivity, FiEye, FiSearch, FiLogIn, FiLogOut, FiX, FiCheck, FiBell, FiCalendar, FiPhone, FiTrash2
 } from 'react-icons/fi';
+import { BiRupee } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import {
@@ -74,6 +75,8 @@ const Dashboard = () => {
   const [selectedNotificationsSegment, setSelectedNotificationsSegment] = useState('All'); // 'All', 'Enabled', 'Disabled'
   const [notificationsSearchQuery, setNotificationsSearchQuery] = useState('');
   const [trendsRange, setTrendsRange] = useState('1w'); // '1d', '1w', '1y'
+  const [expandedChart, setExpandedChart] = useState(null); // 'revenue' | 'volume' | 'brand' | null
+  const [expandedSecondRowChart, setExpandedSecondRowChart] = useState(null); // 'version' | 'notifications' | 'priceTier' | null
   const navigate = useNavigate();
 
   const getActivityStatsUrl = () => {
@@ -165,7 +168,7 @@ const Dashboard = () => {
     // Setup polling every 30 seconds
     const intervalId = setInterval(() => {
       fetchData(true);
-    }, 30000);
+    }, 10000);
 
     return () => clearInterval(intervalId);
   }, [breakdownType, startDate, endDate]);
@@ -320,10 +323,10 @@ const Dashboard = () => {
       brandShare = [{ name: 'All Products', value: products.length }];
     }
 
-    return { labels, salesData, deliveredCountData, processingCountData, cancelledCountData, brandShare, totalRev };
+    return { labels, salesData, deliveredCountData, processingCountData, cancelledCountData, brandShare, totalRev, brandShareSorted };
   };
 
-  const { labels: chartLabels, salesData, deliveredCountData, processingCountData, cancelledCountData, brandShare, totalRev } = processChartData();
+  const { labels: chartLabels, salesData, deliveredCountData, processingCountData, cancelledCountData, brandShare, totalRev, brandShareSorted } = processChartData();
 
   const ordersChartConfig = {
     series: [
@@ -861,7 +864,7 @@ const Dashboard = () => {
     {
       title: "Total Revenue",
       value: `₹${totalRev.toLocaleString('en-IN')}`,
-      icon: FiDollarSign,
+      icon: BiRupee,
       color: "text-emerald-400",
       bg: "bg-emerald-500/20",
       fromColor: "from-emerald-500/25",
@@ -1484,111 +1487,548 @@ const Dashboard = () => {
       )}
 
       {/* Main Content Area (Analytics Charts Grid) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-10 relative z-10">
+      <div className={`grid ${expandedChart ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3'} gap-6 mt-10 relative z-10 transition-all duration-500`}>
 
         {/* Sales Revenue Chart */}
-        <Card className="h-[380px] overflow-hidden flex flex-col !p-6">
-          <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-          <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
-            <div>
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Sales Revenue</h3>
-              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Historical sales trends & revenue growth</p>
-            </div>
-          </div>
-          <div className="relative flex-1 w-full z-10">
-            <VisxAreaChart labels={chartLabels} data={salesData} color="#3b82f6" valuePrefix="₹" />
-          </div>
-        </Card>
+        {(() => {
+          const peakIndex = salesData.reduce((maxIdx, val, idx, arr) => val > arr[maxIdx] ? idx : maxIdx, 0);
+          const peakMonth = chartLabels[peakIndex] || 'N/A';
+          const peakAmount = salesData[peakIndex] || 0;
+          const avgMonthlyRev = totalRev / 6;
+
+          const currentMonthRev = salesData[5] || 0;
+          const prevMonthRev = salesData[4] || 0;
+          const revDiff = currentMonthRev - prevMonthRev;
+          const revPercent = prevMonthRev > 0 ? ((revDiff / prevMonthRev) * 100).toFixed(1) : '0';
+
+          const cardClass = `transition-all duration-500 ease-in-out overflow-hidden flex flex-col relative group ${
+            expandedChart === 'revenue'
+              ? 'w-full min-h-[420px] h-auto cursor-default opacity-100 scale-100 !p-6 border-white/20'
+              : expandedChart === null
+              ? 'w-full h-[380px] cursor-pointer hover:border-white/20 hover:scale-[1.01] opacity-100 scale-100 !p-6'
+              : 'hidden w-0 h-0 !p-0 !border-0 opacity-0 scale-95 pointer-events-none'
+          }`;
+
+          return (
+            <Card 
+              onClick={() => { if (!expandedChart) setExpandedChart('revenue'); }}
+              className={cardClass}
+            >
+              <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
+              {expandedChart === 'revenue' && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setExpandedChart(null); }}
+                  className="absolute top-6 right-6 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-xl border border-white/10 hover:border-white/20 transition-all cursor-pointer z-20"
+                >
+                  <FiX size={16} />
+                </button>
+              )}
+              <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex justify-between items-start">
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Sales Revenue</h3>
+                  <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Historical sales trends & revenue growth</p>
+                </div>
+              </div>
+
+              <div className={`flex flex-col ${expandedChart === 'revenue' ? 'lg:flex-row' : ''} gap-6 flex-1 w-full z-10`}>
+                <div className={`transition-all duration-500 ease-in-out relative flex-1 w-full z-10 ${expandedChart === 'revenue' ? 'lg:w-[65%]' : 'lg:w-full'}`}>
+                  <VisxAreaChart labels={chartLabels} data={salesData} color="#3b82f6" valuePrefix="₹" />
+                </div>
+
+                <div className={`transition-all duration-500 ease-in-out w-full border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col justify-between overflow-hidden ${
+                  expandedChart === 'revenue'
+                    ? 'lg:w-[35%] pt-6 lg:pt-0 lg:pl-6 opacity-100 max-h-[1000px]'
+                    : 'w-0 h-0 max-h-0 opacity-0 !p-0 !border-0'
+                }`}>
+                  <div>
+                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Detailed Revenue Metrics</h4>
+                    <div className="space-y-4">
+                      <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl">
+                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Total Revenue (6m)</span>
+                        <span className="text-xl font-black text-blue-400 mt-1 block">₹{totalRev.toLocaleString('en-IN')}</span>
+                      </div>
+                      <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl">
+                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Average Monthly</span>
+                        <span className="text-xl font-black text-emerald-400 mt-1 block">₹{avgMonthlyRev.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl">
+                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Peak Month ({peakMonth})</span>
+                          <span className="text-sm font-bold text-white mt-1 block">₹{peakAmount.toLocaleString('en-IN')}</span>
+                        </div>
+                        <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl">
+                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Month-over-Month</span>
+                          <span className={`text-sm font-bold mt-1 block ${revDiff >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            {revDiff >= 0 ? '+' : ''}{revPercent}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-[10px] text-slate-500 font-medium mt-6 border-t border-white/5 pt-3">
+                    * Values represent paid orders received over the last 6 months.
+                  </div>
+                </div>
+              </div>
+            </Card>
+          );
+        })()}
 
         {/* Order Volume Chart */}
-        <Card className="h-[380px] overflow-hidden flex flex-col !p-6">
-          <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-          <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
-            <div>
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Order Volume</h3>
-              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Number of orders received over time</p>
-            </div>
-          </div>
-          <div className="relative flex-1 w-full z-10">
-            <VisxStackedBarChart labels={chartLabels} series={ordersChartConfig.series} />
-          </div>
-        </Card>
+        {(() => {
+          const totalDelivered = deliveredCountData.reduce((a, b) => a + b, 0);
+          const totalProcessing = processingCountData.reduce((a, b) => a + b, 0);
+          const totalCancelled = cancelledCountData.reduce((a, b) => a + b, 0);
+          const totalOrders = totalDelivered + totalProcessing + totalCancelled;
+          const successRate = totalOrders > 0 ? ((totalDelivered / totalOrders) * 100).toFixed(1) : '0.0';
+
+          const cardClass = `transition-all duration-500 ease-in-out overflow-hidden flex flex-col relative group ${
+            expandedChart === 'volume'
+              ? 'w-full min-h-[420px] h-auto cursor-default opacity-100 scale-100 !p-6 border-white/20'
+              : expandedChart === null
+              ? 'w-full h-[380px] cursor-pointer hover:border-white/20 hover:scale-[1.01] opacity-100 scale-100 !p-6'
+              : 'hidden w-0 h-0 !p-0 !border-0 opacity-0 scale-95 pointer-events-none'
+          }`;
+
+          return (
+            <Card 
+              onClick={() => { if (!expandedChart) setExpandedChart('volume'); }}
+              className={cardClass}
+            >
+              <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
+              {expandedChart === 'volume' && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setExpandedChart(null); }}
+                  className="absolute top-6 right-6 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-xl border border-white/10 hover:border-white/20 transition-all cursor-pointer z-20"
+                >
+                  <FiX size={16} />
+                </button>
+              )}
+              <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex justify-between items-start">
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Order Volume</h3>
+                  <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Number of orders received over time</p>
+                </div>
+              </div>
+
+              <div className={`flex flex-col ${expandedChart === 'volume' ? 'lg:flex-row' : ''} gap-6 flex-1 w-full z-10`}>
+                <div className={`transition-all duration-500 ease-in-out relative flex-1 w-full z-10 ${expandedChart === 'volume' ? 'lg:w-[65%]' : 'lg:w-full'}`}>
+                  <VisxStackedBarChart labels={chartLabels} series={ordersChartConfig.series} />
+                </div>
+
+                <div className={`transition-all duration-500 ease-in-out w-full border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col justify-between overflow-hidden ${
+                  expandedChart === 'volume'
+                    ? 'lg:w-[35%] pt-6 lg:pt-0 lg:pl-6 opacity-100 max-h-[1000px]'
+                    : 'w-0 h-0 max-h-0 opacity-0 !p-0 !border-0'
+                }`}>
+                  <div>
+                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Detailed Volume Metrics</h4>
+                    <div className="space-y-4">
+                      <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl flex justify-between items-center">
+                        <div>
+                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Total Orders</span>
+                          <span className="text-xl font-black text-indigo-400 mt-1 block">{totalOrders}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Delivery Success</span>
+                          <span className="text-xl font-black text-emerald-400 mt-1 block">{successRate}%</span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2.5">
+                        <div>
+                          <div className="flex justify-between text-[10px] font-bold mb-1">
+                            <span className="text-slate-400">Delivered</span>
+                            <span className="text-emerald-400">{totalDelivered} ({totalOrders > 0 ? Math.round((totalDelivered/totalOrders)*100) : 0}%)</span>
+                          </div>
+                          <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                            <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${totalOrders > 0 ? (totalDelivered/totalOrders)*100 : 0}%` }}></div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="flex justify-between text-[10px] font-bold mb-1">
+                            <span className="text-slate-400">Processing</span>
+                            <span className="text-blue-400">{totalProcessing} ({totalOrders > 0 ? Math.round((totalProcessing/totalOrders)*100) : 0}%)</span>
+                          </div>
+                          <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                            <div className="h-full bg-blue-500 rounded-full" style={{ width: `${totalOrders > 0 ? (totalProcessing/totalOrders)*100 : 0}%` }}></div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="flex justify-between text-[10px] font-bold mb-1">
+                            <span className="text-slate-400">Cancelled</span>
+                            <span className="text-rose-400">{totalCancelled} ({totalOrders > 0 ? Math.round((totalCancelled/totalOrders)*100) : 0}%)</span>
+                          </div>
+                          <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                            <div className="h-full bg-rose-500 rounded-full" style={{ width: `${totalOrders > 0 ? (totalCancelled/totalOrders)*100 : 0}%` }}></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-[10px] text-slate-500 font-medium mt-6 border-t border-white/5 pt-3">
+                    * Includes all orders created within the select range.
+                  </div>
+                </div>
+              </div>
+            </Card>
+          );
+        })()}
 
         {/* Brand Share Chart */}
-        <Card className="h-[380px] overflow-hidden flex flex-col !p-6">
-          <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-          <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
-            <div>
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Brand Share</h3>
-              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Product distribution across brands</p>
-            </div>
-          </div>
-          <div className="relative flex-1 w-full z-10 flex items-center justify-center">
-            <VisxDonutChart data={brandShare} centerLabel="Products" />
-          </div>
-        </Card>
+        {(() => {
+          const cardClass = `transition-all duration-500 ease-in-out overflow-hidden flex flex-col relative group ${
+            expandedChart === 'brand'
+              ? 'w-full min-h-[420px] h-auto cursor-default opacity-100 scale-100 !p-6 border-white/20'
+              : expandedChart === null
+              ? 'w-full h-[380px] cursor-pointer hover:border-white/20 hover:scale-[1.01] opacity-100 scale-100 !p-6'
+              : 'hidden w-0 h-0 !p-0 !border-0 opacity-0 scale-95 pointer-events-none'
+          }`;
+
+          return (
+            <Card 
+              onClick={() => { if (!expandedChart) setExpandedChart('brand'); }}
+              className={cardClass}
+            >
+              <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
+              {expandedChart === 'brand' && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setExpandedChart(null); }}
+                  className="absolute top-6 right-6 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-xl border border-white/10 hover:border-white/20 transition-all cursor-pointer z-20"
+                >
+                  <FiX size={16} />
+                </button>
+              )}
+              <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex justify-between items-start">
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Brand Share</h3>
+                  <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Product distribution across brands</p>
+                </div>
+              </div>
+
+              <div className={`flex flex-col ${expandedChart === 'brand' ? 'lg:flex-row' : ''} gap-6 flex-1 w-full z-10`}>
+                <div className={`transition-all duration-500 ease-in-out relative flex-1 w-full z-10 ${expandedChart === 'brand' ? 'lg:w-[60%]' : 'lg:w-full'} flex items-center justify-center`}>
+                  <VisxDonutChart data={brandShare} centerLabel="Products" />
+                </div>
+
+                <div className={`transition-all duration-500 ease-in-out w-full border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col justify-between overflow-hidden ${
+                  expandedChart === 'brand'
+                    ? 'lg:w-[40%] pt-6 lg:pt-0 lg:pl-6 opacity-100 max-h-[1000px]'
+                    : 'w-0 h-0 max-h-0 opacity-0 !p-0 !border-0'
+                }`}>
+                  <div>
+                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">All Brand Distribution</h4>
+                    <div className="max-h-[240px] overflow-y-auto pr-1 space-y-2 custom-scrollbar">
+                      {(brandShareSorted || []).map((b, idx) => {
+                        const percentage = products.length > 0 ? ((b.value / products.length) * 100).toFixed(1) : '0';
+                        return (
+                          <div key={b.name || idx} className="flex items-center justify-between p-2 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors">
+                            <span className="text-xs font-bold text-slate-300">{b.name}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold text-white">{b.value} items</span>
+                              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/10">{percentage}%</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div className="text-[10px] text-slate-500 font-medium mt-6 border-t border-white/5 pt-3">
+                    * Total Catalog Size: {products.length} Products.
+                  </div>
+                </div>
+              </div>
+            </Card>
+          );
+        })()}
 
       </div>
 
       {/* Device & Search Analytics Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-10 relative z-10">
+      <div className={`grid ${expandedSecondRowChart ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3'} gap-6 mt-10 relative z-10 transition-all duration-500`}>
 
         {/* App Version Distribution Chart */}
-        <Card className="h-[420px] overflow-hidden flex flex-col !p-6">
-          <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-          <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
-            <div>
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">App Version Distribution</h3>
-              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Registered devices per application release version</p>
-            </div>
-          </div>
-          <div className="relative flex-1 w-full z-10">
-            <VisxAppVersionsChart data={activityStats?.deviceMetrics?.appVersions || []} />
-          </div>
-        </Card>
+        {(() => {
+          const versions = activityStats?.deviceMetrics?.appVersions || [];
+          const totalDevices = versions.reduce((sum, v) => sum + (v.count || 0), 0);
+
+          const cardClass = `transition-all duration-500 ease-in-out overflow-hidden flex flex-col relative group ${
+            expandedSecondRowChart === 'version'
+              ? 'w-full min-h-[460px] h-auto cursor-default opacity-100 scale-100 !p-6 border-white/20'
+              : expandedSecondRowChart === null
+              ? 'w-full h-[420px] cursor-pointer hover:border-white/20 hover:scale-[1.01] opacity-100 scale-100 !p-6'
+              : 'hidden w-0 h-0 !p-0 !border-0 opacity-0 scale-95 pointer-events-none'
+          }`;
+
+          return (
+            <Card
+              onClick={() => { if (!expandedSecondRowChart) setExpandedSecondRowChart('version'); }}
+              className={cardClass}
+            >
+              <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
+              {expandedSecondRowChart === 'version' && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setExpandedSecondRowChart(null); }}
+                  className="absolute top-6 right-6 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-xl border border-white/10 hover:border-white/20 transition-all cursor-pointer z-20"
+                >
+                  <FiX size={16} />
+                </button>
+              )}
+              <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">App Version Distribution</h3>
+                  <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Registered devices per application release version</p>
+                </div>
+              </div>
+              <div className={`flex flex-col ${expandedSecondRowChart === 'version' ? 'lg:flex-row' : ''} gap-6 flex-1 w-full z-10`}>
+                <div className={`transition-all duration-500 ease-in-out relative flex-1 w-full z-10 ${expandedSecondRowChart === 'version' ? 'lg:w-[65%]' : 'lg:w-full'}`}>
+                  <VisxAppVersionsChart data={versions} />
+                </div>
+
+                <div className={`transition-all duration-500 ease-in-out w-full border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col justify-between overflow-hidden ${
+                  expandedSecondRowChart === 'version'
+                    ? 'lg:w-[35%] pt-6 lg:pt-0 lg:pl-6 opacity-100 max-h-[1000px]'
+                    : 'w-0 h-0 max-h-0 opacity-0 !p-0 !border-0'
+                }`}>
+                  <div>
+                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Version Analytics</h4>
+                    <div className="space-y-4">
+                      <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl flex justify-between items-center">
+                        <div>
+                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Total Active Devices</span>
+                          <span className="text-xl font-black text-blue-400 mt-1 block">{totalDevices}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Versions Tracked</span>
+                          <span className="text-xl font-black text-emerald-400 mt-1 block">{versions.length}</span>
+                        </div>
+                      </div>
+
+                      <div className="max-h-[220px] overflow-y-auto pr-1 space-y-2 custom-scrollbar">
+                        {versions.map((v, idx) => {
+                          const pct = totalDevices > 0 ? ((v.count / totalDevices) * 100).toFixed(1) : '0';
+                          return (
+                            <div key={v.version || idx} className="flex items-center justify-between p-2 rounded-xl bg-white/[0.02] border border-white/5">
+                              <span className="text-xs font-bold text-slate-300">v{v.version || 'unknown'}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-white">{v.count} devices</span>
+                                <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/10">{pct}%</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-[10px] text-slate-500 font-medium mt-6 border-t border-white/5 pt-3">
+                    * App versions are reported automatically from client-side handshakes.
+                  </div>
+                </div>
+              </div>
+            </Card>
+          );
+        })()}
 
         {/* Push Notification Alerts Chart */}
-        <Card className="h-[420px] overflow-hidden flex flex-col !p-6">
-          <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-          <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
-            <div>
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Push Alerts Permission</h3>
-              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Notification permissions enabled vs disabled ratio</p>
-            </div>
-          </div>
-          <div className="relative flex-1 w-full z-10 flex items-center justify-center">
-            <VisxNotificationsDonutChart
-              enabled={notificationsMetrics.enabled}
-              disabled={notificationsMetrics.disabled}
-              onClick={(type) => {
-                setSelectedNotificationsSegment(type);
-                setIsNotificationsModalOpen(true);
-              }}
-            />
-          </div>
-        </Card>
+        {(() => {
+          const totalUsers = notificationsMetrics.enabled + notificationsMetrics.disabled;
+          const enabledPct = totalUsers > 0 ? ((notificationsMetrics.enabled / totalUsers) * 100).toFixed(1) : '0';
+          const disabledPct = totalUsers > 0 ? ((notificationsMetrics.disabled / totalUsers) * 100).toFixed(1) : '0';
+
+          const cardClass = `transition-all duration-500 ease-in-out overflow-hidden flex flex-col relative group ${
+            expandedSecondRowChart === 'notifications'
+              ? 'w-full min-h-[460px] h-auto cursor-default opacity-100 scale-100 !p-6 border-white/20'
+              : expandedSecondRowChart === null
+              ? 'w-full h-[420px] cursor-pointer hover:border-white/20 hover:scale-[1.01] opacity-100 scale-100 !p-6'
+              : 'hidden w-0 h-0 !p-0 !border-0 opacity-0 scale-95 pointer-events-none'
+          }`;
+
+          return (
+            <Card
+              onClick={() => { if (!expandedSecondRowChart) setExpandedSecondRowChart('notifications'); }}
+              className={cardClass}
+            >
+              <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
+              {expandedSecondRowChart === 'notifications' && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setExpandedSecondRowChart(null); }}
+                  className="absolute top-6 right-6 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-xl border border-white/10 hover:border-white/20 transition-all cursor-pointer z-20"
+                >
+                  <FiX size={16} />
+                </button>
+              )}
+              <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Push Alerts Permission</h3>
+                  <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Notification permissions enabled vs disabled ratio</p>
+                </div>
+              </div>
+              <div className={`flex flex-col ${expandedSecondRowChart === 'notifications' ? 'lg:flex-row' : ''} gap-6 flex-1 w-full z-10`}>
+                <div className={`transition-all duration-500 ease-in-out relative flex-1 w-full z-10 ${expandedSecondRowChart === 'notifications' ? 'lg:w-[60%]' : 'lg:w-full'} flex items-center justify-center`}>
+                  <VisxNotificationsDonutChart
+                    enabled={notificationsMetrics.enabled}
+                    disabled={notificationsMetrics.disabled}
+                    onClick={(type) => {
+                      setSelectedNotificationsSegment(type);
+                      setIsNotificationsModalOpen(true);
+                    }}
+                  />
+                </div>
+
+                <div className={`transition-all duration-500 ease-in-out w-full border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col justify-between overflow-hidden ${
+                  expandedSecondRowChart === 'notifications'
+                    ? 'lg:w-[40%] pt-6 lg:pt-0 lg:pl-6 opacity-100 max-h-[1000px]'
+                    : 'w-0 h-0 max-h-0 opacity-0 !p-0 !border-0'
+                }`}>
+                  <div>
+                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Notification Engagement</h4>
+                    <div className="space-y-4">
+                      <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl flex justify-between items-center">
+                        <div>
+                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Total User Base</span>
+                          <span className="text-xl font-black text-purple-400 mt-1 block">{totalUsers} Users</span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                            <span className="text-xs font-bold text-slate-300">Enabled</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-xs font-bold text-white block">{notificationsMetrics.enabled} users</span>
+                            <span className="text-[10px] text-emerald-400 font-extrabold">{enabledPct}%</span>
+                          </div>
+                        </div>
+
+                        <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                            <span className="text-xs font-bold text-slate-300">Disabled</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-xs font-bold text-white block">{notificationsMetrics.disabled} users</span>
+                            <span className="text-[10px] text-rose-400 font-extrabold">{disabledPct}%</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          setSelectedNotificationsSegment('All');
+                          setIsNotificationsModalOpen(true);
+                        }}
+                        className="w-full mt-2 py-2 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 hover:text-indigo-300 border border-indigo-500/25 transition-all text-xs font-bold cursor-pointer"
+                      >
+                        View Registered Devices Details
+                      </button>
+                    </div>
+                  </div>
+                  <div className="text-[10px] text-slate-500 font-medium mt-6 border-t border-white/5 pt-3">
+                    * Enabled users have granted OS-level permissions for initial notifications.
+                  </div>
+                </div>
+              </div>
+            </Card>
+          );
+        })()}
 
         {/* Product Price Tier Engagement Chart */}
-        <Card className="h-[420px] overflow-hidden flex flex-col !p-6">
-          <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
+        {(() => {
+          const totalViews = priceTierEngagementData.views.reduce((a, b) => a + b, 0);
+          const totalCartAdds = priceTierEngagementData.cartAdds.reduce((a, b) => a + b, 0);
 
-          <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                Product Price Tier Engagement
-              </h3>
-              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Views vs cart additions by price tier</p>
-            </div>
-          </div>
+          const cardClass = `transition-all duration-500 ease-in-out overflow-hidden flex flex-col relative group ${
+            expandedSecondRowChart === 'priceTier'
+              ? 'w-full min-h-[460px] h-auto cursor-default opacity-100 scale-100 !p-6 border-white/20'
+              : expandedSecondRowChart === null
+              ? 'w-full h-[420px] cursor-pointer hover:border-white/20 hover:scale-[1.01] opacity-100 scale-100 !p-6'
+              : 'hidden w-0 h-0 !p-0 !border-0 opacity-0 scale-95 pointer-events-none'
+          }`;
 
-          <div className="relative flex-1 w-full z-10">
-            <VisxPriceTierGroupedBarChart
-              categories={priceTierEngagementData.categories}
-              views={priceTierEngagementData.views}
-              cartAdds={priceTierEngagementData.cartAdds}
-            />
-          </div>
-        </Card>
+          return (
+            <Card
+              onClick={() => { if (!expandedSecondRowChart) setExpandedSecondRowChart('priceTier'); }}
+              className={cardClass}
+            >
+              <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
+              {expandedSecondRowChart === 'priceTier' && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setExpandedSecondRowChart(null); }}
+                  className="absolute top-6 right-6 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-xl border border-white/10 hover:border-white/20 transition-all cursor-pointer z-20"
+                >
+                  <FiX size={16} />
+                </button>
+              )}
+              <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                    Product Price Tier Engagement
+                  </h3>
+                  <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Views vs cart additions by price tier</p>
+                </div>
+              </div>
+              <div className={`flex flex-col ${expandedSecondRowChart === 'priceTier' ? 'lg:flex-row' : ''} gap-6 flex-1 w-full z-10`}>
+                <div className={`transition-all duration-500 ease-in-out relative flex-1 w-full z-10 ${expandedSecondRowChart === 'priceTier' ? 'lg:w-[65%]' : 'lg:w-full'}`}>
+                  <VisxPriceTierGroupedBarChart
+                    categories={priceTierEngagementData.categories}
+                    views={priceTierEngagementData.views}
+                    cartAdds={priceTierEngagementData.cartAdds}
+                  />
+                </div>
+
+                <div className={`transition-all duration-500 ease-in-out w-full border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col justify-between overflow-hidden ${
+                  expandedSecondRowChart === 'priceTier'
+                    ? 'lg:w-[35%] pt-6 lg:pt-0 lg:pl-6 opacity-100 max-h-[1000px]'
+                    : 'w-0 h-0 max-h-0 opacity-0 !p-0 !border-0'
+                }`}>
+                  <div>
+                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Conversion Analytics</h4>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl">
+                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Total Tier Views</span>
+                          <span className="text-xl font-black text-blue-400 mt-1 block">{totalViews}</span>
+                        </div>
+                        <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl">
+                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Cart Adds</span>
+                          <span className="text-xl font-black text-emerald-400 mt-1 block">{totalCartAdds}</span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        {priceTierEngagementData.categories.map((cat, idx) => {
+                          const cViews = priceTierEngagementData.views[idx] || 0;
+                          const cAdds = priceTierEngagementData.cartAdds[idx] || 0;
+                          const conv = cViews > 0 ? ((cAdds / cViews) * 100).toFixed(1) : '0.0';
+
+                          return (
+                            <div key={cat || idx} className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                              <div className="flex justify-between text-xs font-bold text-slate-300 mb-1">
+                                <span>{cat}</span>
+                                <span className="text-emerald-400">{conv}% Conv.</span>
+                              </div>
+                              <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+                                <span>Views: {cViews}</span>
+                                <span>Cart Adds: {cAdds}</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-[10px] text-slate-500 font-medium mt-6 border-t border-white/5 pt-3">
+                    * Conversion calculated as Cart Additions divided by Page Views.
+                  </div>
+                </div>
+              </div>
+            </Card>
+          );
+        })()}
 
       </div>
 

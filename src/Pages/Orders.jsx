@@ -484,7 +484,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                         </td>
                         <td className="p-4 text-sm">
                           <div className="flex flex-col items-start gap-1">
-                            <span className="text-slate-200 font-medium capitalize line-clamp-1">{order.address?.name || 'Unknown Customer'}</span>
+                            <span className="text-slate-200 font-medium capitalize line-clamp-1">{order.user?.name || 'Unknown Customer'}</span>
                             <span className="text-slate-400 text-xs tracking-wider">{order.address?.phone || 'N/A'}</span>
                           </div>
                         </td>
@@ -870,7 +870,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                   <div className="space-y-3 text-sm">
                     <div>
                       <span className="block text-xs text-slate-500 mb-0.5">Name</span>
-                      <span className="font-medium text-white capitalize">{selectedOrder.user?.name || selectedOrder.address?.name || 'N/A'}</span>
+                      <span className="font-medium text-white capitalize">{selectedOrder.address?.name || selectedOrder.user?.name || 'N/A'}</span>
                     </div>
                     {selectedOrder.user?.email && (
                       <div>

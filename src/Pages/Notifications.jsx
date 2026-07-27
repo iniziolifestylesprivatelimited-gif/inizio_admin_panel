@@ -8,6 +8,7 @@ import {
   FiAlertCircle, FiCopy, FiGlobe, FiUsers, FiUser, 
   FiUserCheck, FiLayers, FiBox, FiTrendingUp, FiLink, FiCheck, FiX, FiSearch
 } from 'react-icons/fi';
+import { DiAndroid, DiApple } from "react-icons/di";
 import axios from 'axios';
 import { api, BASE_URL } from '../api/axios';
 import CustomDropdown from '../Components/CustomDropdown';
@@ -361,7 +362,7 @@ const Notifications = () => {
                       : 'bg-black/20 border-white/10 text-slate-400 hover:bg-white/5 hover:text-white'
                   }`}
                 >
-                  <MdPhoneAndroid className="text-xl" />
+                  <DiAndroid className='text-xl'/>
                   <span>Android Only</span>
                 </button>
                 <button
@@ -373,7 +374,7 @@ const Notifications = () => {
                       : 'bg-black/20 border-white/10 text-slate-400 hover:bg-white/5 hover:text-white'
                   }`}
                 >
-                  <MdPhoneIphone className="text-xl" />
+                  <DiApple className="text-xl" />
                   <span>iOS Only</span>
                 </button>
               </div>
@@ -761,7 +762,7 @@ const Notifications = () => {
  
            {/* Search History Bar */}
            <div className="relative mb-5 shrink-0">
-             <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+             <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
              <input
                type="text"
                placeholder="Search history by title, description or ID..."

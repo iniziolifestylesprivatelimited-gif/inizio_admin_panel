@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { FiMail, FiLock, FiArrowRight, FiHexagon, FiAlertCircle, FiLoader } from 'react-icons/fi';
-import darkThemeImg from '../../assets/new_login_image_1.png';
+import darkThemeImg from '../../assets/login_image_2.png';
 import logoImg from '../../assets/logos.png';
 
 const Login = () => {
@@ -48,7 +48,8 @@ const Login = () => {
         <img 
           src={darkThemeImg}
           alt="Dashboard Preview" 
-          className="absolute scale-75 object-cover bg-white/0 drop-shadow-[0_0_30px_rgba(37,99,235,0.3)] z-10"
+          className="absolute scale-95 object-cover bg-white/0 drop-shadow-[0_0_30px_rgba(37,99,235,0.3)] z-10"
+          fetchPriority='high'
         />
       </div>
 
@@ -60,7 +61,7 @@ const Login = () => {
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 transform-gpu"></div>
 
         {/* Glassmorphism Login Card */}
-        <div className="relative w-full max-w-md mx-4 p-8 sm:p-10 bg-transparent backdrop-blur-md transform-gpu border border-white/20 shadow-2xl rounded-3xl z-10">
+        <div className="relative scale-90 w-full max-w-md mx-4 p-8 sm:p-10 bg-transparent backdrop-blur-md transform-gpu border border-white/20 shadow-2xl rounded-3xl z-10">
           
           {/* Branding */}
           <div className="flex flex-col items-center justify-center mb-8">

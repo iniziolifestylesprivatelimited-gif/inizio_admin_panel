@@ -242,7 +242,7 @@ const Quotes = () => {
 
       {/* Search Filter Box */}
       <div className="relative w-full">
-        <FiSearch className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-slate-400" />
+        <FiSearch className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-slate-400 z-10" />
         <input
           type="text"
           placeholder="Search by client name, email, phone, or product requested..."

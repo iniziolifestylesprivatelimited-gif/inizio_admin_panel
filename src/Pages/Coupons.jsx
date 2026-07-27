@@ -751,7 +751,7 @@ const Coupons = () => {
                   <div className="relative">
                     <div className="flex gap-2">
                       <div className="relative flex-1">
-                        <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                        <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 z-10" />
                         <input
                           type="text"
                           placeholder={`Search ${form.applicability}...`}

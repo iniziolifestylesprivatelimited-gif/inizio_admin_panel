@@ -164,7 +164,7 @@ const HeaderSearch = () => {
   return (
     <div className="flex-1 max-w-md" ref={searchRef}>
       <form onSubmit={handleSearchSubmit} className="relative group">
-        <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+        <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors z-10" />
         <input 
           type="text" 
           value={searchQuery}

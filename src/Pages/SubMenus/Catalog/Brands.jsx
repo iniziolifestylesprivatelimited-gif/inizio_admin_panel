@@ -179,7 +179,7 @@ const Brands = () => {
           <p className="text-slate-400 font-medium mt-1">Add, edit, and organize product brands across your catalog.</p>
         </div>
         <div className="relative w-full sm:w-72 mt-4 sm:mt-0">
-          <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+          <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 z-10" />
           <input 
             type="text" 
             placeholder="Search brands..." 

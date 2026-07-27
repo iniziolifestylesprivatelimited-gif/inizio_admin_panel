@@ -93,7 +93,7 @@ const DeletionRequests = () => {
         </div>
         
         <div className="relative w-full md:w-72">
-          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
           <input 
             type="text" 
             placeholder="Search by ID, name, email..." 

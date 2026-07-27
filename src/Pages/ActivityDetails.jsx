@@ -11,6 +11,7 @@ import {
   FiDollarSign, FiLayers, FiTrendingUp, FiEye, FiLogIn,
   FiLogOut, FiClock, FiSettings, FiCheck, FiTrash2, FiX, FiPhone, FiMail, FiSmartphone, FiBell, FiShield, FiCalendar, FiFilter
 } from 'react-icons/fi';
+import { BiRupee } from 'react-icons/bi';
 
 const checkAppStatus = (u) => {
   if (!u.installedAt && !u.uninstalledAt) {
@@ -45,17 +46,8 @@ const getUserBasedAnalytics = (rawStream, filterType = 'ALL') => {
     const evt = (item.eventType || '').toUpperCase();
     if (filterType === 'ADD_TO_CART') return evt === 'ADD_TO_CART';
     if (filterType === 'REMOVE_FROM_CART') return evt === 'REMOVE_FROM_CART';
-    if (filterType === 'UPDATE_CART') {
-      return (
-        evt === 'UPDATE_CART' ||
-        evt === 'UPDATE_CART_QTY' ||
-        evt === 'UPDATE_QTY' ||
-        evt === 'CART_UPDATE' ||
-        evt === 'CLEAR_CART' ||
-        evt.includes('UPDATE') ||
-        evt.includes('QTY')
-      );
-    }
+    if (filterType === 'UPDATE_CART') return evt === 'UPDATE_CART_QTY';
+    if (filterType === 'INITIATED_PAYMENT') return evt === 'INITIATED_PAYMENT'
     return true;
   });
 
@@ -820,7 +812,7 @@ const ActivityDetails = () => {
   const getHeaderConfig = () => {
     switch (type) {
       case 'revenue':
-        return { title: 'Sales Transactions', desc: 'Detailed log of client orders, fulfillment status, and total revenue calculations.', icon: FiDollarSign, color: 'text-emerald-400', bg: 'bg-emerald-500/20' };
+        return { title: 'Sales Transactions', desc: 'Detailed log of client orders, fulfillment status, and total revenue calculations.', icon: BiRupee, color: 'text-emerald-400', bg: 'bg-emerald-500/20' };
       case 'analytics':
         return { title: 'Admin Analytics Dashboard', desc: 'Comprehensive analytics funnel metrics, active cart listings, manager performance logs, and cart activity streams.', icon: FiActivity, color: 'text-indigo-400', bg: 'bg-indigo-500/20' };
       case 'brands':
@@ -1607,7 +1599,8 @@ const ActivityDetails = () => {
         const badgeColor =
           eventType === 'ADD_TO_CART' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
             eventType === 'REMOVE_FROM_CART' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' :
-              'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+              (eventType === 'INITIATED_PAYMENT' || eventType === 'INITIATE_PAYMENT' || eventType === 'CHECKOUT_INITIATED' || eventType === 'CHECKOUT_INITIATION' || eventType.toUpperCase().includes('PAY') || eventType.toUpperCase().includes('CHECKOUT')) ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
+                'bg-amber-500/10 text-amber-400 border border-amber-500/20';
 
         return (
           <tr
@@ -2278,7 +2271,7 @@ const ActivityDetails = () => {
 
         {/* Search bar */}
         <div className="relative w-full sm:w-72 shrink-0">
-          <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
           <input
             type="text"
             placeholder="Search records..."
@@ -2543,6 +2536,12 @@ const ActivityDetails = () => {
               label: 'Cart & Qty Updates',
               count: getUserBasedAnalytics(data, 'UPDATE_CART').length,
               activeStyle: 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.2)]'
+            },
+            {
+              id: 'INITIATED_PAYMENT',
+              label: 'Initiated Payment',
+              count: getUserBasedAnalytics(data, 'INITIATED_PAYMENT').length,
+              activeStyle: 'bg-blue-500/20 text-blue-300 border-blue-500/40 shadow-[0_0_15px_rgba(59,130,246,0.2)]'
             }
           ];
 
@@ -2780,7 +2779,7 @@ const ActivityDetails = () => {
       {/* User Analytics Activity Popup Modal */}
       {selectedUserAnalytics && createPortal(
         <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
-          <div className="bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 shadow-2xl rounded-3xl p-6 max-w-2xl w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 shadow-2xl rounded-3xl p-6 max-w-2xl w-full h-full relative overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
 
             <div className="flex justify-between items-start mb-5 relative z-[1000]">
@@ -2824,7 +2823,8 @@ const ActivityDetails = () => {
                 const badgeColor =
                   eventType === 'ADD_TO_CART' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
                     eventType === 'REMOVE_FROM_CART' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' :
-                      'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+                      (eventType === 'INITIATED_PAYMENT' || eventType === 'INITIATE_PAYMENT' || eventType === 'CHECKOUT_INITIATED' || eventType === 'CHECKOUT_INITIATION' || eventType.toUpperCase().includes('PAY') || eventType.toUpperCase().includes('CHECKOUT')) ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
+                        'bg-amber-500/10 text-amber-400 border border-amber-500/20';
 
                 return (
                   <div
@@ -2861,12 +2861,12 @@ const ActivityDetails = () => {
               })}
             </div>
 
-            <button
+            {/* <button
               onClick={() => setSelectedUserAnalytics(null)}
               className="w-full mt-6 py-2.5 bg-slate-800 border border-white/10 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md"
             >
               Close
-            </button>
+            </button> */}
           </div>
         </div>,
         document.body

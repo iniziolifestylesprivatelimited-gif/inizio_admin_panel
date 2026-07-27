@@ -8,7 +8,10 @@ import {
   FiBarChart2, 
   FiActivity, 
   FiCheckCircle, 
-  FiSend 
+  FiSend,
+  FiUsers,
+  FiSmartphone,
+  FiChevronDown
 } from 'react-icons/fi';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -31,6 +34,7 @@ const CampaignStats = () => {
   // Filter & Pagination state
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [expandedGroups, setExpandedGroups] = useState({});
   const itemsPerPage = 10;
 
   // Navigation Hook
@@ -91,9 +95,50 @@ const CampaignStats = () => {
     return actionId;
   };
 
+  // Group campaigns sent at the same time (same title + same message + same timestamp up to minute)
+  const groupCampaigns = (list) => {
+    const groups = [];
+    const seen = new Map();
+
+    list.forEach(item => {
+      // Round to the nearest minute to group campaigns sent at the same time
+      const dt = item.createdAt ? new Date(item.createdAt) : null;
+      const minuteKey = dt
+        ? `${item.title}__${item.message}__${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}-${dt.getHours()}-${dt.getMinutes()}`
+        : `${item.title}__${item.message}__unknown`;
+
+      if (seen.has(minuteKey)) {
+        const groupObj = seen.get(minuteKey);
+        groupObj.members.push(item);
+        // Accumulate stats
+        groupObj.totalSent += item.totalSent || 0;
+        groupObj.totalReceived += item.totalReceived || 0;
+        groupObj.totalClicked += item.totalClicked || 0;
+      } else {
+        const group = {
+          groupKey: minuteKey,
+          representative: item, // Primary campaign (first encountered)
+          members: [item],
+          totalSent: item.totalSent || 0,
+          totalReceived: item.totalReceived || 0,
+          totalClicked: item.totalClicked || 0,
+        };
+        seen.set(minuteKey, group);
+        groups.push(group);
+      }
+    });
+
+    // Compute aggregated rates per group
+    return groups.map(g => ({
+      ...g,
+      deliveryRate: g.totalSent > 0 ? `${((g.totalReceived / g.totalSent) * 100).toFixed(1)}%` : '0%',
+      clickRate: g.totalSent > 0 ? `${((g.totalClicked / g.totalSent) * 100).toFixed(1)}%` : '0%',
+    }));
+  };
+
   const getPaginationRange = () => {
     const range = [];
-    const delta = 1; // pages to show around current page
+    const delta = 1;
     
     for (let i = 1; i <= totalPages; i++) {
       if (
@@ -129,11 +174,18 @@ const CampaignStats = () => {
     return titleMatch || messageMatch || idMatch || targetMatch;
   });
 
-  // Paginate campaigns
+  // Group after filtering
+  const groupedCampaigns = groupCampaigns(filteredCampaigns);
+
+  // Paginate groups
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentCampaigns = filteredCampaigns.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredCampaigns.length / itemsPerPage);
+  const currentGroups = groupedCampaigns.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(groupedCampaigns.length / itemsPerPage);
+
+  const toggleGroupExpand = (groupKey) => {
+    setExpandedGroups(prev => ({ ...prev, [groupKey]: !prev[groupKey] }));
+  };
 
   return (
     <div className="relative space-y-6 min-h-full z-0 w-full pb-8">
@@ -198,7 +250,7 @@ const CampaignStats = () => {
       {/* Search Filter Bar */}
       <Card className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 !p-4 !rounded-2xl">
         <div className="relative flex-1">
-          <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
           <input
             type="text"
             placeholder="Search campaigns by title, message, ID, or action..."
@@ -225,9 +277,9 @@ const CampaignStats = () => {
 
       {loading && campaigns.length === 0 ? (
         <Card className="p-6">
-          <TableRowSkeleton columns={6} rows={5} />
+          <TableRowSkeleton columns={5} rows={5} />
         </Card>
-      ) : filteredCampaigns.length === 0 ? (
+      ) : groupedCampaigns.length === 0 ? (
         <div className="py-16 flex flex-col items-center justify-center bg-slate-900/40 backdrop-blur-xl rounded-3xl border border-dashed border-white/20">
           <MdHistory className="text-5xl text-slate-500 mb-4" />
           <p className="text-slate-400 font-medium">No campaign statistics found.</p>
@@ -241,118 +293,210 @@ const CampaignStats = () => {
                   <th className="p-4 font-bold text-center">S.No</th>
                   <th className="p-4 font-bold">Campaign</th>
                   <th className="p-4 font-bold">Message</th>
+                  <th className="p-4 font-bold text-center">Sent To</th>
                   <th className="p-4 font-bold text-center">Action Link</th>
                   <th className="p-4 font-bold text-center">Sent / Received / Clicked</th>
-                  <th className="p-4 font-bold text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {currentCampaigns.map((item, index) => (
-                  <tr 
-                    key={item.campaignId}
-                    onClick={() => navigate(`/campaign-stats/${item.campaignId}`)}
-                    className="hover:bg-white/[0.02] cursor-pointer transition-colors"
-                  >
-                    {/* S.No */}
-                    <td className="p-4 text-sm text-slate-400 text-center font-medium">
-                      {indexOfFirstItem + index + 1}
-                    </td>
+                {currentGroups.map((group, index) => {
+                  const item = group.representative;
+                  const isGrouped = group.members.length > 1;
+                  const isExpanded = expandedGroups[group.groupKey];
 
-                    {/* Campaign Info */}
-                    <td className="p-4 text-sm font-medium text-white">
-                      <div className="flex items-center gap-3">
-                        {item.imageUrl ? (
-                          <img 
-                            src={item.imageUrl} 
-                            alt="Campaign" 
-                            className="w-10 h-10 rounded-lg object-cover border border-white/10"
-                            onError={(e) => { e.target.src = 'https://placehold.co/40x40?text=Img'; }} 
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center border border-blue-500/20">
-                            <MdImage className="text-xl" />
-                          </div>
-                        )}
-                        <div className="flex flex-col min-w-0 max-w-[200px]">
-                          <span className="font-bold text-white truncate hover:text-blue-400 transition-colors" title={item.title}>
-                            {item.title}
-                          </span>
-                          <span className="text-[9px] text-slate-500 font-mono tracking-wider truncate mt-0.5" title={item.campaignId}>
-                            ID: {item.campaignId}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Message snippet & Date */}
-                    <td className="p-4 text-sm max-w-[250px]">
-                      <div className="truncate text-slate-300 font-medium" title={item.message}>
-                        {item.message}
-                      </div>
-                      <div className="text-[10px] text-slate-500 font-semibold mt-1">
-                        {item.createdAt ? formatDateTimeDDMMYYYY(item.createdAt) : 'N/A'}
-                      </div>
-                    </td>
-
-                    {/* Action Target Link */}
-                    <td className="p-4 text-sm text-center">
-                      {item.clickAction && item.clickAction !== 'none' ? (
-                        <div className="inline-flex flex-col items-center gap-1">
-                          <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px] font-extrabold border border-blue-500/20 uppercase tracking-wide">
-                            {item.clickAction}
-                          </span>
-                          {item.actionId && (
-                            <span className="text-[10px] text-slate-400 font-medium truncate max-w-[120px]" title={getActionTargetName(item.clickAction, item.actionId)}>
-                              {getActionTargetName(item.clickAction, item.actionId)}
-                            </span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-slate-600 text-xs font-semibold">None</span>
-                      )}
-                    </td>
-
-                    {/* Progress details */}
-                    <td className="p-4 text-sm text-center">
-                      <div className="inline-flex flex-col items-stretch gap-1.5 min-w-[160px]">
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-slate-400">Sent: <strong className="text-white font-bold">{item.totalSent || 0}</strong></span>
-                          <span className="text-slate-400">Click Rate: <strong className="text-blue-400 font-bold">{item.clickRate || '0%'}</strong></span>
-                        </div>
-                        {/* Visual Delivery / Click bar */}
-                        <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden flex">
-                          <div 
-                            className="bg-emerald-500 h-full animate-pulse" 
-                            style={{ width: `${parseFloat(item.deliveryRate) || 0}%` }}
-                            title={`Delivery Rate: ${item.deliveryRate || '0%'}`}
-                          ></div>
-                          <div 
-                            className="bg-blue-500 h-full border-l border-black/40" 
-                            style={{ width: `${parseFloat(item.clickRate) || 0}%` }}
-                            title={`Click Rate: ${item.clickRate || '0%'}`}
-                          ></div>
-                        </div>
-                        <div className="flex justify-between items-center text-[10px] text-slate-500">
-                          <span>Recv: <strong className="text-emerald-400">{item.totalReceived || 0} ({item.deliveryRate || '0%'})</strong></span>
-                          <span>Clicks: <strong className="text-blue-400">{item.totalClicked || 0}</strong></span>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Action buttons */}
-                    <td className="p-4 text-center">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/campaign-stats/${item.campaignId}`);
-                        }}
-                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-md transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                  return (
+                    <React.Fragment key={group.groupKey}>
+                      {/* Main Group Row */}
+                      <tr 
+                        onClick={() => navigate(`/campaign-stats/${item.campaignId}`)}
+                        className="hover:bg-white/[0.02] cursor-pointer transition-colors group"
                       >
-                        View Details
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                        {/* S.No */}
+                        <td className="p-4 text-sm text-slate-400 text-center font-medium">
+                          {indexOfFirstItem + index + 1}
+                        </td>
+
+                        {/* Campaign Info */}
+                        <td className="p-4 text-sm font-medium text-white">
+                          <div className="flex items-center gap-3">
+                            {item.imageUrl ? (
+                              <img 
+                                src={item.imageUrl} 
+                                alt="Campaign" 
+                                className="w-10 h-10 rounded-lg object-cover border border-white/10"
+                                onError={(e) => { e.target.src = 'https://placehold.co/40x40?text=Img'; }} 
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center border border-blue-500/20 shrink-0">
+                                <MdImage className="text-xl" />
+                              </div>
+                            )}
+                            <div className="flex flex-col min-w-0 max-w-[200px]">
+                              <span className="font-bold text-white truncate hover:text-blue-400 transition-colors" title={item.title}>
+                                {item.title}
+                              </span>
+                              <span className="text-[9px] text-slate-500 font-mono tracking-wider truncate mt-0.5" title={item.campaignId}>
+                                ID: {item.campaignId}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Message snippet & Date */}
+                        <td className="p-4 text-sm max-w-[250px]">
+                          <div className="truncate text-slate-300 font-medium whitespace-normal line-clamp-2" title={item.message}>
+                            {item.message}
+                          </div>
+                          <div className="text-[10px] text-slate-500 font-semibold mt-1">
+                            {item.createdAt ? formatDateTimeDDMMYYYY(item.createdAt) : 'N/A'}
+                          </div>
+                        </td>
+
+                        {/* Sent To */}
+                        <td className="p-4 text-sm text-center" onClick={(e) => { if (isGrouped) { e.stopPropagation(); toggleGroupExpand(group.groupKey); } }}>
+                          <div className="inline-flex flex-col items-center gap-1.5">
+                            <div className="flex items-center gap-1.5">
+                              <div className="flex items-center gap-1 px-2.5 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-lg text-indigo-400 text-xs font-bold">
+                                <FiUsers size={11} className="mr-0.5" />
+                                <span>{group.totalSent} Users</span>
+                              </div>
+                              {isGrouped && (
+                                <button
+                                  className="flex items-center gap-1 px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-slate-400 text-[10px] font-bold hover:bg-white/10 transition-colors cursor-pointer"
+                                  title={`${group.members.length} platform variants — click to ${isExpanded ? 'collapse' : 'expand'}`}
+                                >
+                                  <FiSmartphone size={10} />
+                                  {group.members.length} Variants
+                                  <FiChevronDown size={10} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                </button>
+                              )}
+                            </div>
+                            {/* Platform breakdown badges */}
+                            <div className="flex flex-wrap gap-1 justify-center max-w-[150px]">
+                              {group.members.map((m) => {
+                                const platform = m.platform || m.targetPlatform || 'all';
+                                const color = platform === 'android' ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                                            : platform === 'ios' ? 'bg-slate-500/10 text-slate-300 border-slate-500/20'
+                                            : 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+                                const label = platform === 'android' ? 'Android'
+                                            : platform === 'ios' ? 'iOS'
+                                            : 'All Users';
+                                return (
+                                  <span key={m.campaignId} className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded border uppercase tracking-wide ${color}`}>
+                                    {label} ({m.totalSent || 0})
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Action Target Link */}
+                        <td className="p-4 text-sm text-center">
+                          {item.clickAction && item.clickAction !== 'none' ? (
+                            <div className="inline-flex flex-col items-center gap-1">
+                              <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px] font-extrabold border border-blue-500/20 uppercase tracking-wide">
+                                {item.clickAction}
+                              </span>
+                              {item.actionId && (
+                                <span className="text-[10px] text-slate-400 font-medium truncate max-w-[120px]" title={getActionTargetName(item.clickAction, item.actionId)}>
+                                  {getActionTargetName(item.clickAction, item.actionId)}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-slate-600 text-xs font-semibold">None</span>
+                          )}
+                        </td>
+
+                        {/* Aggregated Progress details */}
+                        <td className="p-4 text-sm text-center">
+                          <div className="inline-flex flex-col items-stretch gap-1.5 min-w-[160px]">
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-slate-400">Sent: <strong className="text-white font-bold">{group.totalSent}</strong></span>
+                              <span className="text-slate-400">Click Rate: <strong className="text-blue-400 font-bold">{group.clickRate}</strong></span>
+                            </div>
+                            <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden flex">
+                              <div 
+                                className="bg-emerald-500 h-full" 
+                                style={{ width: `${parseFloat(group.deliveryRate) || 0}%` }}
+                                title={`Delivery Rate: ${group.deliveryRate}`}
+                              ></div>
+                              <div 
+                                className="bg-blue-500 h-full border-l border-black/40" 
+                                style={{ width: `${parseFloat(group.clickRate) || 0}%` }}
+                                title={`Click Rate: ${group.clickRate}`}
+                              ></div>
+                            </div>
+                            <div className="flex justify-between items-center text-[10px] text-slate-500">
+                              <span>Recv: <strong className="text-emerald-400">{group.totalReceived} ({group.deliveryRate})</strong></span>
+                              <span>Clicks: <strong className="text-blue-400">{group.totalClicked}</strong></span>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+
+                      {/* Expanded Sub-Rows for each member in a grouped campaign */}
+                      {isGrouped && isExpanded && group.members.map((member, mIdx) => {
+                        const platform = member.platform || member.targetPlatform || 'all';
+                        const platformLabel = platform === 'android' ? 'Android' : platform === 'ios' ? 'iOS' : 'All Users';
+                        const platformColor = platform === 'android' ? 'text-green-400 bg-green-500/10 border-green-500/20'
+                                            : platform === 'ios' ? 'text-slate-300 bg-slate-500/10 border-slate-500/20'
+                                            : 'text-blue-400 bg-blue-500/10 border-blue-500/20';
+                        return (
+                          <tr 
+                            key={member.campaignId}
+                            onClick={() => navigate(`/campaign-stats/${member.campaignId}`)}
+                            className="bg-white/[0.015] hover:bg-white/[0.03] cursor-pointer transition-colors border-l-2 border-indigo-500/40"
+                          >
+                            <td className="p-3 text-center">
+                              <span className="text-[10px] text-slate-600 font-mono">{mIdx + 1}</span>
+                            </td>
+                            <td className="p-3 pl-6 text-sm">
+                              <div className="flex items-center gap-2">
+                                <div className="w-1 h-8 rounded-full bg-indigo-500/30 shrink-0" />
+                                <div>
+                                  <span className="text-[10px] text-slate-500 font-mono block">ID: {member.campaignId}</span>
+                                  <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded border uppercase tracking-wide ${platformColor}`}>
+                                    {platformLabel}
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="p-3 text-sm text-slate-500 text-[11px]">
+                              {member.createdAt ? formatDateTimeDDMMYYYY(member.createdAt) : 'N/A'}
+                            </td>
+                            <td className="p-3 text-center">
+                              <div className="flex items-center justify-center gap-1 text-indigo-400 text-xs font-bold">
+                                <FiUsers size={10} />
+                                {member.totalSent || 0} Users
+                              </div>
+                            </td>
+                            <td className="p-3 text-center">
+                              <span className="text-slate-600 text-[10px]">—</span>
+                            </td>
+                            <td className="p-3 text-center">
+                              <div className="inline-flex flex-col items-stretch gap-1 min-w-[140px]">
+                                <div className="flex justify-between text-[10px] text-slate-500">
+                                  <span>Sent: <strong className="text-white">{member.totalSent || 0}</strong></span>
+                                  <span className="text-blue-400 font-bold">{member.clickRate || '0%'}</span>
+                                </div>
+                                <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden flex">
+                                  <div className="bg-emerald-500 h-full" style={{ width: `${parseFloat(member.deliveryRate) || 0}%` }} />
+                                  <div className="bg-blue-500 h-full" style={{ width: `${parseFloat(member.clickRate) || 0}%` }} />
+                                </div>
+                                <div className="flex justify-between text-[9px] text-slate-600">
+                                  <span>Recv: <strong className="text-emerald-400">{member.totalReceived || 0}</strong></span>
+                                  <span>Clicks: <strong className="text-blue-400">{member.totalClicked || 0}</strong></span>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </React.Fragment>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -361,7 +505,7 @@ const CampaignStats = () => {
           {totalPages > 1 && (
             <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-4 bg-transparent border-t border-white/10 p-4 rounded-b-3xl">
               <p className="text-xs text-slate-400">
-                Showing <span className="font-semibold text-white">{indexOfFirstItem + 1}</span> to <span className="font-semibold text-white">{Math.min(indexOfLastItem, filteredCampaigns.length)}</span> of <span className="font-semibold text-white">{filteredCampaigns.length}</span> campaigns
+                Showing <span className="font-semibold text-white">{indexOfFirstItem + 1}</span> to <span className="font-semibold text-white">{Math.min(indexOfLastItem, groupedCampaigns.length)}</span> of <span className="font-semibold text-white">{groupedCampaigns.length}</span> campaigns
               </p>
               <div className="flex items-center gap-2">
                 <button

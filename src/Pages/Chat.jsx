@@ -5,6 +5,7 @@ import {
   FiSmile, FiInfo, FiArrowLeft, FiCheck, FiCornerUpLeft, FiEdit2,
   FiTrash2, FiX, FiFileText, FiDownload, FiLoader, FiAlertCircle
 } from 'react-icons/fi';
+import { RiCheckDoubleFill } from "react-icons/ri";
 import { api, BASE_URL } from '../api/axios';
 import { formatDateDDMMYYYY } from '../utils/dateUtils';
 import { useOutletContext } from 'react-router-dom';
@@ -14,6 +15,13 @@ const getImageUrl = (path) => {
   if (path.startsWith('http') || path.startsWith('blob:')) return path;
   const cleanPath = path.replace(/\\/g, '/');
   return `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
+};
+
+const isImageFile = (fileType, fileName, fileUrl) => {
+  if (fileType?.startsWith('image/')) return true;
+  const name = fileName || fileUrl || '';
+  const ext = name.split('.').pop()?.toLowerCase();
+  return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'].includes(ext);
 };
 
 const formatDividerDate = (dateString) => {
@@ -84,6 +92,9 @@ const Chat = () => {
   
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
+
+  // Media Preview Lightbox State
+  const [mediaPreview, setMediaPreview] = useState(null); // { url, fileName, fileType }
 
   const showAlert = (msg) => {
     setAlertMessage(msg);
@@ -349,7 +360,7 @@ const Chat = () => {
           <div className="p-4 border-b border-white/10">
             <h2 className="text-xl font-bold text-white mb-4 tracking-tight">Messages</h2>
             <div className="relative">
-              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 z-10" />
               <input
                 type="text"
                 placeholder="Search conversations..."
@@ -555,10 +566,18 @@ const Chat = () => {
 
                               {/* File Attachment in Message */}
                               {msg.fileUrl && !isDeleted && (
-                                msg.fileType?.startsWith('image/') ? (
-                                  <div className="mb-1.5 rounded-lg overflow-hidden border border-white/5 bg-slate-900 flex items-center justify-center max-w-64">
-                                    <img src={getImageUrl(msg.fileUrl)} alt={msg.fileName || 'Attachment'} className="max-w-full max-h-48 object-contain" />
-                                  </div>
+                                isImageFile(msg.fileType, msg.fileName, msg.fileUrl) ? (
+                                   <div
+                                     className="mb-1.5 rounded-lg overflow-hidden border border-white/5 bg-slate-900 flex items-center justify-center max-w-64 cursor-zoom-in group/img relative"
+                                     onClick={() => setMediaPreview({ url: getImageUrl(msg.fileUrl), fileName: msg.fileName || 'Image', fileType: msg.fileType })}
+                                   >
+                                     <img src={getImageUrl(msg.fileUrl)} alt={msg.fileName || 'Attachment'} className="max-w-full max-h-48 object-contain transition-opacity group-hover/img:opacity-80" />
+                                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity">
+                                       <div className="bg-black/60 backdrop-blur-sm rounded-full p-2">
+                                         <FiSearch className="text-white" size={16} />
+                                       </div>
+                                     </div>
+                                   </div>
                                 ) : (
                                   <div className="mb-1.5 flex items-center gap-2 p-2 bg-black/25 border border-white/5 rounded-lg text-xs max-w-64 select-none">
                                     <div className="w-8 h-8 rounded-md bg-slate-800 text-slate-300 flex items-center justify-center shrink-0">
@@ -601,7 +620,7 @@ const Chat = () => {
                                 <span className={`text-sm ${isSeen ? 'text-blue-400' : 'text-slate-500'}`} title={isSeen ? "Read" : "Sent"}>
                                   {isSeen ? (
                                     <div className="flex -space-x-1.5">
-                                      <FiCheck /><FiCheck />
+                                      <RiCheckDoubleFill />
                                     </div>
                                   ) : (
                                     <FiCheck />
@@ -658,7 +677,7 @@ const Chat = () => {
                 {/* Attachment Preview */}
                 {attachment && (
                   <div className="flex items-center gap-2 p-2 bg-white/5 border border-white/10 rounded-xl mb-2 animate-in fade-in slide-in-from-bottom-1 max-w-sm">
-                    {attachment.fileType.startsWith('image/') ? (
+                    {isImageFile(attachment.fileType, attachment.fileName, attachment.fileUrl) ? (
                       <img src={getImageUrl(attachment.fileUrl)} alt="Preview" className="w-10 h-10 object-cover rounded-lg bg-white p-0.5 shrink-0" />
                     ) : (
                       <div className="w-10 h-10 rounded-lg bg-slate-800 text-slate-300 flex items-center justify-center shrink-0">
@@ -829,7 +848,7 @@ const Chat = () => {
                     </div>
                   )}
                   {attachment && (
-                    attachment.fileType.startsWith('image/') ? (
+                    isImageFile(attachment.fileType, attachment.fileName, attachment.fileUrl) ? (
                       <div className="mb-1.5 rounded-lg overflow-hidden border border-white/5 bg-slate-900 flex items-center justify-center max-w-64">
                         <img src={getImageUrl(attachment.fileUrl)} alt="Preview" className="max-w-full max-h-48 object-contain" />
                       </div>
@@ -886,6 +905,59 @@ const Chat = () => {
             >
               OK
             </button>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* ── Media Preview Lightbox ── */}
+      {mediaPreview && createPortal(
+        <div
+          className="fixed inset-0 z-[10002] flex flex-col items-center justify-center bg-black/85 backdrop-blur-lg animate-in fade-in duration-200"
+          onClick={() => setMediaPreview(null)}
+          onKeyDown={(e) => e.key === 'Escape' && setMediaPreview(null)}
+          tabIndex={-1}
+          style={{ outline: 'none' }}
+        >
+          {/* Top Bar */}
+          <div
+            className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-black/70 to-transparent z-10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span className="text-white font-semibold text-sm truncate max-w-[60vw]">{mediaPreview.fileName}</span>
+            <div className="flex items-center gap-2">
+              <a
+                href={mediaPreview.url}
+                download={mediaPreview.fileName}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition-colors shadow-lg"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <FiDownload size={13} />
+                Download
+              </a>
+              <button
+                type="button"
+                onClick={() => setMediaPreview(null)}
+                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+              >
+                <FiX size={18} />
+              </button>
+            </div>
+          </div>
+
+          {/* Image */}
+          <div
+            className="flex items-center justify-center w-full h-full px-4 pt-14 pb-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={mediaPreview.url}
+              alt={mediaPreview.fileName}
+              className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-200 select-none"
+              draggable={false}
+            />
           </div>
         </div>,
         document.body

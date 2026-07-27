@@ -328,7 +328,7 @@ const CampaignDetail = () => {
 
               {/* Search Field */}
               <div className="relative w-full md:w-64">
-                <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
                 <input
                   type="text"
                   placeholder="Search recipients..."

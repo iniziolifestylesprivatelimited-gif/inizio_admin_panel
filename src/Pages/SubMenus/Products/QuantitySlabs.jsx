@@ -619,7 +619,7 @@ export default function QuantitySlabs() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 items-center gap-3 bg-slate-950 border border-white/5 p-3 rounded-2xl">
               {/* Search */}
               <div className="col-span-1 sm:col-span-2 relative">
-                <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10" size={14} />
                 <input
                   type="text"
                   value={search}
