@@ -6,6 +6,7 @@ import {
   FiX, FiCheck, FiLoader, FiAlertCircle, FiLink
 } from 'react-icons/fi';
 import { api, BASE_URL } from '../api/axios';
+import { useConfirm } from '../Context/ConfirmationContext';
 
 const getImageUrl = (path) => {
   if (!path) return '';
@@ -15,6 +16,7 @@ const getImageUrl = (path) => {
 };
 
 const Banners = () => {
+  const { confirm, showAlert } = useConfirm();
   const [banners, setBanners] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -194,7 +196,8 @@ const Banners = () => {
 
   // Delete Banner
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this banner?')) return;
+    const isConfirmed = await confirm('Are you sure you want to delete this banner?');
+    if (!isConfirmed) return;
     
     try {
       const token = sessionStorage.getItem('accessToken');
@@ -202,9 +205,10 @@ const Banners = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setBanners(banners.filter(b => b._id !== id));
+      showAlert('Banner deleted successfully.', 'success');
     } catch (err) {
       console.error(err);
-      alert('Failed to delete banner.');
+      showAlert('Failed to delete banner.', 'error');
     }
   };
 

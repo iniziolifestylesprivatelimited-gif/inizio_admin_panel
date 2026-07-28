@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { FiEdit2, FiTrash2, FiPlus, FiAlertCircle, FiLoader, FiSearch, FiUpload, FiX, FiSave, FiImage, FiPackage, FiChevronDown, FiChevronUp, FiArrowUp, FiArrowDown, FiCopy, FiDownload, FiFileText, FiCheck } from 'react-icons/fi';
 import { api, BASE_URL } from '../../../api/axios';
+import { useConfirm } from '../../../Context/ConfirmationContext';
 import CustomDropdown from '../../../Components/CustomDropdown';
 import CopyButton from '../../../Components/CopyButton';
 import * as XLSX from 'xlsx';
@@ -17,6 +18,7 @@ const getImageUrl = (path) => {
 };
 
 const ProductList = () => {
+  const { confirm } = useConfirm();
   const [products, setProducts] = useState([]);
   const [brands, setBrands] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -584,7 +586,8 @@ console.log(products)
   };
 
   const handleBulkDelete = async () => {
-    if (window.confirm(`Are you sure you want to delete ${selectedProducts.length} selected products?`)) {
+    const isConfirmed = await confirm(`Are you sure you want to delete ${selectedProducts.length} selected products?`);
+    if (isConfirmed) {
       try {
         const token = sessionStorage.getItem('accessToken');
         await Promise.all(selectedProducts.map(id => 
@@ -720,7 +723,8 @@ console.log(products)
       ? `This will deactivate matching variants in ${targets.length} product(s). Are you sure you want to proceed?`
       : `This will deactivate ${targets.length} product(s). Are you sure you want to proceed?`;
 
-    if (!window.confirm(confirmMsg)) {
+    const isConfirmed = await confirm(confirmMsg);
+    if (!isConfirmed) {
       return;
     }
 
@@ -924,7 +928,8 @@ console.log(products)
       ? `This will activate matching variants in ${targets.length} product(s). Are you sure you want to proceed?`
       : `This will activate ${targets.length} product(s). Are you sure you want to proceed?`;
 
-    if (!window.confirm(confirmMsg)) {
+    const isConfirmed = await confirm(confirmMsg);
+    if (!isConfirmed) {
       return;
     }
 
@@ -1173,7 +1178,8 @@ console.log(products)
   };
 
   const handleRollbackBulkUpload = async () => {
-    if (!window.confirm('Are you sure you want to rollback the last bulk upload? This action cannot be undone.')) {
+    const isConfirmed = await confirm('Are you sure you want to rollback the last bulk upload? This action cannot be undone.');
+    if (!isConfirmed) {
       return;
     }
 

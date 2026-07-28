@@ -36,64 +36,68 @@ import Coupons from './Pages/Coupons';
 import ActivityDetails from './Pages/ActivityDetails';
 import Quotes from './Pages/Quotes';
 
+import { ConfirmationProvider } from './Context/ConfirmationContext';
+
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/login" element={<Login />} />
+      <ConfirmationProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/login" element={<Login />} />
 
-          {/* BASE PROTECTION: Check if user is logged in */}
-          <Route element={<ProtectedRoute />}>
-            
-            {/* LAYOUT: Now guaranteed to have a 'user' object */}
-            <Route element={<Layout />}>
+            {/* BASE PROTECTION: Check if user is logged in */}
+            <Route element={<ProtectedRoute />}>
               
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/dashboard/details/:type" element={<ActivityDetails />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/products/list" element={<ProductList />} />
-              <Route path="/products/mapping" element={<ProductMapping />} />
-              <Route path="/products/slabs" element={<QuantitySlabs />} />
-              <Route path="/products/categories" element={<Category />} />
-              <Route path="/products/brands" element={<Brands />} />
-              <Route path="/products/home-order" element={<HomeOrdering />} />
-              <Route path='/banners' element={<Banners/>}/>
-              <Route path='/notifications' element={<Notifications/>}/>
-              <Route path='/campaign-stats' element={<CampaignStats/>}/>
-              <Route path='/campaign-stats/:campaignId' element={<CampaignDetail/>}/>
-              <Route path="/products/variants/:id" element={<Variants />} />
-              <Route path="/orders" element={<Navigate to="/orders/all" replace />} />
-              <Route path="/orders/all" element={<Orders defaultStatus="all" />} />
-              <Route path="/orders/processing" element={<Orders defaultStatus="processing" />} />
-              <Route path="/orders/shipped" element={<Orders defaultStatus="shipped" />} />
-              <Route path="/orders/cancelled" element={<Orders defaultStatus="cancelled" />} />
-              <Route path="/orders/delivered" element={<Orders defaultStatus="delivered" />} />
-              <Route path="/ledgers" element={<Ledgers />} />
-              <Route path="/coupons" element={<Coupons />} />
-              <Route path="/quotes" element={<Quotes />} />
-              <Route path="/chat" element={<Chat/>} />
-              <Route path='/users/list' element={<UsersList/>}/>
-              <Route path='/users/list/:id' element={<UserDetails/>}/>
-              <Route path='/users/verify' element={<UsersVerification/>}/>
-              <Route path='/users/active' element={<ActiveUsers/>}/>
-              <Route path='/users/deletion-requests' element={<DeletionRequests/>}/>
-              <Route path='/users/roles-permissions' element={<RolesPermissions/>}/>
-              <Route path='/users/create' element={<RolesPermissions/>}/>
-              <Route path="/settings/maintenance" element={<Maintenance />} />
-              <Route path="/settings/faqs" element={<Faqs/>} />
-              <Route path="/settings/privacy-policy" element={<PrivacyP/>} />
-              <Route path="/settings/terms-and-conditions" element={<TermsAndCo/>} />
+              {/* LAYOUT: Now guaranteed to have a 'user' object */}
+              <Route element={<Layout />}>
+                
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/dashboard/details/:type" element={<ActivityDetails />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/products/list" element={<ProductList />} />
+                <Route path="/products/mapping" element={<ProductMapping />} />
+                <Route path="/products/slabs" element={<QuantitySlabs />} />
+                <Route path="/products/categories" element={<Category />} />
+                <Route path="/products/brands" element={<Brands />} />
+                <Route path="/products/home-order" element={<HomeOrdering />} />
+                <Route path='/banners' element={<Banners/>}/>
+                <Route path='/notifications' element={<Notifications/>}/>
+                <Route path='/campaign-stats' element={<CampaignStats/>}/>
+                <Route path='/campaign-stats/:campaignId' element={<CampaignDetail/>}/>
+                <Route path="/products/variants/:id" element={<Variants />} />
+                <Route path="/orders" element={<Navigate to="/orders/all" replace />} />
+                <Route path="/orders/all" element={<Orders defaultStatus="all" />} />
+                <Route path="/orders/processing" element={<Orders defaultStatus="processing" />} />
+                <Route path="/orders/shipped" element={<Orders defaultStatus="shipped" />} />
+                <Route path="/orders/cancelled" element={<Orders defaultStatus="cancelled" />} />
+                <Route path="/orders/delivered" element={<Orders defaultStatus="delivered" />} />
+                <Route path="/ledgers" element={<Ledgers />} />
+                <Route path="/coupons" element={<Coupons />} />
+                <Route path="/quotes" element={<Quotes />} />
+                <Route path="/chat" element={<Chat/>} />
+                <Route path='/users/list' element={<UsersList/>}/>
+                <Route path='/users/list/:id' element={<UserDetails/>}/>
+                <Route path='/users/verify' element={<UsersVerification/>}/>
+                <Route path='/users/active' element={<ActiveUsers/>}/>
+                <Route path='/users/deletion-requests' element={<DeletionRequests/>}/>
+                <Route path='/users/roles-permissions' element={<RolesPermissions/>}/>
+                <Route path='/users/create' element={<RolesPermissions/>}/>
+                <Route path="/settings/maintenance" element={<Maintenance />} />
+                <Route path="/settings/faqs" element={<Faqs/>} />
+                <Route path="/settings/privacy-policy" element={<PrivacyP/>} />
+                <Route path="/settings/terms-and-conditions" element={<TermsAndCo/>} />
 
 
+              </Route>
             </Route>
-          </Route>
-          
-          {/* Catch-all route: Redirect unknown URLs to Dashboard */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+            
+            {/* Catch-all route: Redirect unknown URLs to Dashboard */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </ConfirmationProvider>
     </AuthProvider>
   );
 }

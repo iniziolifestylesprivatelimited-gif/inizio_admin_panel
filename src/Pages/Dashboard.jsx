@@ -946,6 +946,7 @@ const Dashboard = () => {
       path: "/dashboard/details/logins",
       icon: FiLogIn,
       color: "text-emerald-400",
+      hoverColor: "group-hover:text-emerald-400",
       bg: "bg-emerald-500/15",
       fromColor: "from-emerald-500/20",
       hoverBorder: "hover:border-emerald-500/30",
@@ -963,6 +964,7 @@ const Dashboard = () => {
       path: "/dashboard/details/logouts",
       icon: FiLogOut,
       color: "text-rose-400",
+      hoverColor: "group-hover:text-rose-400",
       bg: "bg-rose-500/15",
       fromColor: "from-rose-500/20",
       hoverBorder: "hover:border-rose-500/30",
@@ -976,6 +978,7 @@ const Dashboard = () => {
       path: "/dashboard/details/product-views",
       icon: FiEye,
       color: "text-blue-400",
+      hoverColor: "group-hover:text-blue-400",
       bg: "bg-blue-500/15",
       fromColor: "from-blue-500/20",
       hoverBorder: "hover:border-blue-500/30",
@@ -989,6 +992,7 @@ const Dashboard = () => {
       path: "/dashboard/details/brand-views",
       icon: FiTrendingUp,
       color: "text-indigo-400",
+      hoverColor: "group-hover:text-indigo-400",
       bg: "bg-indigo-500/15",
       fromColor: "from-indigo-500/20",
       hoverBorder: "hover:border-indigo-500/30",
@@ -1002,6 +1006,7 @@ const Dashboard = () => {
       path: "/dashboard/details/category-views",
       icon: FiLayers,
       color: "text-purple-400",
+      hoverColor: "group-hover:text-purple-400",
       bg: "bg-purple-500/15",
       fromColor: "from-purple-500/20",
       hoverBorder: "hover:border-purple-500/30",
@@ -1017,6 +1022,7 @@ const Dashboard = () => {
       path: "/dashboard/details/search-queries",
       icon: FiSearch,
       color: "text-amber-400",
+      hoverColor: "group-hover:text-amber-400",
       bg: "bg-amber-500/15",
       fromColor: "from-amber-500/20",
       hoverBorder: "hover:border-amber-500/30",
@@ -1024,12 +1030,13 @@ const Dashboard = () => {
       theme: "amber"
     },
     {
-      title: "Users Status",
+      title: "Users Stats",
       value: `${users.filter(u => u.isOnline).length} Online`,
       desc: `${users.filter(u => u.isAppLockEnabled).length} App Lock Secured`,
       path: "/dashboard/details/users-status",
       icon: FiActivity,
       color: "text-teal-400",
+      hoverColor: "group-hover:text-teal-400",
       bg: "bg-teal-500/15",
       fromColor: "from-teal-500/20",
       hoverBorder: "hover:border-teal-500/30",
@@ -1043,6 +1050,7 @@ const Dashboard = () => {
       path: "/dashboard/details/installed",
       icon: FiCheck,
       color: "text-orange-400",
+      hoverColor: "group-hover:text-orange-400",
       bg: "bg-orange-500/15",
       fromColor: "from-orange-500/20",
       hoverBorder: "hover:border-orange-500/30",
@@ -1056,6 +1064,7 @@ const Dashboard = () => {
       path: "/dashboard/details/uninstalled",
       icon: FiX,
       color: "text-fuchsia-400",
+      hoverColor: "group-hover:text-fuchsia-400",
       bg: "bg-fuchsia-500/15",
       fromColor: "from-fuchsia-500/20",
       hoverBorder: "hover:border-fuchsia-500/30",
@@ -1069,6 +1078,7 @@ const Dashboard = () => {
       path: "/dashboard/details/request-stats",
       icon: FiActivity,
       color: "text-violet-400",
+      hoverColor: "group-hover:text-violet-400",
       bg: "bg-violet-500/15",
       fromColor: "from-violet-500/20",
       hoverBorder: "hover:border-violet-500/30",
@@ -1082,6 +1092,7 @@ const Dashboard = () => {
       path: "/dashboard/details/product-subscriptions",
       icon: FiBell,
       color: "text-cyan-400",
+      hoverColor: "group-hover:text-cyan-400",
       bg: "bg-cyan-500/15",
       fromColor: "from-cyan-500/20",
       hoverBorder: "hover:border-cyan-500/30",
@@ -1095,6 +1106,7 @@ const Dashboard = () => {
       path: "/dashboard/details/analytics",
       icon: FiTrendingUp,
       color: "text-pink-400",
+      hoverColor: "group-hover:text-pink-400",
       bg: "bg-pink-500/15",
       fromColor: "from-pink-500/20",
       hoverBorder: "hover:border-pink-500/30",
@@ -1290,7 +1302,7 @@ const Dashboard = () => {
                     </div>
                     <div className="relative z-10">
                       <p className="text-3xl font-black text-white tracking-tight">{card.value}</p>
-                      <p className="text-[10px] text-slate-500 font-bold mt-2.5 group-hover:text-blue-400 transition-colors flex items-center gap-1.5 uppercase tracking-wider">
+                      <p className={`text-[10px] text-slate-500 font-bold mt-2.5 ${card.hoverColor || 'group-hover:text-blue-400'} transition-colors flex items-center gap-1.5 uppercase tracking-wider`}>
                         {card.desc} &rarr;
                       </p>
                     </div>

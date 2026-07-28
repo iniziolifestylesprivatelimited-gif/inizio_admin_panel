@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { formatDateDDMMYYYY } from '../utils/dateUtils';
 import { api, BASE_URL } from '../api/axios';
+import { useConfirm } from '../Context/ConfirmationContext';
 import { 
   FiUpload, FiTrash2, FiFileText, FiLoader, 
   FiAlertCircle, FiX, FiDownloadCloud, FiEye, FiDownload
@@ -18,6 +19,7 @@ const getFileUrl = (path) => {
 };
 
 export const Ledgers = () => {
+  const { confirm, showAlert } = useConfirm();
   const [ledgers, setLedgers] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -136,7 +138,8 @@ export const Ledgers = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to permanently delete this ledger?')) return;
+    const isConfirmed = await confirm('Are you sure you want to permanently delete this ledger?');
+    if (!isConfirmed) return;
     
     try {
       const token = sessionStorage.getItem('accessToken');
@@ -144,10 +147,10 @@ export const Ledgers = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setLedgers(ledgers.filter(l => l._id !== id));
-      alert('Ledger deleted successfully.');
+      showAlert('Ledger deleted successfully.', 'success');
     } catch (err) {
       console.error('Delete error:', err);
-      alert(err.response?.data?.message || 'Failed to delete ledger.');
+      showAlert(err.response?.data?.message || 'Failed to delete ledger.', 'error');
     }
   };
 

@@ -9,7 +9,8 @@ import { api, BASE_URL } from '../api/axios';
 import {
   FiArrowLeft, FiSearch, FiActivity, FiUsers, FiBox,
   FiDollarSign, FiLayers, FiTrendingUp, FiEye, FiLogIn,
-  FiLogOut, FiClock, FiSettings, FiCheck, FiTrash2, FiX, FiPhone, FiMail, FiSmartphone, FiBell, FiShield, FiCalendar, FiFilter
+  FiLogOut, FiClock, FiSettings, FiCheck, FiTrash2, FiX, FiPhone, FiMail, FiSmartphone, FiBell, FiShield, FiCalendar, FiFilter,
+  FiMapPin
 } from 'react-icons/fi';
 import { BiRupee } from 'react-icons/bi';
 
@@ -187,9 +188,10 @@ const ActivityDetails = () => {
             setData(prodRes.data);
           }
         } else if (type === 'users' || type === 'users-status' || type === 'installed' || type === 'uninstalled') {
-          const [custRes, actRes] = await Promise.all([
+          const [custRes, actRes, reqStatsRes] = await Promise.all([
             api.get('/admin/customers', { headers }),
-            api.get(getActivityStatsUrl(), { headers }).catch(() => ({ data: { users: [] } }))
+            api.get(getActivityStatsUrl(), { headers }).catch(() => ({ data: { users: [] } })),
+            api.get('/admin/request-stats', { headers }).catch(() => ({ data: { stats: [] } }))
           ]);
           let userList = Array.isArray(custRes.data) ? custRes.data : [];
           const actUsers = actRes.data?.users || [];
@@ -203,7 +205,6 @@ const ActivityDetails = () => {
             return !isSemver;
           };
 
-          // Merge dynamic lastActive and other app metrics from activity stats users list
           userList = userList.map(u => {
             const match = actUsers.find(au => au.userId === u._id || (au.email && u.email && au.email.toLowerCase() === u.email.toLowerCase()));
             const rawAppVer = u.appVersion || match?.appVersion;
@@ -213,6 +214,11 @@ const ActivityDetails = () => {
             const lastActive = isUnknownOrLegacy ? null : rawLastActive;
             const isOnline = isUnknownOrLegacy ? false : (u.isOnline !== undefined ? u.isOnline : (lastActive ? (new Date() - new Date(lastActive) < 5 * 60 * 1000) : false));
 
+            const reqStat = (reqStatsRes.data?.stats || []).find(rs => 
+              (rs.user?._id && rs.user._id === u._id) || 
+              (rs.user?.email && u.email && rs.user.email.toLowerCase() === u.email.toLowerCase())
+            );
+
             return {
               ...u,
               lastActive,
@@ -220,7 +226,8 @@ const ActivityDetails = () => {
               lastLoginAt: isUnknownOrLegacy ? null : (u.lastLoginAt || match?.lastLoginAt),
               appVersion: isUnknownOrLegacy ? 'unknown/legacy' : rawAppVer,
               notificationsEnabled: u.notificationsEnabled !== undefined ? u.notificationsEnabled : match?.notificationsEnabled,
-              isAppInstalled: u.isAppInstalled !== undefined ? u.isAppInstalled : match?.isAppInstalled
+              isAppInstalled: u.isAppInstalled !== undefined ? u.isAppInstalled : match?.isAppInstalled,
+              ipAddress: reqStat?.ip || ''
             };
           });
 
@@ -823,7 +830,7 @@ const ActivityDetails = () => {
         return { title: 'Variants Inventory', desc: 'Detailed overview of products and variant configurations.', icon: FiLayers, color: 'text-purple-400', bg: 'bg-purple-500/20' };
       case 'users':
       case 'users-status':
-        return { title: 'Users Status', desc: 'Overview of user system permissions, active connections, and notification keys.', icon: FiUsers, color: 'text-teal-400', bg: 'bg-teal-500/20' };
+        return { title: 'Users Stats', desc: 'Overview of user system permissions, active connections, and notification keys.', icon: FiUsers, color: 'text-teal-400', bg: 'bg-teal-500/20' };
       case 'installed':
         return { title: 'Active Installed Users', desc: 'List of all system-registered customers who currently have the app installed.', icon: FiCheck, color: 'text-emerald-400', bg: 'bg-emerald-500/20' };
       case 'uninstalled':
@@ -1342,6 +1349,12 @@ const ActivityDetails = () => {
                       <span>{item.phone}</span>
                     </div>
                   )}
+                 {item.ipAddress && (
+                    <div className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1 font-mono">
+                      <FiMapPin className="text-slate-500 text-[9px]" />
+                      <span>{item.ipAddress}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </td>
@@ -1485,6 +1498,9 @@ const ActivityDetails = () => {
                 </div>
               </td>
             )}
+            <td className="py-6 px-3 text-xs font-mono text-slate-400 select-all">
+              {item.ipAddress || '-'}
+            </td>
             <td className="py-6 px-3">
               <div className="flex items-center gap-1 text-xs text-slate-400 font-medium">
                 <FiClock className="text-slate-500" size={12} />

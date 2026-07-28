@@ -9,6 +9,7 @@ import {
 import { MdPhoneAndroid, MdPhoneIphone } from 'react-icons/md';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { formatDateDDMMYYYY } from '../../../utils/dateUtils';
+import { useConfirm } from '../../../Context/ConfirmationContext';
 
 const hasValidAppVersion = (appVersion) => {
   if (!appVersion) return false;
@@ -85,6 +86,7 @@ const checkAppStatus = (u) => {
 };
 
 const UsersList = () => {
+  const { confirm, showAlert: showGlobalAlert } = useConfirm();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -318,12 +320,14 @@ const UsersList = () => {
   console.log(users)
   
     const handleRoleLogout = async (role) => {
-      if (!role || !window.confirm(`Force logout ALL users with role: ${role}?`)) return;
+      if (!role) return;
+      const isConfirmed = await confirm(`Force logout ALL users with role: ${role}?`);
+      if (!isConfirmed) return;
       try {
         await api.post('/admin/users/logout-role', { role });
-        alert(`All ${role} users have been logged out.`);
+        showGlobalAlert(`All ${role} users have been logged out.`, 'success');
       } catch {
-        alert('Failed to logout role.');
+        showGlobalAlert('Failed to logout role.', 'error');
       }
     };
 
@@ -331,36 +335,38 @@ const UsersList = () => {
       const confirmMsg = platform === 'all' 
         ? 'WARNING: This will log out EVERYONE globally. Continue?' 
         : `WARNING: This will log out all active ${platform.toUpperCase()} user sessions. Continue?`;
-      if (!window.confirm(confirmMsg)) return;
+      const isConfirmed = await confirm(confirmMsg);
+      if (!isConfirmed) return;
       try {
         const token = sessionStorage.getItem('accessToken');
         await api.post(`/admin/users/logout-all?platform=${platform}`, { platform }, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        alert(`Logout successful for: ${platform === 'all' ? 'everyone' : platform + ' users'}.`);
+        showGlobalAlert(`Logout successful for: ${platform === 'all' ? 'everyone' : platform + ' users'}.`, 'success');
       } catch (err) {
         console.error('Failed to perform global logout:', err);
-        alert(err.response?.data?.message || 'Failed to perform global logout.');
+        showGlobalAlert(err.response?.data?.message || 'Failed to perform global logout.', 'error');
       }
     };
 
     const handleForceLogout = async (userId) => {
-    if (!window.confirm(`Are you sure you want to force logout? This will invalidate all active sessions for this user.`)) return;
-    
-    setIsActionLoading(true);
-    try {
-      const token = sessionStorage.getItem('accessToken');
-      await api.post(`/admin/users/${userId}/logout`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      alert('User has been logged out successfully.');
-    } catch (err) {
-      console.error('Logout error:', err);
-      alert(err.response?.data?.message || 'Failed to logout user.');
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
+      const isConfirmed = await confirm(`Are you sure you want to force logout? This will invalidate all active sessions for this user.`);
+      if (!isConfirmed) return;
+      
+      setIsActionLoading(true);
+      try {
+        const token = sessionStorage.getItem('accessToken');
+        await api.post(`/admin/users/${userId}/logout`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        showGlobalAlert('User has been logged out successfully.', 'success');
+      } catch (err) {
+        console.error('Logout error:', err);
+        showGlobalAlert(err.response?.data?.message || 'Failed to logout user.', 'error');
+      } finally {
+        setIsActionLoading(false);
+      }
+    };
     
   return (
     <div className="relative space-y-4 min-h-full z-0 isolate w-full">

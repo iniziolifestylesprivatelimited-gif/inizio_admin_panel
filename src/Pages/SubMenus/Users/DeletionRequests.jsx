@@ -6,7 +6,10 @@ import {
   FiSearch, FiUserMinus, FiX
 } from 'react-icons/fi';
 
+import { useConfirm } from '../../../Context/ConfirmationContext';
+
 const DeletionRequests = () => {
+  const { confirm, showAlert } = useConfirm();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -49,7 +52,8 @@ const DeletionRequests = () => {
   }, []);
 
   const handleReactivate = async (userId) => {
-    if (!window.confirm('Are you sure you want to reactivate this user account? All their data will be restored.')) return;
+    const isConfirmed = await confirm('Are you sure you want to reactivate this user account? All their data will be restored.');
+    if (!isConfirmed) return;
     setIsActionLoading(true);
     try {
       const token = sessionStorage.getItem('accessToken');
@@ -59,10 +63,10 @@ const DeletionRequests = () => {
 
       // Filter out reactivated user from UI list
       setUsers((prevUsers) => prevUsers.filter((u) => (u._id !== userId && u.id !== userId)));
-      alert(response.data.message || 'Account reactivated successfully. All data is restored.');
+      showAlert(response.data.message || 'Account reactivated successfully. All data is restored.', 'success');
     } catch (err) {
       console.error('Reactivate user error:', err);
-      alert(err.response?.data?.message || 'Failed to reactivate user.');
+      showAlert(err.response?.data?.message || 'Failed to reactivate user.', 'error');
     } finally {
       setIsActionLoading(false);
     }

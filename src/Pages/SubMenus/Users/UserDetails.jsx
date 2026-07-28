@@ -11,6 +11,7 @@ import {
   FiSmartphone, FiTablet, FiBell, FiBellOff, FiClock, FiActivity, FiTag, FiSearch,
   FiRefreshCcw, FiCopy
 } from 'react-icons/fi';
+import { useConfirm } from '../../../Context/ConfirmationContext';
 
 const hasValidAppVersion = (appVersion) => {
   if (!appVersion) return false;
@@ -90,6 +91,7 @@ const checkAppStatus = (u) => {
 };
 
 const UserDetails = () => {
+  const { confirm, showAlert: showGlobalAlert } = useConfirm();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -545,7 +547,8 @@ const UserDetails = () => {
 
   //user logout
   const handleForceLogout = async () => {
-    if (!window.confirm(`Are you sure you want to force logout ${user?.name}? This will invalidate all active sessions for this user.`)) return;
+    const isConfirmed = await confirm(`Are you sure you want to force logout ${user?.name}? This will invalidate all active sessions for this user.`);
+    if (!isConfirmed) return;
 
     setIsActionLoading(true);
     try {
@@ -553,10 +556,10 @@ const UserDetails = () => {
       await api.post(`/admin/users/${id}/logout`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert('User has been logged out successfully.');
+      showGlobalAlert('User has been logged out successfully.', 'success');
     } catch (err) {
       console.error('Logout error:', err);
-      alert(err.response?.data?.message || 'Failed to logout user.');
+      showGlobalAlert(err.response?.data?.message || 'Failed to logout user.', 'error');
     } finally {
       setIsActionLoading(false);
     }

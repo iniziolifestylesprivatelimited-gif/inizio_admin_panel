@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../api/axios';
+import { useConfirm } from '../Context/ConfirmationContext';
 import { 
   FiPercent, FiTrash2, FiPlus, FiTag, FiShoppingBag, 
   FiLayers, FiList, FiTrendingUp, FiSearch, FiX, 
@@ -8,6 +9,7 @@ import {
 } from 'react-icons/fi';
 
 const Coupons = () => {
+  const { confirm } = useConfirm();
   const [activeTab, setActiveTab] = useState('rules');
   const [rules, setRules] = useState([]);
   const [activePromotions, setActivePromotions] = useState([]);
@@ -173,7 +175,8 @@ const Coupons = () => {
   };
 
   const handleDeleteRule = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this discount rule?')) return;
+    const isConfirmed = await confirm('Are you sure you want to delete this discount rule?');
+    if (!isConfirmed) return;
     try {
       await api.delete(`/discount/delete/${id}`);
       setRules(rules.filter(r => r._id !== id));

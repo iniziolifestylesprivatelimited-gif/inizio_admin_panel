@@ -4,6 +4,7 @@ import {
   FiChevronUp, FiSave, FiX, FiHelpCircle, FiVideo, FiLoader 
 } from 'react-icons/fi';
 import { api, BASE_URL } from '../../../api/axios';
+import { useConfirm } from '../../../Context/ConfirmationContext';
 
 const getFileUrl = (path) => {
   if (!path) return '';
@@ -14,6 +15,7 @@ const getFileUrl = (path) => {
 };
 
 const Faqs = () => {
+  const { confirm, showAlert } = useConfirm();
   const [faqs, setFaqs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
@@ -69,9 +71,10 @@ const Faqs = () => {
       setNewAnswer('');
       setNewVideo(null);
       setIsAdding(false);
+      showAlert('FAQ added successfully!', 'success');
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.message || 'Failed to add FAQ');
+      showAlert(err.response?.data?.message || 'Failed to add FAQ', 'error');
     } finally {
       setIsActionLoading(false);
     }
@@ -102,9 +105,10 @@ const Faqs = () => {
       const updatedFaq = res.data.faq || res.data;
       setFaqs(faqs.map(faq => faq._id === editingId ? updatedFaq : faq));
       setEditingId(null);
+      showAlert('FAQ updated successfully!', 'success');
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.message || 'Failed to update FAQ');
+      showAlert(err.response?.data?.message || 'Failed to update FAQ', 'error');
     } finally {
       setIsActionLoading(false);
     }
@@ -116,15 +120,17 @@ const Faqs = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this FAQ?')) {
+    const isConfirmed = await confirm('Are you sure you want to delete this FAQ?');
+    if (isConfirmed) {
       try {
         const token = sessionStorage.getItem('accessToken');
         await api.delete(`/faqs/${id}`, { headers: { Authorization: `Bearer ${token}` } });
         setFaqs(faqs.filter(faq => faq._id !== id));
         if (expandedId === id) setExpandedId(null);
+        showAlert('FAQ deleted successfully.', 'success');
       } catch (err) {
         console.error(err);
-        alert(err.response?.data?.message || 'Failed to delete FAQ');
+        showAlert(err.response?.data?.message || 'Failed to delete FAQ', 'error');
       }
     }
   };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MdHistory, MdRefresh, MdImage } from 'react-icons/md';
 import { 
   FiAlertCircle, 
@@ -30,6 +30,9 @@ const CampaignStats = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
+
+  // Recipients batch data state
+  const [recipientsMap, setRecipientsMap] = useState({});
 
   // Filter & Pagination state
   const [searchQuery, setSearchQuery] = useState('');
@@ -71,6 +74,7 @@ const CampaignStats = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
 
   // Reset page when searching
   useEffect(() => {
@@ -187,6 +191,148 @@ const CampaignStats = () => {
     setExpandedGroups(prev => ({ ...prev, [groupKey]: !prev[groupKey] }));
   };
 
+  // Fetch campaign recipients details in batches for the current page
+  useEffect(() => {
+    const fetchRecipientsForCurrentPage = async () => {
+      const ids = [];
+      currentGroups.forEach(g => {
+        g.members.forEach(m => {
+          if (m.campaignId && recipientsMap[m.campaignId] === undefined && !ids.includes(m.campaignId)) {
+            ids.push(m.campaignId);
+          }
+        });
+      });
+
+      if (ids.length === 0) return;
+
+      const token = sessionStorage.getItem('accessToken');
+      const headers = { Authorization: `Bearer ${token}` };
+
+      try {
+        const results = await Promise.all(
+          ids.map(async (id) => {
+            try {
+              const res = await api.get(`/admin/campaign-stats/${id}`, { headers });
+              return { id, recipients: res.data?.recipients || [] };
+            } catch (e) {
+              console.error(`Failed to fetch recipients for ${id}`, e);
+              return { id, recipients: [] };
+            }
+          })
+        );
+
+        setRecipientsMap(prev => {
+          const next = { ...prev };
+          results.forEach(({ id, recipients }) => {
+            next[id] = recipients;
+          });
+          return next;
+        });
+      } catch (err) {
+        console.error('Error fetching batch campaign details:', err);
+      }
+    };
+
+    if (currentGroups && currentGroups.length > 0) {
+      fetchRecipientsForCurrentPage();
+    }
+  }, [currentPage, currentGroups]);
+
+  const renderDirectNames = (campaignId) => {
+    const recipients = recipientsMap[campaignId];
+    if (recipients === undefined) {
+      return (
+        <div className="flex items-center gap-1.5 text-slate-500 text-xs font-medium justify-center">
+          <div className="w-3.5 h-3.5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
+          <span>Loading...</span>
+        </div>
+      );
+    }
+    if (recipients.length === 0) {
+      return <span className="text-slate-500 text-xs font-semibold">No users</span>;
+    }
+    
+    const names = recipients.map(r => r.user?.name || r.user?.email || r.user?.phone || 'N/A');
+    const limit = 5;
+    const displayedNames = names.slice(0, limit);
+    const remaining = names.length - limit;
+
+    return (
+      <div className="flex flex-wrap gap-1 max-w-[200px] justify-center">
+        {displayedNames.map((name, idx) => (
+          <span 
+            key={idx} 
+            className="px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 rounded text-indigo-300 text-[10px] font-semibold"
+            title={name}
+          >
+            {name}
+          </span>
+        ))}
+        {remaining > 0 && (
+          <span 
+            className="px-2 py-0.5 bg-indigo-500/20 border border-indigo-500/30 rounded text-indigo-400 text-[10px] font-bold"
+            title={names.slice(limit).join(', ')}
+          >
+            +{remaining} more
+          </span>
+        )}
+      </div>
+    );
+  };
+
+  const renderGroupDirectNames = (group) => {
+    const anyLoading = group.members.some(m => recipientsMap[m.campaignId] === undefined);
+    if (anyLoading) {
+      return (
+        <div className="flex items-center gap-1.5 text-slate-500 text-xs font-medium justify-center">
+          <div className="w-3.5 h-3.5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
+          <span>Loading...</span>
+        </div>
+      );
+    }
+
+    const allNames = [];
+    group.members.forEach(m => {
+      const recs = recipientsMap[m.campaignId] || [];
+      recs.forEach(r => {
+        const name = r.user?.name || r.user?.email || r.user?.phone || 'N/A';
+        if (!allNames.includes(name)) {
+          allNames.push(name);
+        }
+      });
+    });
+
+    if (allNames.length === 0) {
+      return <span className="text-slate-500 text-xs font-semibold">No users</span>;
+    }
+
+    const limit = 5;
+    const displayedNames = allNames.slice(0, limit);
+    const remaining = allNames.length - limit;
+
+    return (
+      <div className="flex flex-wrap gap-1 max-w-[220px] justify-center text-center">
+        {displayedNames.map((name, idx) => (
+          <span 
+            key={idx} 
+            className="px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 rounded text-indigo-300 text-[10px] font-semibold"
+            title={name}
+          >
+            {name}
+          </span>
+        ))}
+        {remaining > 0 && (
+          <span 
+            className="px-2 py-0.5 bg-indigo-500/20 border border-indigo-500/30 rounded text-indigo-400 text-[10px] font-bold"
+            title={allNames.slice(limit).join(', ')}
+          >
+            +{remaining} more
+          </span>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="relative space-y-6 min-h-full z-0 w-full pb-8">
       {/* Header Section */}
@@ -294,7 +440,7 @@ const CampaignStats = () => {
                   <th className="p-4 font-bold">Campaign</th>
                   <th className="p-4 font-bold">Message</th>
                   <th className="p-4 font-bold text-center">Sent To</th>
-                  <th className="p-4 font-bold text-center">Action Link</th>
+                  {/* <th className="p-4 font-bold text-center">Action Link</th> */}
                   <th className="p-4 font-bold text-center">Sent / Received / Clicked</th>
                 </tr>
               </thead>
@@ -356,10 +502,7 @@ const CampaignStats = () => {
                         <td className="p-4 text-sm text-center" onClick={(e) => { if (isGrouped) { e.stopPropagation(); toggleGroupExpand(group.groupKey); } }}>
                           <div className="inline-flex flex-col items-center gap-1.5">
                             <div className="flex items-center gap-1.5">
-                              <div className="flex items-center gap-1 px-2.5 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-lg text-indigo-400 text-xs font-bold">
-                                <FiUsers size={11} className="mr-0.5" />
-                                <span>{group.totalSent} Users</span>
-                              </div>
+                              {renderGroupDirectNames(group)}
                               {isGrouped && (
                                 <button
                                   className="flex items-center gap-1 px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-slate-400 text-[10px] font-bold hover:bg-white/10 transition-colors cursor-pointer"
@@ -372,7 +515,7 @@ const CampaignStats = () => {
                               )}
                             </div>
                             {/* Platform breakdown badges */}
-                            <div className="flex flex-wrap gap-1 justify-center max-w-[150px]">
+                            {/* <div className="flex flex-wrap gap-1 justify-center max-w-[150px]">
                               {group.members.map((m) => {
                                 const platform = m.platform || m.targetPlatform || 'all';
                                 const color = platform === 'android' ? 'bg-green-500/10 text-green-400 border-green-500/20'
@@ -387,12 +530,12 @@ const CampaignStats = () => {
                                   </span>
                                 );
                               })}
-                            </div>
+                            </div> */}
                           </div>
                         </td>
 
                         {/* Action Target Link */}
-                        <td className="p-4 text-sm text-center">
+                        {/* <td className="p-4 text-sm text-center">
                           {item.clickAction && item.clickAction !== 'none' ? (
                             <div className="inline-flex flex-col items-center gap-1">
                               <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px] font-extrabold border border-blue-500/20 uppercase tracking-wide">
@@ -407,7 +550,7 @@ const CampaignStats = () => {
                           ) : (
                             <span className="text-slate-600 text-xs font-semibold">None</span>
                           )}
-                        </td>
+                        </td> */}
 
                         {/* Aggregated Progress details */}
                         <td className="p-4 text-sm text-center">
@@ -466,15 +609,12 @@ const CampaignStats = () => {
                             <td className="p-3 text-sm text-slate-500 text-[11px]">
                               {member.createdAt ? formatDateTimeDDMMYYYY(member.createdAt) : 'N/A'}
                             </td>
-                            <td className="p-3 text-center">
-                              <div className="flex items-center justify-center gap-1 text-indigo-400 text-xs font-bold">
-                                <FiUsers size={10} />
-                                {member.totalSent || 0} Users
-                              </div>
+                            <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
+                              {renderDirectNames(member.campaignId)}
                             </td>
-                            <td className="p-3 text-center">
+                            {/* <td className="p-3 text-center">
                               <span className="text-slate-600 text-[10px]">—</span>
-                            </td>
+                            </td> */}
                             <td className="p-3 text-center">
                               <div className="inline-flex flex-col items-stretch gap-1 min-w-[140px]">
                                 <div className="flex justify-between text-[10px] text-slate-500">

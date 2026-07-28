@@ -3,7 +3,8 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
 import {
   FiLogOut, FiMenu, FiX, FiUser,
-  FiBell, FiChevronDown, FiChevronRight
+  FiBell, FiChevronDown, FiChevronRight,
+  FiMessageSquare, FiPackage, FiUserPlus, FiClock, FiAlertTriangle, FiFileText
 } from 'react-icons/fi';
 import { getAccessibleMenus } from '../config/menus';
 import HeaderSearch from './HeaderSearch';
@@ -48,7 +49,15 @@ const Layout = () => {
   const prevDeletionRef = useRef(null);
   const prevQuotesRef = useRef(null);
   const isInitialDataLoad = useRef(true);
-  const [toastMsg, setToastMsg] = useState(null);
+  const [toasts, setToasts] = useState([]);
+
+  const addToast = (title, message, path, IconComponent = FiBell) => {
+    const id = Date.now() + Math.random().toString(36).substring(2, 9);
+    setToasts(prev => [...prev, { id, title, message, path, IconComponent }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 6000);
+  };
 
   const handleNotificationClick = (path) => {
     setIsNotificationsDropdownOpen(false);
@@ -243,8 +252,12 @@ const Layout = () => {
 
             // 2. In-App Toast
             if (isNotOnChatPage) {
-              setToastMsg(`New message from ${contact.name || 'Customer'}`);
-              setTimeout(() => setToastMsg(null), 5000);
+              addToast(
+                `New Message`,
+                `From ${contact.name || 'Customer'}: ${contact.lastMessage || 'You received a new message.'}`,
+                '/chat',
+                FiMessageSquare
+              );
             }
 
             // 3. System Push Notification (Desktop / Mobile ServiceWorker)
@@ -362,31 +375,66 @@ const Layout = () => {
           const prevOrdersCount = prevOrdersRef.current?.length || 0;
           const currentOrdersCount = orders.length;
           if (currentOrdersCount > prevOrdersCount && !location.pathname.startsWith('/orders')) {
-            setOrdersUnreadCount(prev => prev + (currentOrdersCount - prevOrdersCount));
+            const countDiff = currentOrdersCount - prevOrdersCount;
+            setOrdersUnreadCount(prev => prev + countDiff);
+            addToast(
+              `New Order Received`,
+              `You have received ${countDiff} new order${countDiff > 1 ? 's' : ''} to process.`,
+              '/orders/all',
+              FiPackage
+            );
           }
 
           const prevUsersCount = prevUsersRef.current?.length || 0;
           const currentUsersCount = users.length;
           if (currentUsersCount > prevUsersCount && location.pathname !== '/users/list') {
-            setUsersUnreadCount(prev => prev + (currentUsersCount - prevUsersCount));
+            const countDiff = currentUsersCount - prevUsersCount;
+            setUsersUnreadCount(prev => prev + countDiff);
+            addToast(
+              `New Registration`,
+              `${countDiff} new user${countDiff > 1 ? 's' : ''} registered recently.`,
+              '/users/list',
+              FiUserPlus
+            );
           }
 
           const prevPendingCount = prevPendingRef.current?.length || 0;
           const currentPendingCount = pendingUsers.length;
           if (currentPendingCount > prevPendingCount && location.pathname !== '/users/verify') {
-            setUsersVerifyUnreadCount(prev => prev + (currentPendingCount - prevPendingCount));
+            const countDiff = currentPendingCount - prevPendingCount;
+            setUsersVerifyUnreadCount(prev => prev + countDiff);
+            addToast(
+              `Pending Verification`,
+              `${countDiff} user${countDiff > 1 ? 's' : ''} pending verification.`,
+              '/users/verify',
+              FiClock
+            );
           }
 
           const prevDeletionCount = prevDeletionRef.current?.length || 0;
           const currentDeletionCount = deletionUsers.length;
           if (currentDeletionCount > prevDeletionCount && location.pathname !== '/users/deletion-requests') {
-            setUsersDeletionUnreadCount(prev => prev + (currentDeletionCount - prevDeletionCount));
+            const countDiff = currentDeletionCount - prevDeletionCount;
+            setUsersDeletionUnreadCount(prev => prev + countDiff);
+            addToast(
+              `Account Deletion Request`,
+              `${countDiff} account deletion request${countDiff > 1 ? 's' : ''} pending.`,
+              '/users/deletion-requests',
+              FiAlertTriangle
+            );
           }
 
           const prevQuotesCount = prevQuotesRef.current?.length || 0;
           const currentQuotesCount = quotes.length;
           if (currentQuotesCount > prevQuotesCount && location.pathname !== '/quotes') {
-            setQuotesUnreadCount(prev => prev + (currentQuotesCount - prevQuotesCount));
+            const countDiff = currentQuotesCount - prevQuotesCount;
+            setQuotesUnreadCount(prev => prev + countDiff);
+            addToast(
+              `New Quote Request`,
+              `You have received ${countDiff} new quote request${countDiff > 1 ? 's' : ''} to review.`,
+              '/quotes',
+              FiFileText
+            );
           }
         }
 
@@ -443,18 +491,52 @@ const Layout = () => {
         <div className="absolute bottom-10 right-10 w-75 h-75 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-70 transform-gpu animate-glow-alt" style={{ animationDelay: '-12s' }}></div>
       </div>
 
-      {/* Custom In-App Toast Notification */}
-      {toastMsg && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-100 animate-in fade-in slide-in-from-top-4">
+      {/* Toast Notification Stack Container */}
+      <div className="fixed top-5 right-5 z-[9999] flex flex-col gap-3 w-80 max-w-[90%] pointer-events-none">
+        {toasts.map((t) => (
           <div
-            onClick={() => { navigation('/chat'); setToastMsg(null); }}
-            className="bg-blue-600 text-white px-6 py-3 rounded-full shadow-2xl shadow-blue-600/50 flex items-center gap-3 cursor-pointer border border-blue-500/50"
+            key={t.id}
+            onClick={() => {
+              navigation(t.path);
+              setToasts(prev => prev.filter(item => item.id !== t.id));
+            }}
+            className={`flex items-start justify-between gap-4.5 p-4 bg-slate-900 border border-white/10 border-l-4 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.8)] cursor-pointer hover:bg-slate-800 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 animate-in slide-in-from-right-full fade-in text-left group pointer-events-auto select-none ${
+              t.path.startsWith('/chat') ? 'border-l-blue-500 shadow-blue-500/10' :
+              t.path.startsWith('/orders') ? 'border-l-emerald-500 shadow-emerald-500/10' :
+              t.path === '/users/list' ? 'border-l-indigo-500 shadow-indigo-500/10' :
+              t.path === '/users/verify' ? 'border-l-amber-500 shadow-amber-500/10' :
+              t.path === '/users/deletion-requests' ? 'border-l-rose-500 shadow-rose-500/10' :
+              t.path === '/quotes' ? 'border-l-cyan-500 shadow-cyan-500/10' :
+              'border-l-blue-500 shadow-blue-500/10'
+            }`}
           >
-            <FiBell className="text-xl animate-bounce" />
-            <span className="font-bold text-sm whitespace-nowrap">{toastMsg}</span>
+            <div className={`p-1 bg-white/5 rounded-xl shrink-0 group-hover:scale-110 transition-transform ${
+              t.path.startsWith('/chat') ? 'text-blue-400' :
+              t.path.startsWith('/orders') ? 'text-emerald-400' :
+              t.path === '/users/list' ? 'text-indigo-400' :
+              t.path === '/users/verify' ? 'text-amber-400' :
+              t.path === '/users/deletion-requests' ? 'text-rose-400' :
+              t.path === '/quotes' ? 'text-cyan-400' :
+              'text-blue-400'
+            }`}>
+              <t.IconComponent size={20} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-white tracking-wide">{t.title}</p>
+              <p className="text-xs text-slate-300 mt-1 leading-relaxed">{t.message}</p>
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setToasts(prev => prev.filter(item => item.id !== t.id));
+              }}
+              className="p-1 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer shrink-0"
+            >
+              <FiX size={16} />
+            </button>
           </div>
-        </div>
-      )}
+        ))}
+      </div>
 
       {/* Notification Permission Request Banner */}
       {showPermissionBanner && (

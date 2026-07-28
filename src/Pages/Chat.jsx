@@ -579,7 +579,10 @@ const Chat = () => {
                                      </div>
                                    </div>
                                 ) : (
-                                  <div className="mb-1.5 flex items-center gap-2 p-2 bg-black/25 border border-white/5 rounded-lg text-xs max-w-64 select-none">
+                                  <div 
+                                    className="mb-1.5 flex items-center gap-2 p-2 bg-black/25 border border-white/5 rounded-lg text-xs max-w-64 cursor-pointer hover:bg-black/40 transition-colors"
+                                    onClick={() => setMediaPreview({ url: getImageUrl(msg.fileUrl), fileName: msg.fileName || 'Document', fileType: msg.fileType })}
+                                  >
                                     <div className="w-8 h-8 rounded-md bg-slate-800 text-slate-300 flex items-center justify-center shrink-0">
                                       <FiFileText className="text-lg" />
                                     </div>
@@ -594,6 +597,7 @@ const Chat = () => {
                                       className="p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors shrink-0 cursor-pointer"
                                       title="Open / Download"
                                       download
+                                      onClick={(e) => e.stopPropagation()}
                                     >
                                       <FiDownload className="text-xs" />
                                     </a>
@@ -947,17 +951,25 @@ const Chat = () => {
             </div>
           </div>
 
-          {/* Image */}
+          {/* Media Content (Image or PDF) */}
           <div
             className="flex items-center justify-center w-full h-full px-4 pt-14 pb-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <img
-              src={mediaPreview.url}
-              alt={mediaPreview.fileName}
-              className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-200 select-none"
-              draggable={false}
-            />
+            {mediaPreview.fileType === 'application/pdf' || mediaPreview.fileName?.toLowerCase().endsWith('.pdf') ? (
+              <iframe
+                src={`${mediaPreview.url}#toolbar=0`}
+                title={mediaPreview.fileName}
+                className="w-full max-w-4xl h-[85vh] rounded-xl border border-white/10 shadow-2xl bg-slate-950"
+              />
+            ) : (
+              <img
+                src={mediaPreview.url}
+                alt={mediaPreview.fileName}
+                className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-200 select-none"
+                draggable={false}
+              />
+            )}
           </div>
         </div>,
         document.body

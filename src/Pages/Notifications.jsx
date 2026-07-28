@@ -459,8 +459,8 @@ const Notifications = () => {
                         return (
                           <span key={id} className="inline-flex items-center px-3 py-1.5 bg-blue-600/30 text-blue-400 border border-blue-500/20 text-xs font-semibold rounded-full gap-1.5 animate-in fade-in">
                             {cust.name || cust.email}
-                            {hasAndroid && <span className="text-[9px] text-emerald-400 font-bold" title="Android Registered Device">🤖</span>}
-                            {hasIos && <span className="text-[9px] text-indigo-300 font-bold" title="iOS Registered Device">🍎</span>}
+                            {hasAndroid && <span className="text-[9px] text-emerald-400 font-bold" title="Android Registered Device"><DiAndroid/></span>}
+                            {hasIos && <span className="text-[9px] text-indigo-300 font-bold" title="iOS Registered Device"><DiApple/></span>}
                             <button
                               type="button"
                               onClick={() => setSelectedCustomerIds(prev => prev.filter(x => x !== id))}

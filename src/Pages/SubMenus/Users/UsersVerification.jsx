@@ -6,8 +6,10 @@ import {
   FiSearch, FiUser, FiFileText, FiUserMinus 
 } from 'react-icons/fi';
 import { useOutletContext } from 'react-router-dom';
+import { useConfirm } from '../../../Context/ConfirmationContext';
 
 const UsersVerification = () => {
+  const { confirm, showAlert } = useConfirm();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -64,7 +66,8 @@ const UsersVerification = () => {
 
   // Approve KYC
   const handleApprove = async (id) => {
-    if (!window.confirm('Are you sure you want to approve this user KYC and generate their User ID?')) return;
+    const isConfirmed = await confirm('Are you sure you want to approve this user KYC and generate their User ID?');
+    if (!isConfirmed) return;
     setIsActionLoading(true);
     try {
       const token = sessionStorage.getItem('accessToken');
@@ -78,10 +81,10 @@ const UsersVerification = () => {
       });
       setUsers((prevUsers) => prevUsers.filter((user) => user._id !== id));
       if (selectedUser && selectedUser._id === id) closeModal();
-      alert('User approved and ID generated successfully! They have been moved to the Approved Customers list.');
+      showAlert('User approved and ID generated successfully! They have been moved to the Approved Customers list.', 'success');
     } catch (err) {
       console.error('Approve error:', err);
-      alert(err.response?.data?.message || 'Failed to approve user.');
+      showAlert(err.response?.data?.message || 'Failed to approve user.', 'error');
     } finally {
       setIsActionLoading(false);
     }
@@ -90,7 +93,7 @@ const UsersVerification = () => {
   // Reject KYC
   const handleReject = async (id, reasonText) => {
     if (!reasonText || !reasonText.trim()) {
-      alert('A rejection reason is required.');
+      showAlert('A rejection reason is required.', 'error');
       return;
     }
 
@@ -105,10 +108,10 @@ const UsersVerification = () => {
       if (selectedUser && selectedUser._id === id) closeModal();
       setRejectingUserId(null);
       setRejectionReason('');
-      alert('User KYC rejected. They have been moved to the Rejected KYC list.');
+      showAlert('User KYC rejected. They have been moved to the Rejected KYC list.', 'success');
     } catch (err) {
       console.error('Reject error:', err);
-      alert(err.response?.data?.message || 'Failed to reject user.');
+      showAlert(err.response?.data?.message || 'Failed to reject user.', 'error');
     } finally {
       setIsActionLoading(false);
     }
