@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../../api/axios';
-import { FiArrowLeft, FiUpload, FiRefreshCcw, FiLoader, FiCheckCircle, FiAlertTriangle, FiFilter } from 'react-icons/fi';
+import { FiArrowLeft, FiUpload, FiRefreshCcw, FiLoader, FiCheckCircle, FiAlertTriangle, FiFilter, FiX, FiDatabase } from 'react-icons/fi';
 import * as XLSX from 'xlsx';
 
 const ProductMapping = () => {
@@ -29,6 +29,13 @@ const ProductMapping = () => {
   const [stockSyncStatus, setStockSyncStatus] = useState({});
   const [isSyncingStock, setIsSyncingStock] = useState(false);
   const [stockSyncResult, setStockSyncResult] = useState(null);
+  
+  // Bulk sync status modal states
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [statusModalTitle, setStatusModalTitle] = useState('');
+  const [isSyncingInProgress, setIsSyncingInProgress] = useState(false);
+  const [syncProgress, setSyncProgress] = useState({ current: 0, total: 0 });
+  const [syncLogs, setSyncLogs] = useState([]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -220,7 +227,7 @@ const ProductMapping = () => {
     setStockSyncStatus(prev => ({ ...prev, [index]: null }));
 
     try {
-      const p = mapping.matchedProduct;
+      const p = products.find(prod => prod._id === mapping.matchedProduct._id) || mapping.matchedProduct;
       let updatedTotalQuantity = p.totalQuantity;
       let updatedVariants = p.variants ? [...p.variants.map(v => ({ ...v }))] : [];
 
@@ -324,10 +331,15 @@ const ProductMapping = () => {
     let failedCount = 0;
     const syncedItemsLog = [];
 
-    for (const pid of pids) {
+    const updatedProductsMap = {};
+
+    for (let i = 0; i < pids.length; i++) {
+      const pid = pids[i];
+      setSyncProgress(prev => ({ ...prev, current: i + 1 }));
       const group = productGroups[pid];
+      
       try {
-        const p = group.product;
+        const p = products.find(prod => prod._id === pid) || group.product;
         let updatedTotalQuantity = p.totalQuantity;
         let updatedVariants = p.variants ? [...p.variants.map(v => ({ ...v }))] : [];
 
@@ -390,12 +402,25 @@ const ProductMapping = () => {
         ));
 
         group.mappings.forEach((mapping) => {
+          const oldQty = mapping.matchedVariant ? mapping.matchedVariant.quantity : p.totalQuantity;
           syncedItemsLog.push({
             name: mapping.excelName,
-            oldQuantity: mapping.matchedVariant ? mapping.matchedVariant.quantity : p.totalQuantity,
+            oldQuantity: oldQty,
             newQuantity: mapping.excelQty
           });
+
+          // Log success message in the modal
+          setSyncLogs(prev => [
+            {
+              name: mapping.excelName,
+              status: 'success',
+              message: `Successfully synchronized stock: ${oldQty} → ${mapping.excelQty}`
+            },
+            ...prev
+          ]);
         });
+
+        updatedProductsMap[pid] = { totalQuantity: updatedTotalQuantity, variants: updatedVariants };
 
         successCount++;
       } catch (err) {
@@ -403,6 +428,18 @@ const ProductMapping = () => {
         group.indices.forEach((index) => {
           setStockSyncStatus(prev => ({ ...prev, [index]: 'error' }));
         });
+        
+        group.mappings.forEach((mapping) => {
+          setSyncLogs(prev => [
+            {
+              name: mapping.excelName,
+              status: 'error',
+              message: err.response?.data?.message || 'Sync request failed.'
+            },
+            ...prev
+          ]);
+        });
+        
         failedCount++;
       }
     }
@@ -415,15 +452,18 @@ const ProductMapping = () => {
     
     // Dynamically update the mapped stock values too
     setStockMappedData(prevData => prevData.map((item) => {
-      const p = products.find(prod => prod._id === item.matchedProduct?._id);
-      if (p) {
-        const newVar = item.matchedVariant ? p.variants?.find(v => v._id === item.matchedVariant._id || v.name === item.matchedVariant.name) : null;
-        return { ...item, matchedProduct: p, matchedVariant: newVar };
+      const pid = item.matchedProduct?._id;
+      if (pid && updatedProductsMap[pid]) {
+        const { totalQuantity, variants } = updatedProductsMap[pid];
+        const newProd = { ...item.matchedProduct, totalQuantity, variants };
+        const newVar = item.matchedVariant ? variants.find(v => v._id === item.matchedVariant._id || v.name === item.matchedVariant.name) : null;
+        return { ...item, matchedProduct: newProd, matchedVariant: newVar };
       }
       return item;
     }));
 
     setIsSyncingStock(false);
+    setIsSyncingInProgress(false);
   };
 
   const handleUpload = async () => {
@@ -507,6 +547,13 @@ const ProductMapping = () => {
     setError('');
     setSyncResult(null);
 
+    // Open loading popup
+    setStatusModalTitle('Synchronizing Tally Products');
+    setIsSyncingInProgress(true);
+    setSyncProgress({ current: 0, total: 1 });
+    setSyncLogs([{ name: 'Tally Database Sync', status: 'pending', message: 'Connecting to Tally database & fetching mapping rules...' }]);
+    setShowStatusModal(true);
+
     try {
       const response = await api.post('/tally/sync');
       setSyncResult(response.data);
@@ -519,11 +566,28 @@ const ProductMapping = () => {
         newQuantity: m.excelQty
       }));
       setSyncedProducts(bulkSynced);
+
+      setSyncProgress({ current: 1, total: 1 });
+      setSyncLogs(prev => [
+        { name: 'Tally Database Sync', status: 'success', message: `Sync complete. Updated ${response.data.updatedProducts || 0} products. Unmatched: ${response.data.unmatchedProducts || 0}` },
+        ...bulkSynced.map(item => ({
+          name: item.name,
+          status: 'success',
+          message: `Updated stock/details: ${item.oldQuantity} → ${item.newQuantity}`
+        }))
+      ]);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to sync Tally data.');
+      const errMsg = err.response?.data?.message || 'Failed to sync Tally data.';
+      setError(errMsg);
       console.error('Sync error:', err);
+
+      setSyncLogs(prev => [
+        ...prev,
+        { name: 'Tally Database Sync', status: 'error', message: errMsg }
+      ]);
     } finally {
       setIsSyncing(false);
+      setIsSyncingInProgress(false);
     }
   };
 
@@ -953,6 +1017,89 @@ const ProductMapping = () => {
           </div>
         )}
       </div>
+
+      {/* Progress & Log Modal */}
+      {showStatusModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm transition-all">
+          <div className="w-full max-w-lg bg-slate-900 border border-white/15 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="p-5 border-b border-white/10 flex justify-between items-center bg-slate-950/40">
+              <h3 className="font-bold text-white text-lg flex items-center gap-2">
+                <FiDatabase size={18} className={`text-blue-400 ${isSyncingInProgress ? 'animate-spin' : ''}`} />
+                {statusModalTitle}
+              </h3>
+              {!isSyncingInProgress && (
+                <button
+                  onClick={() => setShowStatusModal(false)}
+                  className="p-1.5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  <FiX size={18} />
+                </button>
+              )}
+            </div>
+
+            <div className="p-5 flex-1 overflow-y-auto space-y-4">
+              {/* Progress Bar */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-xs font-semibold text-slate-300">
+                  <span>Progress</span>
+                  <span>{syncProgress.current} / {syncProgress.total} items</span>
+                </div>
+                <div className="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-white/5">
+                  <div 
+                    className="bg-blue-500 h-full rounded-full transition-all duration-300"
+                    style={{ width: `${syncProgress.total > 0 ? (syncProgress.current / syncProgress.total) * 100 : 0}%` }}
+                  ></div>
+                </div>
+              </div>
+
+              {/* Status Header */}
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Operation Logs
+              </div>
+
+              {/* Logs output */}
+              <div className="bg-slate-950 border border-white/5 rounded-2xl p-3 h-64 overflow-y-auto font-mono text-[10px] space-y-2">
+                {syncLogs.length === 0 ? (
+                  <div className="text-slate-600 italic">Starting bulk operation...</div>
+                ) : (
+                  syncLogs.map((log, idx) => (
+                    <div 
+                      key={idx} 
+                      className={`p-2 rounded-lg border flex flex-col gap-0.5 ${
+                        log.status === 'success' 
+                          ? 'bg-emerald-950/20 border-emerald-500/10 text-emerald-400' 
+                          : log.status === 'pending'
+                          ? 'bg-blue-950/20 border-blue-500/10 text-blue-400'
+                          : 'bg-rose-950/20 border-rose-500/10 text-rose-400'
+                      }`}
+                    >
+                      <div className="flex justify-between font-bold text-[11px]">
+                        <span>{log.name}</span>
+                        <span className="uppercase">{log.status}</span>
+                      </div>
+                      <div className="opacity-80 text-[10px]">{log.message}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="p-5 border-t border-white/10 flex justify-end bg-slate-950/40">
+              <button
+                disabled={isSyncingInProgress}
+                onClick={() => setShowStatusModal(false)}
+                className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer ${
+                  isSyncingInProgress 
+                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-white/5' 
+                    : 'bg-blue-600 hover:bg-blue-500 text-white'
+                }`}
+              >
+                {isSyncingInProgress ? 'Executing Bulk Job...' : 'Close & Refresh'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -6,6 +6,7 @@ import {
   FiSearch, FiUser, FiFileText, FiRefreshCcw, FiTrash2, FiUserMinus, FiLogOut, FiX,
   FiShield, FiChevronDown, FiCopy
 } from 'react-icons/fi';
+import { DiAndroid, DiApple } from "react-icons/di";
 import { MdPhoneAndroid, MdPhoneIphone } from 'react-icons/md';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { formatDateDDMMYYYY } from '../../../utils/dateUtils';
@@ -593,14 +594,14 @@ const UsersList = () => {
                             <span className="block text-[10px] text-slate-500 font-bold mt-0.5 flex items-center gap-1.5 flex-wrap">
                               {hasValidAppVersion(user.appVersion) && <span>v{user.appVersion}</span>}
                               {user.devices?.length > 0 && (
-                                <span className="inline-flex items-center gap-1">
+                                <span className="inline-flex items-center">
                                   {Array.from(new Set(user.devices.map(d => d.devicePlatform?.toLowerCase()).filter(Boolean))).map(plat => (
-                                    <span key={plat} className={`px-1 py-0.25 rounded text-[8px] font-black uppercase font-mono tracking-wider ${
-                                      plat === 'android' ? 'bg-green-500/15 text-green-400 border border-green-500/20' : 
-                                      plat === 'ios' ? 'bg-slate-500/20 text-slate-300 border border-slate-500/20' : 
+                                    <span key={plat} className={`py-0.25 rounded text-[12px] font-black uppercase font-mono tracking-wider ${
+                                      plat === 'android' ? 'text-green-400' : 
+                                      plat === 'ios' ? 'text-slate-300' : 
                                       'bg-slate-800 text-slate-400 border border-white/5'
                                     }`}>
-                                      {plat}
+                                      {plat==='android' ? <DiAndroid/> : <DiApple/>}
                                     </span>
                                   ))}
                                 </span>

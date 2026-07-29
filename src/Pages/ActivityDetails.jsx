@@ -13,6 +13,7 @@ import {
   FiMapPin
 } from 'react-icons/fi';
 import { BiRupee } from 'react-icons/bi';
+import { DiAndroid, DiApple } from 'react-icons/di';
 
 const checkAppStatus = (u) => {
   if (!u.installedAt && !u.uninstalledAt) {
@@ -219,12 +220,38 @@ const ActivityDetails = () => {
               (rs.user?.email && u.email && rs.user.email.toLowerCase() === u.email.toLowerCase())
             );
 
+            const userDevices = u.devices || u.registeredDevices || match?.devices || [];
+            const platformMap = {};
+            userDevices.forEach(d => {
+              const plat = d.devicePlatform?.toLowerCase();
+              if (!plat) return;
+              
+              if (!platformMap[plat] || new Date(d.lastActive || 0) > new Date(platformMap[plat].lastActive || 0)) {
+                platformMap[plat] = {
+                  platform: plat,
+                  appVersion: d.appVersion || u.appVersion || match?.appVersion || 'unknown',
+                  lastActive: d.lastActive || u.lastActive || match?.lastActive
+                };
+              }
+            });
+            let platformList = Object.values(platformMap);
+
+            if (platformList.length === 0) {
+              platformList.push({
+                platform: 'unknown',
+                appVersion: isUnknownOrLegacy ? 'unknown/legacy' : (rawAppVer || 'unknown'),
+                lastActive: lastActive
+              });
+            }
+
             return {
               ...u,
               lastActive,
               isOnline,
               lastLoginAt: isUnknownOrLegacy ? null : (u.lastLoginAt || match?.lastLoginAt),
+              lastLogoutAt: isUnknownOrLegacy ? null : (u.lastLogoutAt || match?.lastLogoutAt),
               appVersion: isUnknownOrLegacy ? 'unknown/legacy' : rawAppVer,
+              platformList,
               notificationsEnabled: u.notificationsEnabled !== undefined ? u.notificationsEnabled : match?.notificationsEnabled,
               isAppInstalled: u.isAppInstalled !== undefined ? u.isAppInstalled : match?.isAppInstalled,
               ipAddress: reqStat?.ip || ''
@@ -604,12 +631,12 @@ const ActivityDetails = () => {
             filtered = activities.filter(act => (act.action || '').toUpperCase() === 'LOGOUT');
             if (filtered.length === 0 && res.data?.users) {
               filtered = res.data.users
-                .filter(u => u.activityStats?.logins > 0)
+                .filter(u => (u.activityStats?.logouts > 0 || u.activityStats?.logins > 0) && !u.isOnline)
                 .map(u => ({
                   _id: `logout-${u.userId}`,
                   user: { _id: u.userId, name: u.name, email: u.email, phone: u.phone },
                   action: 'LOGOUT',
-                  createdAt: u.lastActive
+                  createdAt: u.lastLogoutAt || u.lastActive
                 }));
             }
           } else if (type === 'product-views') {
@@ -1365,10 +1392,42 @@ const ActivityDetails = () => {
               </div>
             </td>
             <td className="py-4 px-5">
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-bold font-mono">
-                <FiSmartphone className="text-blue-400/80" size={11} />
-                {item.appVersion || 'unknown'}
-              </span>
+              <div className="flex flex-col gap-2 justify-center">
+                {item.platformList?.map((p, idx) => (
+                  <div key={idx} className="flex items-center h-[26px]">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-bold font-mono">
+                      {p.platform && p.platform !== 'unknown' && (
+                        <span className="text-[10px] text-slate-400 font-semibold lowercase">
+                          {p.platform==='android'?<DiAndroid className='text-xs text-green-300'/>:<DiApple className='text-xs text-white'/>}
+                        </span>
+                      )}
+                      {p.appVersion || 'unknown'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </td>
+            <td className="py-4 px-5">
+              <div className="flex flex-col gap-2 justify-center">
+                {item.platformList?.map((p, idx) => {
+                  const isPlatOnline = item.isOnline && p.appVersion !== 'unknown/legacy' && p.lastActive && (new Date() - new Date(p.lastActive) < 5 * 60 * 1000);
+                  return (
+                    <div key={idx} className="flex items-center h-[26px]">
+                      {isPlatOnline ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                          Online Now
+                        </span>
+                      ) : (
+                        <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+                          <FiClock className="text-slate-500 shrink-0" size={12} />
+                          <span>{p.appVersion !== 'unknown/legacy' && p.lastActive ? formatDateTime(p.lastActive) : 'Not Active'}</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </td>
             <td className="py-4 px-5">
               <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${item.notificationsEnabled
@@ -1387,19 +1446,6 @@ const ActivityDetails = () => {
                 <FiShield className={item.isAppLockEnabled ? 'text-teal-400' : 'text-slate-500'} size={11} />
                 {item.isAppLockEnabled ? 'Secured' : 'Inactive'}
               </span>
-            </td>
-            <td className="py-4 px-5">
-              {item.isOnline && item.appVersion !== 'unknown/legacy' ? (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                  Online Now
-                </span>
-              ) : (
-                <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
-                  <FiClock className="text-slate-500 shrink-0" size={12} />
-                  <span>{item.appVersion !== 'unknown/legacy' && item.lastActive ? formatDateTime(item.lastActive) : 'Not Active'}</span>
-                </div>
-              )}
             </td>
           </tr>
         );
@@ -1459,10 +1505,19 @@ const ActivityDetails = () => {
               </div>
             </td>
             <td className="py-6 px-3">
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-bold font-mono">
-                <FiSmartphone className="text-blue-400/80 text-[9px]" />
-                {item.appVersion || 'v0.0.0'}
-              </span>
+              <div className="flex flex-col gap-1.5 justify-center">
+                {item.platformList?.map((p, idx) => (
+                  <span key={idx} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-bold font-mono w-fit">
+                    <FiSmartphone className="text-blue-400/80 text-[9px]" />
+                    {p.appVersion || 'v0.0.0'}
+                    {p.platform && p.platform !== 'unknown' && (
+                      <span className="text-[9px] text-slate-400 font-semibold lowercase">
+                        ({p.platform})
+                      </span>
+                    )}
+                  </span>
+                ))}
+              </div>
             </td>
             <td className="py-6 px-3">
               <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${type === 'installed' && item.notificationsEnabled
@@ -1531,7 +1586,31 @@ const ActivityDetails = () => {
               {item.details?.method || 'N/A'}
             </span>
           </td>
-          <td className="py-4 px-5 text-sm text-slate-400 font-medium">{formatDateTime(item.createdAt)}</td>
+          <td className="py-4 px-5 text-sm text-slate-400 font-medium">{formatDateTime(item.createdAt || item.timestamp)}</td>
+        </tr>
+      ));
+    }
+
+    if (type === 'logouts') {
+      return currentItems.map((item, index) => (
+        <tr
+          key={item._id}
+          className="hover:bg-white/[0.02] transition-colors group/row"
+        >
+          <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+          <td className="py-4 px-5 text-sm font-bold text-white">
+            <div className="flex items-center gap-2">
+              {item.user?.name || 'Unknown User'}
+            </div>
+          </td>
+          <td className="py-4 px-5 text-sm text-slate-300 select-all font-medium">{item.user?.email || '-'}</td>
+          <td className="py-4 px-5 text-xs font-extrabold text-rose-400 font-mono tracking-wider">LOGOUT</td>
+          <td className="py-4 px-5">
+            <span className="px-3 py-1 rounded-full font-bold text-xs bg-rose-500/10 text-rose-400 border border-rose-500/20">
+              {item.details?.method || 'N/A'}
+            </span>
+          </td>
+          <td className="py-4 px-5 text-sm text-slate-400 font-medium">{formatDateTime(item.createdAt || item.timestamp)}</td>
         </tr>
       ));
     }
@@ -1989,7 +2068,7 @@ const ActivityDetails = () => {
           <td className="py-4 px-5 text-sm text-slate-300 font-mono select-all font-medium">{item.user?.email || '-'}</td>
           <td className="py-4 px-5 text-xs font-extrabold text-blue-400 font-mono tracking-wider">{item.action}</td>
           <td className="py-4 px-5 text-xs font-semibold text-slate-300 max-w-xs truncate" title={resolvedText}>{resolvedText}</td>
-          <td className="py-4 px-5 text-sm text-slate-400 font-medium">{formatDateTime(item.createdAt)}</td>
+          <td className="py-4 px-5 text-sm text-slate-400 font-medium">{formatDateTime(item.createdAt || item.timestamp)}</td>
         </tr>
       );
     });
@@ -2047,10 +2126,11 @@ const ActivityDetails = () => {
     if (type === 'users' || type === 'users-status' || type === 'installed' || type === 'uninstalled' || type === 'deleted') {
       return (
         <>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
+          <th className="py-3 px-2 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Name</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Email Address</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">App Version</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Last Active</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Notifications</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">App Lock</th>
           {type === 'installed' && (
@@ -2059,11 +2139,23 @@ const ActivityDetails = () => {
           {type === 'uninstalled' && (
             <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Uninstalled At</th>
           )}
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Last Active</th>
         </>
       );
     }
     if (type === 'logins') {
+      return (
+        <>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Email</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Action</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Method</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Timestamp</th>
+        </>
+      );
+    }
+
+    if (type === 'logouts') {
       return (
         <>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
