@@ -327,6 +327,19 @@ const ProductMapping = () => {
     });
 
     const pids = Object.keys(productGroups);
+    if (pids.length === 0) {
+      setError('No matched products to sync.');
+      setIsSyncingStock(false);
+      return;
+    }
+
+    // Open progress and status modal
+    setStatusModalTitle('Synchronizing Stock Quantities');
+    setIsSyncingInProgress(true);
+    setSyncProgress({ current: 0, total: pids.length });
+    setSyncLogs([{ name: 'Bulk Stock Update', status: 'pending', message: `Initializing synchronization for ${pids.length} products...` }]);
+    setShowStatusModal(true);
+
     let successCount = 0;
     let failedCount = 0;
     const syncedItemsLog = [];

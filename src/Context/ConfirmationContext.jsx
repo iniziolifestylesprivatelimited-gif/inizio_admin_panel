@@ -43,6 +43,25 @@ export const ConfirmationProvider = ({ children }) => {
     if (resolverRef.current) resolverRef.current(true);
   };
 
+  React.useEffect(() => {
+    const originalAlert = window.alert;
+    window.alert = (msg) => {
+      let alertType = 'info';
+      if (typeof msg === 'string') {
+        const msgLower = msg.toLowerCase();
+        if (msgLower.includes('success') || msgLower.includes('✅') || msgLower.includes('successfully') || msgLower.includes('updated') || msgLower.includes('saved')) {
+          alertType = 'success';
+        } else if (msgLower.includes('failed') || msgLower.includes('error') || msgLower.includes('invalid') || msgLower.includes('cannot') || msgLower.includes('please') || msgLower.includes('only') || msgLower.includes('alert')) {
+          alertType = 'error';
+        }
+      }
+      showAlert(String(msg), alertType);
+    };
+    return () => {
+      window.alert = originalAlert;
+    };
+  }, []);
+
   const handleCancel = () => {
     setModalState(prev => ({ ...prev, isOpen: false }));
     if (resolverRef.current) resolverRef.current(false);

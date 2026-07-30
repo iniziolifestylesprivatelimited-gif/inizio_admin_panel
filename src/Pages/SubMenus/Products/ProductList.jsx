@@ -45,6 +45,8 @@ const ProductList = () => {
   const selectedBrand = searchParams.get('brand') || '';
   const selectedCategory = searchParams.get('category') || '';
   const selectedStockStatus = searchParams.get('stock') || '';
+  const sortKey = searchParams.get('sortKey') || '';
+  const sortOrder = searchParams.get('sortOrder') || 'asc';
 
   const handleFilterChange = (key, value) => {
     setSearchParams(prev => {
@@ -58,6 +60,27 @@ const ProductList = () => {
     });
   };
 
+  const handleSortChange = (key) => {
+    setSearchParams(prev => {
+      const currentKey = prev.get('sortKey') || '';
+      const currentOrder = prev.get('sortOrder') || 'asc';
+      
+      if (currentKey === key) {
+        if (currentOrder === 'asc') {
+          prev.set('sortOrder', 'desc');
+        } else {
+          prev.delete('sortKey');
+          prev.delete('sortOrder');
+        }
+      } else {
+        prev.set('sortKey', key);
+        prev.set('sortOrder', 'asc');
+      }
+      prev.set('page', '1');
+      return prev;
+    });
+  };
+
   const handleClearFilters = () => {
     setSearchInput('');
     setSearchParams(prev => {
@@ -65,6 +88,8 @@ const ProductList = () => {
       prev.delete('brand');
       prev.delete('category');
       prev.delete('stock');
+      prev.delete('sortKey');
+      prev.delete('sortOrder');
       prev.set('page', '1');
       return prev;
     });
@@ -1340,6 +1365,26 @@ console.log(products)
     );
   });
 
+  // Apply sorting
+  if (sortKey) {
+    filteredProducts.sort((a, b) => {
+      let aVal = a[sortKey];
+      let bVal = b[sortKey];
+
+      if (sortKey === 'name') {
+        aVal = (aVal || '').toLowerCase();
+        bVal = (bVal || '').toLowerCase();
+      } else {
+        aVal = Number(aVal) || 0;
+        bVal = Number(bVal) || 0;
+      }
+
+      if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
@@ -1388,66 +1433,7 @@ console.log(products)
             )}
           </div>
         </div>
-
-        {/* Filters Section */}
-        <div className="relative z-30 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 items-center gap-3 bg-white/[0.02] border border-white/5 p-3 rounded-2xl backdrop-blur-md">
-          <div>
-            <CustomDropdown
-              value={selectedBrand ? (brands.find(b => b._id === selectedBrand)?.name || 'All Brands') : 'All Brands'}
-              options={['All Brands', ...brands.map(b => b.name)]}
-              onChange={(option) => {
-                if (option === 'All Brands') {
-                  handleFilterChange('brand', '');
-                } else {
-                  const found = brands.find(b => b.name === option);
-                  if (found) handleFilterChange('brand', found._id);
-                }
-              }}
-              statusColor="bg-slate-900/60 text-slate-300 border-white/10 hover:bg-slate-800/60 hover:text-white"
-            />
-          </div>
-          <div>
-            <CustomDropdown
-              value={selectedCategory ? (categories.find(c => c._id === selectedCategory)?.name || 'All Categories') : 'All Categories'}
-              options={['All Categories', ...categories.map(c => c.name)]}
-              onChange={(option) => {
-                if (option === 'All Categories') {
-                  handleFilterChange('category', '');
-                } else {
-                  const found = categories.find(c => c.name === option);
-                  if (found) handleFilterChange('category', found._id);
-                }
-              }}
-              statusColor="bg-slate-900/60 text-slate-300 border-white/10 hover:bg-slate-800/60 hover:text-white"
-            />
-          </div>
-          <div>
-            <CustomDropdown
-              value={selectedStockStatus === 'in_stock' ? 'In Stock' : selectedStockStatus === 'low_stock' ? 'Low Stock' : selectedStockStatus === 'out_of_stock' ? 'Out of Stock' : 'All Stock Statuses'}
-              options={['All Stock Statuses', 'In Stock', 'Low Stock', 'Out of Stock']}
-              onChange={(option) => {
-                let val = '';
-                if (option === 'In Stock') val = 'in_stock';
-                else if (option === 'Low Stock') val = 'low_stock';
-                else if (option === 'Out of Stock') val = 'out_of_stock';
-                handleFilterChange('stock', val);
-              }}
-              statusColor="bg-slate-900/60 text-slate-300 border-white/10 hover:bg-slate-800/60 hover:text-white"
-            />
-          </div>
-          <div className="flex justify-end sm:justify-start">
-            {(selectedBrand || selectedCategory || selectedStockStatus || searchTerm) ? (
-              <button
-                onClick={handleClearFilters}
-                className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl transition-all border border-white/10 cursor-pointer text-sm shadow-md"
-              >
-                <FiX className="text-slate-400" /> Clear Filters
-              </button>
-            ) : (
-              <span className="text-xs text-slate-500 font-medium italic pl-1 hidden md:inline">No active filters</span>
-            )}
-          </div>
-        </div>
+      </div>
 
         {/* Action & Metrics Row */}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 w-full border-t border-white/5 pt-4 mt-2">
@@ -1562,7 +1548,6 @@ console.log(products)
             )}
           </div>
         </div>
-      </div>
 
       {/* Catalog Tabs */}
       <div className="flex border-b border-white/10 gap-6 mb-2">
@@ -1593,7 +1578,7 @@ console.log(products)
         <div className="overflow-auto custom-scrollbar max-h-[70vh]">
           <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md border-b border-white/10 text-slate-300 text-sm shadow-md">
-              <tr>
+              <tr className="align-middle">
                 {isDeleteMode && (
                   <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs w-10 text-center animate-in fade-in slide-in-from-left-2 duration-200">
                     <input 
@@ -1605,16 +1590,96 @@ console.log(products)
                   </th>
                 )}
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">S.No</th>
-                <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">Brand</th>
-                <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">Category</th>
-                <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">Product Name</th>
-                <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">Base Price</th>
-                <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">Offer Price</th>
-                <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs text-center">Total Qty</th>
-                <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">Variants</th>
+                <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs min-w-[140px]">
+                  <CustomDropdown
+                    value=""
+                    onChange={(val) => handleFilterChange('brand', val)}
+                    options={[
+                      { value: '', label: selectedBrand ? 'Brand (filtered)' : 'Brand' },
+                      ...brands.map(b => ({ value: b._id, label: b.name }))
+                    ]}
+                    statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedBrand ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'}`}
+                  />
+                </th>
+                <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs min-w-[140px]">
+                  <CustomDropdown
+                    value=""
+                    onChange={(val) => handleFilterChange('category', val)}
+                    options={[
+                      { value: '', label: selectedCategory ? 'Category (filtered)' : 'Category' },
+                      ...categories.map(c => ({ value: c._id, label: c.name }))
+                    ]}
+                    statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedCategory ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'}`}
+                  />
+                </th>
+                <th 
+                  onClick={() => handleSortChange('name')}
+                  className="px-4 py-3 font-medium uppercase tracking-wider text-xs cursor-pointer select-none hover:text-white transition-colors"
+                >
+                  <div className="flex items-center gap-1">
+                    <span className={sortKey === 'name' ? 'text-blue-400 font-extrabold' : ''}>Product Name</span>
+                    {sortKey === 'name' ? (
+                      sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                    ) : (
+                      <span className="text-slate-500">⇅</span>
+                    )}
+                  </div>
+                </th>
+                <th 
+                  onClick={() => handleSortChange('basePrice')}
+                  className="px-4 py-3 font-medium uppercase tracking-wider text-xs cursor-pointer select-none hover:text-white transition-colors"
+                >
+                  <div className="flex items-center gap-1">
+                    <span className={sortKey === 'basePrice' ? 'text-blue-400 font-extrabold' : ''}>Base Price</span>
+                    {sortKey === 'basePrice' ? (
+                      sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                    ) : (
+                      <span className="text-slate-500">⇅</span>
+                    )}
+                  </div>
+                </th>
+                <th 
+                  onClick={() => handleSortChange('offerPrice')}
+                  className="px-4 py-3 font-medium uppercase tracking-wider text-xs cursor-pointer select-none hover:text-white transition-colors"
+                >
+                  <div className="flex items-center gap-1">
+                    <span className={sortKey === 'offerPrice' ? 'text-blue-400 font-extrabold' : ''}>Offer Price</span>
+                    {sortKey === 'offerPrice' ? (
+                      sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                    ) : (
+                      <span className="text-slate-500">⇅</span>
+                    )}
+                  </div>
+                </th>
+                <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs text-center min-w-[130px]">
+                  <CustomDropdown
+                    value=""
+                    onChange={(val) => handleFilterChange('stock', val)}
+                    options={[
+                      { value: '', label: selectedStockStatus ? 'Total Qty (filtered)' : 'Total Qty' },
+                      { value: 'in_stock', label: 'In Stock' },
+                      { value: 'low_stock', label: 'Low Stock' },
+                      { value: 'out_of_stock', label: 'Out of Stock' }
+                    ]}
+                    statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedStockStatus ? 'text-blue-400 font-extrabold' : 'text-slate-300'}`}
+                  />
+                </th>
+                <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs text-center">Variants</th>
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs text-center">Date Info</th>
-                {/* <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">EAN</th> */}
-                <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs text-center">Action</th>
+                <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs text-center">
+                  <div className="flex items-center justify-center gap-1">
+                    <span>Action</span>
+                    {(selectedBrand || selectedCategory || selectedStockStatus || sortKey) && (
+                      <button
+                        onClick={handleClearFilters}
+                        className="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold rounded border border-white/10 transition-all cursor-pointer hover:text-white ml-2"
+                        title="Clear All Filters"
+                      >
+                        Reset
+                      </button>
+                    )}
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/10">

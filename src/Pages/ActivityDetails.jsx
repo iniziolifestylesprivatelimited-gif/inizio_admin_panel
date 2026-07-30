@@ -1623,7 +1623,17 @@ const ActivityDetails = () => {
         const initials = (item.user?.name || 'G').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
         return (
-          <tr key={item._id || index} className="hover:bg-white/[0.02] transition-colors">
+          <tr key={item._id || index} 
+            onClick={() => {
+                    setSelectedRowLogins({
+                      action: 'API_REQUESTS',
+                      user: item.user || { name: 'Guest / Unauthenticated', email: item.ip },
+                      count: displayCount,
+                      endpointStats: item.endpointStats
+                    });
+                    setIsModalOpen(true);
+                  }}
+            className="hover:bg-white/[0.02] transition-colors cursor-pointer">
             <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td className="py-4 px-5">
               <div className="flex items-center gap-2">
@@ -1666,7 +1676,7 @@ const ActivityDetails = () => {
             <td className="py-4 px-5 text-sm text-slate-400 font-medium">
               {formatDateTime(item.lastRequestAt)}
             </td>
-            <td className="py-4 px-5 text-center">
+            {/* <td className="py-4 px-5 text-center">
               <button
                 onClick={() => {
                   setSelectedRowLogins({
@@ -1681,7 +1691,7 @@ const ActivityDetails = () => {
               >
                 View Breakdown
               </button>
-            </td>
+            </td> */}
           </tr>
         );
       });
@@ -1802,6 +1812,15 @@ const ActivityDetails = () => {
         const rankBadgeBg = ['bg-amber-500/15 border-amber-500/30', 'bg-slate-500/15 border-slate-400/30', 'bg-orange-500/15 border-orange-500/30'];
         const viewerCount = Array.isArray(item.viewers) ? item.viewers.length : 0;
         const rowKey = item.brand?._id || item.brand?.name || `brand-${globalIndex}`;
+
+        // Calculate total products under this brand
+        const brandProductsCount = extraData.products?.filter(p => {
+          const pBrandId = typeof p.brand === 'object' ? p.brand?._id : p.brand;
+          return pBrandId && pBrandId === item.brand?._id;
+        }).length || 0;
+
+        const isBrandActive = item.brand?.isActive !== false;
+
         return (
           <tr
             key={rowKey}
@@ -1831,6 +1850,12 @@ const ActivityDetails = () => {
               )}
             </td>
             <td className="py-4 px-5 text-sm font-bold text-white group-hover/row:text-indigo-400 transition-colors">{item.brand?.name || 'Unknown Brand'}</td>
+            <td className="py-4 px-5 text-sm text-slate-300 font-bold">{brandProductsCount} product(s)</td>
+            <td className="py-4 px-5 text-xs">
+              <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider text-[10px] ${isBrandActive ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
+                {isBrandActive ? 'active' : 'inactive'}
+              </span>
+            </td>
             <td className="py-4 px-5">
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden max-w-[120px]">
@@ -1839,7 +1864,7 @@ const ActivityDetails = () => {
                 <span className="text-indigo-400 font-extrabold text-sm">{item.searches || 0} views</span>
               </div>
             </td>
-            <td className="py-4 px-5 text-center">
+            {/* <td className="py-4 px-5 text-center">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1855,7 +1880,7 @@ const ActivityDetails = () => {
               >
                 View Breakdown ({viewerCount})
               </button>
-            </td>
+            </td> */}
           </tr>
         );
       });
@@ -1867,6 +1892,15 @@ const ActivityDetails = () => {
         const globalIndex = (currentPage - 1) * itemsPerPage + index;
         const viewerCount = Array.isArray(item.viewers) ? item.viewers.length : 0;
         const rowKey = item.category?._id || item.category?.name || `cat-${globalIndex}`;
+
+        // Calculate total products under this category
+        const catProductsCount = extraData.products?.filter(p => {
+          const pCatId = typeof p.category === 'object' ? p.category?._id : p.category;
+          return pCatId && pCatId === item.category?._id;
+        }).length || 0;
+
+        const isCatActive = item.category?.isActive !== false;
+
         return (
           <tr
             key={rowKey}
@@ -1889,6 +1923,12 @@ const ActivityDetails = () => {
               </span>
             </td>
             <td className="py-4 px-5 text-sm font-bold text-white group-hover/row:text-purple-400 transition-colors">{item.category?.name || 'Unknown Category'}</td>
+            <td className="py-4 px-5 text-sm text-slate-300 font-bold">{catProductsCount} product(s)</td>
+            <td className="py-4 px-5 text-xs">
+              <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider text-[10px] ${isCatActive ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
+                {isCatActive ? 'active' : 'inactive'}
+              </span>
+            </td>
             <td className="py-4 px-5">
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden max-w-[120px]">
@@ -1897,7 +1937,7 @@ const ActivityDetails = () => {
                 <span className="text-purple-400 font-extrabold text-sm">{item.searches || 0} views</span>
               </div>
             </td>
-            <td className="py-4 px-5 text-center">
+            {/* <td className="py-4 px-5 text-center">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1912,7 +1952,7 @@ const ActivityDetails = () => {
               >
                 View Breakdown ({viewerCount})
               </button>
-            </td>
+            </td> */}
           </tr>
         );
       });
@@ -1958,6 +1998,23 @@ const ActivityDetails = () => {
         const imgUrl = firstImg.startsWith('http') ? firstImg : (firstImg ? `${BASE_URL}${firstImg.startsWith('/') ? '' : '/'}${firstImg}` : '');
         const viewerCount = Array.isArray(item.viewers) ? item.viewers.length : 0;
         const rowKey = item.product?._id || item.product?.name || `product-${globalIndex}`;
+
+        // Resolve Brand and Category Names
+        const prodId = item.product?._id || item.productId || (typeof item.product === 'string' ? item.product : undefined);
+        const fullProduct = extraData.products?.find(p => 
+          (prodId && p._id === prodId) || 
+          (item.product?.name && p.name?.toLowerCase() === item.product.name.toLowerCase())
+        ) || item.product;
+
+        const brandId = typeof fullProduct?.brand === 'object' ? fullProduct?.brand?._id : fullProduct?.brand;
+        const brandObj = extraData.brands?.find(b => b._id === brandId) || (typeof fullProduct?.brand === 'object' ? fullProduct?.brand : null);
+
+        const categoryId = typeof fullProduct?.category === 'object' ? fullProduct?.category?._id : fullProduct?.category;
+        const categoryObj = extraData.categories?.find(c => c._id === categoryId) || (typeof fullProduct?.category === 'object' ? fullProduct?.category : null);
+
+        const brandName = brandObj?.name || 'N/A';
+        const categoryName = categoryObj?.name || 'N/A';
+
         return (
           <tr
             key={rowKey}
@@ -1994,6 +2051,24 @@ const ActivityDetails = () => {
             <td className="py-4 px-5 text-sm font-bold text-white group-hover/row:text-blue-400 transition-colors truncate max-w-[200px]" title={item.product?.name}>
               {item.product?.name || 'Unknown Product'}
             </td>
+            <td className="py-4 px-5 text-sm font-medium">
+              {brandName !== 'N/A' ? (
+                <span className="px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 text-xs font-bold">
+                  {brandName}
+                </span>
+              ) : (
+                <span className="text-slate-500 font-medium text-xs">-</span>
+              )}
+            </td>
+            <td className="py-4 px-5 text-sm font-medium">
+              {categoryName !== 'N/A' ? (
+                <span className="px-2.5 py-1 rounded-lg bg-purple-500/10 text-purple-300 border border-purple-500/20 text-xs font-bold">
+                  {categoryName}
+                </span>
+              ) : (
+                <span className="text-slate-500 font-medium text-xs">-</span>
+              )}
+            </td>
             <td className="py-4 px-5 text-sm font-mono">
               <span className="text-emerald-400 font-extrabold">
                 ₹{(item.product?.offerPrice && Number(item.product.offerPrice) > 0 ? Number(item.product.offerPrice) : Number(item.product?.basePrice || 0)).toLocaleString('en-IN')}
@@ -2012,7 +2087,7 @@ const ActivityDetails = () => {
                 <span className="text-blue-400 font-extrabold text-sm">{item.views || 0} views</span>
               </div>
             </td>
-            <td className="py-4 px-5 text-center">
+            {/* <td className="py-4 px-5 text-center">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -2028,7 +2103,7 @@ const ActivityDetails = () => {
               >
                 View Breakdown ({viewerCount})
               </button>
-            </td>
+            </td> */}
           </tr>
         );
       });
@@ -2174,9 +2249,11 @@ const ActivityDetails = () => {
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Image</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Product Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Brand</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Category</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Price / Offer Price</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Product Views</th>
-          <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Viewer Breakdown</th>
+          {/* <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Viewer Breakdown</th> */}
         </>
       );
     }
@@ -2187,8 +2264,10 @@ const ActivityDetails = () => {
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Logo</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Brand Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Products</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Brand Views</th>
-          <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Viewer Breakdown</th>
+          {/* <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Viewer Breakdown</th> */}
         </>
       );
     }
@@ -2197,8 +2276,10 @@ const ActivityDetails = () => {
         <>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Category Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Products</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Category Views</th>
-          <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Viewer Breakdown</th>
+          {/* <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Viewer Breakdown</th> */}
         </>
       );
     }
@@ -2211,7 +2292,7 @@ const ActivityDetails = () => {
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Requests</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">IP Address</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Last Request At</th>
-          <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Actions</th>
+          {/* <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Actions</th> */}
         </>
       );
     }
@@ -2276,6 +2357,8 @@ const ActivityDetails = () => {
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Product Image</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Product Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Brand</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Category</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Base Price</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Views</th>
         </>

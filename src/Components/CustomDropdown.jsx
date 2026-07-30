@@ -39,7 +39,7 @@ const CustomDropdown = ({ value, onChange, options, statusColor }) => {
 
       {/* Options List */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1.5 bg-slate-900 border border-white/10 rounded-lg shadow-xl shadow-black/60 max-h-60 overflow-y-auto custom-scrollbar z-50 animate-in fade-in slide-in-from-top-2">
+        <div className="absolute top-full left-0 min-w-full w-max max-w-[280px] mt-1.5 bg-slate-900 border border-white/10 rounded-lg shadow-xl shadow-black/60 max-h-60 overflow-y-auto overflow-x-hidden custom-scrollbar z-50 animate-in fade-in slide-in-from-top-2">
           {options.map((option, idx) => {
             const { value: optValue, label: optLabel } = getOptionInfo(option);
             return (

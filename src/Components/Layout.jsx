@@ -979,11 +979,11 @@ const Layout = () => {
           <div className="w-full mx-auto flex flex-col md:flex-row justify-between items-center text-xs text-slate-400 font-medium">
             <p>© {new Date().getFullYear()} Inizio Workspace. All rights reserved.</p>
             <div className="flex items-center space-x-4 mt-2 md:mt-0">
-              <Link to="/help" className="hover:text-blue-500 transition-colors">Help Center</Link>
-              <Link to="/privacy" className="hover:text-blue-500 transition-colors">Privacy Policy</Link>
-              <span className="px-2 py-0.5 bg-white/10 text-slate-300 rounded-md border border-white/10">
+              {/* <Link to="/help" className="hover:text-blue-500 transition-colors">Help Center</Link> */}
+              <Link to="/settings/privacy-policy" className="hover:text-blue-500 transition-colors">Privacy Policy</Link>
+              {/* <span className="px-2 py-0.5 bg-white/10 text-slate-300 rounded-md border border-white/10">
                 v1.2.0
-              </span>
+              </span> */}
             </div>
           </div>
         </footer>
