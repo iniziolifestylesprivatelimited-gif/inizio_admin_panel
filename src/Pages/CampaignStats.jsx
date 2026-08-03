@@ -346,7 +346,7 @@ const CampaignStats = () => {
       {loading && campaigns.length === 0 ? (
         <KPISkeleton cards={4} />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* KPI 1: Campaigns */}
           <Card hoverable className="p-5 flex items-center justify-between">
             <div>

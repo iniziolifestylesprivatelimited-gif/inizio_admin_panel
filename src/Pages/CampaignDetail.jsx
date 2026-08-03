@@ -254,7 +254,7 @@ const CampaignDetail = () => {
         <div className="lg:col-span-2 space-y-6">
           
           {/* General Stats Performance Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {/* KPI 1: Sent */}
             <Card hoverable className="p-5 flex items-center justify-between">
               <div>

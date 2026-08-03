@@ -925,7 +925,7 @@ const RolesPermissions = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-2 gap-3">
                   {availablePermissions.map(perm => {
                     const isChecked = roleActivePermissions.includes(perm);
                     return (

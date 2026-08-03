@@ -625,7 +625,7 @@ const UserDetails = () => {
             </div>
 
             <h4 className="text-sm font-bold text-white mb-4 uppercase tracking-wider border-b border-white/10 pb-2">Personal Information</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-6">
               <div>
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Full Name</p>
                 <p className="text-white font-medium text-base">{user.name}</p>
@@ -645,8 +645,8 @@ const UserDetails = () => {
               <div>
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Database User ID</p>
                 <div className="flex items-center gap-1.5 mt-1">
-                  <span className="text-white font-mono text-sm font-semibold select-all">{user._id}</span>
-                  <CopyButton text={user._id} className="text-slate-400 hover:text-white" size={12} />
+                  <span className="text-white font-mono text-xs font-semibold select-all">{user._id}</span>
+                  <CopyButton text={user._id} className="text-slate-400 hover:text-white" size={10} />
                 </div>
               </div>
               <div>
@@ -797,7 +797,7 @@ const UserDetails = () => {
                   <FiClock className="text-indigo-400" /> Connection & Session Timeline
                 </h4>
 
-                <div className="flex justify-evenly gap-4">
+                <div className="flex-column justify-evenly gap-4">
                   {/* Last Active Connection */}
                   <div className="p-4 bg-slate-950/30 border border-white/5 rounded-2xl flex items-center justify-between gap-4">
                     <div className="space-y-1">

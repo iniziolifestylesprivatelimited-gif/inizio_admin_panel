@@ -6,7 +6,8 @@ import {
 } from 'react-icons/md';
 import { 
   FiAlertCircle, FiCopy, FiGlobe, FiUsers, FiUser, 
-  FiUserCheck, FiLayers, FiBox, FiTrendingUp, FiLink, FiCheck, FiX, FiSearch
+  FiUserCheck, FiLayers, FiBox, FiTrendingUp, FiLink, FiCheck, FiX, FiSearch,
+  FiChevronLeft, FiChevronRight
 } from 'react-icons/fi';
 import { DiAndroid, DiApple } from "react-icons/di";
 import axios from 'axios';
@@ -60,6 +61,8 @@ const Notifications = () => {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [errorHistory, setErrorHistory] = useState('');
   const [historySearchQuery, setHistorySearchQuery] = useState('');
+  const [currentHistoryPage, setCurrentHistoryPage] = useState(1);
+  const historyItemsPerPage = 5;
 
   // Fetch history of campaigns
   const fetchCampaignHistory = async () => {
@@ -213,6 +216,7 @@ const Notifications = () => {
 
         // Instant refresh of campaign history stats
         fetchCampaignHistory();
+        setCurrentHistoryPage(1);
       } else {
         const aggregatedError = errorMsgs.length > 0 
           ? `Errors:\n${errorMsgs.join('\n')}` 
@@ -267,6 +271,11 @@ const Notifications = () => {
     { value: 'external', label: 'Link to External Website' }
   ];
 
+  // Reset pagination when searching
+  useEffect(() => {
+    setCurrentHistoryPage(1);
+  }, [historySearchQuery]);
+
   const filteredCampaigns = campaigns.filter(c => {
     if (!historySearchQuery) return true;
     const query = historySearchQuery.toLowerCase();
@@ -276,6 +285,30 @@ const Notifications = () => {
       (c.campaignId || '').toLowerCase().includes(query)
     );
   });
+
+  // Calculate paginated campaigns
+  const indexOfLastHistoryItem = currentHistoryPage * historyItemsPerPage;
+  const indexOfFirstHistoryItem = indexOfLastHistoryItem - historyItemsPerPage;
+  const currentHistoryCampaigns = filteredCampaigns.slice(indexOfFirstHistoryItem, indexOfLastHistoryItem);
+  const totalHistoryPages = Math.ceil(filteredCampaigns.length / historyItemsPerPage);
+
+  const getHistoryPaginationRange = () => {
+    const range = [];
+    const delta = 1;
+    
+    for (let i = 1; i <= totalHistoryPages; i++) {
+      if (
+        i === 1 || 
+        i === totalHistoryPages || 
+        (i >= currentHistoryPage - delta && i <= currentHistoryPage + delta)
+      ) {
+        range.push(i);
+      } else if (range[range.length - 1] !== '...') {
+        range.push('...');
+      }
+    }
+    return range;
+  };
 
   return (
     <div className="relative space-y-4 min-h-full z-0 w-full">
@@ -288,7 +321,7 @@ const Notifications = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left Side: Compose Notification */}
-        <Card className="sm:p-8 h-fit !overflow-visible">
+        <Card className="sm:p-8 h-fit !overflow-visible z-10">
           <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
             <MdSend className="text-blue-400" /> Send Notification
           </h2>
@@ -403,7 +436,7 @@ const Notifications = () => {
 
                 {/* Custom Select Options Dropdown */}
                 {isAudienceDropdownOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden z-2500 animate-in fade-in slide-in-from-top-2">
                     {['All Users', 'Single User', 'Selected Users'].map((type) => (
                       <div
                         key={type}
@@ -806,87 +839,136 @@ const Notifications = () => {
             ) : filteredCampaigns.length === 0 ? (
               <p className="text-slate-400 italic text-center py-12">No matching notifications found.</p>
             ) : (
-              filteredCampaigns.map((item) => (
-                <div key={item.campaignId} className="p-5 border border-white/10 rounded-2xl bg-slate-800/10 hover:bg-white/5 transition-all flex flex-col sm:flex-row gap-4 relative group">
-                  {item.imageUrl && (
-                    <div className="w-full sm:w-24 h-16 shrink-0 rounded-xl overflow-hidden border border-white/10 bg-slate-800/50 flex items-center justify-center">
-                      <img src={item.imageUrl} alt="Notification media" className="max-w-full max-h-full object-contain" onError={(e) => e.target.src='https://placehold.co/100x100?text=Error'} />
-                    </div>
-                  )}
+               currentHistoryCampaigns.map((item) => (
+                 <div key={item.campaignId} className="p-5 border border-white/10 rounded-2xl bg-slate-800/10 hover:bg-white/5 transition-all flex flex-col sm:flex-row gap-4 relative group">
+                   {item.imageUrl && (
+                     <div className="w-full sm:w-24 h-16 shrink-0 rounded-xl overflow-hidden border border-white/10 bg-slate-800/50 flex items-center justify-center">
+                       <img src={item.imageUrl} alt="Notification media" className="max-w-full max-h-full object-contain" onError={(e) => e.target.src='https://placehold.co/100x100?text=Error'} />
+                     </div>
+                   )}
 
-                  <div className="flex-1 min-w-0 flex flex-col justify-between">
-                    <div>
-                      <div className="flex justify-between items-start gap-4 mb-1">
-                        <h3 className="font-bold text-white tracking-tight text-sm leading-snug truncate">{item.title}</h3>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <button
-                            onClick={() => handleReuse(item)}
-                            className="p-1.5 bg-blue-600/15 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg border border-blue-500/20 transition-all text-xs font-bold cursor-pointer flex items-center gap-1"
-                            title="Reuse Notification Content"
-                          >
-                            <FiCopy size={12} /> Reuse
-                          </button>
-                          <span className="text-[9px] text-slate-400 font-semibold bg-white/5 px-2 py-0.5 rounded border border-white/10">
-                            {item.createdAt ? formatDateDDMMYYYY(item.createdAt) : ''}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <p className="text-xs text-slate-300 leading-relaxed line-clamp-2" title={item.message}>{item.message}</p>
-                    </div>
+                   <div className="flex-1 min-w-0 flex flex-col justify-between">
+                     <div>
+                       <div className="flex justify-between items-start gap-4 mb-1">
+                         <h3 className="font-bold text-white tracking-tight text-sm leading-snug truncate">{item.title}</h3>
+                         <div className="flex items-center gap-2 shrink-0">
+                           <button
+                             onClick={() => handleReuse(item)}
+                             className="p-1.5 bg-blue-600/15 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg border border-blue-500/20 transition-all text-xs font-bold cursor-pointer flex items-center gap-1"
+                             title="Reuse Notification Content"
+                           >
+                             <FiCopy size={12} /> Reuse
+                           </button>
+                           <span className="text-[9px] text-slate-400 font-semibold bg-white/5 px-2 py-0.5 rounded border border-white/10">
+                             {item.createdAt ? formatDateDDMMYYYY(item.createdAt) : ''}
+                           </span>
+                         </div>
+                       </div>
+                       
+                       <p className="text-xs text-slate-300 leading-relaxed line-clamp-2" title={item.message}>{item.message}</p>
+                     </div>
 
-                    <div className="mt-2 pt-2 border-t border-white/5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-400">
-                      {/* Platform badge */}
-                      {item.platform && item.platform !== 'all' ? (
-                        <div className="flex items-center gap-1">
-                          {item.platform === 'android' 
-                            ? <MdPhoneAndroid className="text-emerald-400" /> 
-                            : <MdPhoneIphone className="text-slate-300" />}
-                          <span className={`font-bold ${item.platform === 'android' ? 'text-emerald-400' : 'text-slate-200'}`}>
-                            {item.platform === 'android' ? 'Android' : 'iOS'}
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-1 text-blue-400 font-bold">
-                          <FiGlobe className="text-xs text-blue-400 shrink-0" /> All Platforms
-                        </div>
-                      )}
-                      {item.customerId && (
-                        <div>
-                          Audience:{' '}
-                          <span className="font-semibold text-slate-200">
-                            {item.customerId === 'all'
-                              ? 'All Users'
-                              : (() => {
-                                  const names = item.customerId.split(',').map(id => {
-                                    const c = customers.find(cust => cust._id === id);
-                                    return c ? (c.name || c.email) : id;
-                                  });
-                                  if (names.length > 3) {
-                                    return `${names.slice(0, 3).join(', ')} and ${names.length - 3} more`;
-                                  }
-                                  return names.join(', ');
-                                })()}
-                          </span>
-                        </div>
-                      )}
-                      {item.clickAction && item.clickAction !== 'none' && (
-                        <div className="flex items-center">
-                          <span className="w-1 h-1 rounded-full bg-blue-400 mr-1"></span>
-                          Action: <span className="font-semibold text-slate-200 capitalize">{item.clickAction}</span>
-                          {item.actionId && (
-                            <span className="ml-1 text-slate-400">
-                              ({getActionTargetName(item.clickAction, item.actionId)})
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+                     <div className="mt-2 pt-2 border-t border-white/5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-400">
+                       {/* Platform badge */}
+                       {item.platform && item.platform !== 'all' ? (
+                         <div className="flex items-center gap-1">
+                           {item.platform === 'android' 
+                             ? <MdPhoneAndroid className="text-emerald-400" /> 
+                             : <MdPhoneIphone className="text-slate-300" />}
+                           <span className={`font-bold ${item.platform === 'android' ? 'text-emerald-400' : 'text-slate-200'}`}>
+                             {item.platform === 'android' ? 'Android' : 'iOS'}
+                           </span>
+                         </div>
+                       ) : (
+                         <div className="flex items-center gap-1 text-blue-400 font-bold">
+                           <FiGlobe className="text-xs text-blue-400 shrink-0" /> All Platforms
+                         </div>
+                       )}
+                       {item.customerId && (
+                         <div>
+                           Audience:{' '}
+                           <span className="font-semibold text-slate-200">
+                             {item.customerId === 'all'
+                               ? 'All Users'
+                               : (() => {
+                                   const names = item.customerId.split(',').map(id => {
+                                     const c = customers.find(cust => cust._id === id);
+                                     return c ? (c.name || c.email) : id;
+                                   });
+                                   if (names.length > 3) {
+                                     return `${names.slice(0, 3).join(', ')} and ${names.length - 3} more`;
+                                   }
+                                   return names.join(', ');
+                                 })()}
+                           </span>
+                         </div>
+                       )}
+                       {item.clickAction && item.clickAction !== 'none' && (
+                         <div className="flex items-center">
+                           <span className="w-1 h-1 rounded-full bg-blue-400 mr-1"></span>
+                           Action: <span className="font-semibold text-slate-200 capitalize">{item.clickAction}</span>
+                           {item.actionId && (
+                             <span className="ml-1 text-slate-400">
+                               ({getActionTargetName(item.clickAction, item.actionId)})
+                             </span>
+                           )}
+                         </div>
+                       )}
+                     </div>
+                   </div>
+                 </div>
+               ))
+             )}
+           </div>
+
+           {/* Pagination Controls */}
+           {totalHistoryPages > 1 && (
+             <div className="relative z-10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-transparent border-t border-white/10 pt-4 mt-4 shrink-0">
+               <p className="text-xs text-slate-400">
+                 Showing <span className="font-semibold text-white">{indexOfFirstHistoryItem + 1}</span> to <span className="font-semibold text-white">{Math.min(indexOfLastHistoryItem, filteredCampaigns.length)}</span> of <span className="font-semibold text-white">{filteredCampaigns.length}</span> entries
+               </p>
+               <div className="flex items-center gap-2">
+                 <button
+                   onClick={() => setCurrentHistoryPage(prev => Math.max(prev - 1, 1))}
+                   disabled={currentHistoryPage === 1}
+                   className="p-2 bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-white/5 text-slate-300 rounded-lg transition-colors cursor-pointer"
+                 >
+                   <FiChevronLeft className="text-sm" />
+                 </button>
+                 
+                 {getHistoryPaginationRange().map((page, index) => {
+                   if (page === '...') {
+                     return (
+                       <span key={`dots-${index}`} className="px-2.5 py-1.5 text-xs text-slate-500 font-bold select-none">
+                         ...
+                       </span>
+                     );
+                   }
+                   return (
+                     <button
+                       key={page}
+                       onClick={() => setCurrentHistoryPage(page)}
+                       className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                         currentHistoryPage === page 
+                           ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' 
+                           : 'bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10'
+                       }`}
+                     >
+                       {page}
+                     </button>
+                   );
+                 })}
+
+                 <button
+                   onClick={() => setCurrentHistoryPage(prev => Math.min(prev + 1, totalHistoryPages))}
+                   disabled={currentHistoryPage === totalHistoryPages}
+                   className="p-2 bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-white/5 text-slate-300 rounded-lg transition-colors cursor-pointer"
+                 >
+                   <FiChevronRight className="text-sm" />
+                 </button>
+               </div>
+             </div>
+           )}
         </Card>
       </div>
     </div>

@@ -6,6 +6,8 @@ import {
 } from 'react-icons/fi';
 import { FaApple, FaAndroid } from 'react-icons/fa';
 import { api } from '../../../api/axios';
+import CustomDatePicker from '../../../Components/CustomDatePicker';
+import CustomTimePicker from '../../../Components/CustomTimePicker';
 
 const Maintenance = () => {
   // Maintenance State
@@ -221,6 +223,26 @@ const Maintenance = () => {
     setHistory(history.filter(item => item.id !== id));
   };
 
+  const handleDateChange = (type, dateStr) => {
+    if (type === 'start') {
+      const timePart = startTime ? startTime.split('T')[1] : '00:00';
+      setStartTime(dateStr ? `${dateStr}T${timePart}` : '');
+    } else {
+      const timePart = endTime ? endTime.split('T')[1] : '00:00';
+      setEndTime(dateStr ? `${dateStr}T${timePart}` : '');
+    }
+  };
+
+  const handleTimeChange = (type, timeStr) => {
+    if (type === 'start') {
+      const datePart = startTime ? startTime.split('T')[0] : new Date().toISOString().split('T')[0];
+      setStartTime(timeStr ? `${datePart}T${timeStr}` : '');
+    } else {
+      const datePart = endTime ? endTime.split('T')[0] : new Date().toISOString().split('T')[0];
+      setEndTime(timeStr ? `${datePart}T${timeStr}` : '');
+    }
+  };
+
   // Handle App Version Form Updates
   const handleConfigChange = (platform, field, value) => {
     if (platform === 'android') {
@@ -292,28 +314,56 @@ const Maintenance = () => {
               ></textarea>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Start Date (Optional)</label>
+                <div className={isActive || loading ? 'pointer-events-none opacity-50' : ''}>
+                  <CustomDatePicker
+                    label="Date"
+                    value={startTime ? startTime.split('T')[0] : ''}
+                    onChange={(date) => handleDateChange('start', date)}
+                    min={new Date().toISOString().split('T')[0]}
+                    align="left"
+                    className="w-full"
+                  />
+                </div>
+              </div>
               <div>
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Start Time (Optional)</label>
-                <input
-                  type="datetime-local"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  disabled={isActive || loading}
-                  style={{ colorScheme: 'dark' }}
-                  className={`w-full px-4 py-3 bg-slate-950/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white transition-all text-sm font-medium ${(isActive || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                />
+                <div className={isActive || loading ? 'pointer-events-none opacity-50' : ''}>
+                  <CustomTimePicker
+                    label="Time"
+                    value={startTime ? startTime.split('T')[1] : ''}
+                    onChange={(time) => handleTimeChange('start', time)}
+                    align="left"
+                    className="w-full"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">End Date (Optional)</label>
+                <div className={isActive || loading ? 'pointer-events-none opacity-50' : ''}>
+                  <CustomDatePicker
+                    label="Date"
+                    value={endTime ? endTime.split('T')[0] : ''}
+                    onChange={(date) => handleDateChange('end', date)}
+                    min={startTime ? startTime.split('T')[0] : new Date().toISOString().split('T')[0]}
+                    align="left"
+                    className="w-full"
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">End Time (Optional)</label>
-                <input
-                  type="datetime-local"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  disabled={isActive || loading}
-                  style={{ colorScheme: 'dark' }}
-                  className={`w-full px-4 py-3 bg-slate-950/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white transition-all text-sm font-medium ${(isActive || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                />
+                <div className={isActive || loading ? 'pointer-events-none opacity-50' : ''}>
+                  <CustomTimePicker
+                    label="Time"
+                    value={endTime ? endTime.split('T')[1] : ''}
+                    onChange={(time) => handleTimeChange('end', time)}
+                    align="left"
+                    className="w-full"
+                  />
+                </div>
               </div>
             </div>
 

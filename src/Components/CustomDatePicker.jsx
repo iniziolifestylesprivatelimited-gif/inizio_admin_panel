@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { FiChevronLeft, FiChevronRight, FiCalendar } from 'react-icons/fi';
 
-const CustomDatePicker = ({ value, onChange, min, max, label }) => {
+const CustomDatePicker = ({ value, onChange, min, max, label, align = 'right', className = '' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
 
@@ -123,20 +123,22 @@ const CustomDatePicker = ({ value, onChange, min, max, label }) => {
   };
 
   return (
-    <div ref={containerRef} className="relative select-none">
+    <div ref={containerRef} className={`relative select-none ${className}`}>
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 bg-slate-800/80 border border-white/10 hover:border-blue-500/35 hover:bg-slate-800 transition-all cursor-pointer rounded-xl px-3 py-1.5"
+        className="flex items-center justify-between gap-2 bg-slate-800/80 border border-white/10 hover:border-blue-500/35 hover:bg-slate-800 transition-all cursor-pointer rounded-xl px-3 py-2 w-full h-[38px]"
       >
-        <span className="text-[10px] text-slate-400 font-bold uppercase select-none">{label}:</span>
-        <span className="text-xs text-white font-bold font-mono min-w-[76px] text-left">
-          {getDisplayValue()}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-slate-400 font-bold uppercase select-none">{label}:</span>
+          <span className="text-xs text-white font-bold font-mono min-w-[76px] text-left">
+            {getDisplayValue()}
+          </span>
+        </div>
         <FiCalendar className="text-blue-400 hover:text-blue-300 transition-colors text-xs pointer-events-none" />
       </div>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 bg-slate-950/95 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 shadow-2xl w-64 z-50 animate-in fade-in zoom-in-95 duration-150">
+        <div className={`absolute ${align === 'left' ? 'left-0' : 'right-0'} top-full mt-2 bg-slate-950/95 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 shadow-2xl w-64 z-50 animate-in fade-in zoom-in-95 duration-150`}>
           {/* Header */}
           <div className="flex items-center justify-between mb-3">
             <button

@@ -319,7 +319,7 @@ const Coupons = () => {
       )}
 
       {/* Navigation Tabs */}
-      <div className="flex border-b border-white/10 z-10 relative">
+      <div className="flex flex-wrap justify-center gap-1 border-b border-white/10 z-10 relative">
         <button
           onClick={() => setActiveTab('rules')}
           className={`flex items-center gap-2 py-3 px-6 text-sm font-semibold border-b-2 transition-all cursor-pointer ${
