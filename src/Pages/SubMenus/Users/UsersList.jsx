@@ -1,16 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { api, BASE_URL } from '../../../api/axios';
 import {
   FiCheck, FiLoader, FiAlertCircle,
   FiSearch, FiUser, FiFileText, FiRefreshCcw, FiTrash2, FiUserMinus, FiLogOut, FiX,
-  FiShield, FiChevronDown, FiCopy
+  FiShield, FiChevronDown, FiCopy, FiCalendar
 } from 'react-icons/fi';
 import { DiAndroid, DiApple } from "react-icons/di";
 import { MdPhoneAndroid, MdPhoneIphone } from 'react-icons/md';
-import { useOutletContext, useNavigate } from 'react-router-dom';
-import { formatDateDDMMYYYY } from '../../../utils/dateUtils';
+import { useOutletContext, useNavigate, useSearchParams } from 'react-router-dom';
+import { formatDateDDMMYYYY, formatDateTimeDDMMYYYY } from '../../../utils/dateUtils';
 import { useConfirm } from '../../../Context/ConfirmationContext';
+import CopyButton from '../../../Components/CopyButton';
+import CustomDropdown from '../../../Components/CustomDropdown';
 
 const hasValidAppVersion = (appVersion) => {
   if (!appVersion) return false;
@@ -45,8 +47,6 @@ const hasAppOrDevice = (u) => {
   if (!u) return false;
   return hasValidAppVersion(u.appVersion) || hasRegisteredDevices(u);
 };
-
-import CopyButton from '../../../Components/CopyButton';
 
 const formatRelativeTime = (dateString, u = null) => {
   if (u && !hasAppOrDevice(u)) return 'Not Active';
@@ -91,10 +91,99 @@ const UsersList = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [isSecurityDropdownOpen, setIsSecurityDropdownOpen] = useState(false);
+
+  // URL search params logic similar to ProductList
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
+  const lastPushedSearchRef = useRef(searchParams.get('search') || '');
+  const searchTerm = searchParams.get('search') || '';
+  const currentPage = parseInt(searchParams.get('page') || '1', 10);
+
+  const selectedBusinessType = searchParams.get('businessType') || '';
+  const selectedAppStatus = searchParams.get('appStatus') || '';
+  const selectedDevice = searchParams.get('device') || '';
+  const sortKey = searchParams.get('sortKey') || '';
+  const sortOrder = searchParams.get('sortOrder') || 'asc';
+
+  const handleFilterChange = (key, value) => {
+    setSearchParams(prev => {
+      if (value) {
+        prev.set(key, value);
+      } else {
+        prev.delete(key);
+      }
+      prev.set('page', '1');
+      return prev;
+    });
+  };
+
+  const handleSortChange = (key) => {
+    setSearchParams(prev => {
+      const currentKey = prev.get('sortKey') || '';
+      const currentOrder = prev.get('sortOrder') || 'asc';
+      
+      if (currentKey === key) {
+        if (currentOrder === 'asc') {
+          prev.set('sortOrder', 'desc');
+        } else {
+          prev.delete('sortKey');
+          prev.delete('sortOrder');
+        }
+      } else {
+        prev.set('sortKey', key);
+        prev.set('sortOrder', 'asc');
+      }
+      prev.set('page', '1');
+      return prev;
+    });
+  };
+
+  const handleClearFilters = () => {
+    setSearchInput('');
+    setSearchParams(prev => {
+      prev.delete('search');
+      prev.delete('businessType');
+      prev.delete('appStatus');
+      prev.delete('device');
+      prev.delete('sortKey');
+      prev.delete('sortOrder');
+      prev.set('page', '1');
+      return prev;
+    });
+  };
+
+  // Sync local input with URL search param changes
+  useEffect(() => {
+    const urlSearch = searchParams.get('search') || '';
+    if (urlSearch !== lastPushedSearchRef.current) {
+      setSearchInput(urlSearch);
+      lastPushedSearchRef.current = urlSearch;
+    }
+  }, [searchParams]);
+
+  // Debounce search updates to searchParams
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      setSearchParams(prev => {
+        const currentSearch = prev.get('search') || '';
+        if (searchInput === currentSearch) return prev;
+        
+        if (searchInput) {
+          prev.set('search', searchInput);
+        } else {
+          prev.delete('search');
+        }
+        prev.set('page', '1');
+        lastPushedSearchRef.current = searchInput;
+        return prev;
+      }, { replace: true });
+    }, 300);
+
+    return () => clearTimeout(delayDebounce);
+  }, [searchInput, setSearchParams]);
 
   // Custom Confirmation & Alert States
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -110,18 +199,24 @@ const UsersList = () => {
   };
 
   // Pagination State
-  const [currentPage, setCurrentPage] = useState(1);
   const [usersPerPage] = useState(10);
-
-  const [userTab, setUserTab] = useState('approved'); // 'approved' | 'rejected'
+  const [userTab, setUserTab] = useState('approved'); // 'approved' | 'rejected' | 'deleted'
 
   const { setUsersUnreadCount } = useOutletContext() || {};
+
+  const setCurrentPage = (pageVal) => {
+    const pageNum = typeof pageVal === 'function' ? pageVal(currentPage) : pageVal;
+    setSearchParams(prev => {
+      prev.set('page', String(pageNum));
+      return prev;
+    });
+  };
 
   useEffect(() => {
     Promise.resolve().then(() => {
       setCurrentPage(1);
     });
-  }, [searchQuery, userTab]);
+  }, [userTab]);
 
   const fetchUsers = async (isPoll = false) => {
     if (!isPoll) setLoading(true);
@@ -221,7 +316,7 @@ const UsersList = () => {
       fetchUsers(false);
     });
 
-    // Setup polling every 5 seconds to keep activity status in sync
+    // Setup polling every 30 seconds to keep activity status in sync
     const intervalId = setInterval(() => {
       fetchUsers(true);
     }, 30000);
@@ -239,24 +334,6 @@ const UsersList = () => {
     : userTab === 'rejected' 
       ? rejectedUsers 
       : deletedUsers;
-
-  // // Undo Rejection
-  // const handleUndoReject = async (id) => {
-  //   if (!window.confirm('Are you sure you want to restore this user to the pending KYC list?')) return;
-  //   setIsActionLoading(true);
-  //   try {
-  //     // Note: Adjust the endpoint below to match your backend route for undoing rejections
-  //     await api.put(`/admin/undo-reject/${id}`);
-  //     setUsers((prevUsers) => prevUsers.filter((user) => user._id !== id));
-  //     if (selectedUser && selectedUser._id === id) closeModal();
-  //     alert('User restored successfully! They have been moved to the Pending KYC list.');
-  //   } catch (err) {
-  //     console.error('Undo reject error:', err);
-  //     alert(err.response?.data?.message || 'Failed to restore user.');
-  //   } finally {
-  //     setIsActionLoading(false);
-  //   }
-  // };
 
   // Delete User
   const handleDelete = async (id) => {
@@ -298,25 +375,103 @@ const UsersList = () => {
   };
 
   const filteredUsers = baseUsers.filter(user => {
-    const nameMatch = user.name?.toLowerCase().includes(searchQuery.toLowerCase());
-    const emailMatch = user.email?.toLowerCase().includes(searchQuery.toLowerCase());
-    const phoneMatch = user.phone?.includes(searchQuery);
-    const userIdMatch = user.userId?.toLowerCase().includes(searchQuery.toLowerCase());
-    const gstNumberMatch = user.gstNumber?.toLowerCase().includes(searchQuery.toLowerCase());
-    const onlineText = user.isOnline ? 'online' : 'offline';
-    const onlineMatch = onlineText.includes(searchQuery.toLowerCase());
-    
-    const appVersionMatch = user.appVersion?.toLowerCase().includes(searchQuery.toLowerCase());
-    const loginMethodMatch = user.lastLoginMethod?.toLowerCase().includes(searchQuery.toLowerCase());
+    // 1. Business Type Filter
+    if (selectedBusinessType && (user.businessType || 'L1') !== selectedBusinessType) {
+      return false;
+    }
 
-    return nameMatch || emailMatch || phoneMatch || userIdMatch || gstNumberMatch || onlineMatch || appVersionMatch || loginMethodMatch;
+    // 2. App Status Filter
+    if (selectedAppStatus) {
+      const status = checkAppStatus(user);
+      if (status !== selectedAppStatus) return false;
+    }
+
+    // 3. Device Filter
+    if (selectedDevice) {
+      const devs = user.devices || [];
+      const hasDevicePlat = devs.some(d => d.devicePlatform?.toLowerCase() === selectedDevice.toLowerCase());
+      if (!hasDevicePlat) return false;
+    }
+
+    // 4. Search Query Filter
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      const nameMatch = user.name?.toLowerCase().includes(term);
+      const emailMatch = user.email?.toLowerCase().includes(term);
+      const phoneMatch = user.phone?.includes(term);
+      const userIdMatch = user.userId?.toLowerCase().includes(term);
+      const gstNumberMatch = user.gstNumber?.toLowerCase().includes(term);
+      const onlineText = user.isOnline ? 'online' : 'offline';
+      const onlineMatch = onlineText.includes(term);
+      const appVersionMatch = user.appVersion?.toLowerCase().includes(term);
+      const loginMethodMatch = user.lastLoginMethod?.toLowerCase().includes(term);
+
+      const userCreatedAt = user.createdAt || user.created_at || user.registrationDate;
+      const createdDateStr = userCreatedAt ? formatDateDDMMYYYY(userCreatedAt).toLowerCase() : '';
+      const createdDateMatch = createdDateStr.includes(term);
+
+      if (!(nameMatch || emailMatch || phoneMatch || userIdMatch || gstNumberMatch || onlineMatch || appVersionMatch || loginMethodMatch || createdDateMatch)) {
+        return false;
+      }
+    }
+
+    return true;
   });
+
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
+    if (!sortKey) return 0;
+    let aVal = a[sortKey];
+    let bVal = b[sortKey];
+
+    if (sortKey === 'createdAt') {
+      const dateA = a.createdAt || a.created_at || a.registrationDate;
+      const dateB = b.createdAt || b.created_at || b.registrationDate;
+      aVal = dateA ? new Date(dateA).getTime() : 0;
+      bVal = dateB ? new Date(dateB).getTime() : 0;
+    } else if (sortKey === 'loginCount') {
+      aVal = a.loginCount || 0;
+      bVal = b.loginCount || 0;
+    } else if (sortKey === 'lastActive') {
+      aVal = a.lastActive ? new Date(a.lastActive).getTime() : 0;
+      bVal = b.lastActive ? new Date(b.lastActive).getTime() : 0;
+    } else if (sortKey === 'name' || sortKey === 'email' || sortKey === 'businessType') {
+      aVal = (aVal || '').toLowerCase();
+      bVal = (bVal || '').toLowerCase();
+    }
+
+    if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  // Dynamic filter dropdown options
+  const availableBusinessTypes = Array.from(
+    new Set(users.map(u => u.businessType).filter(Boolean))
+  );
+
+  const businessTypeOptions = [
+    { value: '', label: selectedBusinessType ? `Type: ${selectedBusinessType}` : 'Business Type' },
+    ...availableBusinessTypes.map(type => ({ value: type, label: type }))
+  ];
+
+  const appStatusOptions = [
+    { value: '', label: selectedAppStatus ? `Status: ${selectedAppStatus.toUpperCase()}` : 'App Status' },
+    { value: 'installed', label: 'Installed' },
+    { value: 'uninstalled', label: 'Uninstalled' },
+    { value: 'pending', label: 'Pending' }
+  ];
+
+  const deviceOptions = [
+    { value: '', label: selectedDevice ? `Device: ${selectedDevice.toUpperCase()}` : 'Device' },
+    { value: 'android', label: 'Android' },
+    { value: 'ios', label: 'iOS' }
+  ];
 
   // Pagination logic
   const indexOfLastUser = currentPage * usersPerPage;
   const indexOfFirstUser = indexOfLastUser - usersPerPage;
-  const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
-  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+  const currentUsers = sortedUsers.slice(indexOfFirstUser, indexOfLastUser);
+  const totalPages = Math.ceil(sortedUsers.length / usersPerPage);
 
   console.log(users)
   
@@ -387,20 +542,68 @@ const UsersList = () => {
           <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
           <input 
             type="text" 
-            placeholder="Search by name, email..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by name, email, date..." 
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
             className="w-full pl-10 pr-10 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 text-sm font-medium transition-all"
           />
-          {searchQuery && (
+          {searchInput && (
             <button
               type="button"
-              onClick={() => setSearchQuery('')}
+              onClick={() => setSearchInput('')}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
             >
               <FiX className="w-4 h-4" />
             </button>
           )}
+        </div>
+      </div>
+
+      {/* Metrics & Quick Device Filter Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-semibold text-slate-400 px-1 py-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
+            Total Users: <strong className="text-white">{baseUsers.length}</strong>
+          </span>
+          {(searchTerm || selectedBusinessType || selectedAppStatus || selectedDevice || sortKey) && (
+            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full">
+              Found: <strong>{sortedUsers.length}</strong>
+            </span>
+          )}
+        </div>
+
+        {/* Device Quick Filter */}
+        <div className="flex items-center gap-1 bg-black/20 p-1 rounded-xl border border-white/10">
+          <button
+            onClick={() => handleFilterChange('device', '')}
+            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              !selectedDevice
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            All Devices
+          </button>
+          <button
+            onClick={() => handleFilterChange('device', 'android')}
+            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+              selectedDevice === 'android'
+                ? 'bg-green-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-green-400'
+            }`}
+          >
+            <DiAndroid className="text-sm text-green-400" /> Android
+          </button>
+          <button
+            onClick={() => handleFilterChange('device', 'ios')}
+            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+              selectedDevice === 'ios'
+                ? 'bg-indigo-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-indigo-400'
+            }`}
+          >
+            <DiApple className="text-sm text-indigo-400" /> iOS
+          </button>
         </div>
       </div>
 
@@ -550,17 +753,92 @@ const UsersList = () => {
           <div className="overflow-auto custom-scrollbar max-h-[70vh]">
             <table className="w-full text-left border-collapse whitespace-nowrap min-w-200">
               <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md shadow-md">
-                <tr className="border-b border-white/10 text-xs text-center uppercase tracking-wider text-slate-400">
-                  <th className="p-2 font-bold">S.No</th>
-                  <th className="p-4 font-bold">Name</th>
-                  <th className="p-4 font-bold">Email</th>
-                  <th className="p-4 font-bold">Phone</th>
-                  <th className="p-4 font-bold">Business Type</th>
-                  <th className="p-4 font-bold">Status</th>
-                  <th className="p-4 font-bold text-center">Activity & Logins</th>
-                  {/* <th className="p-4 font-bold">User ID</th> */}
+                <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-slate-400">
+                  <th className="p-2 font-bold text-center">S.No</th>
+                  <th 
+                    onClick={() => handleSortChange('name')}
+                    className="p-4 font-bold text-left cursor-pointer select-none hover:text-white transition-colors"
+                  >
+                    <div className="flex items-center gap-1">
+                      <span className={sortKey === 'name' ? 'text-blue-400 font-extrabold' : ''}>Name</span>
+                      {sortKey === 'name' ? (
+                        sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                      ) : (
+                        <span className="text-slate-500">⇅</span>
+                      )}
+                    </div>
+                  </th>
+                  <th 
+                    onClick={() => handleSortChange('email')}
+                    className="p-4 font-bold text-left cursor-pointer select-none hover:text-white transition-colors"
+                  >
+                    <div className="flex items-center gap-1">
+                      <span className={sortKey === 'email' ? 'text-blue-400 font-extrabold' : ''}>Email</span>
+                      {sortKey === 'email' ? (
+                        sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                      ) : (
+                        <span className="text-slate-500">⇅</span>
+                      )}
+                    </div>
+                  </th>
+                  <th className="p-4 font-bold text-left">Phone</th>
+                  <th className="p-4 font-bold text-left min-w-[140px]">
+                    <CustomDropdown
+                      value=""
+                      onChange={(val) => handleFilterChange('businessType', val)}
+                      options={businessTypeOptions}
+                      statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedBusinessType ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'}`}
+                    />
+                  </th>
+                  <th className="p-4 font-bold text-left min-w-[140px]">
+                    <CustomDropdown
+                      value=""
+                      onChange={(val) => handleFilterChange('appStatus', val)}
+                      options={appStatusOptions}
+                      statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedAppStatus ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'}`}
+                    />
+                  </th>
+                  <th 
+                    onClick={() => handleSortChange('createdAt')}
+                    className="p-4 font-bold text-center cursor-pointer select-none hover:text-white transition-colors"
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      <span className={sortKey === 'createdAt' ? 'text-blue-400 font-extrabold' : ''}>Created At</span>
+                      {sortKey === 'createdAt' ? (
+                        sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                      ) : (
+                        <span className="text-slate-500">⇅</span>
+                      )}
+                    </div>
+                  </th>
+                  <th 
+                    onClick={() => handleSortChange('lastActive')}
+                    className="p-4 font-bold text-center cursor-pointer select-none hover:text-white transition-colors"
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      <span className={sortKey === 'lastActive' || sortKey === 'loginCount' ? 'text-blue-400 font-extrabold' : ''}>Activity & Logins</span>
+                      {sortKey === 'lastActive' || sortKey === 'loginCount' ? (
+                        sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                      ) : (
+                        <span className="text-slate-500">⇅</span>
+                      )}
+                    </div>
+                  </th>
                   <th className="p-4 font-bold text-center">GST Number</th>
-                  <th className="p-4 font-bold text-center">Actions</th>
+                  <th className="p-4 font-bold text-center">
+                    <div className="flex items-center justify-center gap-1">
+                      <span>Actions</span>
+                      {(searchTerm || selectedBusinessType || selectedAppStatus || selectedDevice || sortKey) && (
+                        <button
+                          onClick={handleClearFilters}
+                          className="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold rounded border border-white/10 transition-all cursor-pointer hover:text-white ml-2"
+                          title="Clear All Filters"
+                        >
+                          Reset
+                        </button>
+                      )}
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -632,6 +910,23 @@ const UsersList = () => {
                           </span>
                         )}
                       </td>
+                      <td className="p-4 text-sm text-center font-medium">
+                        {(() => {
+                          const createdDate = user.createdAt || user.created_at || user.registrationDate;
+                          if (!createdDate) return <span className="text-slate-500 font-mono text-xs">-</span>;
+                          return (
+                            <div className="flex flex-col items-center">
+                              <span className="text-xs font-bold text-slate-200 flex items-center gap-1">
+                                <FiCalendar className="text-blue-400 text-[11px]" />
+                                {formatDateDDMMYYYY(createdDate)}
+                              </span>
+                              <span className="text-[10px] text-slate-500 font-mono mt-0.5" title={new Date(createdDate).toLocaleString()}>
+                                {formatDateTimeDDMMYYYY(createdDate).split(', ')[1] || ''}
+                              </span>
+                            </div>
+                          );
+                        })()}
+                      </td>
                       <td className="p-4 text-sm text-center">
                         <div className="flex flex-col items-center gap-1">
                           {user.isOnline ? (
@@ -701,8 +996,8 @@ const UsersList = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={8} className="p-12 text-center text-slate-400 italic">
-                      {searchQuery 
+                    <td colSpan={10} className="p-12 text-center text-slate-400 italic">
+                      {searchTerm || selectedBusinessType || selectedAppStatus || selectedDevice
                         ? 'No matching users found.' 
                         : userTab === 'approved' 
                           ? 'No approved customers found.' 

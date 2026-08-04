@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { FiEdit2, FiTrash2, FiPlus, FiAlertCircle, FiLoader, FiSearch, FiUpload, FiX, FiSave, FiImage, FiPackage, FiChevronDown, FiChevronUp, FiArrowUp, FiArrowDown, FiCopy, FiDownload, FiFileText, FiCheck } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiInfo, FiPlus, FiAlertCircle, FiLoader, FiSearch, FiUpload, FiX, FiSave, FiImage, FiPackage, FiChevronDown, FiChevronUp, FiArrowUp, FiArrowDown, FiCopy, FiDownload, FiFileText, FiCheck } from 'react-icons/fi';
 import { api, BASE_URL } from '../../../api/axios';
 import { useConfirm } from '../../../Context/ConfirmationContext';
 import CustomDropdown from '../../../Components/CustomDropdown';
