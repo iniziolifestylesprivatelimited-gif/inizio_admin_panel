@@ -29,6 +29,7 @@ const ProductMapping = () => {
   const [stockSyncStatus, setStockSyncStatus] = useState({});
   const [isSyncingStock, setIsSyncingStock] = useState(false);
   const [stockSyncResult, setStockSyncResult] = useState(null);
+  const [showOnlyChangedStock, setShowOnlyChangedStock] = useState(false);
   
   // Bulk sync status modal states
   const [showStatusModal, setShowStatusModal] = useState(false);
@@ -70,6 +71,160 @@ const ProductMapping = () => {
     setError('');
   };
 
+  const findProductAndVariant = (excelName, productsList) => {
+    if (!excelName) return { matchedProduct: null, matchedVariant: null };
+
+    const rawStr = String(excelName).trim();
+    const searchName = rawStr.toLowerCase();
+
+    const escapeRegExp = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    const scoreVariantMatch = (product, varHint) => {
+      if (!product || !product.variants || product.variants.length === 0) return null;
+      if (!varHint) return null;
+
+      const target = String(varHint).trim().toLowerCase();
+      if (!target) return null;
+
+      const prodNameLower = product.name?.trim().toLowerCase() || '';
+
+      let bestVariant = null;
+      let highestScore = 0;
+
+      product.variants.forEach(v => {
+        const vName = v.name?.trim().toLowerCase() || '';
+        const vSku = v.sku?.trim().toLowerCase() || '';
+        
+        let score = 0;
+
+        // 1. Exact match on SKU or variant name
+        if (vName === target || vSku === target) {
+          score = 100;
+        } else {
+          // 2. Strip product name from vName if vName contains full product name (e.g. "Boat Airdopes 161 ANC Elite Black" -> "black")
+          let vClean = vName;
+          if (prodNameLower && vClean.includes(prodNameLower)) {
+            vClean = vClean.replace(prodNameLower, '').trim();
+          }
+
+          if (vClean && vClean === target) {
+            score = 95;
+          } else {
+            // 3. Whole-word match check using word boundaries \b
+            try {
+              const regex = new RegExp(`(?:^|\\b|_)${escapeRegExp(target)}(?:$|\\b|_)`, 'i');
+              if (regex.test(vName) || (vClean && regex.test(vClean)) || (vSku && regex.test(vSku))) {
+                score = 80;
+              } else {
+                // Reverse whole-word check: target contains vClean or vName as whole word
+                const vCheck = vClean || vName;
+                if (vCheck && vCheck.length > 1) {
+                  const vRegex = new RegExp(`(?:^|\\b|_)${escapeRegExp(vCheck)}(?:$|\\b|_)`, 'i');
+                  if (vRegex.test(target)) {
+                    score = 75;
+                  }
+                }
+              }
+            } catch (err) {
+              // Ignore regex parse errors
+            }
+          }
+        }
+
+        if (score > highestScore) {
+          highestScore = score;
+          bestVariant = v;
+        }
+      });
+
+      return highestScore > 0 ? bestVariant : null;
+    };
+
+    let matchedProduct = null;
+    let matchedVariant = null;
+
+    // Pattern 1: Parentheses e.g. "Product (Variant)"
+    const parenMatch = rawStr.match(/(.+?)\s*\(([^)]+)\)$/);
+    if (parenMatch) {
+      const prodName = parenMatch[1].trim().toLowerCase();
+      const varName = parenMatch[2].trim();
+      matchedProduct = productsList.find(p => p.name?.trim().toLowerCase() === prodName);
+      if (matchedProduct) {
+        matchedVariant = scoreVariantMatch(matchedProduct, varName);
+      }
+    }
+
+    // Pattern 2: Square Brackets e.g. "Product [Variant]"
+    if (!matchedProduct) {
+      const bracketMatch = rawStr.match(/(.+?)\s*\[([^\]]+)\]$/);
+      if (bracketMatch) {
+        const prodName = bracketMatch[1].trim().toLowerCase();
+        const varName = bracketMatch[2].trim();
+        matchedProduct = productsList.find(p => p.name?.trim().toLowerCase() === prodName);
+        if (matchedProduct) {
+          matchedVariant = scoreVariantMatch(matchedProduct, varName);
+        }
+      }
+    }
+
+    // Pattern 3: Separators e.g. "Product - Variant" or "Product / Variant"
+    if (!matchedProduct) {
+      const separators = [' - ', '-', ' / ', '/'];
+      for (const sep of separators) {
+        if (rawStr.includes(sep)) {
+          const parts = rawStr.split(sep);
+          const varName = parts[parts.length - 1].trim();
+          const prodName = parts.slice(0, -1).join(sep).trim().toLowerCase();
+
+          const tempProd = productsList.find(p => p.name?.trim().toLowerCase() === prodName);
+          if (tempProd) {
+            const tempVar = scoreVariantMatch(tempProd, varName);
+            if (tempVar) {
+              matchedProduct = tempProd;
+              matchedVariant = tempVar;
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    // Pattern 4: Direct Product Match e.g. "Product"
+    if (!matchedProduct) {
+      matchedProduct = productsList.find(p => p.name?.trim().toLowerCase() === searchName);
+      if (matchedProduct && matchedProduct.variants && matchedProduct.variants.length > 0) {
+        matchedVariant = scoreVariantMatch(matchedProduct, searchName);
+      }
+    }
+
+    // Pattern 5: Fallback Search across all products
+    if (!matchedProduct) {
+      for (const p of productsList) {
+        const vMatch = scoreVariantMatch(p, searchName);
+        if (vMatch) {
+          matchedProduct = p;
+          matchedVariant = vMatch;
+          break;
+        }
+
+        if (p.variants && p.variants.length > 0) {
+          const pNameLower = p.name?.trim().toLowerCase() || '';
+          if (pNameLower && searchName.includes(pNameLower)) {
+            const remainingHint = searchName.replace(pNameLower, '').trim();
+            const vMatch2 = scoreVariantMatch(p, remainingHint || searchName);
+            if (vMatch2) {
+              matchedProduct = p;
+              matchedVariant = vMatch2;
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    return { matchedProduct, matchedVariant };
+  };
+
   const handleStockUpload = async () => {
     if (!stockFile) {
       setError('Please select a file to upload.');
@@ -89,23 +244,6 @@ const ProductMapping = () => {
           const worksheet = workbook.Sheets[firstSheetName];
           const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-          const parseProductNameAndVariant = (nameStr) => {
-            const trimmed = String(nameStr).trim();
-            const match = trimmed.match(/(.+?)\s*\(([^)]+)\)$/);
-            if (match) {
-              return {
-                productName: match[1].trim(),
-                variantName: match[2].trim(),
-                isVariant: true
-              };
-            }
-            return {
-              productName: trimmed,
-              variantName: '',
-              isVariant: false
-            };
-          };
-
           const mapped = jsonData.map(row => {
             let excelName = row['Name'] || row['name'] || row['Item Name'] || row['Item'] || row['Product'] || row['Product Name'] || row['Particulars'];
             let excelQty = row['Quantity'] || row['quantity'] || row['Qty'] || row['qty'] || row['Closing Balance'] || row['Stock'] || row['Total Quantity'] || row['Count'] || row['Stock / Qty'] || row['Stock/Qty'] || row['Stock / qty'] || row['Stock/qty'];
@@ -121,82 +259,14 @@ const ProductMapping = () => {
               }
             }
 
-             if (!excelName) return null;
+            if (!excelName) return null;
 
-            let matchedProduct = null;
-            let matchedVariant = null;
-            const searchName = String(excelName).trim().toLowerCase();
-
-            // Strategy 1: Direct Product Match (No Variant suffix)
-            matchedProduct = products.find(p => p.name?.trim().toLowerCase() === searchName);
-
-            // Strategy 2: Parentheses Variant Match (e.g. "Product (Variant)")
-            if (!matchedProduct) {
-              const match = String(excelName).trim().match(/(.+?)\s*\(([^)]+)\)$/);
-              if (match) {
-                const prodName = match[1].trim().toLowerCase();
-                const varName = match[2].trim().toLowerCase();
-                matchedProduct = products.find(p => p.name?.trim().toLowerCase() === prodName);
-                if (matchedProduct) {
-                  matchedVariant = matchedProduct.variants?.find(v => v.name?.trim().toLowerCase() === varName);
-                }
-              }
-            }
-
-            // Strategy 3: Square Brackets Variant Match (e.g. "Product [Variant]")
-            if (!matchedProduct) {
-              const match = String(excelName).trim().match(/(.+?)\s*\[([^\]]+)\]$/);
-              if (match) {
-                const prodName = match[1].trim().toLowerCase();
-                const varName = match[2].trim().toLowerCase();
-                matchedProduct = products.find(p => p.name?.trim().toLowerCase() === prodName);
-                if (matchedProduct) {
-                  matchedVariant = matchedProduct.variants?.find(v => v.name?.trim().toLowerCase() === varName);
-                }
-              }
-            }
-
-            // Strategy 4: Hyphen/Slash Variant Match (e.g. "Product - Variant" or "Product / Variant")
-            if (!matchedProduct) {
-              const separators = [' - ', '-', ' / ', '/'];
-              for (const sep of separators) {
-                if (String(excelName).includes(sep)) {
-                  const parts = String(excelName).split(sep);
-                  const varName = parts[parts.length - 1].trim().toLowerCase();
-                  const prodName = parts.slice(0, -1).join(sep).trim().toLowerCase();
-                  
-                  const tempProduct = products.find(p => p.name?.trim().toLowerCase() === prodName);
-                  if (tempProduct) {
-                    const tempVariant = tempProduct.variants?.find(v => v.name?.trim().toLowerCase() === varName);
-                    if (tempVariant) {
-                      matchedProduct = tempProduct;
-                      matchedVariant = tempVariant;
-                      break;
-                    }
-                  }
-                }
-              }
-            }
-
-            // Strategy 5: Fallback Search (Variant SKU or Variant Name directly)
-            if (!matchedProduct) {
-              for (const p of products) {
-                const v = p.variants?.find(v => 
-                  v.sku?.trim().toLowerCase() === searchName ||
-                  v.name?.trim().toLowerCase() === searchName
-                );
-                if (v) {
-                  matchedProduct = p;
-                  matchedVariant = v;
-                  break;
-                }
-              }
-            }
+            const { matchedProduct, matchedVariant } = findProductAndVariant(excelName, products);
 
             return {
               excelName: String(excelName),
               excelQty: excelQty != null ? Number(excelQty) : 0,
-              isVariant: !!matchedVariant,
+              isVariant: !!matchedVariant || (matchedProduct && matchedProduct.variants && matchedProduct.variants.length > 0),
               matchedProduct,
               matchedVariant,
               rawRow: row
@@ -228,22 +298,59 @@ const ProductMapping = () => {
 
     try {
       const p = products.find(prod => prod._id === mapping.matchedProduct._id) || mapping.matchedProduct;
-      let updatedTotalQuantity = p.totalQuantity;
       let updatedVariants = p.variants ? [...p.variants.map(v => ({ ...v }))] : [];
 
-      if (mapping.matchedVariant) {
-        // Update variant quantity
-        updatedVariants = updatedVariants.map(v => {
-          if (v._id === mapping.matchedVariant._id || v.name === mapping.matchedVariant.name) {
-            return { ...v, quantity: mapping.excelQty };
-          }
-          return v;
-        });
-        // Recalculate total quantity
-        updatedTotalQuantity = updatedVariants.reduce((sum, v) => sum + (v.quantity || 0), 0);
+      // Find all mappings for this product in stockMappedData to avoid overwriting sibling variants
+      const productMappings = stockMappedData.filter(m => m.matchedProduct && m.matchedProduct._id === p._id);
+      
+      productMappings.forEach(m => {
+        if (m.matchedVariant) {
+          updatedVariants = updatedVariants.map(v => {
+            const isMatch = v.name && m.matchedVariant.name && v.name.trim().toLowerCase() === m.matchedVariant.name.trim().toLowerCase();
+            if (isMatch) {
+              return { ...v, quantity: Number(m.excelQty) || 0 };
+            }
+            return v;
+          });
+        }
+      });
+
+      let updatedTotalQuantity = 0;
+      if (updatedVariants.length > 0) {
+        updatedTotalQuantity = updatedVariants.reduce((sum, v) => sum + (Number(v.quantity) || 0), 0);
       } else {
-        // Update product quantity directly
-        updatedTotalQuantity = mapping.excelQty;
+        updatedTotalQuantity = Number(mapping.excelQty) || 0;
+      }
+
+      const payloadVariants = updatedVariants.map(v => {
+        const parsedQP = (v.quantityPricing || [])
+          .map(qp => ({ minQty: Number(qp.minQty) || 0, price: Number(qp.price) || 0 }))
+          .filter(qp => qp.minQty > 0 || qp.price > 0);
+        
+        return {
+          ...v,
+          quantity: Number(v.quantity) || 0,
+          price: Number(v.price ?? v.basePrice ?? v.price) || 0,
+          offerPrice: Number(v.offerPrice) || 0,
+          l1Price: Number(v.l1Price) || 0,
+          l2Price: Number(v.l2Price) || 0,
+          l3Price: Number(v.l3Price) || 0,
+          quantityPricing: parsedQP,
+          isActive: v.isActive !== false
+        };
+      });
+
+      // Check if stock actually changed from DB values
+      const hasStockChanged = productMappings.some(m => {
+        const currentDbQty = m.matchedVariant
+          ? Number(m.matchedVariant.quantity) || 0
+          : Number(m.matchedProduct.totalQuantity) || 0;
+        return Number(m.excelQty) !== currentDbQty;
+      });
+
+      if (!hasStockChanged) {
+        setStockSyncStatus(prev => ({ ...prev, [index]: 'success' }));
+        return;
       }
 
       const formData = new FormData();
@@ -269,7 +376,7 @@ const ProductMapping = () => {
       if (brandId) formData.append('brand', brandId);
       if (catId) formData.append('category', catId);
       
-      formData.append('variants', JSON.stringify(updatedVariants));
+      formData.append('variants', JSON.stringify(payloadVariants));
       
       if (p.images && p.images.length > 0) {
         formData.append('images', JSON.stringify(p.images));
@@ -283,14 +390,14 @@ const ProductMapping = () => {
 
       // Update local products list reference
       setProducts(prevProducts => prevProducts.map(item => 
-        item._id === p._id ? { ...item, totalQuantity: updatedTotalQuantity, variants: updatedVariants } : item
+        item._id === p._id ? { ...item, totalQuantity: updatedTotalQuantity, variants: payloadVariants } : item
       ));
 
       // Update local state mappings to reflect the updated quantities
       setStockMappedData(prevData => prevData.map((item, idx) => {
         if (item.matchedProduct?._id === p._id) {
-          const newProd = { ...item.matchedProduct, totalQuantity: updatedTotalQuantity, variants: updatedVariants };
-          const newVar = item.matchedVariant ? newProd.variants?.find(v => v._id === item.matchedVariant._id || v.name === item.matchedVariant.name) : null;
+          const newProd = { ...item.matchedProduct, totalQuantity: updatedTotalQuantity, variants: payloadVariants };
+          const newVar = item.matchedVariant ? newProd.variants?.find(v => v.name === item.matchedVariant.name) : null;
           return { ...item, matchedProduct: newProd, matchedVariant: newVar };
         }
         return item;
@@ -343,7 +450,6 @@ const ProductMapping = () => {
     let successCount = 0;
     let failedCount = 0;
     const syncedItemsLog = [];
-
     const updatedProductsMap = {};
 
     for (let i = 0; i < pids.length; i++) {
@@ -353,23 +459,74 @@ const ProductMapping = () => {
       
       try {
         const p = products.find(prod => prod._id === pid) || group.product;
-        let updatedTotalQuantity = p.totalQuantity;
         let updatedVariants = p.variants ? [...p.variants.map(v => ({ ...v }))] : [];
 
         // Apply all mappings for this product
         group.mappings.forEach((mapping) => {
           if (mapping.matchedVariant) {
             updatedVariants = updatedVariants.map(v => {
-              if (v._id === mapping.matchedVariant._id || v.name === mapping.matchedVariant.name) {
-                return { ...v, quantity: mapping.excelQty };
+              const isMatch = v.name && mapping.matchedVariant.name && v.name.trim().toLowerCase() === mapping.matchedVariant.name.trim().toLowerCase();
+              if (isMatch) {
+                return { ...v, quantity: Number(mapping.excelQty) || 0 };
               }
               return v;
             });
-            updatedTotalQuantity = updatedVariants.reduce((sum, v) => sum + (v.quantity || 0), 0);
-          } else {
-            updatedTotalQuantity = mapping.excelQty;
           }
         });
+
+        let updatedTotalQuantity = 0;
+        if (updatedVariants.length > 0) {
+          updatedTotalQuantity = updatedVariants.reduce((sum, v) => sum + (Number(v.quantity) || 0), 0);
+        } else if (group.mappings.length > 0) {
+          updatedTotalQuantity = Number(group.mappings[group.mappings.length - 1].excelQty) || 0;
+        }
+
+        const payloadVariants = updatedVariants.map(v => {
+          const parsedQP = (v.quantityPricing || [])
+            .map(qp => ({ minQty: Number(qp.minQty) || 0, price: Number(qp.price) || 0 }))
+            .filter(qp => qp.minQty > 0 || qp.price > 0);
+          
+          return {
+            ...v,
+            quantity: Number(v.quantity) || 0,
+            price: Number(v.price ?? v.basePrice ?? v.price) || 0,
+            offerPrice: Number(v.offerPrice) || 0,
+            l1Price: Number(v.l1Price) || 0,
+            l2Price: Number(v.l2Price) || 0,
+            l3Price: Number(v.l3Price) || 0,
+            quantityPricing: parsedQP,
+            isActive: v.isActive !== false
+          };
+        });
+
+        // Check if stock actually changed from DB values
+        const hasStockChanged = group.mappings.some(m => {
+          const currentDbQty = m.matchedVariant
+            ? Number(m.matchedVariant.quantity) || 0
+            : Number(m.matchedProduct.totalQuantity) || 0;
+          return Number(m.excelQty) !== currentDbQty;
+        });
+
+        if (!hasStockChanged) {
+          group.indices.forEach((index) => {
+            setStockSyncStatus(prev => ({ ...prev, [index]: 'success' }));
+          });
+
+          group.mappings.forEach((mapping) => {
+            const currentQty = mapping.matchedVariant ? (mapping.matchedVariant.quantity || 0) : (p.totalQuantity || 0);
+            setSyncLogs(prev => [
+              {
+                name: mapping.excelName,
+                status: 'info',
+                message: `Stock already matches database (${currentQty} pcs). No update needed.`
+              },
+              ...prev
+            ]);
+          });
+
+          successCount++;
+          continue;
+        }
 
         const formData = new FormData();
         formData.append('name', p.name || '');
@@ -394,7 +551,7 @@ const ProductMapping = () => {
         if (brandId) formData.append('brand', brandId);
         if (catId) formData.append('category', catId);
         
-        formData.append('variants', JSON.stringify(updatedVariants));
+        formData.append('variants', JSON.stringify(payloadVariants));
         
         if (p.images && p.images.length > 0) {
           formData.append('images', JSON.stringify(p.images));
@@ -411,7 +568,7 @@ const ProductMapping = () => {
         });
 
         setProducts(prevProducts => prevProducts.map(item => 
-          item._id === p._id ? { ...item, totalQuantity: updatedTotalQuantity, variants: updatedVariants } : item
+          item._id === p._id ? { ...item, totalQuantity: updatedTotalQuantity, variants: payloadVariants } : item
         ));
 
         group.mappings.forEach((mapping) => {
@@ -469,7 +626,7 @@ const ProductMapping = () => {
       if (pid && updatedProductsMap[pid]) {
         const { totalQuantity, variants } = updatedProductsMap[pid];
         const newProd = { ...item.matchedProduct, totalQuantity, variants };
-        const newVar = item.matchedVariant ? variants.find(v => v._id === item.matchedVariant._id || v.name === item.matchedVariant.name) : null;
+        const newVar = item.matchedVariant ? variants.find(v => v.name === item.matchedVariant.name) : null;
         return { ...item, matchedProduct: newProd, matchedVariant: newVar };
       }
       return item;
@@ -524,18 +681,19 @@ const ProductMapping = () => {
             }
             
             let matchedProduct = null;
+            let matchedVariant = null;
             if (excelName) {
-              matchedProduct = products.find(p => 
-                p.name?.toLowerCase() === String(excelName).toLowerCase() || 
-                p.eanNumber === String(excelName) ||
-                p.variants?.some(v => v.sku?.toLowerCase() === String(excelName).toLowerCase())
-              );
+              const res = findProductAndVariant(excelName, products);
+              matchedProduct = res.matchedProduct;
+              matchedVariant = res.matchedVariant;
             }
             
             return {
               excelName: String(excelName || 'Unknown'),
               excelQty: excelQty != null ? Number(excelQty) : 0,
+              isVariant: !!matchedVariant || (matchedProduct && matchedProduct.variants && matchedProduct.variants.length > 0),
               matchedProduct,
+              matchedVariant,
               rawRow: row
             };
           });
@@ -611,7 +769,22 @@ const ProductMapping = () => {
     setSyncStatus(prev => ({ ...prev, [index]: null }));
     
     try {
-      const p = mapping.matchedProduct;
+      const p = products.find(prod => prod._id === mapping.matchedProduct._id) || mapping.matchedProduct;
+      let updatedTotalQuantity = p.totalQuantity;
+      let updatedVariants = p.variants ? [...p.variants.map(v => ({ ...v }))] : [];
+
+      if (mapping.matchedVariant) {
+        updatedVariants = updatedVariants.map(v => {
+          if (v._id === mapping.matchedVariant._id || (v.name && mapping.matchedVariant.name && v.name.trim().toLowerCase() === mapping.matchedVariant.name.trim().toLowerCase())) {
+            return { ...v, quantity: mapping.excelQty };
+          }
+          return v;
+        });
+        updatedTotalQuantity = updatedVariants.reduce((sum, v) => sum + (Number(v.quantity) || 0), 0);
+      } else {
+        updatedTotalQuantity = mapping.excelQty;
+      }
+
       const formData = new FormData();
       
       formData.append('name', p.name || '');
@@ -625,7 +798,7 @@ const ProductMapping = () => {
       formData.append('l3Price', p.l3Price || 0);
       formData.append('quantityPricing', JSON.stringify(p.quantityPricing || []));
       formData.append('eanNumber', p.eanNumber || '');
-      formData.append('totalQuantity', mapping.excelQty || 0);
+      formData.append('totalQuantity', updatedTotalQuantity);
       formData.append('cancellationPolicy', p.cancellationPolicy || '');
       formData.append('sevenDaysReturn', p.sevenDaysReturn || '');
       formData.append('warranty', p.warranty || '');
@@ -636,8 +809,7 @@ const ProductMapping = () => {
       if (brandId) formData.append('brand', brandId);
       if (catId) formData.append('category', catId);
       
-      const v = p.variants || [];
-      formData.append('variants', JSON.stringify(v));
+      formData.append('variants', JSON.stringify(updatedVariants));
       
       if (p.images && p.images.length > 0) {
         formData.append('images', JSON.stringify(p.images));
@@ -657,7 +829,7 @@ const ProductMapping = () => {
           name: p.name,
           eanNumber: p.eanNumber,
           oldQuantity: p.totalQuantity,
-          newQuantity: mapping.excelQty
+          newQuantity: updatedTotalQuantity
         }];
       });
       
@@ -900,7 +1072,49 @@ const ProductMapping = () => {
 
             {stockMappedData.length > 0 && (
               <div className="space-y-4 pt-4 border-t border-white/10">
-                <h3 className="text-lg font-bold text-white">Stock Mapping Preview</h3>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-lg font-bold text-white">Stock Mapping Preview</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {
+                        stockMappedData.filter(m => {
+                          if (!m.matchedProduct) return false;
+                          const current = m.matchedVariant ? (m.matchedVariant.quantity || 0) : (m.matchedProduct.totalQuantity || 0);
+                          return Number(m.excelQty) !== Number(current);
+                        }).length
+                      } items have stock differences out of {stockMappedData.length} total mapped items. Unchanged items are automatically skipped during sync.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowOnlyChangedStock(false)}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                        !showOnlyChangedStock
+                          ? 'bg-blue-600 text-white shadow'
+                          : 'bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700'
+                      }`}
+                    >
+                      Show All ({stockMappedData.length})
+                    </button>
+                    <button
+                      onClick={() => setShowOnlyChangedStock(true)}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                        showOnlyChangedStock
+                          ? 'bg-amber-600 text-white shadow'
+                          : 'bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700'
+                      }`}
+                    >
+                      Only Differences ({
+                        stockMappedData.filter(m => {
+                          if (!m.matchedProduct) return false;
+                          const current = m.matchedVariant ? (m.matchedVariant.quantity || 0) : (m.matchedProduct.totalQuantity || 0);
+                          return Number(m.excelQty) !== Number(current);
+                        }).length
+                      })
+                    </button>
+                  </div>
+                </div>
+
                 <div className="overflow-y-auto custom-scrollbar bg-slate-900/50 rounded-xl border border-white/10 max-h-96">
                   <table className="w-full text-left border-collapse whitespace-nowrap">
                     <thead className="bg-slate-800/80 border-b border-white/10 text-slate-300 text-xs uppercase tracking-wider sticky top-0 z-10 backdrop-blur-sm">
@@ -911,59 +1125,79 @@ const ProductMapping = () => {
                         <th className="px-4 py-3 font-medium">Matched System Product</th>
                         <th className="px-4 py-3 font-medium">Matched Variant</th>
                         <th className="px-4 py-3 font-medium text-center">Current Stock</th>
-                        <th className="px-4 py-3 font-medium text-center">Action</th>
+                        <th className="px-4 py-3 font-medium text-center">Status / Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
-                      {stockMappedData.map((mapping, index) => (
-                        <tr key={index} className="hover:bg-white/5 transition-colors">
-                          <td className="px-4 py-3 text-sm text-slate-400 text-center font-medium">{index + 1}</td>
-                          <td className="px-4 py-3 text-sm text-slate-300">
-                            {mapping.excelName}
-                            {mapping.isVariant && (
-                              <span className="ml-2 text-[10px] bg-blue-500/20 text-blue-400 border border-blue-500/30 px-1.5 py-0.5 rounded-full uppercase tracking-wider font-bold">Variant</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-sm font-bold text-amber-400 text-center">{mapping.excelQty}</td>
-                          <td className="px-4 py-3 text-sm">
-                            {mapping.matchedProduct ? (
-                              <span className="text-emerald-400 font-medium">{mapping.matchedProduct.name}</span>
-                            ) : (
-                              <span className="text-red-400/80 italic">Not Found</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-slate-300">
-                            {mapping.matchedVariant ? (
-                              <span className="text-blue-400 font-medium">{mapping.matchedVariant.name}</span>
-                            ) : mapping.isVariant && mapping.matchedProduct ? (
-                              <span className="text-amber-500/80 italic" title="Product exists, but this variant wasn't found">Variant Not Found</span>
-                            ) : (
-                              <span className="text-slate-500 font-normal">-</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-slate-400 text-center">
-                            {mapping.matchedProduct ? (
-                              mapping.matchedVariant ? mapping.matchedVariant.quantity : mapping.matchedProduct.totalQuantity
-                            ) : '-'}
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <button
-                              onClick={() => handleSyncStockProduct(mapping, index)}
-                              disabled={!mapping.matchedProduct || (mapping.isVariant && !mapping.matchedVariant) || stockSyncingStates[index] || stockSyncStatus[index] === 'success'}
-                              className={`inline-flex items-center justify-center px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                                stockSyncStatus[index] === 'success' 
-                                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
-                                  : stockSyncStatus[index] === 'error'
-                                  ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
-                                  : 'bg-blue-600/50 text-white hover:bg-blue-600 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed'
-                              }`}
-                            >
-                              {stockSyncingStates[index] ? <FiLoader className="animate-spin mr-1.5" /> : stockSyncStatus[index] === 'success' ? <FiCheckCircle className="mr-1.5" /> : <FiRefreshCcw className="mr-1.5" />}
-                              {stockSyncStatus[index] === 'success' ? 'Synced' : stockSyncStatus[index] === 'error' ? 'Retry' : 'Sync'}
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
+                      {stockMappedData
+                        .map((mapping, originalIndex) => ({ mapping, originalIndex }))
+                        .filter(({ mapping }) => {
+                          if (!showOnlyChangedStock) return true;
+                          if (!mapping.matchedProduct) return false;
+                          const current = mapping.matchedVariant ? (mapping.matchedVariant.quantity || 0) : (mapping.matchedProduct.totalQuantity || 0);
+                          return Number(mapping.excelQty) !== Number(current);
+                        })
+                        .map(({ mapping, originalIndex }) => {
+                          const currentStock = mapping.matchedProduct ? (mapping.matchedVariant ? (mapping.matchedVariant.quantity || 0) : (mapping.matchedProduct.totalQuantity || 0)) : null;
+                          const isDiff = currentStock !== null && Number(mapping.excelQty) !== Number(currentStock);
+
+                          return (
+                            <tr key={originalIndex} className="hover:bg-white/5 transition-colors">
+                              <td className="px-4 py-3 text-sm text-slate-400 text-center font-medium">{originalIndex + 1}</td>
+                              <td className="px-4 py-3 text-sm text-slate-300">
+                                {mapping.excelName}
+                                {mapping.isVariant && (
+                                  <span className="ml-2 text-[10px] bg-blue-500/20 text-blue-400 border border-blue-500/30 px-1.5 py-0.5 rounded-full uppercase tracking-wider font-bold">Variant</span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 text-sm font-bold text-amber-400 text-center">{mapping.excelQty}</td>
+                              <td className="px-4 py-3 text-sm">
+                                {mapping.matchedProduct ? (
+                                  <span className="text-emerald-400 font-medium">{mapping.matchedProduct.name}</span>
+                                ) : (
+                                  <span className="text-red-400/80 italic">Not Found</span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-slate-300">
+                                {mapping.matchedVariant ? (
+                                  <span className="text-blue-400 font-medium">{mapping.matchedVariant.name}</span>
+                                ) : mapping.isVariant && mapping.matchedProduct ? (
+                                  <span className="text-amber-500/80 italic" title="Product exists, but this variant wasn't found">Variant Not Found</span>
+                                ) : (
+                                  <span className="text-slate-500 font-normal">-</span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-slate-400 text-center font-medium">
+                                {currentStock !== null ? (
+                                  <span className="inline-flex items-center gap-1.5">
+                                    <span>{currentStock}</span>
+                                    {isDiff ? (
+                                      <span className="text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded-full font-bold">Differs</span>
+                                    ) : (
+                                      <span className="text-[10px] bg-emerald-500/15 text-emerald-400/80 border border-emerald-500/20 px-1.5 py-0.5 rounded-full font-normal">Unchanged</span>
+                                    )}
+                                  </span>
+                                ) : '-'}
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <button
+                                  onClick={() => handleSyncStockProduct(mapping, originalIndex)}
+                                  disabled={!mapping.matchedProduct || (mapping.isVariant && !mapping.matchedVariant) || stockSyncingStates[originalIndex] || stockSyncStatus[originalIndex] === 'success'}
+                                  className={`inline-flex items-center justify-center px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                                    stockSyncStatus[originalIndex] === 'success' 
+                                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                                      : stockSyncStatus[originalIndex] === 'error'
+                                      ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
+                                      : 'bg-blue-600/50 text-white hover:bg-blue-600 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed'
+                                  }`}
+                                >
+                                  {stockSyncingStates[originalIndex] ? <FiLoader className="animate-spin mr-1.5" /> : stockSyncStatus[originalIndex] === 'success' ? <FiCheckCircle className="mr-1.5" /> : <FiRefreshCcw className="mr-1.5" />}
+                                  {stockSyncStatus[originalIndex] === 'success' ? (!isDiff ? 'Up to date' : 'Synced') : stockSyncStatus[originalIndex] === 'error' ? 'Retry' : 'Sync'}
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
                     </tbody>
                   </table>
                 </div>
