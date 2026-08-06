@@ -497,7 +497,10 @@ const Chat = () => {
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <p className={`text-sm truncate ${contact.unreadCount > 0 && activeContact !== contact.userId ? 'text-white font-semibold' : 'text-slate-400'}`}>
+                    <p 
+                      title={contact.lastMessage || 'No messages yet'}
+                      className={`text-sm truncate ${contact.unreadCount > 0 && activeContact !== contact.userId ? 'text-white font-semibold' : 'text-slate-400'}`}
+                    >
                       {contact.lastMessage || 'No messages yet'}
                     </p>
                     {contact.unreadCount > 0 && activeContact !== contact.userId && (

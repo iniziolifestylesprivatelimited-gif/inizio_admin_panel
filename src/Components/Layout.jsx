@@ -684,8 +684,8 @@ const Layout = () => {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={`
-          fixed inset-y-0 left-0 z-50 bg-transparent backdrop-blur-2xl border-r border-white/10 flex flex-col shadow-2xl shadow-black/50 lg:shadow-none
-          transform transition-all duration-300 ease-in-out lg:relative lg:translate-x-0 overflow-hidden
+          fixed inset-y-0 left-0 z-50 bg-transparent backdrop-blur-2xl border-r border-white/10 flex flex-col shadow-2xl shadow-black/50
+          transform transition-all duration-300 ease-in-out lg:translate-x-0 overflow-hidden
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
           ${isExpanded ? 'w-72' : 'lg:w-20 w-72'}
         `}
@@ -720,8 +720,9 @@ const Layout = () => {
         </div>
 
         <nav className="flex-1 px-4 py-3 overflow-y-auto no-scrollbar space-y-2">
-          <p className={`px-2 mb-4 text-xs font-bold text-slate-500 uppercase tracking-wider transition-all duration-300 ${isExpanded ? 'opacity-100' : 'lg:opacity-0'
-            }`}>
+          <p className={`px-2 text-xs font-bold text-slate-500 uppercase tracking-wider transition-all duration-300 ${
+            isExpanded ? 'opacity-100 mb-4 max-h-8 mt-2' : 'lg:opacity-0 lg:max-h-6 lg:mb-2 lg:mt-1 overflow-hidden'
+          }`}>
             MAIN MENU
           </p>
 
@@ -856,7 +857,7 @@ const Layout = () => {
       </aside>
 
       {/* MAIN CONTENT WRAPPER (Includes Header, Content, Footer) */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden bg-transparent relative pt-16 lg:pt-0">
+      <div className={`flex-1 flex flex-col h-full overflow-hidden bg-transparent relative pt-16 lg:pt-0 lg:pl-20 transition-all duration-300 ${isExpanded ? 'lg:blur-[2px]' : 'blur-none'}`}>
 
         {/* GLOBAL HEADER (Desktop Top Bar) */}
         <header className="hidden lg:flex h-16 bg-transparent backdrop-blur-2xl border-b border-white/10 shadow-sm shadow-black/50 items-center justify-between px-8 sticky top-0 z-20">
