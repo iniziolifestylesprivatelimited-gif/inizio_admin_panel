@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
   FiArrowLeft, 
   FiAlertCircle, 
@@ -28,6 +28,8 @@ const getImageUrl = (path) => {
 const CampaignDetail = () => {
   const { campaignId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const fromPath = location.state?.from || '/campaign-stats';
   const [campaignDetail, setCampaignDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -123,10 +125,10 @@ const CampaignDetail = () => {
       <div className="relative space-y-6 min-h-full z-0 w-full pb-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <button 
-            onClick={() => navigate('/campaign-stats')}
+            onClick={() => navigate(fromPath)}
             className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-white/5 hover:border-white/10 transition-all cursor-pointer shadow-md"
           >
-            <FiArrowLeft size={14} /> Back to Stats List
+            <FiArrowLeft size={14} /> Back to List
           </button>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -152,10 +154,10 @@ const CampaignDetail = () => {
     return (
       <div className="space-y-6">
         <button 
-          onClick={() => navigate('/campaign-stats')} 
+          onClick={() => navigate(fromPath)} 
           className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
         >
-          <FiArrowLeft /> Back to Campaigns
+          <FiArrowLeft /> Back to List
         </button>
         <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 flex items-center gap-3 text-sm">
           <FiAlertCircle size={18} />
@@ -199,10 +201,10 @@ const CampaignDetail = () => {
       {/* Back Button & Navigation Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <button 
-          onClick={() => navigate('/campaign-stats')}
+          onClick={() => navigate(fromPath)}
           className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-white/5 hover:border-white/10 transition-all cursor-pointer shadow-md"
         >
-          <FiArrowLeft size={14} /> Back to Stats List
+          <FiArrowLeft size={14} /> Back to List
         </button>
         <span className="text-[10px] text-slate-500 font-mono">Campaign ID: {campaignDetail.campaignId}</span>
       </div>

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   MdSend, MdNotificationsActive, MdKeyboardArrowDown, MdImage, 
   MdHistory, MdRefresh, MdPhoneAndroid, MdPhoneIphone, MdPeople, 
@@ -19,6 +20,7 @@ import { formatDateDDMMYYYY } from '../utils/dateUtils';
 import { TableRowSkeleton } from '../Components/Skeleton';
 
 const Notifications = () => {
+  const navigate = useNavigate();
   const getAudienceIcon = (type) => {
     if (type === 'All Users') return <FiUsers className="text-blue-400 text-lg shrink-0" />;
     if (type === 'Single User') return <FiUser className="text-amber-400 text-lg shrink-0" />;
@@ -840,7 +842,11 @@ const Notifications = () => {
               <p className="text-slate-400 italic text-center py-12">No matching notifications found.</p>
             ) : (
                currentHistoryCampaigns.map((item) => (
-                 <div key={item.campaignId} className="p-5 border border-white/10 rounded-2xl bg-slate-800/10 hover:bg-white/5 transition-all flex flex-col sm:flex-row gap-4 relative group">
+                 <div 
+                   key={item.campaignId} 
+                   onClick={() => navigate(`/campaign-stats/${item.campaignId}`, { state: { from: '/notifications' } })}
+                   className="p-5 border border-white/10 rounded-2xl bg-slate-800/10 hover:bg-white/5 transition-all flex flex-col sm:flex-row gap-4 relative group cursor-pointer"
+                 >
                    {item.imageUrl && (
                      <div className="w-full sm:w-24 h-16 shrink-0 rounded-xl overflow-hidden border border-white/10 bg-slate-800/50 flex items-center justify-center">
                        <img src={item.imageUrl} alt="Notification media" className="max-w-full max-h-full object-contain" onError={(e) => e.target.src='https://placehold.co/100x100?text=Error'} />
@@ -853,7 +859,10 @@ const Notifications = () => {
                          <h3 className="font-bold text-white tracking-tight text-sm leading-snug truncate">{item.title}</h3>
                          <div className="flex items-center gap-2 shrink-0">
                            <button
-                             onClick={() => handleReuse(item)}
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               handleReuse(item);
+                             }}
                              className="p-1.5 bg-blue-600/15 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg border border-blue-500/20 transition-all text-xs font-bold cursor-pointer flex items-center gap-1"
                              title="Reuse Notification Content"
                            >

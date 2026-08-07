@@ -454,7 +454,7 @@ const CampaignStats = () => {
                     <React.Fragment key={group.groupKey}>
                       {/* Main Group Row */}
                       <tr 
-                        onClick={() => navigate(`/campaign-stats/${item.campaignId}`)}
+                        onClick={() => navigate(`/campaign-stats/${item.campaignId}`, { state: { from: '/campaign-stats' } })}
                         className="hover:bg-white/[0.02] cursor-pointer transition-colors group"
                       >
                         {/* S.No */}

@@ -87,8 +87,8 @@ const Chat = () => {
   const [contacts, setContacts] = useState([]);
   const [messages, setMessages] = useState([]);
   const { setChatUnreadCount } = useOutletContext() || {};
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const emojiPickerRef = useRef(null);
+  // const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  // const emojiPickerRef = useRef(null);
 
   // New States for Attachments, Replies, and Edits
   const [attachment, setAttachment] = useState(null); // stores { fileUrl, fileName, fileType }
@@ -115,20 +115,20 @@ const Chat = () => {
     setAlertOpen(true);
   };
 
-  const popularEmojis = [
-    '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥸', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🫣', '🤭', '🫢', '🫡', '🤫', '🫠', '🤥', '😶', '🫥', '😐', '😑', '😬', '🫨', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '😵‍💫', '🫵', '👍', '👎', '👊', '✊', '🤛', '🤜', '🤞', '✌️', '🤟', '🤘', '👌', '🤌', '🤏', '👈', '👉', '👆', '👇', '✋', '🤚', '🖐️', '🖖', '👋', '🤙', '💪', '🦾', '🖕', '✍️', '🙏', '🤝', '👏', '🙌', '🫶', '👐', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '💬', '💭', '✉️', '📦', '🎁', '🎈', '🎉', '🌟', '✨', '🔥', '💯', '🚀'
-  ];
+  // const popularEmojis = [
+  //   '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥸', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🫣', '🤭', '🫢', '🫡', '🤫', '🫠', '🤥', '😶', '🫥', '😐', '😑', '😬', '🫨', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '😵‍💫', '🫵', '👍', '👎', '👊', '✊', '🤛', '🤜', '🤞', '✌️', '🤟', '🤘', '👌', '🤌', '🤏', '👈', '👉', '👆', '👇', '✋', '🤚', '🖐️', '🖖', '👋', '🤙', '💪', '🦾', '🖕', '✍️', '🙏', '🤝', '👏', '🙌', '🫶', '👐', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '💬', '💭', '✉️', '📦', '🎁', '🎈', '🎉', '🌟', '✨', '🔥', '💯', '🚀'
+  // ];
 
   // Close emoji picker when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
-        setShowEmojiPicker(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  // useEffect(() => {
+  //   const handleClickOutside = (event) => {
+  //     if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
+  //       setShowEmojiPicker(false);
+  //     }
+  //   };
+  //   document.addEventListener('mousedown', handleClickOutside);
+  //   return () => document.removeEventListener('mousedown', handleClickOutside);
+  // }, []);
 
   const fetchUnreadCount = useCallback(async () => {
     try {
@@ -564,7 +564,7 @@ const Chat = () => {
                         ? 'bg-blue-600 border-blue-500/30 text-white'
                         : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'
                     }`}
-                    title="Toggle Customer Journey"
+                    title="Toggle Customer Info"
                   >
                     <FiInfo className="text-lg" />
                   </button>
@@ -817,7 +817,7 @@ const Chat = () => {
 
                 <form onSubmit={handleSend} className="flex items-end gap-2">
                   <div className="flex-1 bg-black/20 border border-white/10 rounded-2xl flex items-end p-1 focus-within:border-blue-500/50 focus-within:bg-black/40 shadow-inner backdrop-blur-md transition-all min-w-0">
-                    <div className="relative shrink-0 flex items-center" ref={emojiPickerRef}>
+                    {/* <div className="relative shrink-0 flex items-center" ref={emojiPickerRef}>
                       <button
                         type="button"
                         onClick={() => setShowEmojiPicker(!showEmojiPicker)}
@@ -842,7 +842,7 @@ const Chat = () => {
                           </div>
                         </div>
                       )}
-                    </div>
+                    </div> */}
                     <textarea
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
@@ -883,12 +883,12 @@ const Chat = () => {
             </div>
 
               {/* Collapsible Sidebar */}
-              {showProfileSidebar && (
-                <div className="w-80 border-l border-white/10 bg-slate-950/40 backdrop-blur-2xl flex flex-col h-full shrink-0 animate-in slide-in-from-right duration-200">
+              <div className={`border-l border-white/10 bg-slate-950/40 backdrop-blur-2xl flex flex-col h-full shrink-0 transition-all duration-300 ease-in-out overflow-hidden ${showProfileSidebar ? 'w-80 opacity-100' : 'w-0 opacity-0 pointer-events-none border-l-0'}`}>
+                <div className="w-80 flex flex-col h-full">
                   {/* Sidebar Header */}
                   <div className="h-16 px-4 border-b border-white/10 flex items-center justify-between bg-black/20 shrink-0">
                     <span className="font-bold text-white text-xs uppercase tracking-wider flex items-center gap-2">
-                      <FiUser className="text-blue-400 text-sm" /> Customer Journey
+                      <FiUser className="text-blue-400 text-sm" /> Customer Info
                     </span>
                     <button
                       onClick={() => setShowProfileSidebar(false)}
@@ -904,13 +904,13 @@ const Chat = () => {
                     {loadingCustomerDetails ? (
                       <div className="py-20 flex flex-col justify-center items-center gap-3">
                         <FiLoader className="animate-spin text-2xl text-blue-400" />
-                        <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Loading journey data...</span>
+                        <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Loading customer info...</span>
                       </div>
                     ) : (
                       <>
-                        {/* 1. Quick Info/KYC Profile */}
-                        <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl space-y-3">
-                          <div className="flex justify-between items-center">
+                        {/* User Details Profile */}
+                        <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl space-y-4">
+                          <div className="flex justify-between items-center pb-2 border-b border-white/5">
                             <span className="text-[10px] text-slate-500 font-black uppercase tracking-wider">KYC Status</span>
                             {activeCustomerDetails?.isApproved || activeCustomerDetails?.userId ? (
                               <span className="text-[10px] font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-md uppercase">Approved</span>
@@ -919,138 +919,47 @@ const Chat = () => {
                             )}
                           </div>
                           
-                          <div className="space-y-1.5 text-xs">
+                          <div className="space-y-3 text-xs">
                             <div>
-                              <span className="text-slate-500 font-medium">Business: </span>
-                              <span className="font-bold text-slate-200">{activeCustomerDetails?.businessType || 'L1'}</span>
+                              <span className="text-slate-500 font-medium block mb-0.5">Name</span>
+                              <span className="font-bold text-white text-sm">{activeCustomerDetails?.name || activeContactDetails?.name || 'Unknown'}</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-500 font-medium block mb-0.5">Phone</span>
+                              <span className="text-slate-200 font-semibold">{activeCustomerDetails?.phone || activeContactDetails?.phone || 'N/A'}</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-500 font-medium block mb-0.5">Email</span>
+                              <span className="text-slate-200 font-semibold break-all">{activeCustomerDetails?.email || activeContactDetails?.email || 'N/A'}</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-500 font-medium block mb-0.5">Business Type</span>
+                              <span className="font-bold text-slate-200">{activeCustomerDetails?.businessType || activeContactDetails?.businessType || 'L1'}</span>
                             </div>
                             {activeCustomerDetails?.gstNumber && (
                               <div>
-                                <span className="text-slate-500 font-medium">GSTIN: </span>
-                                <span className="font-mono font-bold text-slate-200 text-[10px]">{activeCustomerDetails.gstNumber}</span>
+                                <span className="text-slate-500 font-medium block mb-0.5">GSTIN</span>
+                                <span className="font-mono font-bold text-slate-200 text-[11px]">{activeCustomerDetails.gstNumber}</span>
                               </div>
                             )}
                             <div>
-                              <span className="text-slate-500 font-medium">Joined: </span>
+                              <span className="text-slate-500 font-medium block mb-0.5">Joined Date</span>
                               <span className="text-slate-200">{activeCustomerDetails?.createdAt ? formatDateDDMMYYYY(activeCustomerDetails.createdAt) : 'N/A'}</span>
                             </div>
+                            <div>
+                              <span className="text-slate-500 font-medium block mb-0.5">Status</span>
+                              <span className="text-slate-200 flex items-center gap-1.5">
+                                <span className={`w-2 h-2 rounded-full ${activeContactDetails?.isOnline ? 'bg-emerald-500' : 'bg-slate-500'}`}></span>
+                                {activeContactDetails?.isOnline ? 'Online' : 'Offline'}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-
-                        {/* 2. Registered Devices */}
-                        <div className="space-y-2">
-                          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Active Devices</span>
-                          {(() => {
-                            const devicesList = activeCustomerDetails?.devices || activeCustomerDetails?.registeredDevices || [];
-                            return devicesList.length > 0 ? (
-                              <div className="space-y-1.5">
-                                {devicesList.map((dev, i) => (
-                                  <div key={i} className="p-2 bg-slate-900/40 border border-white/5 rounded-xl flex items-center justify-between text-xs">
-                                    <span className="text-slate-300 font-medium capitalize flex items-center gap-1.5">
-                                      <FiSmartphone className="text-slate-400" /> Device #{i + 1}
-                                    </span>
-                                    <span className="text-[9px] font-extrabold uppercase bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded border border-blue-500/20">
-                                      {dev.devicePlatform || 'android'}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <span className="text-[11px] text-slate-500 italic block">No registered devices.</span>
-                            );
-                          })()}
-                        </div>
-
-                        {/* 3. Shopping Cart */}
-                        <div className="space-y-2">
-                          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block flex items-center gap-1.5">
-                            <FiShoppingCart /> Mobile Cart ({activeCustomerDetails?.cartItems?.length || 0} items)
-                          </span>
-                          {activeCustomerDetails?.cartItems && activeCustomerDetails.cartItems.length > 0 ? (
-                            <div className="space-y-2 max-h-40 overflow-y-auto pr-1 no-scrollbar">
-                              {activeCustomerDetails.cartItems.map((cart, idx) => (
-                                <div key={idx} className="p-2.5 bg-slate-900/40 border border-white/5 rounded-xl flex items-center justify-between text-xs gap-2">
-                                  <div className="min-w-0">
-                                    <div className="font-bold text-slate-200 truncate">{cart.productName}</div>
-                                    {cart.variantName && <div className="text-[9px] text-slate-500 font-semibold">{cart.variantName}</div>}
-                                  </div>
-                                  <div className="text-right shrink-0">
-                                    <div className="font-extrabold text-blue-400">Qty: {cart.quantity || 1}</div>
-                                    {cart.price && <div className="text-[10px] text-slate-500 font-bold font-mono">₹{cart.price}</div>}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="text-[11px] text-slate-500 italic block">Cart is empty.</span>
-                          )}
-                        </div>
-
-                        {/* 4. Recent Ledgers */}
-                        <div className="space-y-2">
-                          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block flex items-center gap-1.5">
-                            <FiFileText /> Uploaded Ledgers ({customerLedgers.length})
-                          </span>
-                          {customerLedgers.length > 0 ? (
-                            <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1 no-scrollbar">
-                              {customerLedgers.map((l) => (
-                                <div key={l._id} className="p-2 bg-slate-900/40 border border-white/5 rounded-xl flex items-center justify-between text-xs gap-2">
-                                  <span className="text-slate-300 font-medium truncate" title={l.title}>{l.title}</span>
-                                  <div className="flex gap-1 shrink-0">
-                                    <a
-                                      href={l.fileUrl ? getFileUrl(l.fileUrl) : '#'}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      className="p-1.5 bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white rounded transition-colors"
-                                      title="Open Ledger"
-                                    >
-                                      <FiEye className="text-xs" />
-                                    </a>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="text-[11px] text-slate-500 italic block">No ledger documents.</span>
-                          )}
-                        </div>
-
-                        {/* 5. Recent Orders */}
-                        <div className="space-y-2 pb-4">
-                          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block flex items-center gap-1.5">
-                            <FiShoppingBag /> Recent Orders ({customerOrders.length})
-                          </span>
-                          {customerOrders.length > 0 ? (
-                            <div className="space-y-2">
-                              {customerOrders.map((o) => (
-                                <div key={o._id} className="p-2.5 bg-slate-900/40 border border-white/5 rounded-xl space-y-1.5 text-xs text-left">
-                                  <div className="flex justify-between items-center">
-                                    <span className="font-bold text-slate-300">₹{o.totalAmount || o.amount}</span>
-                                    <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${
-                                      o.orderStatus === 'delivered' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-                                      o.orderStatus === 'processing' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
-                                      o.orderStatus === 'cancelled' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' :
-                                      'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                                    }`}>
-                                      {o.orderStatus}
-                                    </span>
-                                  </div>
-                                  <div className="flex justify-between text-[10px] text-slate-500 font-medium">
-                                    <span>{o.createdAt ? formatDateDDMMYYYY(o.createdAt) : ''}</span>
-                                    <span className="font-mono text-slate-400 font-semibold">#{o._id ? o._id.substring(o._id.length - 6) : ''}</span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="text-[11px] text-slate-500 italic block">No orders placed.</span>
-                          )}
                         </div>
                       </>
                     )}
                   </div>
                 </div>
-              )}
+              </div>
             </div>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-slate-500">
