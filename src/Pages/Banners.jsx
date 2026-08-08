@@ -7,6 +7,7 @@ import {
 } from 'react-icons/fi';
 import { api, BASE_URL } from '../api/axios';
 import { useConfirm } from '../Context/ConfirmationContext';
+import CustomDropdown from '../Components/CustomDropdown';
 
 const getImageUrl = (path) => {
   if (!path) return '';
@@ -404,25 +405,26 @@ const Banners = () => {
                 {/* Click Action */}
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Click Action</label>
-                  <select 
+                  <CustomDropdown
                     value={formData.clickAction}
-                    onChange={(e) => {
+                    onChange={(val) => {
                       setFormData({
                         ...formData, 
-                        clickAction: e.target.value,
+                        clickAction: val,
                         actionId: ''
                       });
                       setIsDropdownOpen(false);
                       setSearchTerm('');
                     }}
-                    className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md font-medium text-white"
-                  >
-                    <option value="none" className="bg-slate-800">No Action (Static Image)</option>
-                    <option value="category" className="bg-slate-800">Link to Category</option>
-                    <option value="product" className="bg-slate-800">Link to Specific Product</option>
-                    <option value="brand" className="bg-slate-800">Link to Brand</option>
-                    <option value="external" className="bg-slate-800">Link to External Website</option>
-                  </select>
+                    options={[
+                      { value: 'none', label: 'No Action (Static Image)' },
+                      { value: 'category', label: 'Link to Category' },
+                      { value: 'product', label: 'Link to Specific Product' },
+                      { value: 'brand', label: 'Link to Brand' },
+                      { value: 'external', label: 'Link to External Website' }
+                    ]}
+                    statusColor="bg-black/20 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md"
+                  />
                 </div>
 
                 {/* Dynamic Field based on Click Action */}

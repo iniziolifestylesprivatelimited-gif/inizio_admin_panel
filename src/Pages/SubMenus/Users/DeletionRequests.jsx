@@ -8,12 +8,13 @@ import {
 
 import { useConfirm } from '../../../Context/ConfirmationContext';
 
-const DeletionRequests = () => {
+const DeletionRequests = ({ hideHeader = false, searchQuery: externalSearchQuery, refreshParentCounts }) => {
   const { confirm, showAlert } = useConfirm();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const activeSearchQuery = externalSearchQuery !== undefined ? externalSearchQuery : searchQuery;
   const [isActionLoading, setIsActionLoading] = useState(false);
 
   const { setUsersDeletionUnreadCount } = useOutletContext() || {};
@@ -64,6 +65,7 @@ const DeletionRequests = () => {
       // Filter out reactivated user from UI list
       setUsers((prevUsers) => prevUsers.filter((u) => (u._id !== userId && u.id !== userId)));
       showAlert(response.data.message || 'Account reactivated successfully. All data is restored.', 'success');
+      if (refreshParentCounts) refreshParentCounts();
     } catch (err) {
       console.error('Reactivate user error:', err);
       showAlert(err.response?.data?.message || 'Failed to reactivate user.', 'error');
@@ -73,8 +75,8 @@ const DeletionRequests = () => {
   };
 
   const filteredUsers = users.filter(user => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
+    if (!activeSearchQuery) return true;
+    const query = activeSearchQuery.toLowerCase();
     const nameMatch = user.name?.toLowerCase().includes(query) || false;
     const emailMatch = user.email?.toLowerCase().includes(query) || false;
     const phoneMatch = user.phone?.includes(query) || false;
@@ -87,35 +89,37 @@ const DeletionRequests = () => {
 
 
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-            <FiUserMinus className="text-red-400" />
-            Deletion Requests
-          </h1>
-          <p className="text-slate-400 font-medium mt-1">Manage accounts scheduled for deletion and restore them if requested.</p>
+      {!hideHeader && (
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+              <FiUserMinus className="text-red-400" />
+              Deletion Requests
+            </h1>
+            <p className="text-slate-400 font-medium mt-1">Manage accounts scheduled for deletion and restore them if requested.</p>
+          </div>
+          
+          <div className="relative w-full md:w-72">
+            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
+            <input 
+              type="text" 
+              placeholder="Search by ID, name, email..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-10 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-white placeholder-slate-500 text-sm font-medium"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+              >
+                <FiX className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
-        
-        <div className="relative w-full md:w-72">
-          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
-          <input 
-            type="text" 
-            placeholder="Search by ID, name, email..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-10 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-white placeholder-slate-500 text-sm font-medium"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
-            >
-              <FiX className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-      </div>
+      )}
 
       {/* Content Area */}
       {loading ? (

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
-import { FiUser, FiLock, FiSave, FiEdit2, FiHelpCircle } from 'react-icons/fi';
+import { FiUser, FiLock, FiSave, FiEdit2, FiHelpCircle, FiArrowLeft } from 'react-icons/fi';
 import { api } from '../../api/axios';
 
 const Profile = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -57,9 +59,18 @@ const Profile = () => {
 
       {/* Header Section */}
       <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 z-10">
-        <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Admin Profile</h1>
-          <p className="text-slate-400 font-medium mt-1">Manage your account settings and preferences.</p>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center justify-center p-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl transition-all border border-white/10 shadow-sm cursor-pointer"
+            title="Go Back"
+          >
+            <FiArrowLeft className="text-xl" />
+          </button>
+          <div>
+            <h1 className="text-3xl font-bold text-white tracking-tight">Admin Profile</h1>
+            <p className="text-slate-400 font-medium mt-1">Manage your account settings and preferences.</p>
+          </div>
         </div>
       </div>
 

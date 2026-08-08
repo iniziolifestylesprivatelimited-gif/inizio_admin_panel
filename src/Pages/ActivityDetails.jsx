@@ -1803,7 +1803,7 @@ const ActivityDetails = () => {
     }
 
     if (type === 'most-searched-brands' || type === 'brand-views') {
-      const maxSearches = currentItems[0]?.searches || 1;
+      const maxSearches = filtered[0]?.searches || 1;
       return currentItems.map((item, index) => {
         const globalIndex = (currentPage - 1) * itemsPerPage + index;
         const cleanLogo = (item.brand?.logo || '').replace(/\\/g, '/');
@@ -1887,7 +1887,7 @@ const ActivityDetails = () => {
     }
 
     if (type === 'most-searched-categories' || type === 'category-views') {
-      const maxSearches = currentItems[0]?.searches || 1;
+      const maxSearches = filtered[0]?.searches || 1;
       return currentItems.map((item, index) => {
         const globalIndex = (currentPage - 1) * itemsPerPage + index;
         const viewerCount = Array.isArray(item.viewers) ? item.viewers.length : 0;
@@ -1959,7 +1959,7 @@ const ActivityDetails = () => {
     }
 
     if (type === 'most-searched') {
-      const maxCount = currentItems[0]?.count || 1;
+      const maxCount = filtered[0]?.count || 1;
       return currentItems.map((item, index) => {
         const globalIndex = (currentPage - 1) * itemsPerPage + index;
         return (
@@ -1991,7 +1991,7 @@ const ActivityDetails = () => {
     }
 
     if (type === 'most-viewed-products' || type === 'product-views') {
-      const maxViews = currentItems[0]?.views || 1;
+      const maxViews = filtered[0]?.views || 1;
       return currentItems.map((item, index) => {
         const globalIndex = (currentPage - 1) * itemsPerPage + index;
         const firstImg = item.product?.images?.[0] || '';
@@ -2488,17 +2488,19 @@ const ActivityDetails = () => {
         </div>
       </div>
 
-      {/* Total Count Summary Cards Row for Item Views */}
       {['product-views', 'most-viewed-products', 'brand-views', 'most-searched-brands', 'category-views', 'most-searched-categories', 'search-queries', 'most-searched'].includes(type) && (
         <div className="flex gap-4 z-10 relative">
           <div className="bg-transparent backdrop-blur-2xl border border-white/10 p-4.5 rounded-2xl flex items-center gap-4 shadow-lg">
-            <div className="p-3 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-400 shrink-0">
-              <FiEye size={22} />
+            <div className={`p-3 rounded-xl ${type === 'search-queries' || type === 'most-searched' ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' : 'bg-blue-500/15 border-blue-500/30 text-blue-400'} shrink-0`}>
+              {type === 'search-queries' || type === 'most-searched' ? <FiSearch size={22} /> : <FiEye size={22} />}
             </div>
             <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Accumulated Views</span>
-              <span className="text-2xl font-black text-white font-mono mt-0.5 block">
-                {data.reduce((sum, item) => sum + (item.views || item.searches || item.count || 0), 0).toLocaleString()} Total Views
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                {type === 'search-queries' || type === 'most-searched' ? 'TOTAL ACCUMULATED SEARCHES' : 'TOTAL ACCUMULATED VIEWS'}
+              </span>
+              <span className="text-2xl font-black text-white mt-0.5 block">
+                {data.reduce((sum, item) => sum + (item.views || item.searches || item.count || (type === 'search-queries' ? 1 : 0)), 0).toLocaleString()}{' '}
+                {type === 'search-queries' || type === 'most-searched' ? 'Total Searches' : 'Total Views'}
               </span>
             </div>
           </div>
@@ -2564,23 +2566,23 @@ const ActivityDetails = () => {
             </div>
             <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
               <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">Cart Adds</span>
-              <span className="text-2xl font-black text-emerald-400 mt-2">{extraData.funnel?.cartAdds || 0}</span>
+              <span className="text-2xl font-black text-white mt-2">{extraData.funnel?.cartAdds || 0}</span>
             </div>
             <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
               <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">Checkout Initiations</span>
-              <span className="text-2xl font-black text-blue-400 mt-2">{extraData.funnel?.checkoutInitiations || 0}</span>
+              <span className="text-2xl font-black text-white mt-2">{extraData.funnel?.checkoutInitiations || 0}</span>
             </div>
             <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
               <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">Purchases</span>
-              <span className="text-2xl font-black text-purple-400 mt-2">{extraData.funnel?.checkoutSuccesses || 0}</span>
+              <span className="text-2xl font-black text-white mt-2">{extraData.funnel?.checkoutSuccesses || 0}</span>
             </div>
             <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
               <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">Cart to Checkout</span>
-              <span className="text-2xl font-black text-indigo-400 mt-2">{extraData.funnel?.conversionRates?.cartToCheckout || '0.0%'}</span>
+              <span className="text-2xl font-black text-white mt-2">{extraData.funnel?.conversionRates?.cartToCheckout || '0.0%'}</span>
             </div>
             <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
               <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">Checkout to Purchase</span>
-              <span className="text-2xl font-black text-cyan-400 mt-2">{extraData.funnel?.conversionRates?.checkoutToPurchase || '0.0%'}</span>
+              <span className="text-2xl font-black text-white mt-2">{extraData.funnel?.conversionRates?.checkoutToPurchase || '0.0%'}</span>
             </div>
           </div>
 
@@ -3067,7 +3069,7 @@ const ActivityDetails = () => {
       {selectedViewerBreakdown && createPortal(
         <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
           <div className="bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 shadow-2xl rounded-3xl p-6 max-w-lg w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+            <div className="absolute inset-0 bg-transparent pointer-events-none"></div>
 
             {/* Header */}
             <div className="flex justify-between items-start mb-5 relative z-10">

@@ -23,9 +23,7 @@ import Cart from './Pages/Cart';
 import Chat from './Pages/Chat';
 import UsersList from './Pages/SubMenus/Users/UsersList';
 import UserDetails from './Pages/SubMenus/Users/UserDetails';
-import UsersVerification from './Pages/SubMenus/Users/UsersVerification';
 import ActiveUsers from './Pages/SubMenus/Users/ActiveUsers';
-import DeletionRequests from './Pages/SubMenus/Users/DeletionRequests';
 import RolesPermissions from './Pages/SubMenus/Users/RolesPermissions';
 import Faqs from './Pages/SubMenus/Settings/Faqs';
 import PrivacyP from './Pages/SubMenus/Settings/PrivacyP';
@@ -79,9 +77,7 @@ function App() {
                 <Route path="/chat" element={<Chat/>} />
                 <Route path='/users/list' element={<UsersList/>}/>
                 <Route path='/users/list/:id' element={<UserDetails/>}/>
-                <Route path='/users/verify' element={<UsersVerification/>}/>
                 <Route path='/users/active' element={<ActiveUsers/>}/>
-                <Route path='/users/deletion-requests' element={<DeletionRequests/>}/>
                 <Route path='/users/roles-permissions' element={<RolesPermissions/>}/>
                 <Route path='/users/create' element={<RolesPermissions/>}/>
                 <Route path="/settings/maintenance" element={<Maintenance />} />

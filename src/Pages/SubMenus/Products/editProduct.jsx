@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FiArrowUp, FiArrowDown, FiCopy, FiTrash2, FiSave, FiArrowLeft, FiPlus, FiLoader, FiChevronDown, FiChevronUp, FiImage } from 'react-icons/fi';
 import { BASE_URL } from '../../../api/axios';
+import CustomDropdown from '../../../Components/CustomDropdown';
 
 const getImageUrl = (path) => {
   if (!path) return '';
@@ -249,8 +250,19 @@ const Variants = () => {
       formData.append('warranty', fullProduct.warranty || '');
       formData.append('cancellationPolicy', fullProduct.cancellationPolicy || '');
       
-      if (fullProduct.brand) formData.append('brand', fullProduct.brand);
-      if (fullProduct.category) formData.append('category', fullProduct.category);
+      if (!fullProduct.brand) {
+        alert("Please select a brand.");
+        setSaving(false);
+        return;
+      }
+      if (!fullProduct.category) {
+        alert("Please select a category.");
+        setSaving(false);
+        return;
+      }
+      
+      formData.append('brand', fullProduct.brand);
+      formData.append('category', fullProduct.category);
   
       formData.append('variants', JSON.stringify(payloadVariants));
 
@@ -344,17 +356,21 @@ const Variants = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Brand</label>
-              <select name="brand" value={fullProduct.brand || ''} onChange={handleProductChange} required className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium">
-                <option value="" className="bg-slate-800">Select Brand</option>
-                {brands.map(b => <option key={b._id} value={b._id} className="bg-slate-800">{b.name}</option>)}
-              </select>
+              <CustomDropdown
+                value={fullProduct.brand || ''}
+                onChange={(val) => setFullProduct(prev => ({ ...prev, brand: val }))}
+                options={[{ value: '', label: 'Select Brand' }, ...brands.map(b => ({ value: b._id, label: b.name }))]}
+                statusColor="bg-slate-900/50 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50"
+              />
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Category</label>
-              <select name="category" value={fullProduct.category || ''} onChange={handleProductChange} required className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium">
-                <option value="" className="bg-slate-800">Select Category</option>
-                {categories.map(c => <option key={c._id} value={c._id} className="bg-slate-800">{c.name}</option>)}
-              </select>
+              <CustomDropdown
+                value={fullProduct.category || ''}
+                onChange={(val) => setFullProduct(prev => ({ ...prev, category: val }))}
+                options={[{ value: '', label: 'Select Category' }, ...categories.map(c => ({ value: c._id, label: c.name }))]}
+                statusColor="bg-slate-900/50 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50"
+              />
             </div>
             <div className="sm:col-span-2">
               <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Product Name</label>

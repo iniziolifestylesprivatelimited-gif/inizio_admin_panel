@@ -8,12 +8,13 @@ import {
 import { useOutletContext } from 'react-router-dom';
 import { useConfirm } from '../../../Context/ConfirmationContext';
 
-const UsersVerification = () => {
+const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuery, refreshParentCounts }) => {
   const { confirm, showAlert } = useConfirm();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const activeSearchQuery = externalSearchQuery !== undefined ? externalSearchQuery : searchQuery;
 
   const [selectedUser, setSelectedUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -82,6 +83,7 @@ const UsersVerification = () => {
       setUsers((prevUsers) => prevUsers.filter((user) => user._id !== id));
       if (selectedUser && selectedUser._id === id) closeModal();
       showAlert('User approved and ID generated successfully! They have been moved to the Approved Customers list.', 'success');
+      if (refreshParentCounts) refreshParentCounts();
     } catch (err) {
       console.error('Approve error:', err);
       showAlert(err.response?.data?.message || 'Failed to approve user.', 'error');
@@ -109,6 +111,7 @@ const UsersVerification = () => {
       setRejectingUserId(null);
       setRejectionReason('');
       showAlert('User KYC rejected. They have been moved to the Rejected KYC list.', 'success');
+      if (refreshParentCounts) refreshParentCounts();
     } catch (err) {
       console.error('Reject error:', err);
       showAlert(err.response?.data?.message || 'Failed to reject user.', 'error');
@@ -149,44 +152,46 @@ const UsersVerification = () => {
   };
 
   const filteredUsers = users.filter(user => {
-    if (!searchQuery) return true; // If no search, return all users regardless of missing fields
-    return user.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-           user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-           user.phone?.includes(searchQuery);
+    if (!activeSearchQuery) return true; // If no search, return all users regardless of missing fields
+    return user.name?.toLowerCase().includes(activeSearchQuery.toLowerCase()) || 
+           user.email?.toLowerCase().includes(activeSearchQuery.toLowerCase()) ||
+           user.phone?.includes(activeSearchQuery);
   });
 
   return (
     <div className="space-y-4 relative">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-        <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-            <FiUser className="text-amber-400" />
-            KYC Verification
-          </h1>
-          <p className="text-slate-400 font-medium mt-1">Approve or reject pending applications.</p>
+      {!hideHeader && (
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+          <div>
+            <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+              <FiUser className="text-amber-400" />
+              KYC Verification
+            </h1>
+            <p className="text-slate-400 font-medium mt-1">Approve or reject pending applications.</p>
+          </div>
+          
+          <div className="relative w-full md:w-72">
+            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
+            <input 
+              type="text" 
+              placeholder="Search by name, email..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-10 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/50 text-white placeholder-slate-500 text-sm font-medium"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+              >
+                <FiX className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
-        
-        <div className="relative w-full md:w-72">
-          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
-          <input 
-            type="text" 
-            placeholder="Search by name, email..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-10 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/50 text-white placeholder-slate-500 text-sm font-medium"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
-            >
-              <FiX className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-      </div>
+      )}
 
       {/* Content Area */}
       {loading ? (

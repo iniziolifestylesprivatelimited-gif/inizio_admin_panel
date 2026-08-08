@@ -520,6 +520,15 @@ console.log(products)
   const handleAddSubmit = async (e) => {
     e.preventDefault();
 
+    if (!addFormData.brand) {
+      alert("Please select a brand.");
+      return;
+    }
+    if (!addFormData.category) {
+      alert("Please select a category.");
+      return;
+    }
+
     const parsedQuantityPricing = (addFormData.quantityPricing || [])
       .map(qp => ({ minQty: Number(qp.minQty) || 0, price: Number(qp.price) || 0 }))
       .filter(qp => qp.minQty > 0 || qp.price > 0);
@@ -1816,7 +1825,7 @@ console.log(products)
 
         {/* Pagination */}
         {!loading && filteredProducts.length > 0 && (
-          <div className="flex flex-col sm:flex-row gap-4 justify-center sm:justify-end items-center px-4 sm:px-6 py-4 border-t border-white/10 bg-slate-800/50">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center sm:justify-end items-center px-4 sm:px-6 py-4 border-t border-white/10 bg-slate-950/30">
             {/* <span className="text-sm text-slate-400">
               Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredProducts.length)} of {filteredProducts.length} entries
             </span> */}
@@ -1901,9 +1910,9 @@ console.log(products)
       {isDetailsModalOpen && currentProductForView && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={() => setIsDetailsModalOpen(false)}></div>
-          <div className="relative bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative bg-linear-to-br from-slate-950 to-blue-950/65 border border-white/10 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
             
-            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-800/50">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-950/30">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-900/50 text-blue-400 flex items-center justify-center text-lg">
                   <FiPackage />
@@ -1918,7 +1927,7 @@ console.log(products)
             <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
               
               {/* General Information */}
-              <div className="bg-slate-800/40 p-5 rounded-2xl border border-white/5">
+              <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5">
                 <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-2"><span className="w-1.5 h-5 bg-blue-500 rounded-full"></span>General Information</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
                   <div className="sm:col-span-2 md:col-span-3">
@@ -1972,7 +1981,7 @@ console.log(products)
               </div>
 
               {/* Pricing & Inventory */}
-              <div className="bg-slate-800/40 p-5 rounded-2xl border border-white/5">
+              <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5">
                 <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-2"><span className="w-1.5 h-5 bg-emerald-500 rounded-full"></span>Pricing & Inventory</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-5">
                   <div>
@@ -2003,7 +2012,7 @@ console.log(products)
               </div>
 
               {/* Extended Details */}
-              <div className="bg-slate-800/40 p-5 rounded-2xl border border-white/5 space-y-4">
+              <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5 space-y-4">
                 <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-2"><span className="w-1.5 h-5 bg-amber-500 rounded-full"></span>Descriptions & Policies</h3>
                 <div>
                   <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Description</p>
@@ -2036,7 +2045,7 @@ console.log(products)
               </div>
 
               {/* Images */}
-              <div className="bg-slate-800/40 p-5 rounded-2xl border border-white/5">
+              <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5">
                 <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-2"><span className="w-1.5 h-5 bg-purple-500 rounded-full"></span>Product Images</h3>
                 {currentProductForView.images && currentProductForView.images.length > 0 ? (
                   <div className="flex flex-wrap gap-4">
@@ -2055,7 +2064,7 @@ console.log(products)
               <div className="mt-2">
                 <button 
                   onClick={() => setIsVariantsExpanded(!isVariantsExpanded)}
-                  className="w-full flex items-center justify-between px-5 py-4 bg-slate-800/60 border border-white/10 rounded-2xl hover:bg-slate-800 transition-colors cursor-pointer"
+                  className="w-full flex items-center justify-between px-5 py-4 bg-slate-950/30 border border-white/10 rounded-2xl hover:bg-slate-900/30 transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
                     <span className="w-8 h-8 rounded-full bg-blue-900/50 flex items-center justify-center text-blue-400 font-bold text-sm">
@@ -2070,7 +2079,7 @@ console.log(products)
                   <div className="mt-3 space-y-3">
                     {currentProductForView.variants && currentProductForView.variants.length > 0 ? (
                       currentProductForView.variants.map((variant, idx) => (
-                        <div key={idx} className="p-5 bg-slate-800/40 border border-white/5 rounded-2xl space-y-4">
+                        <div key={idx} className="p-5 bg-slate-950/30 border border-white/5 rounded-2xl space-y-4">
                           <div className="flex justify-between items-center border-b border-white/5 pb-2 mb-3">
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-bold text-white uppercase tracking-wider">Variant #{idx + 1}</span>
@@ -2152,7 +2161,7 @@ console.log(products)
 
             </div>
             
-            <div className="px-4 sm:px-6 py-4 border-t border-white/10 bg-slate-800/50 flex flex-col sm:flex-row justify-between gap-3 shrink-0">
+            <div className="px-4 sm:px-6 py-4 border-t border-white/10 bg-slate-950/30 flex flex-col sm:flex-row justify-between gap-3 shrink-0">
               <button 
                 type="button"
                 onClick={() => setIsDetailsModalOpen(false)} 
@@ -2177,9 +2186,9 @@ console.log(products)
       {isAddModalOpen && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={closeAddModal}></div>
-          <div className="relative bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative bg-linear-to-br from-slate-950 to-blue-900/60 border border-white/10 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
             
-            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-800/50">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-950/30">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-900/50 text-blue-400 flex items-center justify-center text-lg">
                   <FiPlus />
@@ -2195,22 +2204,26 @@ console.log(products)
               <form id="addProductForm" onSubmit={handleAddSubmit} className="space-y-6">
                 
                 {/* General Information */}
-                <div className="bg-slate-800/40 p-5 rounded-2xl border border-white/5">
+                <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5">
                   <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-2"><span className="w-1.5 h-5 bg-blue-500 rounded-full"></span>General Information</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
                       <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Brand</label>
-                      <select name="brand" value={addFormData.brand} onChange={handleAddChange} required className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium">
-                        <option value="" className="bg-slate-800">Select Brand</option>
-                        {brands.map(b => <option key={b._id} value={b._id} className="bg-slate-800">{b.name}</option>)}
-                      </select>
+                      <CustomDropdown
+                        value={addFormData.brand}
+                        onChange={(val) => setAddFormData(prev => ({ ...prev, brand: val }))}
+                        options={[{ value: '', label: 'Select Brand' }, ...brands.map(b => ({ value: b._id, label: b.name }))]}
+                        statusColor="bg-slate-900/50 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50"
+                      />
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Category</label>
-                      <select name="category" value={addFormData.category} onChange={handleAddChange} required className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium">
-                        <option value="" className="bg-slate-800">Select Category</option>
-                        {categories.map(c => <option key={c._id} value={c._id} className="bg-slate-800">{c.name}</option>)}
-                      </select>
+                      <CustomDropdown
+                        value={addFormData.category}
+                        onChange={(val) => setAddFormData(prev => ({ ...prev, category: val }))}
+                        options={[{ value: '', label: 'Select Category' }, ...categories.map(c => ({ value: c._id, label: c.name }))]}
+                        statusColor="bg-slate-900/50 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50"
+                      />
                     </div>
                     <div className="sm:col-span-2">
                       <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Product Name</label>
@@ -2228,7 +2241,7 @@ console.log(products)
                 </div>
 
                 {/* Pricing & Inventory */}
-                <div className="bg-slate-800/40 p-5 rounded-2xl border border-white/5">
+                <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5">
                   <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-2"><span className="w-1.5 h-5 bg-emerald-500 rounded-full"></span>Pricing & Inventory</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
@@ -2274,7 +2287,7 @@ console.log(products)
                 </div>
 
                 {/* Descriptions & Policies */}
-                <div className="bg-slate-800/40 p-5 rounded-2xl border border-white/5">
+                <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5">
                   <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-2"><span className="w-1.5 h-5 bg-amber-500 rounded-full"></span>Descriptions & Policies</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div className="sm:col-span-2">
@@ -2305,7 +2318,7 @@ console.log(products)
                 </div>
 
                 {/* Images */}
-                <div className="bg-slate-800/40 p-5 rounded-2xl border border-white/5">
+                <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5">
                   <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-2"><span className="w-1.5 h-5 bg-purple-500 rounded-full"></span>Product Images</h3>
                   <div className="grid grid-cols-1 gap-5">
                     {/* Image URLs Section */}
@@ -2357,7 +2370,7 @@ console.log(products)
                         <span className="text-[10px] text-slate-500">Supports multiple files (JPG, PNG, WEBP)</span>
                       </div>
                       {addProductImageFiles.length > 0 && (
-                        <div className="flex flex-wrap gap-4 mt-4 p-4 bg-slate-800/50 border border-white/10 rounded-xl">
+                        <div className="flex flex-wrap gap-4 mt-4 p-4 bg-slate-950/30 border border-white/10 rounded-xl">
                           {addProductImageFiles.map((file, i) => (
                             <div key={i} className="relative w-28 h-28 border border-white/10 rounded-xl overflow-hidden group bg-slate-800 shadow-sm flex items-center justify-center">
                               <img src={URL.createObjectURL(file)} alt="Preview" className="max-w-full max-h-full object-contain bg-white p-2" />
@@ -2378,7 +2391,7 @@ console.log(products)
                 </div>
 
                 {/* Product Variants */}
-                <div className="bg-slate-800/40 p-5 rounded-2xl border border-white/5 space-y-6">
+                <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5 space-y-6">
                   <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-2"><span className="w-1.5 h-5 bg-blue-500 rounded-full"></span>Product Variants</h3>
                   <div className="space-y-4">
                     {addVariants.map((variant, index) => (
@@ -2493,7 +2506,7 @@ console.log(products)
               </form>
             </div>
             
-            <div className="px-4 sm:px-6 py-4 border-t border-white/10 bg-slate-800/50 flex flex-col sm:flex-row justify-end gap-3 shrink-0">
+            <div className="px-4 sm:px-6 py-4 border-t border-white/10 bg-slate-950/30 flex flex-col sm:flex-row justify-end gap-3 shrink-0">
               <button onClick={closeAddModal} className="w-full sm:w-auto px-5 py-2.5 text-slate-300 font-bold rounded-xl hover:bg-slate-800 transition-colors">Cancel</button>
               <button type="submit" form="addProductForm" className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30">
                 <FiPlus className="mr-2" />
@@ -2510,7 +2523,7 @@ console.log(products)
           <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={() => !isBulkUpdating && setIsDeactivateModalOpen(false)}></div>
           
           <div className="relative bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-800/50">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-950/30">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-red-900/50 text-red-400 flex items-center justify-center text-lg">
                   <FiTrash2 />
@@ -2637,7 +2650,7 @@ console.log(products)
               )}
             </div>
 
-            <div className="px-6 py-4 border-t border-white/10 bg-slate-800/50 flex flex-col sm:flex-row justify-end gap-3">
+            <div className="px-6 py-4 border-t border-white/10 bg-slate-950/30 flex flex-col sm:flex-row justify-end gap-3">
               <button 
                 onClick={() => setIsDeactivateModalOpen(false)} 
                 disabled={isBulkUpdating}
@@ -2673,7 +2686,7 @@ console.log(products)
           <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={() => !isBulkUpdating && setIsActivateModalOpen(false)}></div>
           
           <div className="relative bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-800/50">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-950/30">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-emerald-900/50 text-emerald-400 flex items-center justify-center text-lg">
                   <FiCheck />
@@ -2800,7 +2813,7 @@ console.log(products)
               )}
             </div>
 
-            <div className="px-6 py-4 border-t border-white/10 bg-slate-800/50 flex flex-col sm:flex-row justify-end gap-3">
+            <div className="px-6 py-4 border-t border-white/10 bg-slate-950/30 flex flex-col sm:flex-row justify-end gap-3">
               <button 
                 onClick={() => setIsActivateModalOpen(false)} 
                 disabled={isBulkUpdating}
@@ -2835,7 +2848,7 @@ console.log(products)
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={() => setIsImageViewOpen(false)}></div>
           <div className="relative bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-800/50">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-950/30">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-900/50 text-blue-400 flex items-center justify-center text-lg">
                   <FiImage />
@@ -2875,7 +2888,7 @@ console.log(products)
                 </div>
               )}
             </div>
-            <div className="px-6 py-4 border-t border-white/10 bg-slate-800/50 flex justify-end shrink-0">
+            <div className="px-6 py-4 border-t border-white/10 bg-slate-950/30 flex justify-end shrink-0">
               <button onClick={() => setIsImageViewOpen(false)} className="px-6 py-2.5 bg-slate-700 text-white font-bold rounded-xl hover:bg-slate-600 transition-colors cursor-pointer">Close</button>
             </div>
           </div>

@@ -140,7 +140,7 @@ const Layout = () => {
         id: 'verify',
         title: 'Pending Verifications',
         description: `${usersVerifyUnreadCount} user${usersVerifyUnreadCount > 1 ? 's are' : ' is'} pending verification.`,
-        path: '/users/verify',
+        path: '/users/list?tab=pending',
         icon: '👤',
         color: 'text-amber-400 bg-amber-500/10'
       });
@@ -150,7 +150,7 @@ const Layout = () => {
         id: 'deletion',
         title: 'Deletion Requests',
         description: `${usersDeletionUnreadCount} account deletion request${usersDeletionUnreadCount > 1 ? 's' : ''} pending.`,
-        path: '/users/deletion-requests',
+        path: '/users/list?tab=deleted',
         icon: '⚠️',
         color: 'text-red-400 bg-red-500/10'
       });
@@ -320,18 +320,20 @@ const Layout = () => {
       setOrdersUnreadCount(0);
     }
     if (location.pathname === '/users/list') {
-      setUsersUnreadCount(0);
-    }
-    if (location.pathname === '/users/verify') {
-      setUsersVerifyUnreadCount(0);
-    }
-    if (location.pathname === '/users/deletion-requests') {
-      setUsersDeletionUnreadCount(0);
+      const searchParams = new URLSearchParams(location.search);
+      const tab = searchParams.get('tab') || 'approved';
+      if (tab === 'pending') {
+        setUsersVerifyUnreadCount(0);
+      } else if (tab === 'deleted') {
+        setUsersDeletionUnreadCount(0);
+      } else {
+        setUsersUnreadCount(0);
+      }
     }
     if (location.pathname === '/quotes') {
       setQuotesUnreadCount(0);
     }
-  }, [location.pathname]);
+  }, [location.pathname, location.search]);
 
   // Poll orders and users
   useEffect(() => {
@@ -400,26 +402,28 @@ const Layout = () => {
 
           const prevPendingCount = prevPendingRef.current?.length || 0;
           const currentPendingCount = pendingUsers.length;
-          if (currentPendingCount > prevPendingCount && location.pathname !== '/users/verify') {
+          const isAtPendingTab = location.pathname === '/users/list' && new URLSearchParams(location.search).get('tab') === 'pending';
+          if (currentPendingCount > prevPendingCount && !isAtPendingTab) {
             const countDiff = currentPendingCount - prevPendingCount;
             setUsersVerifyUnreadCount(prev => prev + countDiff);
             addToast(
               `Pending Verification`,
               `${countDiff} user${countDiff > 1 ? 's' : ''} pending verification.`,
-              '/users/verify',
+              '/users/list?tab=pending',
               FiClock
             );
           }
 
           const prevDeletionCount = prevDeletionRef.current?.length || 0;
           const currentDeletionCount = deletionUsers.length;
-          if (currentDeletionCount > prevDeletionCount && location.pathname !== '/users/deletion-requests') {
+          const isAtDeletionTab = location.pathname === '/users/list' && new URLSearchParams(location.search).get('tab') === 'deleted';
+          if (currentDeletionCount > prevDeletionCount && !isAtDeletionTab) {
             const countDiff = currentDeletionCount - prevDeletionCount;
             setUsersDeletionUnreadCount(prev => prev + countDiff);
             addToast(
               `Account Deletion Request`,
               `${countDiff} account deletion request${countDiff > 1 ? 's' : ''} pending.`,
-              '/users/deletion-requests',
+              '/users/list?tab=deleted',
               FiAlertTriangle
             );
           }
@@ -472,9 +476,7 @@ const Layout = () => {
   const getBadgeCount = (path) => {
     if (path === '/chat') return chatUnreadCount;
     if (path === '/orders' || path === '/orders/all') return ordersUnreadCount;
-    if (path === '/users/list') return usersUnreadCount;
-    if (path === '/users/verify') return usersVerifyUnreadCount;
-    if (path === '/users/deletion-requests') return usersDeletionUnreadCount;
+    if (path === '/users/list') return usersUnreadCount + usersVerifyUnreadCount + usersDeletionUnreadCount;
     if (path === '/quotes') return quotesUnreadCount;
     return 0;
   };
@@ -503,9 +505,9 @@ const Layout = () => {
             className={`flex items-start justify-between gap-4.5 p-4 bg-slate-900 border border-white/10 border-l-4 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.8)] cursor-pointer hover:bg-slate-800 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 animate-in slide-in-from-right-full fade-in text-left group pointer-events-auto select-none ${
               t.path.startsWith('/chat') ? 'border-l-blue-500 shadow-blue-500/10' :
               t.path.startsWith('/orders') ? 'border-l-emerald-500 shadow-emerald-500/10' :
-              t.path === '/users/list' ? 'border-l-indigo-500 shadow-indigo-500/10' :
-              t.path === '/users/verify' ? 'border-l-amber-500 shadow-amber-500/10' :
-              t.path === '/users/deletion-requests' ? 'border-l-rose-500 shadow-rose-500/10' :
+              (t.path === '/users/list' || t.path.includes('tab=approved')) ? 'border-l-indigo-500 shadow-indigo-500/10' :
+              t.path.includes('tab=pending') ? 'border-l-amber-500 shadow-amber-500/10' :
+              t.path.includes('tab=deleted') ? 'border-l-rose-500 shadow-rose-500/10' :
               t.path === '/quotes' ? 'border-l-cyan-500 shadow-cyan-500/10' :
               'border-l-blue-500 shadow-blue-500/10'
             }`}
@@ -513,9 +515,9 @@ const Layout = () => {
             <div className={`p-1 bg-white/5 rounded-xl shrink-0 group-hover:scale-110 transition-transform ${
               t.path.startsWith('/chat') ? 'text-blue-400' :
               t.path.startsWith('/orders') ? 'text-emerald-400' :
-              t.path === '/users/list' ? 'text-indigo-400' :
-              t.path === '/users/verify' ? 'text-amber-400' :
-              t.path === '/users/deletion-requests' ? 'text-rose-400' :
+              (t.path === '/users/list' || t.path.includes('tab=approved')) ? 'text-indigo-400' :
+              t.path.includes('tab=pending') ? 'text-amber-400' :
+              t.path.includes('tab=deleted') ? 'text-rose-400' :
               t.path === '/quotes' ? 'text-cyan-400' :
               'text-blue-400'
             }`}>
