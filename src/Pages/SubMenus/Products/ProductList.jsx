@@ -1459,7 +1459,7 @@ console.log(products)
             </span>
             {(searchTerm || selectedBrand || selectedCategory || selectedStockStatus) && (
               <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full">
-                Found: <strong>{filteredProducts.length}</strong>
+                Found: <strong className="text-white">{filteredProducts.length}</strong> (incl. Variants: <strong className="text-white">{filteredProducts.reduce((sum, p) => sum + (Array.isArray(p.variants) && p.variants.length > 1 ? p.variants.length : 1), 0)}</strong>)
               </span>
             )}
           </div>
@@ -1604,23 +1604,25 @@ console.log(products)
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">S.No</th>
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs min-w-[140px]">
                   <CustomDropdown
-                    value=""
+                    value={selectedBrand}
                     onChange={(val) => handleFilterChange('brand', val)}
                     options={[
-                      { value: '', label: selectedBrand ? 'Brand (filtered)' : 'Brand' },
+                      { value: '', label: 'All' },
                       ...brands.map(b => ({ value: b._id, label: b.name }))
                     ]}
+                    defaultLabel="Brand"
                     statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedBrand ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'}`}
                   />
                 </th>
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs min-w-[140px]">
                   <CustomDropdown
-                    value=""
+                    value={selectedCategory}
                     onChange={(val) => handleFilterChange('category', val)}
                     options={[
-                      { value: '', label: selectedCategory ? 'Category (filtered)' : 'Category' },
+                      { value: '', label: 'All' },
                       ...categories.map(c => ({ value: c._id, label: c.name }))
                     ]}
+                    defaultLabel="Category"
                     statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedCategory ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'}`}
                   />
                 </th>
@@ -1665,14 +1667,15 @@ console.log(products)
                 </th>
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs text-center min-w-[130px]">
                   <CustomDropdown
-                    value=""
+                    value={selectedStockStatus}
                     onChange={(val) => handleFilterChange('stock', val)}
                     options={[
-                      { value: '', label: selectedStockStatus ? 'Total Qty (filtered)' : 'Total Qty' },
+                      { value: '', label: 'All' },
                       { value: 'in_stock', label: 'In Stock' },
                       { value: 'low_stock', label: 'Low Stock' },
                       { value: 'out_of_stock', label: 'Out of Stock' }
                     ]}
+                    defaultLabel="Total Qty"
                     statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedStockStatus ? 'text-blue-400 font-extrabold' : 'text-slate-300'}`}
                   />
                 </th>
