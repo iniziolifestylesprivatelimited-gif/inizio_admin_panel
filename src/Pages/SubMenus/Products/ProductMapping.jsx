@@ -29,7 +29,8 @@ const ProductMapping = () => {
   const [stockSyncStatus, setStockSyncStatus] = useState({});
   const [isSyncingStock, setIsSyncingStock] = useState(false);
   const [stockSyncResult, setStockSyncResult] = useState(null);
-  const [showOnlyChangedStock, setShowOnlyChangedStock] = useState(false);
+  const [tallyFilter, setTallyFilter] = useState('all'); // 'all' | 'unmatched' | 'missing'
+  const [stockFilter, setStockFilter] = useState('all'); // 'all' | 'diff' | 'unmatched' | 'missing'
   
   // Bulk sync status modal states
   const [showStatusModal, setShowStatusModal] = useState(false);
@@ -37,6 +38,54 @@ const ProductMapping = () => {
   const [isSyncingInProgress, setIsSyncingInProgress] = useState(false);
   const [syncProgress, setSyncProgress] = useState({ current: 0, total: 0 });
   const [syncLogs, setSyncLogs] = useState([]);
+
+  const getMissingTallyItems = () => {
+    const missing = [];
+    products.forEach(p => {
+      if (!p.variants || p.variants.length === 0) {
+        const isMatched = mappedData.some(m => m.matchedProduct?._id === p._id);
+        if (!isMatched) {
+          missing.push({ product: p, variant: null });
+        }
+      } else {
+        p.variants.forEach(v => {
+          const isMatched = mappedData.some(m => 
+            m.matchedProduct?._id === p._id && 
+            m.matchedVariant && 
+            (m.matchedVariant._id === v._id || m.matchedVariant.name === v.name)
+          );
+          if (!isMatched) {
+            missing.push({ product: p, variant: v });
+          }
+        });
+      }
+    });
+    return missing;
+  };
+
+  const getMissingStockItems = () => {
+    const missing = [];
+    products.forEach(p => {
+      if (!p.variants || p.variants.length === 0) {
+        const isMatched = stockMappedData.some(m => m.matchedProduct?._id === p._id);
+        if (!isMatched) {
+          missing.push({ product: p, variant: null });
+        }
+      } else {
+        p.variants.forEach(v => {
+          const isMatched = stockMappedData.some(m => 
+            m.matchedProduct?._id === p._id && 
+            m.matchedVariant && 
+            (m.matchedVariant._id === v._id || m.matchedVariant.name === v.name)
+          );
+          if (!isMatched) {
+            missing.push({ product: p, variant: v });
+          }
+        });
+      }
+    });
+    return missing;
+  };
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -59,6 +108,7 @@ const ProductMapping = () => {
     setSyncingStates({});
     setSyncStatus({});
     setSyncedProducts([]);
+    setTallyFilter('all');
   };
 
   const handleStockFileChange = (e) => {
@@ -69,6 +119,7 @@ const ProductMapping = () => {
     setStockSyncStatus({});
     setStockSyncResult(null);
     setError('');
+    setStockFilter('all');
   };
 
   const findProductAndVariant = (excelName, productsList) => {
@@ -918,56 +969,183 @@ const ProductMapping = () => {
 
             {mappedData.length > 0 && (
               <div className="space-y-4 pt-4 border-t border-white/10">
-                <h3 className="text-lg font-bold text-white">Mapped Products Preview</h3>
-                <div className="overflow-y-auto custom-scrollbar bg-slate-900/50 rounded-xl border border-white/10 max-h-96">
-                  <table className="w-full text-left border-collapse whitespace-nowrap">
-                    <thead className="bg-slate-800/80 border-b border-white/10 text-slate-300 text-xs uppercase tracking-wider sticky top-0 z-10 backdrop-blur-sm">
-                      <tr>
-                        <th className="px-4 py-3 font-medium w-12 text-center">S.No</th>
-                        <th className="px-4 py-3 font-medium">Excel Product</th>
-                        <th className="px-4 py-3 font-medium text-center">Excel Qty</th>
-                        <th className="px-4 py-3 font-medium">Matched System Product</th>
-                        <th className="px-4 py-3 font-medium text-center">System Qty</th>
-                        <th className="px-4 py-3 font-medium text-center">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                      {mappedData.map((mapping, index) => (
-                        <tr key={index} className="hover:bg-white/5 transition-colors">
-                          <td className="px-4 py-3 text-sm text-slate-400 text-center font-medium">{index + 1}</td>
-                          <td className="px-4 py-3 text-sm text-slate-300">{mapping.excelName}</td>
-                          <td className="px-4 py-3 text-sm font-bold text-amber-400">{mapping.excelQty}</td>
-                          <td className="px-4 py-3 text-sm">
-                            {mapping.matchedProduct ? (
-                              <span className="text-emerald-400 font-medium">{mapping.matchedProduct.name}</span>
-                            ) : (
-                              <span className="text-red-400/80 italic">Not Found</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-slate-400">
-                            {mapping.matchedProduct ? mapping.matchedProduct.totalQuantity : '-'}
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <button
-                              onClick={() => handleSyncProduct(mapping, index)}
-                              disabled={!mapping.matchedProduct || syncingStates[index] || syncStatus[index] === 'success'}
-                              className={`inline-flex items-center justify-center px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                                syncStatus[index] === 'success' 
-                                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
-                                  : syncStatus[index] === 'error'
-                                  ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
-                                  : 'bg-blue-600/50 text-white hover:bg-blue-600 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed'
-                              }`}
-                            >
-                              {syncingStates[index] ? <FiLoader className="animate-spin mr-1.5" /> : syncStatus[index] === 'success' ? <FiCheckCircle className="mr-1.5" /> : <FiRefreshCcw className="mr-1.5" />}
-                              {syncStatus[index] === 'success' ? 'Synced' : syncStatus[index] === 'error' ? 'Retry' : 'Sync'}
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-lg font-bold text-white">Mapped Products Preview</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Preview of excel import data and match status.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      onClick={() => setTallyFilter('all')}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                        tallyFilter === 'all'
+                          ? 'bg-blue-600 text-white shadow'
+                          : 'bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700'
+                      }`}
+                    >
+                      Show All ({mappedData.length})
+                    </button>
+                    <button
+                      onClick={() => setTallyFilter('unmatched_missing')}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                        tallyFilter === 'unmatched_missing'
+                          ? 'bg-red-600 text-white shadow'
+                          : 'bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700'
+                      }`}
+                    >
+                      Unmatched & Missing ({mappedData.filter(m => !m.matchedProduct).length + getMissingTallyItems().length})
+                    </button>
+                  </div>
                 </div>
+
+                {tallyFilter === 'unmatched_missing' ? (
+                  <div className="space-y-6">
+                    {/* Section 1: Unmatched Excel Items */}
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                        <FiAlertTriangle /> Excel Items Not Found in System ({mappedData.filter(m => !m.matchedProduct).length})
+                      </h4>
+                      <div className="overflow-y-auto custom-scrollbar bg-slate-900/50 rounded-xl border border-white/10 max-h-60">
+                        <table className="w-full text-left border-collapse whitespace-nowrap">
+                          <thead className="bg-slate-800/80 border-b border-white/10 text-slate-300 text-xs uppercase tracking-wider sticky top-0 z-10 backdrop-blur-sm">
+                            <tr>
+                              <th className="px-4 py-3 font-medium w-12 text-center">S.No</th>
+                              <th className="px-4 py-3 font-medium">Excel Product</th>
+                              <th className="px-4 py-3 font-medium text-center">Excel Qty</th>
+                              <th className="px-4 py-3 font-medium">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/5">
+                            {mappedData.filter(m => !m.matchedProduct).length === 0 ? (
+                              <tr>
+                                <td colSpan="4" className="px-4 py-6 text-center text-slate-500 italic">No unmatched Excel items. All items mapped!</td>
+                              </tr>
+                            ) : (
+                              mappedData
+                                .map((mapping, idx) => ({ mapping, idx }))
+                                .filter(({ mapping }) => !mapping.matchedProduct)
+                                .map(({ mapping, idx }, listIdx) => (
+                                  <tr key={idx} className="hover:bg-white/5 transition-colors">
+                                    <td className="px-4 py-3 text-sm text-slate-400 text-center font-medium">{listIdx + 1}</td>
+                                    <td className="px-4 py-3 text-sm text-slate-300">{mapping.excelName}</td>
+                                    <td className="px-4 py-3 text-sm font-bold text-amber-400 text-center">{mapping.excelQty}</td>
+                                    <td className="px-4 py-3 text-sm text-red-400/80 italic font-semibold">Not Found</td>
+                                  </tr>
+                                ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Section 2: Missing System Products */}
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-bold text-rose-400 uppercase tracking-wider flex items-center gap-2">
+                        <FiDatabase /> System Products Missing from Excel ({getMissingTallyItems().length})
+                      </h4>
+                      <div className="overflow-y-auto custom-scrollbar bg-slate-900/50 rounded-xl border border-white/10 max-h-60">
+                        <table className="w-full text-left border-collapse whitespace-nowrap">
+                          <thead className="bg-slate-800/80 border-b border-white/10 text-slate-300 text-xs uppercase tracking-wider sticky top-0 z-10 backdrop-blur-sm">
+                            <tr>
+                              <th className="px-4 py-3 font-medium w-12 text-center">S.No</th>
+                              <th className="px-4 py-3 font-medium">System Product</th>
+                              <th className="px-4 py-3 font-medium">Variant</th>
+                              <th className="px-4 py-3 font-medium">EAN / SKU</th>
+                              <th className="px-4 py-3 font-medium text-center">System Qty</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/5">
+                            {getMissingTallyItems().length === 0 ? (
+                              <tr>
+                                <td colSpan="5" className="px-4 py-6 text-center text-slate-500 italic">No missing system products. All are matched!</td>
+                              </tr>
+                            ) : (
+                              getMissingTallyItems().map((item, index) => {
+                                const brandStr = typeof item.product.brand === 'object' ? item.product.brand?.name : item.product.brand;
+                                return (
+                                  <tr key={index} className="hover:bg-white/5 transition-colors">
+                                    <td className="px-4 py-3 text-sm text-slate-400 text-center font-medium">{index + 1}</td>
+                                    <td className="px-4 py-3 text-sm text-slate-300">
+                                      <div>
+                                        <span className="font-semibold text-white">{item.product.name}</span>
+                                        {brandStr && <span className="ml-2 text-xs text-slate-400">({brandStr})</span>}
+                                      </div>
+                                    </td>
+                                    <td className="px-4 py-3 text-sm text-slate-400">
+                                      {item.variant ? (
+                                        <span className="text-blue-400 font-medium">{item.variant.name}</span>
+                                      ) : (
+                                        <span className="text-slate-500 font-normal">-</span>
+                                      )}
+                                    </td>
+                                    <td className="px-4 py-3 text-sm text-slate-400 font-mono">
+                                      {item.variant ? item.variant.sku : item.product.eanNumber || '-'}
+                                    </td>
+                                    <td className="px-4 py-3 text-sm font-bold text-amber-500 text-center">
+                                      {item.variant ? item.variant.quantity : item.product.totalQuantity}
+                                    </td>
+                                  </tr>
+                                );
+                              })
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="overflow-y-auto custom-scrollbar bg-slate-900/50 rounded-xl border border-white/10 max-h-96">
+                    <table className="w-full text-left border-collapse whitespace-nowrap">
+                      <thead className="bg-slate-800/80 border-b border-white/10 text-slate-300 text-xs uppercase tracking-wider sticky top-0 z-10 backdrop-blur-sm">
+                        <tr>
+                          <th className="px-4 py-3 font-medium w-12 text-center">S.No</th>
+                          <th className="px-4 py-3 font-medium">Excel Product</th>
+                          <th className="px-4 py-3 font-medium text-center">Excel Qty</th>
+                          <th className="px-4 py-3 font-medium">Matched System Product</th>
+                          <th className="px-4 py-3 font-medium text-center">System Qty</th>
+                          <th className="px-4 py-3 font-medium text-center">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {mappedData.map((mapping, index) => (
+                          <tr key={index} className="hover:bg-white/5 transition-colors">
+                            <td className="px-4 py-3 text-sm text-slate-400 text-center font-medium">{index + 1}</td>
+                            <td className="px-4 py-3 text-sm text-slate-300">{mapping.excelName}</td>
+                            <td className="px-4 py-3 text-sm font-bold text-amber-400 text-center">{mapping.excelQty}</td>
+                            <td className="px-4 py-3 text-sm">
+                              {mapping.matchedProduct ? (
+                                <span className="text-emerald-400 font-medium">{mapping.matchedProduct.name}</span>
+                              ) : (
+                                <span className="text-red-400/80 italic">Not Found</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-slate-400 text-center">
+                              {mapping.matchedProduct ? mapping.matchedProduct.totalQuantity : '-'}
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <button
+                                onClick={() => handleSyncProduct(mapping, index)}
+                                disabled={!mapping.matchedProduct || syncingStates[index] || syncStatus[index] === 'success'}
+                                className={`inline-flex items-center justify-center px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                                  syncStatus[index] === 'success' 
+                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                                    : syncStatus[index] === 'error'
+                                    ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
+                                    : 'bg-blue-600/50 text-white hover:bg-blue-600 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed'
+                                }`}
+                              >
+                                {syncingStates[index] ? <FiLoader className="animate-spin mr-1.5" /> : syncStatus[index] === 'success' ? <FiCheckCircle className="mr-1.5" /> : <FiRefreshCcw className="mr-1.5" />}
+                                {syncStatus[index] === 'success' ? 'Synced' : syncStatus[index] === 'error' ? 'Retry' : 'Sync'}
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1082,14 +1260,14 @@ const ProductMapping = () => {
                           const current = m.matchedVariant ? (m.matchedVariant.quantity || 0) : (m.matchedProduct.totalQuantity || 0);
                           return Number(m.excelQty) !== Number(current);
                         }).length
-                      } items have stock differences out of {stockMappedData.length} total mapped items. Unchanged items are automatically skipped during sync.
+                      } items have stock differences. Unchanged items are automatically skipped during sync.
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <button
-                      onClick={() => setShowOnlyChangedStock(false)}
-                      className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                        !showOnlyChangedStock
+                      onClick={() => setStockFilter('all')}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                        stockFilter === 'all'
                           ? 'bg-blue-600 text-white shadow'
                           : 'bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700'
                       }`}
@@ -1097,9 +1275,9 @@ const ProductMapping = () => {
                       Show All ({stockMappedData.length})
                     </button>
                     <button
-                      onClick={() => setShowOnlyChangedStock(true)}
-                      className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                        showOnlyChangedStock
+                      onClick={() => setStockFilter('diff')}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                        stockFilter === 'diff'
                           ? 'bg-amber-600 text-white shadow'
                           : 'bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700'
                       }`}
@@ -1112,95 +1290,209 @@ const ProductMapping = () => {
                         }).length
                       })
                     </button>
+                    <button
+                      onClick={() => setStockFilter('unmatched_missing')}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                        stockFilter === 'unmatched_missing'
+                          ? 'bg-red-600 text-white shadow'
+                          : 'bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700'
+                      }`}
+                    >
+                      Unmatched & Missing ({stockMappedData.filter(m => !m.matchedProduct).length + getMissingStockItems().length})
+                    </button>
                   </div>
                 </div>
 
-                <div className="overflow-y-auto custom-scrollbar bg-slate-900/50 rounded-xl border border-white/10 max-h-96">
-                  <table className="w-full text-left border-collapse whitespace-nowrap">
-                    <thead className="bg-slate-800/80 border-b border-white/10 text-slate-300 text-xs uppercase tracking-wider sticky top-0 z-10 backdrop-blur-sm">
-                      <tr>
-                        <th className="px-4 py-3 font-medium w-12 text-center">S.No</th>
-                        <th className="px-4 py-3 font-medium">Excel Item Name</th>
-                        <th className="px-4 py-3 font-medium text-center">Excel Stock</th>
-                        <th className="px-4 py-3 font-medium">Matched System Product</th>
-                        <th className="px-4 py-3 font-medium">Matched Variant</th>
-                        <th className="px-4 py-3 font-medium text-center">Current Stock</th>
-                        <th className="px-4 py-3 font-medium text-center">Status / Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                      {stockMappedData
-                        .map((mapping, originalIndex) => ({ mapping, originalIndex }))
-                        .filter(({ mapping }) => {
-                          if (!showOnlyChangedStock) return true;
-                          if (!mapping.matchedProduct) return false;
-                          const current = mapping.matchedVariant ? (mapping.matchedVariant.quantity || 0) : (mapping.matchedProduct.totalQuantity || 0);
-                          return Number(mapping.excelQty) !== Number(current);
-                        })
-                        .map(({ mapping, originalIndex }) => {
-                          const currentStock = mapping.matchedProduct ? (mapping.matchedVariant ? (mapping.matchedVariant.quantity || 0) : (mapping.matchedProduct.totalQuantity || 0)) : null;
-                          const isDiff = currentStock !== null && Number(mapping.excelQty) !== Number(currentStock);
-
-                          return (
-                            <tr key={originalIndex} className="hover:bg-white/5 transition-colors">
-                              <td className="px-4 py-3 text-sm text-slate-400 text-center font-medium">{originalIndex + 1}</td>
-                              <td className="px-4 py-3 text-sm text-slate-300">
-                                {mapping.excelName}
-                                {mapping.isVariant && (
-                                  <span className="ml-2 text-[10px] bg-blue-500/20 text-blue-400 border border-blue-500/30 px-1.5 py-0.5 rounded-full uppercase tracking-wider font-bold">Variant</span>
-                                )}
-                              </td>
-                              <td className="px-4 py-3 text-sm font-bold text-amber-400 text-center">{mapping.excelQty}</td>
-                              <td className="px-4 py-3 text-sm">
-                                {mapping.matchedProduct ? (
-                                  <span className="text-emerald-400 font-medium">{mapping.matchedProduct.name}</span>
-                                ) : (
-                                  <span className="text-red-400/80 italic">Not Found</span>
-                                )}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-slate-300">
-                                {mapping.matchedVariant ? (
-                                  <span className="text-blue-400 font-medium">{mapping.matchedVariant.name}</span>
-                                ) : mapping.isVariant && mapping.matchedProduct ? (
-                                  <span className="text-amber-500/80 italic" title="Product exists, but this variant wasn't found">Variant Not Found</span>
-                                ) : (
-                                  <span className="text-slate-500 font-normal">-</span>
-                                )}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-slate-400 text-center font-medium">
-                                {currentStock !== null ? (
-                                  <span className="inline-flex items-center gap-1.5">
-                                    <span>{currentStock}</span>
-                                    {isDiff ? (
-                                      <span className="text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded-full font-bold">Differs</span>
-                                    ) : (
-                                      <span className="text-[10px] bg-emerald-500/15 text-emerald-400/80 border border-emerald-500/20 px-1.5 py-0.5 rounded-full font-normal">Unchanged</span>
-                                    )}
-                                  </span>
-                                ) : '-'}
-                              </td>
-                              <td className="px-4 py-3 text-center">
-                                <button
-                                  onClick={() => handleSyncStockProduct(mapping, originalIndex)}
-                                  disabled={!mapping.matchedProduct || (mapping.isVariant && !mapping.matchedVariant) || stockSyncingStates[originalIndex] || stockSyncStatus[originalIndex] === 'success'}
-                                  className={`inline-flex items-center justify-center px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                                    stockSyncStatus[originalIndex] === 'success' 
-                                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
-                                      : stockSyncStatus[originalIndex] === 'error'
-                                      ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
-                                      : 'bg-blue-600/50 text-white hover:bg-blue-600 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed'
-                                  }`}
-                                >
-                                  {stockSyncingStates[originalIndex] ? <FiLoader className="animate-spin mr-1.5" /> : stockSyncStatus[originalIndex] === 'success' ? <FiCheckCircle className="mr-1.5" /> : <FiRefreshCcw className="mr-1.5" />}
-                                  {stockSyncStatus[originalIndex] === 'success' ? (!isDiff ? 'Up to date' : 'Synced') : stockSyncStatus[originalIndex] === 'error' ? 'Retry' : 'Sync'}
-                                </button>
-                              </td>
+                {stockFilter === 'unmatched_missing' ? (
+                  <div className="space-y-6">
+                    {/* Section 1: Unmatched Excel Items */}
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                        <FiAlertTriangle /> Excel Items Not Found in System ({stockMappedData.filter(m => !m.matchedProduct).length})
+                      </h4>
+                      <div className="overflow-y-auto custom-scrollbar bg-slate-900/50 rounded-xl border border-white/10 max-h-60">
+                        <table className="w-full text-left border-collapse whitespace-nowrap">
+                          <thead className="bg-slate-800/80 border-b border-white/10 text-slate-300 text-xs uppercase tracking-wider sticky top-0 z-10 backdrop-blur-sm">
+                            <tr>
+                              <th className="px-4 py-3 font-medium w-12 text-center">S.No</th>
+                              <th className="px-4 py-3 font-medium">Excel Item Name</th>
+                              <th className="px-4 py-3 font-medium text-center">Excel Stock</th>
+                              <th className="px-4 py-3 font-medium">Status</th>
                             </tr>
-                          );
-                        })}
-                    </tbody>
-                  </table>
-                </div>
+                          </thead>
+                          <tbody className="divide-y divide-white/5">
+                            {stockMappedData.filter(m => !m.matchedProduct).length === 0 ? (
+                              <tr>
+                                <td colSpan="4" className="px-4 py-6 text-center text-slate-500 italic">No unmatched Excel items. All items mapped!</td>
+                              </tr>
+                            ) : (
+                              stockMappedData
+                                .map((mapping, originalIndex) => ({ mapping, originalIndex }))
+                                .filter(({ mapping }) => !mapping.matchedProduct)
+                                .map(({ mapping, originalIndex }, listIdx) => (
+                                  <tr key={originalIndex} className="hover:bg-white/5 transition-colors">
+                                    <td className="px-4 py-3 text-sm text-slate-400 text-center font-medium">{listIdx + 1}</td>
+                                    <td className="px-4 py-3 text-sm text-slate-300">
+                                      {mapping.excelName}
+                                      {mapping.isVariant && (
+                                        <span className="ml-2 text-[10px] bg-blue-500/20 text-blue-400 border border-blue-500/30 px-1.5 py-0.5 rounded-full uppercase tracking-wider font-bold">Variant</span>
+                                      )}
+                                    </td>
+                                    <td className="px-4 py-3 text-sm font-bold text-amber-400 text-center">{mapping.excelQty}</td>
+                                    <td className="px-4 py-3 text-sm text-red-400/80 italic font-semibold">Not Found</td>
+                                  </tr>
+                                ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Section 2: Missing System Products */}
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-bold text-rose-400 uppercase tracking-wider flex items-center gap-2">
+                        <FiDatabase /> System Products Missing from Excel ({getMissingStockItems().length})
+                      </h4>
+                      <div className="overflow-y-auto custom-scrollbar bg-slate-900/50 rounded-xl border border-white/10 max-h-60">
+                        <table className="w-full text-left border-collapse whitespace-nowrap">
+                          <thead className="bg-slate-800/80 border-b border-white/10 text-slate-300 text-xs uppercase tracking-wider sticky top-0 z-10 backdrop-blur-sm">
+                            <tr>
+                              <th className="px-4 py-3 font-medium w-12 text-center">S.No</th>
+                              <th className="px-4 py-3 font-medium">System Product</th>
+                              <th className="px-4 py-3 font-medium">Variant</th>
+                              <th className="px-4 py-3 font-medium">EAN / SKU</th>
+                              <th className="px-4 py-3 font-medium text-center font-medium">System Qty</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/5">
+                            {getMissingStockItems().length === 0 ? (
+                              <tr>
+                                <td colSpan="5" className="px-4 py-6 text-center text-slate-500 italic">No missing system products. All are matched!</td>
+                              </tr>
+                            ) : (
+                              getMissingStockItems().map((item, index) => {
+                                const brandStr = typeof item.product.brand === 'object' ? item.product.brand?.name : item.product.brand;
+                                return (
+                                  <tr key={index} className="hover:bg-white/5 transition-colors">
+                                    <td className="px-4 py-3 text-sm text-slate-400 text-center font-medium">{index + 1}</td>
+                                    <td className="px-4 py-3 text-sm text-slate-300">
+                                      <div>
+                                        <span className="font-semibold text-white">{item.product.name}</span>
+                                        {brandStr && <span className="ml-2 text-xs text-slate-400">({brandStr})</span>}
+                                      </div>
+                                    </td>
+                                    <td className="px-4 py-3 text-sm text-slate-400">
+                                      {item.variant ? (
+                                        <span className="text-blue-400 font-medium">{item.variant.name}</span>
+                                      ) : (
+                                        <span className="text-slate-500 font-normal">-</span>
+                                      )}
+                                    </td>
+                                    <td className="px-4 py-3 text-sm text-slate-400 font-mono">
+                                      {item.variant ? item.variant.sku : item.product.eanNumber || '-'}
+                                    </td>
+                                    <td className="px-4 py-3 text-sm font-bold text-amber-500 text-center">
+                                      {item.variant ? item.variant.quantity : item.product.totalQuantity}
+                                    </td>
+                                  </tr>
+                                );
+                              })
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="overflow-y-auto custom-scrollbar bg-slate-900/50 rounded-xl border border-white/10 max-h-96">
+                    <table className="w-full text-left border-collapse whitespace-nowrap">
+                      <thead className="bg-slate-800/80 border-b border-white/10 text-slate-300 text-xs uppercase tracking-wider sticky top-0 z-10 backdrop-blur-sm">
+                        <tr>
+                          <th className="px-4 py-3 font-medium w-12 text-center">S.No</th>
+                          <th className="px-4 py-3 font-medium">Excel Item Name</th>
+                          <th className="px-4 py-3 font-medium text-center font-medium">Excel Stock</th>
+                          <th className="px-4 py-3 font-medium">Matched System Product</th>
+                          <th className="px-4 py-3 font-medium">Matched Variant</th>
+                          <th className="px-4 py-3 font-medium text-center font-medium">Current Stock</th>
+                          <th className="px-4 py-3 font-medium text-center font-medium">Status / Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {stockMappedData
+                          .map((mapping, originalIndex) => ({ mapping, originalIndex }))
+                          .filter(({ mapping }) => {
+                            if (stockFilter === 'diff') {
+                              if (!mapping.matchedProduct) return false;
+                              const current = mapping.matchedVariant ? (mapping.matchedVariant.quantity || 0) : (mapping.matchedProduct.totalQuantity || 0);
+                              return Number(mapping.excelQty) !== Number(current);
+                            }
+                            return true;
+                          })
+                          .map(({ mapping, originalIndex }) => {
+                            const currentStock = mapping.matchedProduct ? (mapping.matchedVariant ? (mapping.matchedVariant.quantity || 0) : (mapping.matchedProduct.totalQuantity || 0)) : null;
+                            const isDiff = currentStock !== null && Number(mapping.excelQty) !== Number(currentStock);
+
+                            return (
+                              <tr key={originalIndex} className="hover:bg-white/5 transition-colors">
+                                <td className="px-4 py-3 text-sm text-slate-400 text-center font-medium">{originalIndex + 1}</td>
+                                <td className="px-4 py-3 text-sm text-slate-300">
+                                  {mapping.excelName}
+                                  {mapping.isVariant && (
+                                    <span className="ml-2 text-[10px] bg-blue-500/20 text-blue-400 border border-blue-500/30 px-1.5 py-0.5 rounded-full uppercase tracking-wider font-bold">Variant</span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3 text-sm font-bold text-amber-400 text-center">{mapping.excelQty}</td>
+                                <td className="px-4 py-3 text-sm">
+                                  {mapping.matchedProduct ? (
+                                    <span className="text-emerald-400 font-medium">{mapping.matchedProduct.name}</span>
+                                  ) : (
+                                    <span className="text-red-400/80 italic">Not Found</span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-slate-300">
+                                  {mapping.matchedVariant ? (
+                                    <span className="text-blue-400 font-medium">{mapping.matchedVariant.name}</span>
+                                  ) : mapping.isVariant && mapping.matchedProduct ? (
+                                    <span className="text-amber-500/80 italic" title="Product exists, but this variant wasn't found">Variant Not Found</span>
+                                  ) : (
+                                    <span className="text-slate-500 font-normal">-</span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-slate-400 text-center font-medium">
+                                  {currentStock !== null ? (
+                                    <span className="inline-flex items-center gap-1.5 justify-center">
+                                      <span>{currentStock}</span>
+                                      {isDiff ? (
+                                        <span className="text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded-full font-bold">Differs</span>
+                                      ) : (
+                                        <span className="text-[10px] bg-emerald-500/15 text-emerald-400/80 border border-emerald-500/20 px-1.5 py-0.5 rounded-full font-normal">Unchanged</span>
+                                      )}
+                                    </span>
+                                  ) : '-'}
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <button
+                                    onClick={() => handleSyncStockProduct(mapping, originalIndex)}
+                                    disabled={!mapping.matchedProduct || (mapping.isVariant && !mapping.matchedVariant) || stockSyncingStates[originalIndex] || stockSyncStatus[originalIndex] === 'success'}
+                                    className={`inline-flex items-center justify-center px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                                      stockSyncStatus[originalIndex] === 'success' 
+                                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                                        : stockSyncStatus[originalIndex] === 'error'
+                                        ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
+                                        : 'bg-blue-600/50 text-white hover:bg-blue-600 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed'
+                                    }`}
+                                  >
+                                    {stockSyncingStates[originalIndex] ? <FiLoader className="animate-spin mr-1.5" /> : stockSyncStatus[originalIndex] === 'success' ? <FiCheckCircle className="mr-1.5" /> : <FiRefreshCcw className="mr-1.5" />}
+                                    {stockSyncStatus[originalIndex] === 'success' ? (!isDiff ? 'Up to date' : 'Synced') : stockSyncStatus[originalIndex] === 'error' ? 'Retry' : 'Sync'}
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             )}
 

@@ -288,9 +288,9 @@ const Category = () => {
               </div>
 
             {/* Placement Toggles */}
-            <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Home Screen Placement</label>
+                <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-2">Home Screen</label>
                 <label className="inline-flex items-center cursor-pointer">
                   <input 
                     type="checkbox" 
@@ -298,16 +298,16 @@ const Category = () => {
                     checked={formData.showOnHomeScreen}
                     onChange={(e) => setFormData({...formData, showOnHomeScreen: e.target.checked})}
                   />
-                  <div className="relative w-11 h-6 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-500/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-white after:border-slate-400 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
-                  <span className="ms-3 text-sm font-bold text-slate-300">
-                    {formData.showOnHomeScreen ? 'Display on Home Screen' : 'Hide from Home Screen'}
+                  <div className="relative w-9 h-5 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-500/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-white after:border-slate-400 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500"></div>
+                  <span className="ms-2 text-xs font-bold text-slate-300">
+                    {formData.showOnHomeScreen ? 'Show' : 'Hide'}
                   </span>
                 </label>
               </div>
 
-              {editingId && (
+              {editingId ? (
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Category Status</label>
+                  <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-2">Status</label>
                   <label className="inline-flex items-center cursor-pointer">
                     <input 
                       type="checkbox" 
@@ -315,12 +315,14 @@ const Category = () => {
                       checked={formData.isActive}
                       onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
                     />
-                    <div className="relative w-11 h-6 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-white after:border-slate-400 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                    <span className="ms-3 text-sm font-bold text-slate-300">
-                      {formData.isActive ? 'Active & Visible' : 'Hidden'}
+                    <div className="relative w-9 h-5 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-white after:border-slate-400 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                    <span className="ms-2 text-xs font-bold text-slate-300">
+                      {formData.isActive ? 'Active' : 'Hidden'}
                     </span>
                   </label>
                 </div>
+              ) : (
+                <div></div>
               )}
             </div>
 
@@ -391,7 +393,7 @@ const Category = () => {
                               <CopyButton text={category._id} />
                             </div>
                             <div className="flex gap-2 mt-1">
-                              <span className={`text-[9px] font-bold px-2 py-0.5 rounded border ${category.isActive !== false ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-slate-800 text-slate-400 border-white/10'}`}>
+                              <span className={`text-[9px] font-bold px-2 py-0.5 rounded border ${category.isActive !== false ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/10'}`}>
                                 {category.isActive !== false ? 'ACTIVE' : 'HIDDEN'}
                               </span>
                               {(category.showOnHomeScreen === true || category.showOnHomeScreen === 'true') && (

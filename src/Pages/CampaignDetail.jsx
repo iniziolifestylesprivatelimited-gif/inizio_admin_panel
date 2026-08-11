@@ -307,7 +307,7 @@ const CampaignDetail = () => {
           <Card className="overflow-hidden flex flex-col !p-0">
             
             {/* Table Search & Tab Filters */}
-            <div className="p-6 border-b border-white/10 bg-slate-900/40 space-y-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="p-6 border-b border-white/10 bg-slate-950/90 space-y-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div className="flex flex-wrap gap-2">
                 {['all', 'Sent', 'Received', 'Clicked'].map((status) => (
                   <button
@@ -353,7 +353,7 @@ const CampaignDetail = () => {
             {/* Recipients Data Table */}
             <div className="overflow-auto custom-scrollbar max-h-[60vh]">
               <table className="w-full text-left border-collapse whitespace-nowrap min-w-125">
-                <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md shadow-md">
+                <thead className="sticky top-0 z-20 bg-slate-950/30 backdrop-blur-md shadow-md">
                   <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-slate-400">
                     <th className="px-6 py-4 font-bold w-16 text-center">S.No.</th>
                     <th className="px-6 py-4 font-bold">Recipient Details</th>

@@ -739,10 +739,10 @@ const Orders = ({ defaultStatus = 'all' }) => {
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeModal}></div>
           
-          <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-5xl h-[90vh] md:h-[85vh] max-h-[95vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative bg-linear-to-br from-slate-950 to-blue-950/65 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-5xl h-[90vh] md:h-[85vh] max-h-[95vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             
             {/* Modal Header */}
-            <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-white/10 flex justify-between items-center bg-slate-800/50 shrink-0">
+            <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-white/10 flex justify-between items-center bg-slate-950/30 shrink-0">
               <div>
                 <h3 className="font-bold text-white text-xl flex items-center gap-2">
                   <FiBox className="text-blue-400" />
@@ -763,7 +763,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
               
               {/* Quick Info Badges */}
               <div className="flex flex-wrap gap-3">
-                <div className="px-4 py-2 bg-slate-800 border border-white/5 rounded-xl flex items-center gap-2 text-sm">
+                <div className="px-4 py-2 bg-slate-950/30 border border-white/15 rounded-xl flex items-center gap-2 text-sm">
                   <FiCalendar className="text-slate-400" />
                   <span className="text-slate-200">Date:</span>
                   <span className="font-bold text-white">{formatDateTimeDDMMYYYY(selectedOrder.createdAt)}</span>
@@ -863,7 +863,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
                 {/* Customer Details */}
-                <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5 space-y-4">
+                <div className="bg-slate-950/30 p-4 rounded-2xl border border-white/5 space-y-4">
                   <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                     <FiUser className="text-blue-400" /> Customer Information
                   </h4>
@@ -886,7 +886,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                 </div>
 
                 {/* Shipping Address */}
-                <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5 space-y-4 flex flex-col justify-between">
+                <div className="bg-slate-950/30 p-4 rounded-2xl border border-white/5 space-y-4 flex flex-col justify-between">
                   <div className="space-y-4">
                     <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                       <FiMapPin className="text-emerald-400" /> Shipping Address
@@ -922,7 +922,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
 
               {/* Shipment Tracking Timeline */}
               {selectedOrder.awbNumber && (
-                <div className="bg-slate-800/50 p-5 rounded-2xl border border-white/5 space-y-4">
+                <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5 space-y-4">
                   <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                     <FiTruck className="text-blue-400" /> Shipment Tracking Details
                   </h4>
@@ -990,7 +990,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
               )}
 
               {/* Order Items */}
-              <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5">
+              <div className="bg-slate-950/30 p-4 rounded-2xl border border-white/5">
                 <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
                   <FiBox className="text-purple-400" /> Purchased Items ({selectedOrder.items?.length || 0})
                 </h4>
@@ -1039,7 +1039,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
               </div>
 
               {/* Payment Summary */}
-              <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5 space-y-4">
+              <div className="bg-slate-950/30 p-4 rounded-2xl border border-white/5 space-y-4">
                 <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                   <FiCreditCard className="text-amber-400" /> Payment Summary
                 </h4>
@@ -1077,7 +1077,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
               </div>
 
               {/* Invoice Section */}
-              <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5 space-y-4">
+              <div className="bg-slate-950/30 p-4 rounded-2xl border border-white/5 space-y-4">
                 <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                   <FiFileText className="text-blue-400" /> Invoice Management
                 </h4>
@@ -1164,7 +1164,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
           <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-4xl h-[90vh] md:h-[80vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             
             {/* Header */}
-            <div className="px-6 py-4 sm:py-5 border-b border-white/10 flex justify-between items-center bg-slate-800/50 shrink-0">
+            <div className="px-6 py-4 sm:py-5 border-b border-white/10 flex justify-between items-center bg-slate-950/30 shrink-0">
               <div>
                 <h3 className="font-bold text-white text-xl flex items-center gap-2">
                   <FiRefreshCcw className="text-blue-400" />
@@ -1202,7 +1202,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Customer Info */}
-                <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5 space-y-3">
+                <div className="bg-slate-950/30 p-4 rounded-2xl border border-white/5 space-y-3">
                   <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                     <FiUser className="text-blue-400" /> Customer Contact
                   </h4>
@@ -1225,7 +1225,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                 </div>
 
                 {/* Reason Info */}
-                <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5 space-y-3 flex flex-col justify-between">
+                <div className="bg-slate-950/30 p-4 rounded-2xl border border-white/5 space-y-3 flex flex-col justify-between">
                   <div>
                     <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 mb-2">
                       <FiInfo className="text-amber-400" /> Reason for Return
@@ -1247,7 +1247,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
 
               {/* Items */}
               {selectedReturn.items && selectedReturn.items.length > 0 && (
-                <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5">
+                <div className="bg-slate-950/30 p-4 rounded-2xl border border-white/5">
                   <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
                     <FiBox className="text-purple-400" /> Return Items ({selectedReturn.items.length})
                   </h4>
@@ -1371,7 +1371,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
             }
           }}></div>
           <div className="relative bg-slate-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-800/50">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-950/30">
               <div className="flex items-center gap-3">
                 <FiFileText className="text-blue-400 text-xl" />
                 <h3 className="text-lg font-bold text-white">
@@ -1406,7 +1406,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-white/10 bg-slate-800/50 flex justify-end gap-3">
+            <div className="px-6 py-4 border-t border-white/10 bg-slate-950/30 flex justify-end gap-3">
               {isPendingUpload ? (
                 <>
                   <button
@@ -1471,7 +1471,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
             onClick={() => setStatusConfirmOpen(false)}
           ></div>
           <div className="relative bg-slate-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-800/50">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-950/30">
               <div className="flex items-center gap-3">
                 <FiAlertCircle className="text-amber-400 text-xl" />
                 <h3 className="text-lg font-bold text-white">Confirm Status Change</h3>
@@ -1510,7 +1510,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
               )}
             </div>
 
-            <div className="px-6 py-4 border-t border-white/10 bg-slate-800/50 flex justify-end gap-3">
+            <div className="px-6 py-4 border-t border-white/10 bg-slate-950/30 flex justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setStatusConfirmOpen(false)}

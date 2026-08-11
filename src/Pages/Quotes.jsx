@@ -227,7 +227,7 @@ const Quotes = () => {
           { label: 'Resolved', val: stats.resolved, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
           { label: 'Rejected', val: stats.rejected, color: 'text-rose-400', bg: 'bg-rose-500/10' }
         ].map((s, idx) => (
-          <div key={idx} className="bg-slate-900/40 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 flex flex-col justify-between overflow-hidden relative shadow-lg">
+          <div key={idx} className="bg-slate-950/30 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 flex flex-col justify-between overflow-hidden relative shadow-lg">
             <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-2 block">{s.label}</span>
             <div className="flex items-baseline justify-between mt-1">
@@ -248,7 +248,7 @@ const Quotes = () => {
           placeholder="Search by client name, email, phone, or product requested..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 bg-slate-900/40 border border-white/10 text-white rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md transition-all text-sm font-medium placeholder-slate-400"
+          className="w-full pl-10 pr-4 py-3 bg-slate-950/30 border border-white/10 text-white rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md transition-all text-sm font-medium placeholder-slate-400"
         />
       </div>
 
@@ -285,7 +285,7 @@ const Quotes = () => {
             const productImage = q.product?.images?.[0] || '';
 
             return (
-              <div key={q._id} className="bg-slate-900/40 backdrop-blur-2xl border border-white/10 rounded-3xl p-5 space-y-4 relative flex flex-col justify-between overflow-hidden shadow-2xl group hover:border-white/20 transition-all">
+              <div key={q._id} className="bg-slate-950/30 backdrop-blur-2xl border border-white/10 rounded-3xl p-5 space-y-4 relative flex flex-col justify-between overflow-hidden shadow-2xl group hover:border-white/20 transition-all">
                 <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
 
                 {/* Header Status & ID */}
@@ -406,7 +406,7 @@ const Quotes = () => {
       {editModalOpen && selectedQuote && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setEditModalOpen(false)}></div>
-          <div className="bg-slate-900 border border-white/15 rounded-3xl p-6 w-full max-w-md relative z-10 shadow-2xl animate-in fade-in zoom-in-95">
+          <div className="bg-linear-to-br from-slate-950 to-blue-950/65 border border-white/15 rounded-3xl p-6 w-full max-w-md relative z-10 shadow-2xl animate-in fade-in zoom-in-95">
             <button onClick={() => setEditModalOpen(false)} className="absolute right-4 top-4 p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
               <FiX size={20} />
             </button>

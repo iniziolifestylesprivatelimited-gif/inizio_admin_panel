@@ -1452,7 +1452,7 @@ const ActivityDetails = () => {
       });
     }
 
-    if (type === 'installed' || type === 'uninstalled') {
+    if (type === 'installed' || type === 'uninstalled' || type === 'deleted') {
       return currentItems.map((item, index) => {
         const initials = (item.name || 'U').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
         const userId = item._id || item.userId;
@@ -1462,7 +1462,10 @@ const ActivityDetails = () => {
             onClick={() => userId && navigate(`/users/list/${userId}`)}
             className="hover:bg-white/[0.04] transition-colors cursor-pointer group"
           >
+            {/* 1. S.No. */}
             <td className="py-6 px-3 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+            
+            {/* 2. Name */}
             <td className="py-6 px-3">
               <div className="flex items-center gap-2">
                 <div className="relative">
@@ -1475,7 +1478,7 @@ const ActivityDetails = () => {
                   {type === 'installed' && (
                     <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-slate-950 ${item.isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-600'}`} title={item.isOnline ? 'Online' : 'Offline'}></div>
                   )}
-                  {type === 'uninstalled' && (
+                  {(type === 'uninstalled' || type === 'deleted') && (
                     <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-slate-950 bg-slate-600" title="Offline"></div>
                   )}
                 </div>
@@ -1498,12 +1501,16 @@ const ActivityDetails = () => {
                 </div>
               </div>
             </td>
+            
+            {/* 3. Email Address */}
             <td className="py-6 px-3">
               <div className="flex items-center gap-1 text-xs text-slate-300 font-medium select-all truncate max-w-[140px]" title={item.email}>
                 <FiMail className="text-slate-500 shrink-0" size={11} />
                 {item.email}
               </div>
             </td>
+            
+            {/* 4. App Version */}
             <td className="py-6 px-3">
               <div className="flex flex-col gap-1.5 justify-center">
                 {item.platformList?.map((p, idx) => (
@@ -1519,6 +1526,16 @@ const ActivityDetails = () => {
                 ))}
               </div>
             </td>
+            
+            {/* 5. Last Active */}
+            <td className="py-6 px-3">
+              <div className="flex items-center gap-1 text-xs text-slate-400 font-medium">
+                <FiClock className="text-slate-500" size={12} />
+                {item.lastActive ? formatDateTime(item.lastActive) : 'Not Active'}
+              </div>
+            </td>
+            
+            {/* 6. Notifications */}
             <td className="py-6 px-3">
               <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${type === 'installed' && item.notificationsEnabled
                 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
@@ -1528,6 +1545,8 @@ const ActivityDetails = () => {
                 {type === 'installed' && item.notificationsEnabled ? 'Enabled' : 'Disabled'}
               </span>
             </td>
+            
+            {/* 7. App Lock */}
             <td className="py-6 px-3">
               <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${type === 'installed' && item.isAppLockEnabled
                 ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20'
@@ -1537,6 +1556,8 @@ const ActivityDetails = () => {
                 {type === 'installed' && item.isAppLockEnabled ? 'Secured' : 'Inactive'}
               </span>
             </td>
+            
+            {/* 8. Installed At / Uninstalled At / Deleted At */}
             {type === 'installed' && (
               <td className="py-6 px-3">
                 <div className="flex items-center gap-1 text-xs text-emerald-400 font-semibold">
@@ -1553,14 +1574,18 @@ const ActivityDetails = () => {
                 </div>
               </td>
             )}
+            {type === 'deleted' && (
+              <td className="py-6 px-3">
+                <div className="flex items-center gap-1 text-xs text-rose-400 font-semibold">
+                  <FiCalendar className="text-rose-500/70" size={12} />
+                  {formatDateTime(item.deletedAt || item.updatedAt)}
+                </div>
+              </td>
+            )}
+            
+            {/* 9. IP Address */}
             <td className="py-6 px-3 text-xs font-mono text-slate-400 select-all">
               {item.ipAddress || '-'}
-            </td>
-            <td className="py-6 px-3">
-              <div className="flex items-center gap-1 text-xs text-slate-400 font-medium">
-                <FiClock className="text-slate-500" size={12} />
-                {item.lastActive ? formatDateTime(item.lastActive) : 'Not Active'}
-              </div>
             </td>
           </tr>
         );
@@ -2213,6 +2238,12 @@ const ActivityDetails = () => {
           )}
           {type === 'uninstalled' && (
             <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Uninstalled At</th>
+          )}
+          {type === 'deleted' && (
+            <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Deleted At</th>
+          )}
+          {(type === 'installed' || type === 'uninstalled' || type === 'deleted') && (
+            <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">IP Address</th>
           )}
         </>
       );
