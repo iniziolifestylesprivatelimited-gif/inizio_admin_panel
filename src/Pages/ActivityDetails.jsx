@@ -614,11 +614,30 @@ const ActivityDetails = () => {
           }
 
           let filtered = [];
+
+          // Get the target date if breakdown interval is active (today)
+          let targetDateStr = null;
+          if (queryBreakdown === 'true' && queryBreakdownInterval === 'day') {
+            targetDateStr = new Date().toISOString().split('T')[0];
+            const allDates = activities.map(act => act.createdAt?.split('T')[0]).filter(Boolean);
+            if (allDates.length > 0 && !activities.some(act => act.createdAt?.startsWith(targetDateStr))) {
+              allDates.sort((a, b) => b.localeCompare(a));
+              targetDateStr = allDates[0];
+            }
+          }
+
           if (type === 'logins') {
             filtered = activities.filter(act => (act.action || '').toUpperCase() === 'LOGIN');
             if (filtered.length === 0 && res.data?.users) {
               filtered = res.data.users
-                .filter(u => u.activityStats?.logins > 0)
+                .filter(u => {
+                  const hasAct = u.activityStats?.logins > 0;
+                  if (!hasAct) return false;
+                  if (targetDateStr) {
+                    return (u.lastLoginAt || u.lastActive || '').startsWith(targetDateStr);
+                  }
+                  return true;
+                })
                 .map(u => ({
                   _id: `login-${u.userId}`,
                   user: { _id: u.userId, name: u.name, email: u.email, phone: u.phone },
@@ -631,7 +650,14 @@ const ActivityDetails = () => {
             filtered = activities.filter(act => (act.action || '').toUpperCase() === 'LOGOUT');
             if (filtered.length === 0 && res.data?.users) {
               filtered = res.data.users
-                .filter(u => (u.activityStats?.logouts > 0 || u.activityStats?.logins > 0) && !u.isOnline)
+                .filter(u => {
+                  const hasAct = (u.activityStats?.logouts > 0 || u.activityStats?.logins > 0) && !u.isOnline;
+                  if (!hasAct) return false;
+                  if (targetDateStr) {
+                    return (u.lastLogoutAt || u.lastActive || '').startsWith(targetDateStr);
+                  }
+                  return true;
+                })
                 .map(u => ({
                   _id: `logout-${u.userId}`,
                   user: { _id: u.userId, name: u.name, email: u.email, phone: u.phone },
@@ -646,7 +672,14 @@ const ActivityDetails = () => {
             });
             if (pvActivities.length === 0 && res.data?.users) {
               filtered = res.data.users
-                .filter(u => u.activityStats?.productViews > 0)
+                .filter(u => {
+                  const hasAct = u.activityStats?.productViews > 0;
+                  if (!hasAct) return false;
+                  if (targetDateStr) {
+                    return (u.lastActive || '').startsWith(targetDateStr);
+                  }
+                  return true;
+                })
                 .map(u => ({
                   _id: u.userId,
                   user: { _id: u.userId, name: u.name, email: u.email, phone: u.phone },
@@ -695,7 +728,14 @@ const ActivityDetails = () => {
             });
             if (bvActivities.length === 0 && res.data?.users) {
               filtered = res.data.users
-                .filter(u => u.activityStats?.brandViews > 0)
+                .filter(u => {
+                  const hasAct = u.activityStats?.brandViews > 0;
+                  if (!hasAct) return false;
+                  if (targetDateStr) {
+                    return (u.lastActive || '').startsWith(targetDateStr);
+                  }
+                  return true;
+                })
                 .map(u => ({
                   _id: u.userId,
                   user: { _id: u.userId, name: u.name, email: u.email, phone: u.phone },
@@ -742,7 +782,14 @@ const ActivityDetails = () => {
             });
             if (cvActivities.length === 0 && res.data?.users) {
               filtered = res.data.users
-                .filter(u => u.activityStats?.categoryViews > 0)
+                .filter(u => {
+                  const hasAct = u.activityStats?.categoryViews > 0;
+                  if (!hasAct) return false;
+                  if (targetDateStr) {
+                    return (u.lastActive || '').startsWith(targetDateStr);
+                  }
+                  return true;
+                })
                 .map(u => ({
                   _id: u.userId,
                   user: { _id: u.userId, name: u.name, email: u.email, phone: u.phone },
@@ -786,11 +833,19 @@ const ActivityDetails = () => {
             filtered = activities.filter(act => (act.action || '').toUpperCase() === 'SEARCH');
             if (filtered.length === 0 && res.data?.users) {
               filtered = res.data.users
-                .filter(u => u.activityStats?.searches > 0)
+                .filter(u => {
+                  const hasAct = u.activityStats?.searches > 0;
+                  if (!hasAct) return false;
+                  if (targetDateStr) {
+                    return (u.lastActive || '').startsWith(targetDateStr);
+                  }
+                  return true;
+                })
                 .map(u => ({
                   _id: `search-${u.userId}`,
                   user: { _id: u.userId, name: u.name, email: u.email, phone: u.phone },
                   action: 'SEARCH',
+                  count: u.activityStats?.searches,
                   createdAt: u.lastActive,
                   details: { query: 'Search Query' }
                 }));
@@ -2144,18 +2199,46 @@ const ActivityDetails = () => {
       } else if (actionUpper === 'LOGOUT') {
         resolvedText = 'Logged out';
       } else if (actionUpper === 'PRODUCT_VIEW' || actionUpper === 'PRODUCTVIEW' || actionUpper === 'PRODUCT') {
-        const prod = extraData.products?.find(p => p._id === item.details?.productId);
-        resolvedText = `Viewed product: "${prod?.name || item.details?.productId || 'a product'}"`;
+        if (item.latestProduct && item.latestProduct !== 'App Product Catalog') {
+          resolvedText = `Viewed product: "${item.latestProduct}"`;
+        } else {
+          const prod = extraData.products?.find(p => p._id === item.details?.productId);
+          if (prod) {
+            resolvedText = `Viewed product: "${prod.name}"`;
+          } else {
+            resolvedText = `Viewed product catalog (Total: ${item.count || 1} views)`;
+          }
+        }
       } else if (actionUpper === 'BRAND_VIEW' || actionUpper === 'BRANDVIEW' || actionUpper === 'BRAND') {
-        const brandId = item.details?.brandId || item.details?.id;
-        const brandName = extraData.brands?.find(b => b._id === brandId)?.name || brandId || 'a brand';
-        resolvedText = `Viewed brand: "${brandName}"`;
+        if (item.latestBrand && item.latestBrand !== 'App Brand Catalog') {
+          resolvedText = `Viewed brand: "${item.latestBrand}"`;
+        } else {
+          const brandId = item.details?.brandId || item.details?.id;
+          const brandName = extraData.brands?.find(b => b._id === brandId)?.name || brandId;
+          if (brandName) {
+            resolvedText = `Viewed brand: "${brandName}"`;
+          } else {
+            resolvedText = `Viewed brand catalog (Total: ${item.count || 1} views)`;
+          }
+        }
       } else if (actionUpper === 'CATEGORY_VIEW' || actionUpper === 'CATEGORYVIEW' || actionUpper === 'CATEGORY') {
-        const categoryId = item.details?.categoryId || item.details?.id;
-        const categoryName = extraData.categories?.find(c => c._id === categoryId)?.name || categoryId || 'a category';
-        resolvedText = `Viewed category: "${categoryName}"`;
+        if (item.latestCategory && item.latestCategory !== 'App Category Catalog') {
+          resolvedText = `Viewed category: "${item.latestCategory}"`;
+        } else {
+          const categoryId = item.details?.categoryId || item.details?.id;
+          const categoryName = extraData.categories?.find(c => c._id === categoryId)?.name || categoryId;
+          if (categoryName) {
+            resolvedText = `Viewed category: "${categoryName}"`;
+          } else {
+            resolvedText = `Viewed category catalog (Total: ${item.count || 1} views)`;
+          }
+        }
       } else if (actionUpper === 'SEARCH') {
-        resolvedText = `Searched query: "${item.details?.query || ''}"`;
+        if (item.details?.query && item.details.query !== 'Search Query') {
+          resolvedText = `Searched query: "${item.details.query}"`;
+        } else {
+          resolvedText = `Searched catalog (Total: ${item.count || 1} queries)`;
+        }
       } else {
         resolvedText = `${item.action} ${item.details ? JSON.stringify(item.details) : ''}`;
       }

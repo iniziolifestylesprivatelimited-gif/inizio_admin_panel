@@ -2340,7 +2340,7 @@ console.log(products)
                     </div>
 
                     {/* Image Upload Section */}
-                    <div>
+                    {/* <div>
                       <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Upload Image Files</label>
                       <div 
                         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -2389,7 +2389,7 @@ console.log(products)
                           ))}
                         </div>
                       )}
-                    </div>
+                    </div> */}
                   </div>
                 </div>
 

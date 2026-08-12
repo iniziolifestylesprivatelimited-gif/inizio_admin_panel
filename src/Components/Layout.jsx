@@ -121,7 +121,7 @@ const Layout = () => {
         title: 'New Chat Messages',
         description: `You have ${chatUnreadCount} unread message${chatUnreadCount > 1 ? 's' : ''} from customers.`,
         path: '/chat',
-        icon: '💬',
+        icon: <FiMessageSquare />,
         color: 'text-blue-400 bg-blue-500/10'
       });
     }
@@ -131,7 +131,7 @@ const Layout = () => {
         title: 'New Orders Received',
         description: `You have ${ordersUnreadCount} new order${ordersUnreadCount > 1 ? 's' : ''} to process.`,
         path: '/orders/all',
-        icon: '📦',
+        icon: <FiPackage />,
         color: 'text-emerald-400 bg-emerald-500/10'
       });
     }
@@ -141,7 +141,7 @@ const Layout = () => {
         title: 'Pending Verifications',
         description: `${usersVerifyUnreadCount} user${usersVerifyUnreadCount > 1 ? 's are' : ' is'} pending verification.`,
         path: '/users/list?tab=pending',
-        icon: '👤',
+        icon: <FiClock />,
         color: 'text-amber-400 bg-amber-500/10'
       });
     }
@@ -151,7 +151,7 @@ const Layout = () => {
         title: 'Deletion Requests',
         description: `${usersDeletionUnreadCount} account deletion request${usersDeletionUnreadCount > 1 ? 's' : ''} pending.`,
         path: '/users/list?tab=deleted',
-        icon: '⚠️',
+        icon: <FiAlertTriangle />,
         color: 'text-red-400 bg-red-500/10'
       });
     }
@@ -161,7 +161,7 @@ const Layout = () => {
         title: 'New User Registrations',
         description: `${usersUnreadCount} new user${usersUnreadCount > 1 ? 's' : ''} registered recently.`,
         path: '/users/list',
-        icon: '👥',
+        icon: <FiUserPlus />,
         color: 'text-indigo-400 bg-indigo-500/10'
       });
     }
@@ -171,7 +171,7 @@ const Layout = () => {
         title: 'New Quote Requests',
         description: `You have ${quotesUnreadCount} new quote request${quotesUnreadCount > 1 ? 's' : ''} to review.`,
         path: '/quotes',
-        icon: '📋',
+        icon: <FiFileText />,
         color: 'text-blue-400 bg-blue-500/10'
       });
     }
@@ -748,7 +748,7 @@ const Layout = () => {
                     title={!isExpanded ? menu.name : undefined}
                     className={`
                       w-full h-12 flex items-center justify-between px-4 transition-all duration-300 group
-                      ${isChildActive && !isOpen
+                      ${isChildActive
                         ? 'bg-blue-600/20 text-blue-500 border border-blue-600/50 shadow-sm rounded-xl'
                         : isExpanded
                           ? 'text-slate-300 hover:bg-blue-600/20 hover:text-blue-500 border border-transparent cursor-pointer rounded-xl'
@@ -757,7 +757,13 @@ const Layout = () => {
                     `}
                   >
                     <div className="flex items-center min-w-0">
-                      {Icon && <Icon className={`shrink-0 transition-all duration-300 ${isExpanded ? 'text-lg text-slate-300 group-hover:text-white' : 'text-base lg:mr-0 group-hover:scale-105'}`} />}
+                      {Icon && (
+                        <Icon 
+                          className={`shrink-0 transition-all duration-300 
+                            ${isChildActive ? 'text-blue-500 scale-105' : 'text-slate-300 group-hover:text-white group-hover:scale-105'} 
+                            ${isExpanded ? 'text-lg' : 'text-base lg:mr-0'}`} 
+                        />
+                      )}
                       <span className={`font-medium text-sm whitespace-nowrap transition-all duration-300 ease-in-out ${isExpanded ? 'opacity-100 max-w-[150px] ml-3' : 'opacity-0 max-w-0 overflow-hidden ml-0'
                         }`}>{menu.name}</span>
                     </div>
@@ -769,7 +775,7 @@ const Layout = () => {
                           {parentBadgeCount > 9 ? '9+' : parentBadgeCount}
                         </span>
                       )}
-                      <FiChevronRight className={`transition-transform duration-300 ${isOpen ? 'rotate-90 text-blue-500' : 'text-slate-500'}`} />
+                      <FiChevronRight className={`transition-transform duration-300 ${isOpen ? 'rotate-90' : ''} ${isOpen || isChildActive ? 'text-blue-500' : 'text-white'}`} />
                     </div>
                   </button>
 
@@ -842,7 +848,13 @@ const Layout = () => {
                 `}
               >
                 <div className="flex items-center min-w-0">
-                  {Icon && <Icon className={`shrink-0 transition-all duration-300 ${isActive ? 'scale-105' : 'group-hover:scale-105'} ${isExpanded ? 'text-lg text-slate-300 group-hover:text-white' : 'text-base lg:mr-0'}`} />}
+                  {Icon && (
+                    <Icon 
+                      className={`shrink-0 transition-all duration-300 
+                        ${isActive ? 'scale-105 text-blue-500' : 'group-hover:scale-105 text-slate-300 group-hover:text-white'} 
+                        ${isExpanded ? 'text-lg' : 'text-base lg:mr-0'}`} 
+                    />
+                  )}
                   <span className={`font-medium text-sm whitespace-nowrap transition-all duration-300 ease-in-out ${isExpanded ? 'opacity-100 max-w-[150px] ml-3' : 'opacity-0 max-w-0 overflow-hidden ml-0'
                     }`}>{menu.name}</span>
                 </div>

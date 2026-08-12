@@ -11,6 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@lordicon/react": "^1.11.0",
     "@react-spring/web": "^10.1.2",
     "@tailwindcss/vite": "^4.2.3",
     "@visx/visx": "^4.0.0",
@@ -23,6 +24,7 @@
     "igniteui-webcomponents": "^7.2.4",
     "jwt-decode": "^4.0.0",
     "lit": "^3.3.3",
+    "lottie-web": "^5.13.0",
     "react": "^19.2.5",
     "react-apexcharts": "^2.1.0",
     "react-chartjs-2": "^5.3.1",

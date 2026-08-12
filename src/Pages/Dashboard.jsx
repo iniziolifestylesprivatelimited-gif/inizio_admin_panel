@@ -1567,9 +1567,25 @@ const Dashboard = () => {
     },
     {
       title: "Search Queries",
-      value: breakdownType === 'day'
-        ? (activityStats?.recentActivities || []).filter(act => (act.action || '').toUpperCase() === 'SEARCH' && (act.createdAt || act.timestamp)?.startsWith(todayStr)).length
-        : ((activityStats?.recentActivities?.filter(act => (act.action || '').toUpperCase() === 'SEARCH').length) || (activityStats?.mostSearched?.reduce((sum, item) => sum + (item.count || 0), 0)) || (activityStats?.users?.reduce((sum, u) => sum + (u.activityStats?.searches || 0), 0)) || 0),
+      value: (() => {
+        if (breakdownType === 'day') {
+          const directCount = (activityStats?.recentActivities || []).filter(act => (act.action || '').toUpperCase() === 'SEARCH' && (act.createdAt || act.timestamp)?.startsWith(todayStr)).length;
+          if (directCount > 0) return directCount;
+
+          if (activityStats?.users) {
+            return activityStats.users.filter(u => u.activityStats?.searches > 0 && (u.lastActive || '').startsWith(todayStr)).length;
+          }
+          return 0;
+        }
+
+        const totalDirect = (activityStats?.recentActivities || []).filter(act => (act.action || '').toUpperCase() === 'SEARCH').length;
+        if (totalDirect > 0) return totalDirect;
+
+        const sumMostSearched = activityStats?.mostSearched?.reduce((sum, item) => sum + (item.count || 0), 0) || 0;
+        if (sumMostSearched > 0) return sumMostSearched;
+
+        return activityStats?.users?.reduce((sum, u) => sum + (u.activityStats?.searches || 0), 0) || 0;
+      })(),
       desc: "Catalog searches made",
       path: "/dashboard/details/search-queries",
       icon: FiSearch,
@@ -1759,7 +1775,13 @@ const Dashboard = () => {
             key={index}
             hoverable
             className={`p-4 sm:p-5 xl:p-6 transition-all duration-300 hover:-translate-y-1 cursor-pointer relative overflow-hidden group ${metric.hoverBorder} ${metric.hoverGlow}`}
-            onClick={() => usernav(index)}
+            onClick={() => {
+              if (metric.path) {
+                navigate(`${metric.path}${getFilterQueryParams()}`);
+              } else {
+                usernav(index);
+              }
+            }}
           >
             <div className={`absolute inset-0 bg-linear-to-b ${metric.fromColor} to-transparent pointer-events-none`}></div>
             <div className="relative flex items-center justify-between mb-4 z-10">

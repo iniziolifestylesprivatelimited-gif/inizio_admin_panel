@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   FiSettings, FiPlay, FiSquare, FiClock,
   FiCalendar, FiTrash2, FiAlertTriangle, FiRefreshCw,
-  FiSmartphone, FiSave
+  FiSmartphone, FiSave, FiGlobe
 } from 'react-icons/fi';
 import { FaApple, FaAndroid } from 'react-icons/fa';
 import { api } from '../../../api/axios';
@@ -11,10 +11,18 @@ import CustomTimePicker from '../../../Components/CustomTimePicker';
 
 const Maintenance = () => {
   // Maintenance State
-  const [message, setMessage] = useState('');
+  const [activeTab, setActiveTab] = useState('global'); // 'global', 'android', 'ios'
+  const [globalMessage, setGlobalMessage] = useState('');
+  const [globalActive, setGlobalActive] = useState(false);
+
+  const [androidMessage, setAndroidMessage] = useState('');
+  const [androidActive, setAndroidActive] = useState(false);
+
+  const [iosMessage, setIosMessage] = useState('');
+  const [iosActive, setIosActive] = useState(false);
+
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
-  const [isActive, setIsActive] = useState(false);
   const [timeLeft, setTimeLeft] = useState('00:00:00');
   const [timerLabel, setTimerLabel] = useState('Time Remaining');
   const [loading, setLoading] = useState(false);
@@ -47,34 +55,63 @@ const Maintenance = () => {
         const response = await api.get('/app-config');
 
         const {
-          maintenanceMode, maintenanceMessage, updatedAt,
-          android, ios
+          maintenanceMode, maintenanceMessage,
+          androidMaintenanceMode, androidMaintenanceMessage,
+          iosMaintenanceMode, iosMaintenanceMessage,
+          updatedAt, android, ios
         } = response.data;
 
         // Populate Maintenance Data
-        setIsActive(maintenanceMode);
-        setMessage(maintenanceMessage || '');
+        setGlobalActive(!!maintenanceMode);
+        setGlobalMessage(maintenanceMessage || '');
+
+        setAndroidActive(!!androidMaintenanceMode);
+        setAndroidMessage(androidMaintenanceMessage || '');
+
+        setIosActive(!!iosMaintenanceMode);
+        setIosMessage(iosMaintenanceMessage || '');
 
         // Populate Platform Specific App Version Data
         if (android) setAndroidConfig(android);
         if (ios) setIosConfig(ios);
 
+        // Build log history based on active states
+        const activeLogs = [];
         if (maintenanceMode) {
-          setTimerLabel('Live (No End Time Specified)');
-          setHistory([
-            {
-              id: new Date(updatedAt).getTime(),
-              message: maintenanceMessage || 'Active System Maintenance',
-              startTime: new Date(updatedAt).toLocaleString(),
-              endTime: 'Indefinite',
-              status: 'Active'
-            }
-          ]);
+          activeLogs.push({
+            id: new Date(updatedAt).getTime() + 1,
+            message: `[GLOBAL] ${maintenanceMessage || 'Active System Maintenance'}`,
+            startTime: new Date(updatedAt).toLocaleString(),
+            endTime: 'Indefinite',
+            status: 'Active'
+          });
+        }
+        if (androidMaintenanceMode) {
+          activeLogs.push({
+            id: new Date(updatedAt).getTime() + 2,
+            message: `[ANDROID] ${androidMaintenanceMessage || 'Active Android Maintenance'}`,
+            startTime: new Date(updatedAt).toLocaleString(),
+            endTime: 'Indefinite',
+            status: 'Active'
+          });
+        }
+        if (iosMaintenanceMode) {
+          activeLogs.push({
+            id: new Date(updatedAt).getTime() + 3,
+            message: `[IOS] ${iosMaintenanceMessage || 'Active iOS Maintenance'}`,
+            startTime: new Date(updatedAt).toLocaleString(),
+            endTime: 'Indefinite',
+            status: 'Active'
+          });
+        }
+
+        if (activeLogs.length > 0) {
+          setHistory(activeLogs);
         } else if (updatedAt) {
           setHistory([
             {
               id: new Date(updatedAt).getTime(),
-              message: maintenanceMessage || 'Previous Maintenance',
+              message: 'Previous Maintenance session completed',
               startTime: 'Unknown',
               endTime: new Date(updatedAt).toLocaleString(),
               status: 'Completed'
@@ -95,8 +132,9 @@ const Maintenance = () => {
   // Countdown Timer Logic
   useEffect(() => {
     let interval;
+    const tabActive = activeTab === 'global' ? globalActive : activeTab === 'android' ? androidActive : iosActive;
 
-    if (isActive && startTime && endTime) {
+    if (tabActive && startTime && endTime) {
       interval = setInterval(() => {
         const now = new Date().getTime();
         const start = new Date(startTime).getTime();
@@ -134,7 +172,10 @@ const Maintenance = () => {
           }
         }
       }, 1000);
-    } else if (!isActive) {
+    } else if (tabActive && (!startTime || !endTime)) {
+      setTimerLabel('Live (No End Time Specified)');
+      setTimeLeft('--:--:--');
+    } else if (!tabActive) {
       setTimeLeft('00:00:00');
       if (timerLabel !== 'Live (No End Time Specified)') {
         setTimerLabel('Time Remaining');
@@ -142,13 +183,15 @@ const Maintenance = () => {
     }
 
     return () => clearInterval(interval);
-  }, [isActive, startTime, endTime]);
+  }, [activeTab, globalActive, androidActive, iosActive, startTime, endTime]);
 
   // Handle Maintenance Form
   const handleStart = async (e) => {
     e.preventDefault();
 
-    if (!message.trim()) {
+    const targetMessage = activeTab === 'global' ? globalMessage : activeTab === 'android' ? androidMessage : iosMessage;
+
+    if (!targetMessage.trim()) {
       alert('Please provide a message.');
       return;
     }
@@ -168,16 +211,34 @@ const Maintenance = () => {
 
     try {
       setLoading(true);
-      await api.put('/app-config/update', {
-        maintenanceMode: true,
-        maintenanceMessage: message
-      });
 
-      setIsActive(true);
+      let payload = {};
+      if (activeTab === 'global') {
+        payload = {
+          maintenanceMode: true,
+          maintenanceMessage: targetMessage
+        };
+      } else if (activeTab === 'android') {
+        payload = {
+          androidMaintenanceMode: true,
+          androidMaintenanceMessage: targetMessage
+        };
+      } else {
+        payload = {
+          iosMaintenanceMode: true,
+          iosMaintenanceMessage: targetMessage
+        };
+      }
+
+      await api.put('/app-config/update', payload);
+
+      if (activeTab === 'global') setGlobalActive(true);
+      else if (activeTab === 'android') setAndroidActive(true);
+      else setIosActive(true);
 
       const newRecord = {
         id: Date.now(),
-        message,
+        message: `[${activeTab.toUpperCase()}] ${targetMessage}`,
         startTime: startTime ? new Date(startTime).toLocaleString() : new Date().toLocaleString(),
         endTime: endTime ? new Date(endTime).toLocaleString() : 'Indefinite',
         status: startTime && new Date().getTime() < start ? 'Scheduled' : 'Active'
@@ -193,11 +254,27 @@ const Maintenance = () => {
   const handleStop = async (autoStopped = false) => {
     try {
       setLoading(true);
-      await api.put('/app-config/update', {
-        maintenanceMode: false
-      });
 
-      setIsActive(false);
+      let payload = {};
+      if (activeTab === 'global') {
+        payload = {
+          maintenanceMode: false
+        };
+      } else if (activeTab === 'android') {
+        payload = {
+          androidMaintenanceMode: false
+        };
+      } else {
+        payload = {
+          iosMaintenanceMode: false
+        };
+      }
+
+      await api.put('/app-config/update', payload);
+
+      if (activeTab === 'global') setGlobalActive(false);
+      else if (activeTab === 'android') setAndroidActive(false);
+      else setIosActive(false);
 
       setHistory(prev => {
         const updated = [...prev];
@@ -208,10 +285,41 @@ const Maintenance = () => {
         return updated;
       });
 
-      setMessage('');
+      if (activeTab === 'global') setGlobalMessage('');
+      else if (activeTab === 'android') setAndroidMessage('');
+      else setIosMessage('');
+
       setStartTime('');
       setEndTime('');
       setTimerLabel('Time Remaining');
+    } catch (error) {
+      alert('Failed to disable maintenance mode: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStopAll = async () => {
+    try {
+      setLoading(true);
+      await api.put('/app-config/update', {
+        maintenanceMode: false,
+        androidMaintenanceMode: false,
+        iosMaintenanceMode: false
+      });
+
+      setGlobalActive(false);
+      setAndroidActive(false);
+      setIosActive(false);
+
+      setGlobalMessage('');
+      setAndroidMessage('');
+      setIosMessage('');
+
+      setStartTime('');
+      setEndTime('');
+      setTimerLabel('Time Remaining');
+      alert('Maintenance turned off for all platforms successfully.');
     } catch (error) {
       alert('Failed to disable maintenance mode: ' + (error.response?.data?.message || error.message));
     } finally {
@@ -225,10 +333,26 @@ const Maintenance = () => {
 
   const handleDateChange = (type, dateStr) => {
     if (type === 'start') {
-      const timePart = startTime ? startTime.split('T')[1] : '00:00';
+      let timePart = startTime ? startTime.split('T')[1] : '';
+      if (!timePart && dateStr) {
+        const now = new Date();
+        const hrs = String(now.getHours()).padStart(2, '0');
+        const mins = String(now.getMinutes()).padStart(2, '0');
+        timePart = `${hrs}:${mins}`;
+      } else if (!timePart) {
+        timePart = '00:00';
+      }
       setStartTime(dateStr ? `${dateStr}T${timePart}` : '');
     } else {
-      const timePart = endTime ? endTime.split('T')[1] : '00:00';
+      let timePart = endTime ? endTime.split('T')[1] : '';
+      if (!timePart && dateStr) {
+        const now = new Date();
+        const hrs = String(now.getHours()).padStart(2, '0');
+        const mins = String(now.getMinutes()).padStart(2, '0');
+        timePart = `${hrs}:${mins}`;
+      } else if (!timePart) {
+        timePart = '00:00';
+      }
       setEndTime(dateStr ? `${dateStr}T${timePart}` : '');
     }
   };
@@ -283,11 +407,28 @@ const Maintenance = () => {
         </div>
         <div className="flex gap-3 items-center">
           {(loading || updateLoading) && <FiRefreshCw className="text-blue-400 animate-spin" size={20} />}
-          {isActive && (
-            <div className="flex items-center px-4 py-2 bg-red-500/20 border border-red-500/50 rounded-xl text-red-300 font-bold animate-pulse shadow-lg shadow-red-500/20">
-              <FiAlertTriangle className="mr-2" /> Maintenance Active
-            </div>
-          )}
+          <div className="flex flex-wrap gap-2 items-center">
+            {globalActive && (
+              <span className="flex items-center px-3 py-1.5 bg-red-500/20 border border-red-500/30 rounded-xl text-red-300 text-xs font-bold animate-pulse shadow-lg shadow-red-500/10">
+                <FiAlertTriangle className="mr-1.5" /> Global Active
+              </span>
+            )}
+            {androidActive && (
+              <span className="flex items-center px-3 py-1.5 bg-green-500/20 border border-green-500/30 rounded-xl text-green-300 text-xs font-bold animate-pulse shadow-lg shadow-green-500/10">
+                <FaAndroid className="mr-1.5" /> Android Active
+              </span>
+            )}
+            {iosActive && (
+              <span className="flex items-center px-3 py-1.5 bg-blue-500/20 border border-blue-500/30 rounded-xl text-blue-300 text-xs font-bold animate-pulse shadow-lg shadow-blue-500/10">
+                <FaApple className="mr-1.5" /> iOS Active
+              </span>
+            )}
+            {(!globalActive && !androidActive && !iosActive) && (
+              <span className="flex items-center px-3 py-1.5 bg-slate-500/10 border border-slate-500/20 rounded-xl text-slate-400 text-xs font-bold">
+                No Active Maintenance
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -301,23 +442,54 @@ const Maintenance = () => {
             <FiClock className="text-blue-400" /> Configure Downtime
           </h2>
 
+          {/* Tab Selector */}
+          <div className="flex bg-slate-900/60 p-1 rounded-xl mb-6 border border-white/5">
+            <button
+              type="button"
+              onClick={() => setActiveTab('global')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === 'global' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
+            >
+              <FiGlobe size={14} /> Global
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('android')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === 'android' ? 'bg-green-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
+            >
+              <FaAndroid size={14} /> Android
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('ios')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === 'ios' ? 'bg-blue-500 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
+            >
+              <FaApple size={14} /> iOS
+            </button>
+          </div>
+
           <form onSubmit={handleStart} className="space-y-6">
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Display Message to Users</label>
+              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+                Display Message to {activeTab === 'global' ? 'All' : activeTab === 'android' ? 'Android' : 'iOS'} Users
+              </label>
               <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                disabled={isActive || loading}
-                placeholder="e.g. We are currently undergoing scheduled maintenance."
+                value={activeTab === 'global' ? globalMessage : activeTab === 'android' ? androidMessage : iosMessage}
+                onChange={(e) => {
+                  if (activeTab === 'global') setGlobalMessage(e.target.value);
+                  else if (activeTab === 'android') setAndroidMessage(e.target.value);
+                  else setIosMessage(e.target.value);
+                }}
+                disabled={(activeTab === 'global' ? globalActive : activeTab === 'android' ? androidActive : iosActive) || loading}
+                placeholder={`e.g. Inizio ${activeTab === 'global' ? 'App' : activeTab === 'android' ? 'Android' : 'iOS'} is currently under maintenance.`}
                 rows="3"
-                className={`w-full px-4 py-3 bg-slate-950/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-slate-500 transition-all text-sm font-medium resize-none ${(isActive || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`w-full px-4 py-3 bg-slate-950/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-slate-500 transition-all text-sm font-medium resize-none ${((activeTab === 'global' ? globalActive : activeTab === 'android' ? androidActive : iosActive) || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}
               ></textarea>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Start Date (Optional)</label>
-                <div className={isActive || loading ? 'pointer-events-none opacity-50' : ''}>
+                <div className={(activeTab === 'global' ? globalActive : activeTab === 'android' ? androidActive : iosActive) || loading ? 'pointer-events-none opacity-50' : ''}>
                   <CustomDatePicker
                     label="Date"
                     value={startTime ? startTime.split('T')[0] : ''}
@@ -330,7 +502,7 @@ const Maintenance = () => {
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Start Time (Optional)</label>
-                <div className={isActive || loading ? 'pointer-events-none opacity-50' : ''}>
+                <div className={(activeTab === 'global' ? globalActive : activeTab === 'android' ? androidActive : iosActive) || loading ? 'pointer-events-none opacity-50' : ''}>
                   <CustomTimePicker
                     label="Time"
                     value={startTime ? startTime.split('T')[1] : ''}
@@ -342,7 +514,7 @@ const Maintenance = () => {
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">End Date (Optional)</label>
-                <div className={isActive || loading ? 'pointer-events-none opacity-50' : ''}>
+                <div className={(activeTab === 'global' ? globalActive : activeTab === 'android' ? androidActive : iosActive) || loading ? 'pointer-events-none opacity-50' : ''}>
                   <CustomDatePicker
                     label="Date"
                     value={endTime ? endTime.split('T')[0] : ''}
@@ -355,7 +527,7 @@ const Maintenance = () => {
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">End Time (Optional)</label>
-                <div className={isActive || loading ? 'pointer-events-none opacity-50' : ''}>
+                <div className={(activeTab === 'global' ? globalActive : activeTab === 'android' ? androidActive : iosActive) || loading ? 'pointer-events-none opacity-50' : ''}>
                   <CustomTimePicker
                     label="Time"
                     value={endTime ? endTime.split('T')[1] : ''}
@@ -369,28 +541,40 @@ const Maintenance = () => {
 
             <div className="my-6 py-6 bg-slate-950/60 rounded-2xl border border-white/5 flex flex-col items-center justify-center shadow-inner">
               <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">{timerLabel}</p>
-              <div className={`text-4xl font-mono font-bold tracking-widest ${isActive ? 'text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.6)]' : 'text-slate-600'}`}>
+              <div className={`text-4xl font-mono font-bold tracking-widest ${(activeTab === 'global' ? globalActive : activeTab === 'android' ? androidActive : iosActive) ? 'text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.6)]' : 'text-slate-600'}`}>
                 {timeLeft}
               </div>
             </div>
 
-            {!isActive ? (
+            {!(activeTab === 'global' ? globalActive : activeTab === 'android' ? androidActive : iosActive) ? (
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-bold py-3.5 px-4 rounded-xl transition-all duration-300 flex justify-center items-center gap-2 shadow-lg shadow-blue-600/30"
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-bold py-3.5 px-4 rounded-xl transition-all duration-300 flex justify-center items-center gap-2 shadow-lg shadow-blue-600/30 cursor-pointer"
               >
-                <FiPlay /> {loading ? 'Updating...' : 'Start Maintenance'}
+                <FiPlay /> {loading ? 'Updating...' : `Start ${activeTab === 'global' ? 'Global' : activeTab === 'android' ? 'Android' : 'iOS'} Maintenance`}
               </button>
             ) : (
-              <button
-                type="button"
-                onClick={() => handleStop(false)}
-                disabled={loading}
-                className="w-full bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:cursor-not-allowed text-white font-medium py-3.5 px-4 rounded-xl transition-all duration-300 flex justify-center items-center gap-2 shadow-lg shadow-red-600/30"
-              >
-                <FiSquare /> {loading ? 'Updating...' : 'Stop Maintenance'}
-              </button>
+              <div className="flex flex-col sm:flex-row gap-3 w-full">
+                <button
+                  type="button"
+                  onClick={() => handleStop(false)}
+                  disabled={loading}
+                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:cursor-not-allowed text-white font-medium py-3.5 px-4 rounded-xl transition-all duration-300 flex justify-center items-center gap-2 shadow-lg shadow-red-600/30 cursor-pointer"
+                >
+                  <FiSquare /> {loading ? 'Updating...' : 'Stop Maintenance'}
+                </button>
+                {(globalActive || androidActive || iosActive) && (
+                  <button
+                    type="button"
+                    onClick={handleStopAll}
+                    disabled={loading}
+                    className="flex-1 bg-slate-800 hover:bg-slate-700 disabled:bg-slate-900 disabled:cursor-not-allowed text-slate-300 hover:text-white font-medium py-3.5 px-4 rounded-xl border border-white/10 transition-all duration-300 flex justify-center items-center gap-2 cursor-pointer"
+                  >
+                    <FiTrash2 /> Stop All Maintenance
+                  </button>
+                )}
+              </div>
             )}
           </form>
         </div>

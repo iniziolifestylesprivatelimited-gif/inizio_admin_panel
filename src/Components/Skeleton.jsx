@@ -3,7 +3,7 @@ import React from 'react';
 export const SkeletonPulse = ({ className = '', ...props }) => {
   return (
     <div 
-      className={`bg-transparent rounded-lg animate-pulse ${className}`} 
+      className={`bg-white/5 rounded-lg animate-pulse ${className}`} 
       {...props}
     />
   );
@@ -29,8 +29,9 @@ export const TableRowSkeleton = ({ columns = 5, rows = 5 }) => {
 };
 
 export const CardGridSkeleton = ({ cards = 4 }) => {
+  const gridCols = cards === 5 ? 'lg:grid-cols-5' : cards === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-4';
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className={`grid grid-cols-1 md:grid-cols-2 ${gridCols} gap-6`}>
       {Array.from({ length: cards }).map((_, i) => (
         <div key={i} className="bg-white/[0.02] border border-white/10 rounded-3xl p-6 space-y-4 animate-pulse">
           <SkeletonPulse className="h-40 w-full rounded-2xl" />
@@ -43,8 +44,9 @@ export const CardGridSkeleton = ({ cards = 4 }) => {
 };
 
 export const KPISkeleton = ({ cards = 4 }) => {
+  const gridCols = cards === 5 ? 'lg:grid-cols-5' : cards === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-4';
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className={`grid grid-cols-1 sm:grid-cols-2 ${gridCols} gap-4`}>
       {Array.from({ length: cards }).map((_, i) => (
         <div key={i} className="bg-slate-900/40 border border-white/10 rounded-2xl p-5 flex items-center justify-between animate-pulse">
           <div className="space-y-2 flex-1">

@@ -570,7 +570,7 @@ const UsersList = () => {
             <FiUser className="text-blue-400" />
             Users List
           </h1>
-          <p className="text-slate-400 font-medium mt-1">View your registered and approved users.</p>
+          <p className="text-slate-400 font-medium mt-1">View your registered, approved, rejected and deleted users.</p>
         </div>
 
         <div className="relative w-full md:w-72">

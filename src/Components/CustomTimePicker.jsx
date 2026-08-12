@@ -70,14 +70,7 @@ const CustomTimePicker = ({ value, onChange, label, align = 'right', className =
 
   // Lists
   const hours = Array.from({ length: 12 }, (_, i) => i + 1);
-  const minutes = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'];
-  
-  // Add parsed minute if not a multiple of 5
-  const formattedMin = String(minute).padStart(2, '0');
-  if (!minutes.includes(formattedMin)) {
-    minutes.push(formattedMin);
-    minutes.sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
-  }
+  const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
 
   return (
     <div ref={containerRef} className={`relative select-none ${className}`}>

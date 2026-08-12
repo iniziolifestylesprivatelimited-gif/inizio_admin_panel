@@ -86,6 +86,7 @@ const Chat = () => {
   const messagesEndRef = useRef(null);
   const [contacts, setContacts] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [lastMessageSenders, setLastMessageSenders] = useState({}); // { userId: { isMe, isRead, lastMessageAt } }
   const { setChatUnreadCount } = useOutletContext() || {};
   // const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   // const emojiPickerRef = useRef(null);
@@ -103,7 +104,7 @@ const Chat = () => {
   const [messageToDelete, setMessageToDelete] = useState(null);
   const [typedConfirmName, setTypedConfirmName] = useState('');
   const [showSendPreview, setShowSendPreview] = useState(false);
-  
+
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
 
@@ -226,6 +227,111 @@ const Chat = () => {
       setMessages([]);
     }
   }, [activeContact, fetchMessages]);
+
+  // Effect to load last message senders for contacts list ticks
+  useEffect(() => {
+    const checkLastSenders = async () => {
+      const newSenders = { ...lastMessageSenders };
+      let updated = false;
+      const token = sessionStorage.getItem('accessToken');
+      if (!token) return;
+
+      for (const contact of contacts) {
+        if (!contact.lastMessageAt) continue;
+        if (newSenders[contact.userId] && newSenders[contact.userId].lastMessageAt === contact.lastMessageAt) {
+          continue;
+        }
+
+        try {
+          const response = await api.get(`/chat/${contact.userId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const fetchedMessages = Array.isArray(response.data) ? response.data : response.data?.messages || [];
+          if (fetchedMessages.length > 0) {
+            const lastMsg = fetchedMessages[fetchedMessages.length - 1];
+            const senderId = typeof lastMsg.sender === 'object'
+              ? (lastMsg.sender?._id || lastMsg.sender?.userId)
+              : (lastMsg.senderId || lastMsg.sender || lastMsg.from);
+            const isMe = senderId ? String(senderId) !== String(contact.userId) : false;
+            const isRead = lastMsg.isRead || lastMsg.read || lastMsg.seen || lastMsg.isSeen || lastMsg.status === 'read' || lastMsg.status === 'seen';
+            newSenders[contact.userId] = { isMe, isRead, lastMessageAt: contact.lastMessageAt };
+            updated = true;
+          } else {
+            newSenders[contact.userId] = { isMe: false, isRead: false, lastMessageAt: contact.lastMessageAt };
+            updated = true;
+          }
+        } catch (err) {
+          console.error(`Failed to load messages for contact ${contact.userId}:`, err);
+        }
+      }
+
+      if (updated) {
+        setLastMessageSenders(newSenders);
+      }
+    };
+
+    if (contacts.length > 0) {
+      checkLastSenders();
+    }
+  }, [contacts]);
+
+  // Sync active contact last message status instantly when active messages change
+  useEffect(() => {
+    if (activeContact && messages.length > 0) {
+      const lastMsg = messages[messages.length - 1];
+      const senderId = typeof lastMsg.sender === 'object'
+        ? (lastMsg.sender?._id || lastMsg.sender?.userId)
+        : (lastMsg.senderId || lastMsg.sender || lastMsg.from);
+      const isMe = senderId ? String(senderId) !== String(activeContact) : false;
+      const isRead = lastMsg.isRead || lastMsg.read || lastMsg.seen || lastMsg.isSeen || lastMsg.status === 'read' || lastMsg.status === 'seen';
+
+      const activeContactInList = contacts.find(c => c.userId === activeContact);
+      const lastMessageAt = activeContactInList?.lastMessageAt || lastMsg.createdAt;
+
+      setLastMessageSenders(prev => {
+        const existing = prev[activeContact];
+        if (existing && existing.isMe === isMe && existing.isRead === isRead && existing.lastMessageAt === lastMessageAt) {
+          return prev;
+        }
+        return {
+          ...prev,
+          [activeContact]: { isMe, isRead, lastMessageAt }
+        };
+      });
+    }
+  }, [messages, activeContact, contacts]);
+
+  // Handle Escape key to exit from active chat or close modals first
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (mediaPreview) {
+          setMediaPreview(null);
+          return;
+        }
+        if (deleteConfirmOpen) {
+          setDeleteConfirmOpen(false);
+          return;
+        }
+        if (alertOpen) {
+          setAlertOpen(false);
+          return;
+        }
+        if (editingMessage) {
+          setEditingMessage(null);
+          setMessage('');
+          return;
+        }
+        if (replyToMessage) {
+          setReplyToMessage(null);
+          return;
+        }
+        setActiveContact(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mediaPreview, deleteConfirmOpen, alertOpen, editingMessage, replyToMessage]);
 
   useEffect(() => {
     if (!activeContact) {
@@ -497,12 +603,26 @@ const Chat = () => {
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <p 
-                      title={contact.lastMessage || 'No messages yet'}
-                      className={`text-sm truncate ${contact.unreadCount > 0 && activeContact !== contact.userId ? 'text-white font-semibold' : 'text-slate-400'}`}
-                    >
-                      {contact.lastMessage || 'No messages yet'}
-                    </p>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      {lastMessageSenders[contact.userId]?.isMe && (
+                        <span
+                          className={`shrink-0 text-base ${lastMessageSenders[contact.userId]?.isRead ? 'text-blue-400' : 'text-slate-500'}`}
+                          title={lastMessageSenders[contact.userId]?.isRead ? "Read" : "Sent"}
+                        >
+                          {lastMessageSenders[contact.userId]?.isRead ? (
+                            <RiCheckDoubleFill />
+                          ) : (
+                            <FiCheck />
+                          )}
+                        </span>
+                      )}
+                      <p
+                        title={contact.lastMessage || 'No messages yet'}
+                        className={`text-sm truncate ${contact.unreadCount > 0 && activeContact !== contact.userId ? 'text-white font-semibold' : 'text-slate-400'}`}
+                      >
+                        {contact.lastMessage || 'No messages yet'}
+                      </p>
+                    </div>
                     {contact.unreadCount > 0 && activeContact !== contact.userId && (
                       <span className="bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ml-2">
                         {contact.unreadCount}
@@ -526,7 +646,7 @@ const Chat = () => {
                   <div className="flex items-center gap-3 min-w-0">
                     <button
                       onClick={() => setActiveContact(null)}
-                      className="md:hidden p-2 -ml-2 text-slate-400 hover:text-white transition-colors"
+                      className="p-2 -ml-2 text-slate-400 hover:text-white transition-colors cursor-pointer"
                     >
                       <FiArrowLeft className="text-xl" />
                     </button>
@@ -559,265 +679,264 @@ const Chat = () => {
                   <button
                     type="button"
                     onClick={() => setShowProfileSidebar(!showProfileSidebar)}
-                    className={`p-2.5 rounded-xl border transition-all cursor-pointer select-none ${
-                      showProfileSidebar
+                    className={`p-2.5 rounded-xl border transition-all cursor-pointer select-none ${showProfileSidebar
                         ? 'bg-blue-600 border-blue-500/30 text-white'
                         : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'
-                    }`}
+                      }`}
                     title="Toggle Customer Info"
                   >
                     <FiInfo className="text-lg" />
                   </button>
                 </div>
 
-              {/* Messages Area */}
-              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 custom-scrollbar">
-                {messages.map((msg, index) => {
-                  const senderId = typeof msg.sender === 'object' ? (msg.sender?._id || msg.sender?.userId) : (msg.senderId || msg.sender || msg.from);
-                  const receiverId = typeof msg.receiver === 'object' ? (msg.receiver?._id || msg.receiver?.userId) : (msg.receiverId || msg.receiver || msg.to);
+                {/* Messages Area */}
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 custom-scrollbar">
+                  {messages.map((msg, index) => {
+                    const senderId = typeof msg.sender === 'object' ? (msg.sender?._id || msg.sender?.userId) : (msg.senderId || msg.sender || msg.from);
+                    const receiverId = typeof msg.receiver === 'object' ? (msg.receiver?._id || msg.receiver?.userId) : (msg.receiverId || msg.receiver || msg.to);
 
-                  let isMe = true;
-                  if (senderId) {
-                    isMe = String(senderId) !== String(activeContact);
-                  } else if (receiverId) {
-                    isMe = String(receiverId) === String(activeContact);
-                  }
-
-                  const currentDateStr = msg.createdAt ? formatDividerDate(msg.createdAt) : 'Today';
-                  const prevMsg = index > 0 ? messages[index - 1] : null;
-                  const prevDateStr = prevMsg && prevMsg.createdAt ? formatDividerDate(prevMsg.createdAt) : null;
-                  const showDivider = currentDateStr !== prevDateStr;
-
-                  const isSeen = msg.isRead || msg.read || msg.seen || msg.isSeen || msg.status === 'read' || msg.status === 'seen';
-
-                  const isDeleted = msg.message === "This message was deleted" || msg.text === "This message was deleted" || msg.isDeleted === true;
-
-                  const getReplyText = (replyTo) => {
-                    if (!replyTo) return null;
-                    if (typeof replyTo === 'object') {
-                      return replyTo.message || replyTo.text;
+                    let isMe = true;
+                    if (senderId) {
+                      isMe = String(senderId) !== String(activeContact);
+                    } else if (receiverId) {
+                      isMe = String(receiverId) === String(activeContact);
                     }
-                    const repliedMsg = messages.find(m => m._id === replyTo || m.id === replyTo);
-                    return repliedMsg ? (repliedMsg.message || repliedMsg.text) : 'Message link...';
-                  };
 
-                  return (
-                    <React.Fragment key={msg._id || msg.id || index}>
-                      {showDivider && (
-                        <div className="text-center my-4">
-                          <span className="text-xs font-medium text-slate-500 bg-black/20 px-3 py-1 rounded-full border border-white/5">
-                            {currentDateStr}
-                          </span>
-                        </div>
-                      )}
-                      <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} group relative mb-2`}>
-                        <div className={`flex gap-2 sm:gap-3 max-w-[85%] sm:max-w-[75%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
-                          {!isMe && (
-                            <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white text-xs font-bold shrink-0 mt-auto">
-                              {activeContactDetails.name?.charAt(0).toUpperCase() || 'U'}
-                            </div>
-                          )}
-                          <div className={`flex flex-col min-w-0 ${isMe ? 'items-end' : 'items-start'} relative`}>
+                    const currentDateStr = msg.createdAt ? formatDividerDate(msg.createdAt) : 'Today';
+                    const prevMsg = index > 0 ? messages[index - 1] : null;
+                    const prevDateStr = prevMsg && prevMsg.createdAt ? formatDividerDate(prevMsg.createdAt) : null;
+                    const showDivider = currentDateStr !== prevDateStr;
 
-                            {/* Message Actions Overlay */}
-                            <div className={`absolute top-1/2 -translate-y-1/2 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-950/85 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-white/10 shadow-lg z-10 ${isMe ? 'right-full mr-2' : 'left-full ml-2'}`}>
-                              {!isDeleted && (
-                                <button
-                                  type="button"
-                                  onClick={() => setReplyToMessage(msg)}
-                                  className="p-1 text-slate-400 hover:text-indigo-400 rounded-md transition-colors cursor-pointer"
-                                  title="Reply"
-                                >
-                                  <FiCornerUpLeft className="text-xs" />
-                                </button>
-                              )}
-                              {isMe && !isDeleted && (
-                                <>
+                    const isSeen = msg.isRead || msg.read || msg.seen || msg.isSeen || msg.status === 'read' || msg.status === 'seen';
+
+                    const isDeleted = msg.message === "This message was deleted" || msg.text === "This message was deleted" || msg.isDeleted === true;
+
+                    const getReplyText = (replyTo) => {
+                      if (!replyTo) return null;
+                      if (typeof replyTo === 'object') {
+                        return replyTo.message || replyTo.text;
+                      }
+                      const repliedMsg = messages.find(m => m._id === replyTo || m.id === replyTo);
+                      return repliedMsg ? (repliedMsg.message || repliedMsg.text) : 'Message link...';
+                    };
+
+                    return (
+                      <React.Fragment key={msg._id || msg.id || index}>
+                        {showDivider && (
+                          <div className="text-center my-4">
+                            <span className="text-xs font-medium text-slate-500 bg-black/20 px-3 py-1 rounded-full border border-white/5">
+                              {currentDateStr}
+                            </span>
+                          </div>
+                        )}
+                        <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} group relative mb-2`}>
+                          <div className={`flex gap-2 sm:gap-3 max-w-[85%] sm:max-w-[75%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
+                            {!isMe && (
+                              <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white text-xs font-bold shrink-0 mt-auto">
+                                {activeContactDetails.name?.charAt(0).toUpperCase() || 'U'}
+                              </div>
+                            )}
+                            <div className={`flex flex-col min-w-0 ${isMe ? 'items-end' : 'items-start'} relative`}>
+
+                              {/* Message Actions Overlay */}
+                              <div className={`absolute top-1/2 -translate-y-1/2 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-950/85 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-white/10 shadow-lg z-10 ${isMe ? 'right-full mr-2' : 'left-full ml-2'}`}>
+                                {!isDeleted && (
                                   <button
                                     type="button"
-                                    onClick={() => { setEditingMessage(msg); setMessage(msg.message || msg.text || ''); setReplyToMessage(null); }}
-                                    className="p-1 text-slate-400 hover:text-blue-400 rounded-md transition-colors cursor-pointer"
-                                    title="Edit"
+                                    onClick={() => setReplyToMessage(msg)}
+                                    className="p-1 text-slate-400 hover:text-indigo-400 rounded-md transition-colors cursor-pointer"
+                                    title="Reply"
                                   >
-                                    <FiEdit2 className="text-xs" />
+                                    <FiCornerUpLeft className="text-xs" />
                                   </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => { setMessageToDelete(msg); setDeleteConfirmOpen(true); }}
-                                    className="p-1 text-slate-400 hover:text-red-400 rounded-md transition-colors cursor-pointer"
-                                    title="Delete"
-                                  >
-                                    <FiTrash2 className="text-xs" />
-                                  </button>
-                                </>
-                              )}
-                            </div>
+                                )}
+                                {isMe && !isDeleted && (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() => { setEditingMessage(msg); setMessage(msg.message || msg.text || ''); setReplyToMessage(null); }}
+                                      className="p-1 text-slate-400 hover:text-blue-400 rounded-md transition-colors cursor-pointer"
+                                      title="Edit"
+                                    >
+                                      <FiEdit2 className="text-xs" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => { setMessageToDelete(msg); setDeleteConfirmOpen(true); }}
+                                      className="p-1 text-slate-400 hover:text-red-400 rounded-md transition-colors cursor-pointer"
+                                      title="Delete"
+                                    >
+                                      <FiTrash2 className="text-xs" />
+                                    </button>
+                                  </>
+                                )}
+                              </div>
 
-                            <div
-                              className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl max-w-full ${isMe
+                              <div
+                                className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl max-w-full ${isMe
                                   ? 'bg-blue-600 text-white rounded-br-sm shadow-sm'
                                   : 'bg-white/10 text-slate-200 border border-white/5 rounded-bl-sm shadow-sm'
-                                }`}
-                            >
-                              {/* Reply Context in Message */}
-                              {msg.replyTo && !isDeleted && (
-                                <div className="mb-1.5 p-1.5 rounded-lg bg-black/30 border-l-2 border-indigo-400 text-slate-400 text-[11px] truncate max-w-full">
-                                  <span className="font-bold block text-indigo-400 text-[9px] uppercase tracking-wider mb-0.5">Replied to message</span>
-                                  {getReplyText(msg.replyTo)}
-                                </div>
-                              )}
-
-                              {/* File Attachment in Message */}
-                              {msg.fileUrl && !isDeleted && (
-                                isImageFile(msg.fileType, msg.fileName, msg.fileUrl) ? (
-                                   <div
-                                     className="mb-1.5 rounded-lg overflow-hidden border border-white/5 bg-slate-900 flex items-center justify-center max-w-64 cursor-zoom-in group/img relative"
-                                     onClick={() => setMediaPreview({ url: getImageUrl(msg.fileUrl), fileName: msg.fileName || 'Image', fileType: msg.fileType })}
-                                   >
-                                     <img src={getImageUrl(msg.fileUrl)} alt={msg.fileName || 'Attachment'} className="max-w-full max-h-48 object-contain transition-opacity group-hover/img:opacity-80" />
-                                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity">
-                                       <div className="bg-black/60 backdrop-blur-sm rounded-full p-2">
-                                         <FiSearch className="text-white" size={16} />
-                                       </div>
-                                     </div>
-                                   </div>
-                                ) : (
-                                  <div 
-                                    className="mb-1.5 flex items-center gap-2 p-2 bg-black/25 border border-white/5 rounded-lg text-xs max-w-64 cursor-pointer hover:bg-black/40 transition-colors"
-                                    onClick={() => setMediaPreview({ url: getImageUrl(msg.fileUrl), fileName: msg.fileName || 'Document', fileType: msg.fileType })}
-                                  >
-                                    <div className="w-8 h-8 rounded-md bg-slate-800 text-slate-300 flex items-center justify-center shrink-0">
-                                      <FiFileText className="text-lg" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <p className="font-semibold text-slate-300 truncate">{msg.fileName || 'Attachment'}</p>
-                                      <p className="text-[10px] text-slate-500 capitalize">{msg.fileType ? msg.fileType.split('/')[1] : 'document'}</p>
-                                    </div>
-                                    <a
-                                      href={getImageUrl(msg.fileUrl)}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      className="p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors shrink-0 cursor-pointer"
-                                      title="Open / Download"
-                                      download
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      <FiDownload className="text-xs" />
-                                    </a>
-                                  </div>
-                                )
-                              )}
-
-                              {isDeleted ? (
-                                <p className="text-[13px] sm:text-sm leading-relaxed wrap-break-word whitespace-pre-wrap italic text-slate-500">This message was deleted</p>
-                              ) : (
-                                (msg.message || msg.text) && (
-                                  <p className="text-[13px] sm:text-sm leading-relaxed wrap-break-word whitespace-pre-wrap">{msg.message || msg.text}</p>
-                                )
-                              )}
-                            </div>
-                            <div className={`flex items-center gap-1 mt-1.5 mx-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
-                              <span
-                                className="text-[10px] font-medium text-slate-500 cursor-help"
-                                title={msg.createdAt ? new Date(msg.createdAt).toLocaleString() : ''}
+                                  }`}
                               >
-                                {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (msg.time || '')}
-                              </span>
-                              {isMe && (
-                                <span className={`text-sm ${isSeen ? 'text-blue-400' : 'text-slate-500'}`} title={isSeen ? "Read" : "Sent"}>
-                                  {isSeen ? (
-                                    <div className="flex -space-x-1.5">
-                                      <RiCheckDoubleFill />
+                                {/* Reply Context in Message */}
+                                {msg.replyTo && !isDeleted && (
+                                  <div className="mb-1.5 p-1.5 rounded-lg bg-black/30 border-l-2 border-indigo-400 text-slate-400 text-[11px] truncate max-w-full">
+                                    <span className="font-bold block text-indigo-400 text-[9px] uppercase tracking-wider mb-0.5">Replied to message</span>
+                                    {getReplyText(msg.replyTo)}
+                                  </div>
+                                )}
+
+                                {/* File Attachment in Message */}
+                                {msg.fileUrl && !isDeleted && (
+                                  isImageFile(msg.fileType, msg.fileName, msg.fileUrl) ? (
+                                    <div
+                                      className="mb-1.5 rounded-lg overflow-hidden border border-white/5 bg-slate-900 flex items-center justify-center max-w-64 cursor-zoom-in group/img relative"
+                                      onClick={() => setMediaPreview({ url: getImageUrl(msg.fileUrl), fileName: msg.fileName || 'Image', fileType: msg.fileType })}
+                                    >
+                                      <img src={getImageUrl(msg.fileUrl)} alt={msg.fileName || 'Attachment'} className="max-w-full max-h-48 object-contain transition-opacity group-hover/img:opacity-80" />
+                                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity">
+                                        <div className="bg-black/60 backdrop-blur-sm rounded-full p-2">
+                                          <FiSearch className="text-white" size={16} />
+                                        </div>
+                                      </div>
                                     </div>
                                   ) : (
-                                    <FiCheck />
-                                  )}
+                                    <div
+                                      className="mb-1.5 flex items-center gap-2 p-2 bg-black/25 border border-white/5 rounded-lg text-xs max-w-64 cursor-pointer hover:bg-black/40 transition-colors"
+                                      onClick={() => setMediaPreview({ url: getImageUrl(msg.fileUrl), fileName: msg.fileName || 'Document', fileType: msg.fileType })}
+                                    >
+                                      <div className="w-8 h-8 rounded-md bg-slate-800 text-slate-300 flex items-center justify-center shrink-0">
+                                        <FiFileText className="text-lg" />
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <p className="font-semibold text-slate-300 truncate">{msg.fileName || 'Attachment'}</p>
+                                        <p className="text-[10px] text-slate-500 capitalize">{msg.fileType ? msg.fileType.split('/')[1] : 'document'}</p>
+                                      </div>
+                                      <a
+                                        href={getImageUrl(msg.fileUrl)}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors shrink-0 cursor-pointer"
+                                        title="Open / Download"
+                                        download
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <FiDownload className="text-xs" />
+                                      </a>
+                                    </div>
+                                  )
+                                )}
+
+                                {isDeleted ? (
+                                  <p className="text-[13px] sm:text-sm leading-relaxed wrap-break-word whitespace-pre-wrap italic text-slate-500">This message was deleted</p>
+                                ) : (
+                                  (msg.message || msg.text) && (
+                                    <p className="text-[13px] sm:text-sm leading-relaxed wrap-break-word whitespace-pre-wrap">{msg.message || msg.text}</p>
+                                  )
+                                )}
+                              </div>
+                              <div className={`flex items-center gap-1 mt-1.5 mx-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                <span
+                                  className="text-[10px] font-medium text-slate-500 cursor-help"
+                                  title={msg.createdAt ? new Date(msg.createdAt).toLocaleString() : ''}
+                                >
+                                  {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (msg.time || '')}
                                 </span>
-                              )}
+                                {isMe && (
+                                  <span className={`text-sm ${isSeen ? 'text-blue-400' : 'text-slate-500'}`} title={isSeen ? "Read" : "Sent"}>
+                                    {isSeen ? (
+                                      <div className="flex -space-x-1.5">
+                                        <RiCheckDoubleFill />
+                                      </div>
+                                    ) : (
+                                      <FiCheck />
+                                    )}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
+                      </React.Fragment>
+                    );
+                  })}
+                  <div ref={messagesEndRef} />
+                </div>
+
+                {/* Input Area */}
+                <div className="p-3 sm:p-4 border-t border-white/10 bg-black/20 shrink-0 animate-in fade-in duration-200">
+
+                  {/* Reply Preview */}
+                  {replyToMessage && (
+                    <div className="flex items-center justify-between p-2 bg-indigo-600/10 border border-indigo-500/20 rounded-xl mb-2 animate-in fade-in slide-in-from-bottom-1 text-xs">
+                      <div className="flex-1 min-w-0 border-l-2 border-indigo-500 pl-2">
+                        <p className="font-semibold text-indigo-400">Reply to {String(replyToMessage.senderId || replyToMessage.sender || replyToMessage.from) === String(activeContact) ? 'Customer' : 'Support'}</p>
+                        <p className="text-slate-300 truncate">{replyToMessage.message || replyToMessage.text}</p>
                       </div>
-                    </React.Fragment>
-                  );
-                })}
-                <div ref={messagesEndRef} />
-              </div>
-
-              {/* Input Area */}
-              <div className="p-3 sm:p-4 border-t border-white/10 bg-black/20 shrink-0 animate-in fade-in duration-200">
-
-                {/* Reply Preview */}
-                {replyToMessage && (
-                  <div className="flex items-center justify-between p-2 bg-indigo-600/10 border border-indigo-500/20 rounded-xl mb-2 animate-in fade-in slide-in-from-bottom-1 text-xs">
-                    <div className="flex-1 min-w-0 border-l-2 border-indigo-500 pl-2">
-                      <p className="font-semibold text-indigo-400">Reply to {String(replyToMessage.senderId || replyToMessage.sender || replyToMessage.from) === String(activeContact) ? 'Customer' : 'Support'}</p>
-                      <p className="text-slate-300 truncate">{replyToMessage.message || replyToMessage.text}</p>
+                      <button
+                        type="button"
+                        onClick={() => setReplyToMessage(null)}
+                        className="p-1 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-colors"
+                      >
+                        <FiX className="text-sm" />
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setReplyToMessage(null)}
-                      className="p-1 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-colors"
-                    >
-                      <FiX className="text-sm" />
-                    </button>
-                  </div>
-                )}
+                  )}
 
-                {/* Edit Preview */}
-                {editingMessage && (
-                  <div className="flex items-center justify-between p-2 bg-blue-600/10 border border-blue-500/20 rounded-xl mb-2 animate-in fade-in slide-in-from-bottom-1 text-xs">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-blue-400">Editing Message</p>
-                      <p className="text-slate-300 truncate">{editingMessage.message || editingMessage.text}</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => { setEditingMessage(null); setMessage(''); }}
-                      className="p-1 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-colors"
-                    >
-                      <FiX className="text-sm" />
-                    </button>
-                  </div>
-                )}
-
-                {/* Attachment Preview */}
-                {attachment && (
-                  <div className="flex items-center gap-2 p-2 bg-white/5 border border-white/10 rounded-xl mb-2 animate-in fade-in slide-in-from-bottom-1 max-w-sm">
-                    {isImageFile(attachment.fileType, attachment.fileName, attachment.fileUrl) ? (
-                      <img src={getImageUrl(attachment.fileUrl)} alt="Preview" className="w-10 h-10 object-cover rounded-lg bg-white p-0.5 shrink-0" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-lg bg-slate-800 text-slate-300 flex items-center justify-center shrink-0">
-                        <FiFileText className="text-lg" />
+                  {/* Edit Preview */}
+                  {editingMessage && (
+                    <div className="flex items-center justify-between p-2 bg-blue-600/10 border border-blue-500/20 rounded-xl mb-2 animate-in fade-in slide-in-from-bottom-1 text-xs">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-blue-400">Editing Message</p>
+                        <p className="text-slate-300 truncate">{editingMessage.message || editingMessage.text}</p>
                       </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-white truncate">{attachment.fileName}</p>
-                      <p className="text-[10px] text-slate-400">Ready to send</p>
+                      <button
+                        type="button"
+                        onClick={() => { setEditingMessage(null); setMessage(''); }}
+                        className="p-1 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-colors"
+                      >
+                        <FiX className="text-sm" />
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleRemoveAttachment}
-                      className="p-1 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-colors"
-                    >
-                      <FiX className="text-sm" />
-                    </button>
-                  </div>
-                )}
+                  )}
 
-                {/* Uploading File Indicator */}
-                {uploadingFile && (
-                  <div className="flex items-center gap-2 p-2 bg-white/5 border border-white/10 rounded-xl mb-2 animate-in fade-in max-w-xs text-xs text-slate-400">
-                    <FiLoader className="animate-spin text-blue-400 text-sm" />
-                    <span>Uploading file...</span>
-                  </div>
-                )}
+                  {/* Attachment Preview */}
+                  {attachment && (
+                    <div className="flex items-center gap-2 p-2 bg-white/5 border border-white/10 rounded-xl mb-2 animate-in fade-in slide-in-from-bottom-1 max-w-sm">
+                      {isImageFile(attachment.fileType, attachment.fileName, attachment.fileUrl) ? (
+                        <img src={getImageUrl(attachment.fileUrl)} alt="Preview" className="w-10 h-10 object-cover rounded-lg bg-white p-0.5 shrink-0" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-slate-800 text-slate-300 flex items-center justify-center shrink-0">
+                          <FiFileText className="text-lg" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-white truncate">{attachment.fileName}</p>
+                        <p className="text-[10px] text-slate-400">Ready to send</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleRemoveAttachment}
+                        className="p-1 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-colors"
+                      >
+                        <FiX className="text-sm" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Uploading File Indicator */}
+                  {uploadingFile && (
+                    <div className="flex items-center gap-2 p-2 bg-white/5 border border-white/10 rounded-xl mb-2 animate-in fade-in max-w-xs text-xs text-slate-400">
+                      <FiLoader className="animate-spin text-blue-400 text-sm" />
+                      <span>Uploading file...</span>
+                    </div>
+                  )}
 
 
 
-                <form onSubmit={handleSend} className="flex items-end gap-2">
-                  <div className="flex-1 bg-black/20 border border-white/10 rounded-2xl flex items-end p-1 focus-within:border-blue-500/50 focus-within:bg-black/40 shadow-inner backdrop-blur-md transition-all min-w-0">
-                    {/* <div className="relative shrink-0 flex items-center" ref={emojiPickerRef}>
+                  <form onSubmit={handleSend} className="flex items-end gap-2">
+                    <div className="flex-1 bg-black/20 border border-white/10 rounded-2xl flex items-end p-1 focus-within:border-blue-500/50 focus-within:bg-black/40 shadow-inner backdrop-blur-md transition-all min-w-0">
+                      {/* <div className="relative shrink-0 flex items-center" ref={emojiPickerRef}>
                       <button
                         type="button"
                         onClick={() => setShowEmojiPicker(!showEmojiPicker)}
@@ -843,44 +962,44 @@ const Chat = () => {
                         </div>
                       )}
                     </div> */}
-                    <textarea
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      placeholder={editingMessage ? "Edit message..." : "Type a message..."}
-                      className="flex-1 max-h-32 bg-transparent text-white placeholder-slate-500 text-sm px-2 py-3 focus:outline-none resize-none custom-scrollbar"
-                      rows="1"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSend(e);
-                        }
-                      }}
-                    />
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
+                      <textarea
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        placeholder={editingMessage ? "Edit message..." : "Type a message..."}
+                        className="flex-1 max-h-32 bg-transparent text-white placeholder-slate-500 text-sm px-2 py-3 focus:outline-none resize-none custom-scrollbar"
+                        rows="1"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSend(e);
+                          }
+                        }}
+                      />
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        className="hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAttachClick}
+                        className="p-2.5 text-slate-400 hover:text-blue-400 transition-colors shrink-0"
+                        title="Attach File"
+                      >
+                        <FiPaperclip className="text-xl" />
+                      </button>
+                    </div>
                     <button
-                      type="button"
-                      onClick={handleAttachClick}
-                      className="p-2.5 text-slate-400 hover:text-blue-400 transition-colors shrink-0"
-                      title="Attach File"
+                      type="submit"
+                      disabled={editingMessage ? !message.trim() : (!message.trim() && !attachment)}
+                      className="h-10 w-10 sm:h-11 sm:w-11 mb-1 rounded-2xl bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-500/20 shrink-0"
                     >
-                      <FiPaperclip className="text-xl" />
+                      <FiSend className="text-xl" />
                     </button>
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={editingMessage ? !message.trim() : (!message.trim() && !attachment)}
-                    className="h-10 w-10 sm:h-11 sm:w-11 mb-1 rounded-2xl bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-500/20 shrink-0"
-                  >
-                    <FiSend className="text-xl" />
-                  </button>
-                </form>
+                  </form>
+                </div>
               </div>
-            </div>
 
               {/* Collapsible Sidebar */}
               <div className={`border-l border-white/10 bg-slate-950/40 backdrop-blur-2xl flex flex-col h-full shrink-0 transition-all duration-300 ease-in-out overflow-hidden ${showProfileSidebar ? 'w-80 opacity-100' : 'w-0 opacity-0 pointer-events-none border-l-0'}`}>
@@ -918,7 +1037,7 @@ const Chat = () => {
                               <span className="text-[10px] font-black bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-md uppercase">Pending</span>
                             )}
                           </div>
-                          
+
                           <div className="space-y-3 text-xs">
                             <div>
                               <span className="text-slate-500 font-medium block mb-0.5">Name</span>
@@ -1022,9 +1141,9 @@ const Chat = () => {
                 <FiX size={18} />
               </button>
             </div>
-            
+
             <p className="text-slate-400 text-xs mb-3 font-semibold uppercase tracking-wider">How it will look in the chat:</p>
-            
+
             <div className="bg-black/20 border border-white/5 p-4 rounded-xl mb-6">
               <div className="flex justify-end">
                 <div className="px-4 py-2.5 rounded-2xl bg-blue-600 text-white rounded-br-sm shadow-sm max-w-[90%] text-left">

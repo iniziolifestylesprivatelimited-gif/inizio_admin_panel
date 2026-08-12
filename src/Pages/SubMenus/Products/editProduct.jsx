@@ -482,7 +482,7 @@ const Variants = () => {
               )}
             </div>
 
-            <div>
+            {/* <div>
               <h3 className="text-sm font-bold text-slate-300 mb-3">Add Additional Images</h3>
               <div 
                 onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -531,7 +531,7 @@ const Variants = () => {
                   ))}
                 </div>
               )}
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
