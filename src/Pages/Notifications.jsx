@@ -834,29 +834,29 @@ const Notifications = () => {
         {/* Right Side: Phone simulator container */}
         <Card className="xl:col-span-4 sm:p-8 h-fit flex flex-col items-center justify-start gap-4">
           <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Live Preview Simulator</label>
-          <div className="w-full max-w-[270px] aspect-[9/18.5] bg-slate-950 border-[6px] border-slate-800 rounded-[36px] shadow-2xl relative overflow-hidden flex flex-col animate-in fade-in duration-300">
+          <div className="w-full max-w-[270px] aspect-[9/18.5] bg-gradient-to-b from-blue-900/60 via-slate-900 to-black border-[6px] border-slate-800 rounded-[36px] shadow-2xl relative overflow-hidden flex flex-col animate-in fade-in duration-300 select-none">
             {/* Notch / Dynamic Island */}
             {platform === 'ios' ? (
-              <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-28 h-5 bg-black rounded-full z-30 flex items-center justify-center">
-                <div className="w-2.5 h-2.5 rounded-full bg-slate-900 absolute right-4"></div>
+              <div className="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-4.5 bg-black rounded-full z-30 flex items-center justify-center">
+                <div className="w-2 h-2 rounded-full bg-slate-900 absolute right-3"></div>
               </div>
             ) : (
-              <div className="absolute top-3.5 left-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full bg-black border border-slate-800 z-30"></div>
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-black border border-slate-800 z-30"></div>
             )}
 
             {/* Status Bar */}
-            <div className="h-9 bg-black/40 backdrop-blur-md px-5 flex justify-between items-center text-[10px] text-white/90 z-20 font-medium select-none shrink-0 pt-1">
+            <div className="absolute top-0 left-0 right-0 h-8 px-4 flex justify-between items-center text-[10px] text-white/95 z-20 font-semibold pt-1.5">
               <span>9:41</span>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1">
                 <span>📶</span>
                 <span>🔋</span>
               </div>
             </div>
 
-            {/* Wallpaper background */}
-            <div className="flex-1 bg-gradient-to-b from-blue-900/60 via-slate-900 to-black p-3 relative flex flex-col justify-start pt-12">
+            {/* Wallpaper background content */}
+            <div className="flex-1 p-3.5 pt-12 relative flex flex-col justify-start">
               {/* Lockscreen date/time info */}
-              <div className="text-center text-white/80 mb-6 font-light select-none">
+              <div className="text-center text-white/80 mb-5 font-light">
                 <div className="text-2xl font-normal">9:41</div>
                 <div className="text-[10px]">Thursday, August 13</div>
               </div>
