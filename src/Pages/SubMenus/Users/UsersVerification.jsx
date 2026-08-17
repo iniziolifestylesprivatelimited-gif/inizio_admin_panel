@@ -380,7 +380,7 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
               <button onClick={() => triggerReject(selectedUser._id)} disabled={isActionLoading} className="w-full sm:w-auto px-6 py-2.5 bg-transparent border border-red-500/30 text-red-400 font-bold rounded-xl hover:bg-red-500/10 transition-colors disabled:opacity-50">
                 Reject KYC
               </button>
-              <button onClick={() => handleApprove(selectedUser._id)} disabled={isActionLoading} className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 shadow-lg shadow-emerald-500/30 transition-all disabled:opacity-50">
+              <button onClick={() => handleApprove(selectedUser._id)} disabled={isActionLoading} className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 text-white font-bold rounded-xl transition-all disabled:opacity-50 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700">
                 {isActionLoading ? <FiLoader className="mr-2 animate-spin" /> : <FiCheck className="mr-2 text-lg" />}
                 {isActionLoading ? 'Processing...' : 'Approve & Generate ID'}
               </button>
@@ -419,7 +419,7 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
               <button
                 onClick={() => handleReject(rejectingUserId, rejectionReason)}
                 disabled={isActionLoading || !rejectionReason.trim()}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-white text-sm font-bold rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700"
               >
                 {isActionLoading ? <FiLoader className="animate-spin text-xs" /> : <FiUserMinus size={14} />} Reject KYC
               </button>

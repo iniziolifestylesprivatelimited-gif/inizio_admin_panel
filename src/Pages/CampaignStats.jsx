@@ -566,7 +566,7 @@ const CampaignStats = () => {
                                 title={`Delivery Rate: ${group.deliveryRate}`}
                               ></div>
                               <div 
-                                className="bg-blue-500 h-full border-l border-black/40" 
+                                className="h-full border-l border-black/40 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" 
                                 style={{ width: `${parseFloat(group.clickRate) || 0}%` }}
                                 title={`Click Rate: ${group.clickRate}`}
                               ></div>
@@ -623,7 +623,7 @@ const CampaignStats = () => {
                                 </div>
                                 <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden flex">
                                   <div className="bg-emerald-500 h-full" style={{ width: `${parseFloat(member.deliveryRate) || 0}%` }} />
-                                  <div className="bg-blue-500 h-full" style={{ width: `${parseFloat(member.clickRate) || 0}%` }} />
+                                  <div className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" style={{ width: `${parseFloat(member.clickRate) || 0}%` }} />
                                 </div>
                                 <div className="flex justify-between text-[9px] text-slate-600">
                                   <span>Recv: <strong className="text-emerald-400">{member.totalReceived || 0}</strong></span>

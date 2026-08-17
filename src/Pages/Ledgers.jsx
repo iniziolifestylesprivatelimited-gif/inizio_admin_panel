@@ -175,7 +175,7 @@ export const Ledgers = () => {
         </div>
         <button 
           onClick={openModal}
-          className="flex items-center px-4 py-2.5 bg-blue-600/50 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/5"
+          className="flex items-center px-4 py-2.5 text-white font-bold rounded-xl transition-colors bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
         >
           <FiUpload className="mr-2" /> Upload Ledger
         </button>
@@ -433,7 +433,7 @@ export const Ledgers = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 text-white font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                 >
                   {isSubmitting ? <FiLoader className="animate-spin mr-2" /> : <FiUpload className="mr-2" />}
                   {isSubmitting ? 'Uploading...' : 'Upload Ledger'}
@@ -506,7 +506,7 @@ export const Ledgers = () => {
                     type="button"
                     onClick={confirmAndUploadLedger}
                     disabled={isSubmitting}
-                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors text-sm flex items-center gap-2 cursor-pointer shadow-lg shadow-blue-600/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-5 py-2.5 text-white font-bold rounded-xl transition-colors text-sm flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                   >
                     {isSubmitting ? (
                       <>
@@ -526,7 +526,7 @@ export const Ledgers = () => {
                     download
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-colors text-sm flex items-center gap-2 cursor-pointer shadow-lg shadow-emerald-600/10"
+                    className="px-5 py-2.5 text-white font-bold rounded-xl transition-colors text-sm flex items-center gap-2 cursor-pointer bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
                   >
                     <FiDownload /> Download PDF
                   </a>

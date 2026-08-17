@@ -396,7 +396,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
               >
                 Return Requests ({returnsList.length})
                 {returnsList.filter(r => r.status?.toLowerCase() === 'pending' || r.status?.toLowerCase() === 'requested').length > 0 && (
-                  <span className="absolute -top-1 -right-3 w-2 h-2 rounded-full bg-red-500"></span>
+                  <span className="absolute -top-1 -right-3 w-2 h-2 rounded-full bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700"></span>
                 )}
               </button>
             </div>
@@ -846,7 +846,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                         setStatusConfirmOpen(true);
                       }}
                       disabled={!courierNameText.trim() || !awbNumberText.trim()}
-                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      className="px-5 py-2.5 text-white text-xs font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                     >
                       Confirm Shipped Status
                     </button>
@@ -964,7 +964,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                           {trackingData.activities.map((act, i) => (
                             <div key={i} className="relative">
                               {/* Timeline dot */}
-                              <span className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-blue-500 ring-4 ring-slate-900 flex items-center justify-center">
+                              <span className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full ring-4 ring-slate-900 flex items-center justify-center bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
                                 <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
                               </span>
                               <div className="text-sm">
@@ -1302,7 +1302,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                     <button
                       onClick={() => handleReturnStatusChange(selectedReturn._id || selectedReturn.id, 'Rejected', rejectionReasonText)}
                       disabled={!rejectionReasonText.trim()}
-                      className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg transition-colors disabled:opacity-50"
+                      className="px-4 py-2 text-white text-xs font-bold rounded-lg transition-colors disabled:opacity-50 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700"
                     >
                       Confirm Reject
                     </button>
@@ -1425,7 +1425,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                     type="button"
                     onClick={confirmAndUploadInvoice}
                     disabled={isUploadingInvoice}
-                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors text-sm flex items-center gap-2 cursor-pointer shadow-lg shadow-blue-600/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-5 py-2.5 text-white font-bold rounded-xl transition-colors text-sm flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                   >
                     {isUploadingInvoice ? (
                       <>
@@ -1445,7 +1445,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                     download
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-colors text-sm flex items-center gap-2 cursor-pointer shadow-lg shadow-emerald-600/10"
+                    className="px-5 py-2.5 text-white font-bold rounded-xl transition-colors text-sm flex items-center gap-2 cursor-pointer bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
                   >
                     <FiDownload /> Download PDF
                   </a>
@@ -1528,7 +1528,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                   );
                   setStatusConfirmOpen(false);
                 }}
-                className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                className="px-4 py-2.5 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
               >
                 Confirm & Save
               </button>

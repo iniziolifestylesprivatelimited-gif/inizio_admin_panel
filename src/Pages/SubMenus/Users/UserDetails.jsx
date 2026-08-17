@@ -1187,7 +1187,7 @@ const UserDetails = () => {
               <button
                 onClick={handleForceLogout}
                 disabled={isActionLoading}
-                className="flex items-center justify-center px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition-all cursor-pointer text-sm shadow-md shadow-amber-600/10 shrink-0"
+                className="flex items-center justify-center px-4 py-2.5 text-white font-bold rounded-xl transition-all cursor-pointer text-sm shrink-0 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600"
               >
                 <FiRefreshCcw className="mr-2 text-base" /> Force Logout User
               </button>
@@ -1197,7 +1197,7 @@ const UserDetails = () => {
                 <button
                   onClick={handleReactivate}
                   disabled={isActionLoading}
-                  className="flex items-center justify-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all cursor-pointer text-sm shadow-md shadow-emerald-600/10 shrink-0"
+                  className="flex items-center justify-center px-4 py-2.5 text-white font-bold rounded-xl transition-all cursor-pointer text-sm shrink-0 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
                 >
                   <FiRefreshCcw className="mr-2 text-base" /> Reactivate User Account
                 </button>
@@ -1205,7 +1205,7 @@ const UserDetails = () => {
                 <button
                   onClick={() => setDeleteConfirmOpen(true)}
                   disabled={isActionLoading}
-                  className="flex items-center justify-center px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all cursor-pointer text-sm shadow-md shadow-red-600/10 shrink-0"
+                  className="flex items-center justify-center px-4 py-2.5 text-white font-bold rounded-xl transition-all cursor-pointer text-sm shrink-0 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700"
                 >
                   <FiTrash2 className="mr-2 text-base" /> Delete User Account
                 </button>
@@ -1250,7 +1250,7 @@ const UserDetails = () => {
                   setDeleteConfirmOpen(false);
                   setTypedConfirmName('');
                 }}
-                className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all text-sm shadow-lg shadow-red-600/10"
+                className="flex-1 px-4 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all text-sm bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700"
               >
                 Proceed Delete
               </button>
@@ -1274,7 +1274,7 @@ const UserDetails = () => {
             <button
               type="button"
               onClick={() => setAlertOpen(false)}
-              className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors text-sm shadow-lg shadow-blue-600/10"
+              className="w-full px-4 py-2.5 text-white font-bold rounded-xl transition-colors text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
             >
               OK
             </button>

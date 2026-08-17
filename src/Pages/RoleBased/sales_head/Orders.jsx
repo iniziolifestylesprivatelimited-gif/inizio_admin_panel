@@ -375,7 +375,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
               >
                 Return Requests ({returnsList.length})
                 {returnsList.filter(r => r.status?.toLowerCase() === 'pending' || r.status?.toLowerCase() === 'requested').length > 0 && (
-                  <span className="absolute -top-1 -right-3 w-2 h-2 rounded-full bg-red-500"></span>
+                  <span className="absolute -top-1 -right-3 w-2 h-2 rounded-full bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700"></span>
                 )}
               </button>
             </div>
@@ -837,7 +837,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                           {trackingData.activities.map((act, i) => (
                             <div key={i} className="relative">
                               {/* Timeline dot */}
-                              <span className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-blue-500 ring-4 ring-slate-900 flex items-center justify-center">
+                              <span className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full ring-4 ring-slate-900 flex items-center justify-center bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
                                 <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
                               </span>
                               <div className="text-sm">

@@ -550,7 +550,7 @@ const Maintenance = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-bold py-3.5 px-4 rounded-xl transition-all duration-300 flex justify-center items-center gap-2 shadow-lg shadow-blue-600/30 cursor-pointer"
+                className="w-full disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-bold py-3.5 px-4 rounded-xl transition-all duration-300 flex justify-center items-center gap-2 cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
               >
                 <FiPlay /> {loading ? 'Updating...' : `Start ${activeTab === 'global' ? 'Global' : activeTab === 'android' ? 'Android' : 'iOS'} Maintenance`}
               </button>
@@ -560,7 +560,7 @@ const Maintenance = () => {
                   type="button"
                   onClick={() => handleStop(false)}
                   disabled={loading}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:cursor-not-allowed text-white font-medium py-3.5 px-4 rounded-xl transition-all duration-300 flex justify-center items-center gap-2 shadow-lg shadow-red-600/30 cursor-pointer"
+                  className="flex-1 disabled:bg-red-800 disabled:cursor-not-allowed text-white font-medium py-3.5 px-4 rounded-xl transition-all duration-300 flex justify-center items-center gap-2 cursor-pointer bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700"
                 >
                   <FiSquare /> {loading ? 'Updating...' : 'Stop Maintenance'}
                 </button>
@@ -635,7 +635,7 @@ const Maintenance = () => {
           <button
             type="submit"
             disabled={updateLoading}
-            className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-800 disabled:cursor-not-allowed text-white font-bold py-2 px-6 rounded-xl transition-all duration-300 flex justify-center items-center gap-2 shadow-lg shadow-emerald-600/30 text-sm"
+            className="disabled:bg-emerald-800 disabled:cursor-not-allowed text-white font-bold py-2 px-6 rounded-xl transition-all duration-300 flex justify-center items-center gap-2 text-sm bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
           >
             <FiSave /> {updateLoading ? 'Saving...' : 'Save Configuration'}
           </button>

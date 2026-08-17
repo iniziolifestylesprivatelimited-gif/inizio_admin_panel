@@ -28,7 +28,7 @@ const ProductList = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
   const [typedConfirmName, setTypedConfirmName] = useState('');
-  
+
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
 
@@ -36,9 +36,34 @@ const ProductList = () => {
     setAlertMessage(msg);
     setAlertOpen(true);
   };
+
+  const [brokenImages, setBrokenImages] = useState([]);
+  const handleImageError = (productName) => {
+    setBrokenImages(prev => {
+      if (prev.includes(productName)) return prev;
+      
+      // Defer event dispatch to avoid "Cannot update a component while rendering a different component" warning
+      setTimeout(() => {
+        const event = new CustomEvent('product-image-error', { detail: { name: productName } });
+        window.dispatchEvent(event);
+      }, 0);
+      
+      return [...prev, productName];
+    });
+  };
+
+  useEffect(() => {
+    if (brokenImages.length > 0) {
+      const timer = setTimeout(() => {
+        setBrokenImages([]);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [brokenImages]);
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
   const lastPushedSearchRef = useRef(searchParams.get('search') || '');
+  const preSearchPageRef = useRef(parseInt(searchParams.get('page') || '1', 10));
   const searchTerm = searchParams.get('search') || '';
   const currentPage = parseInt(searchParams.get('page') || '1', 10);
 
@@ -64,7 +89,7 @@ const ProductList = () => {
     setSearchParams(prev => {
       const currentKey = prev.get('sortKey') || '';
       const currentOrder = prev.get('sortOrder') || 'asc';
-      
+
       if (currentKey === key) {
         if (currentOrder === 'asc') {
           prev.set('sortOrder', 'desc');
@@ -110,13 +135,17 @@ const ProductList = () => {
       setSearchParams(prev => {
         const currentSearch = prev.get('search') || '';
         if (searchInput === currentSearch) return prev;
-        
+
         if (searchInput) {
+          if (!currentSearch) {
+            preSearchPageRef.current = parseInt(prev.get('page') || '1', 10);
+          }
           prev.set('search', searchInput);
+          prev.set('page', '1');
         } else {
           prev.delete('search');
+          prev.set('page', preSearchPageRef.current.toString());
         }
-        prev.set('page', '1');
         lastPushedSearchRef.current = searchInput;
         return prev;
       }, { replace: true });
@@ -207,9 +236,9 @@ const ProductList = () => {
   };
 
   const handleDuplicateVariant = (index) => {
-    const cloned = { 
+    const cloned = {
       ...addVariants[index],
-      quantityPricing: (addVariants[index].quantityPricing || []).map(qp => ({ ...qp })) 
+      quantityPricing: (addVariants[index].quantityPricing || []).map(qp => ({ ...qp }))
     };
     const newVariants = [...addVariants];
     newVariants.splice(index + 1, 0, cloned);
@@ -293,13 +322,13 @@ const ProductList = () => {
     try {
       const token = sessionStorage.getItem('accessToken');
       const headers = { Authorization: `Bearer ${token}` };
-      
+
       const [prodRes, brandRes, catRes] = await Promise.all([
         axios.get(`${BASE_URL}/api/products/`, { headers }),
         axios.get(`${BASE_URL}/api/brands/`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${BASE_URL}/api/categories/`, { headers }).catch(() => ({ data: [] }))
       ]);
-      
+
       setProducts(prodRes.data);
       setBrands(brandRes.data);
       setCategories(catRes.data);
@@ -314,7 +343,7 @@ const ProductList = () => {
     fetchData();
   }, []);
 
-console.log(products)
+  console.log(products)
 
   const handleDelete = async (id) => {
     try {
@@ -341,7 +370,7 @@ console.log(products)
     try {
       const token = sessionStorage.getItem('accessToken');
       const formData = new FormData();
-      
+
       formData.append('name', currentProductForView.name || '');
       formData.append('description', currentProductForView.description || '');
       formData.append('details', currentProductForView.details || '');
@@ -361,7 +390,7 @@ console.log(products)
 
       const brandId = currentProductForView.brand?._id || currentProductForView.brand;
       if (brandId) formData.append('brand', brandId);
-      
+
       const categoryId = currentProductForView.category?._id || currentProductForView.category;
       if (categoryId) formData.append('category', categoryId);
 
@@ -369,7 +398,7 @@ console.log(products)
         const parsedQP = (v.quantityPricing || [])
           .map(qp => ({ minQty: Number(qp.minQty) || 0, price: Number(qp.price) || 0 }))
           .filter(qp => qp.minQty > 0 || qp.price > 0);
-        
+
         return {
           _id: v._id,
           name: v.name,
@@ -391,7 +420,7 @@ console.log(products)
       }
 
       await axios.put(`${BASE_URL}/api/products/${currentProductForView._id}`, formData, {
-        headers: { 
+        headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
@@ -414,7 +443,7 @@ console.log(products)
     try {
       const token = sessionStorage.getItem('accessToken');
       const formData = new FormData();
-      
+
       formData.append('name', currentProductForView.name || '');
       formData.append('description', currentProductForView.description || '');
       formData.append('details', currentProductForView.details || '');
@@ -434,7 +463,7 @@ console.log(products)
 
       const brandId = currentProductForView.brand?._id || currentProductForView.brand;
       if (brandId) formData.append('brand', brandId);
-      
+
       const categoryId = currentProductForView.category?._id || currentProductForView.category;
       if (categoryId) formData.append('category', categoryId);
 
@@ -442,7 +471,7 @@ console.log(products)
         const parsedQP = (v.quantityPricing || [])
           .map(qp => ({ minQty: Number(qp.minQty) || 0, price: Number(qp.price) || 0 }))
           .filter(qp => qp.minQty > 0 || qp.price > 0);
-        
+
         return {
           _id: v._id,
           name: v.name,
@@ -465,14 +494,14 @@ console.log(products)
       }
 
       await axios.put(`${BASE_URL}/api/products/${currentProductForView._id}`, formData, {
-        headers: { 
+        headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
       });
 
       // Update local states
-      const updatedVariants = (currentProductForView.variants || []).map(v => 
+      const updatedVariants = (currentProductForView.variants || []).map(v =>
         v._id === variantId ? { ...v, isActive: !currentActiveState } : v
       );
 
@@ -487,7 +516,7 @@ console.log(products)
   };
 
   const openAddModal = () => setIsAddModalOpen(true);
-  
+
   const closeAddModal = () => {
     setIsAddModalOpen(false);
     setAddFormData(initialFormState);
@@ -540,9 +569,9 @@ console.log(products)
           .map(qp => ({ minQty: Number(qp.minQty) || 0, price: Number(qp.price) || 0 }))
           .filter(qp => qp.minQty > 0 || qp.price > 0);
         const images = (v.image_urls || '').split(',').map(url => url.trim()).filter(Boolean);
-        
+
         const { image_urls, quantityPricing, ...rest } = v;
-        
+
         return {
           ...rest,
           name: v.name,
@@ -563,7 +592,7 @@ console.log(products)
 
     try {
       const token = sessionStorage.getItem('accessToken');
-      
+
       const formData = new FormData();
       formData.append('name', addFormData.name || '');
       formData.append('description', addFormData.description || '');
@@ -596,7 +625,7 @@ console.log(products)
       });
 
       const response = await axios.post(`${BASE_URL}/api/products/`, formData, {
-        headers: { 
+        headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
@@ -624,7 +653,7 @@ console.log(products)
     if (isConfirmed) {
       try {
         const token = sessionStorage.getItem('accessToken');
-        await Promise.all(selectedProducts.map(id => 
+        await Promise.all(selectedProducts.map(id =>
           axios.delete(`${BASE_URL}/api/products/${id}`, {
             headers: { Authorization: `Bearer ${token}` }
           })
@@ -644,7 +673,7 @@ console.log(products)
   const handleBulkDeactivate = async () => {
     let targets = [];
     const token = sessionStorage.getItem('accessToken');
-    
+
     const valueThreshold = Number(deactivateQuantityValue);
     if (deactivateCondition === 'quantity' && isNaN(valueThreshold)) {
       alert('Please enter a valid number for quantity threshold.');
@@ -670,8 +699,8 @@ console.log(products)
         // Evaluate products based on aggregated quantity
         targets = products.filter(p => {
           if (p.isActive === false) return false;
-          const totalQty = p.variants && p.variants.length > 0 
-            ? p.variants.reduce((sum, v) => sum + (Number(v.quantity) || 0), 0) 
+          const totalQty = p.variants && p.variants.length > 0
+            ? p.variants.reduce((sum, v) => sum + (Number(v.quantity) || 0), 0)
             : (Number(p.totalQuantity) || 0);
           return checkQuantityMatches(totalQty);
         }).map(p => ({
@@ -688,9 +717,9 @@ console.log(products)
             // Check if any variant matches the condition and is active
             const hasMatchingVariant = p.variants.some(v => v.isActive !== false && checkQuantityMatches(v.quantity));
             if (!hasMatchingVariant) return null;
-            
+
             // Map variants to set isActive to false for those matching
-            const updatedVariants = p.variants.map(v => 
+            const updatedVariants = p.variants.map(v =>
               checkQuantityMatches(v.quantity) ? { ...v, isActive: false } : v
             );
             return {
@@ -785,7 +814,7 @@ console.log(products)
 
         const brandId = p.brand?._id || p.brand;
         if (brandId) formData.append('brand', brandId);
-        
+
         const categoryId = p.category?._id || p.category;
         if (categoryId) formData.append('category', categoryId);
 
@@ -793,7 +822,7 @@ console.log(products)
           const parsedQP = (v.quantityPricing || [])
             .map(qp => ({ minQty: Number(qp.minQty) || 0, price: Number(qp.price) || 0 }))
             .filter(qp => qp.minQty > 0 || qp.price > 0);
-          
+
           return {
             _id: v._id,
             name: v.name,
@@ -816,7 +845,7 @@ console.log(products)
         }
 
         await axios.put(`${BASE_URL}/api/products/${p._id}`, formData, {
-          headers: { 
+          headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'multipart/form-data'
           }
@@ -835,7 +864,7 @@ console.log(products)
         }
         return p;
       }));
-      
+
       alert('Items updated successfully.');
       setIsDeactivateModalOpen(false);
     } catch (error) {
@@ -849,7 +878,7 @@ console.log(products)
   const handleBulkActivate = async () => {
     let targets = [];
     const token = sessionStorage.getItem('accessToken');
-    
+
     const valueThreshold = Number(activateQuantityValue);
     if (activateCondition === 'quantity' && isNaN(valueThreshold)) {
       alert('Please enter a valid number for quantity threshold.');
@@ -875,8 +904,8 @@ console.log(products)
         // Evaluate products based on aggregated quantity
         targets = products.filter(p => {
           if (p.isActive !== false) return false;
-          const totalQty = p.variants && p.variants.length > 0 
-            ? p.variants.reduce((sum, v) => sum + (Number(v.quantity) || 0), 0) 
+          const totalQty = p.variants && p.variants.length > 0
+            ? p.variants.reduce((sum, v) => sum + (Number(v.quantity) || 0), 0)
             : (Number(p.totalQuantity) || 0);
           return checkQuantityMatches(totalQty);
         }).map(p => ({
@@ -893,9 +922,9 @@ console.log(products)
             // Check if any variant is inactive and matches the condition
             const hasMatchingVariant = p.variants.some(v => v.isActive === false && checkQuantityMatches(v.quantity));
             if (!hasMatchingVariant) return null;
-            
+
             // Map variants to set isActive to true for those matching
-            const updatedVariants = p.variants.map(v => 
+            const updatedVariants = p.variants.map(v =>
               (v.isActive === false && checkQuantityMatches(v.quantity)) ? { ...v, isActive: true } : v
             );
             return {
@@ -990,7 +1019,7 @@ console.log(products)
 
         const brandId = p.brand?._id || p.brand;
         if (brandId) formData.append('brand', brandId);
-        
+
         const categoryId = p.category?._id || p.category;
         if (categoryId) formData.append('category', categoryId);
 
@@ -998,7 +1027,7 @@ console.log(products)
           const parsedQP = (v.quantityPricing || [])
             .map(qp => ({ minQty: Number(qp.minQty) || 0, price: Number(qp.price) || 0 }))
             .filter(qp => qp.minQty > 0 || qp.price > 0);
-          
+
           return {
             _id: v._id,
             name: v.name,
@@ -1021,7 +1050,7 @@ console.log(products)
         }
 
         await axios.put(`${BASE_URL}/api/products/${p._id}`, formData, {
-          headers: { 
+          headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'multipart/form-data'
           }
@@ -1040,7 +1069,7 @@ console.log(products)
         }
         return p;
       }));
-      
+
       alert('Items updated successfully.');
       setIsActivateModalOpen(false);
     } catch (error) {
@@ -1168,8 +1197,8 @@ console.log(products)
             'Return Policy': product.sevenDaysReturn || '',
             'Cancellation Policy': product.cancellationPolicy || '',
             'Quantity Pricing': formatQuantityPricing(variant.quantityPricing),
-            'Images': (variant.images || []).length > 0 
-              ? variant.images.join(', ') 
+            'Images': (variant.images || []).length > 0
+              ? variant.images.join(', ')
               : (product.images || []).join(', '),
             'Status': variant.isActive !== false ? 'Active' : 'Inactive'
           });
@@ -1196,7 +1225,7 @@ console.log(products)
     try {
       const token = sessionStorage.getItem('accessToken');
       await axios.post(`${BASE_URL}/api/products/bulk-upload`, formData, {
-        headers: { 
+        headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
@@ -1333,7 +1362,7 @@ console.log(products)
     // 4. Stock status filter
     if (selectedStockStatus) {
       const hasVariants = product.variants && product.variants.length > 0;
-      
+
       if (selectedStockStatus === 'in_stock') {
         if (hasVariants) {
           const hasInStockVariant = product.variants.some(v => (Number(v.quantity) || 0) > 0);
@@ -1367,8 +1396,11 @@ console.log(products)
     // 5. Search term filter
     const term = searchTerm.toLowerCase();
     const ean = product.eanNumber?.toString() || '';
+    const productId = product._id?.toString().toLowerCase() || '';
+    const matchesVariantsId = product.variants?.some(v => v._id?.toString().toLowerCase().includes(term)) || false;
     return (
       product.name?.toLowerCase().includes(term) || ean.includes(term) ||
+      productId.includes(term) || matchesVariantsId ||
       getBrandName(product.brand).toLowerCase().includes(term) ||
       getCategoryName(product.category).toLowerCase().includes(term)
     );
@@ -1419,7 +1451,7 @@ console.log(products)
       <div className="flex flex-col gap-4 mb-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight flex items-center gap-3"><FiPackage className='text-blue-400'/>Product List</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight flex items-center gap-3"><FiPackage className='text-blue-400' />Product List</h1>
             <p className="text-slate-400 font-medium mt-1">View and manage all products in your catalog.</p>
           </div>
           <div className="relative w-full sm:w-72">
@@ -1444,146 +1476,160 @@ console.log(products)
         </div>
       </div>
 
-        {/* Action & Metrics Row */}
-        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 w-full border-t border-white/5 pt-4 mt-2">
-          {/* Left part: Total products info */}
-          <div className="flex flex-wrap gap-2 text-xs font-semibold text-slate-400 order-2 xl:order-1 w-full xl:w-auto">
-            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
-              Total Products: <strong className="text-white">{products.length}</strong>
+      {/* Action & Metrics Row */}
+      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 w-full border-t border-white/5 pt-4 mt-2">
+        {/* Left part: Total products info */}
+        <div className="flex flex-wrap gap-2 text-xs font-semibold text-slate-400 order-2 xl:order-1 w-full xl:w-auto">
+          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
+            Total Products: <strong className="text-white">{products.length}</strong>
+          </span>
+          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
+            Products with Variants: <strong className="text-white">{products.filter(p => p.variants && p.variants.length > 0).length}</strong>
+          </span>
+          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
+            Total Items (incl. Variants): <strong className="text-white">{products.reduce((sum, p) => sum + (Array.isArray(p.variants) && p.variants.length > 1 ? p.variants.length : 1), 0)}</strong>
+          </span>
+          {(searchTerm || selectedBrand || selectedCategory || selectedStockStatus) && (
+            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full">
+              Found: <strong className="text-white">{filteredProducts.length}</strong> (incl. Variants: <strong className="text-white">{filteredProducts.reduce((sum, p) => sum + (Array.isArray(p.variants) && p.variants.length > 1 ? p.variants.length : 1), 0)}</strong>)
             </span>
-            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
-              Products with Variants: <strong className="text-white">{products.filter(p => p.variants && p.variants.length > 0).length}</strong>
-            </span>
-            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
-              Total Items (incl. Variants): <strong className="text-white">{products.reduce((sum, p) => sum + (Array.isArray(p.variants) && p.variants.length > 1 ? p.variants.length : 1), 0)}</strong>
-            </span>
-            {(searchTerm || selectedBrand || selectedCategory || selectedStockStatus) && (
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full">
-                Found: <strong className="text-white">{filteredProducts.length}</strong> (incl. Variants: <strong className="text-white">{filteredProducts.reduce((sum, p) => sum + (Array.isArray(p.variants) && p.variants.length > 1 ? p.variants.length : 1), 0)}</strong>)
-              </span>
-            )}
-          </div>
-          {/* Right part: Action Buttons */}
-          <div className="flex flex-col sm:flex-row justify-end items-center gap-3 w-full xl:w-auto order-1 xl:order-2">
-            {isDeleteMode ? (
-              <>
-                <button 
-                  onClick={async () => {
-                    if (selectedProducts.length === 0) {
-                      alert('Please select products to delete.');
-                      return;
-                    }
-                    const deleted = await handleBulkDelete();
-                    if (deleted) {
-                      setIsDeleteMode(false);
-                    }
-                  }}
-                  className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-rose-500/10 cursor-pointer text-sm"
-                >
-                  <FiTrash2 className="mr-2" />
-                  Confirm Delete ({selectedProducts.length})
-                </button>
-                <button 
-                  onClick={() => {
-                    setIsDeleteMode(false);
-                    setSelectedProducts([]);
-                  }}
-                  className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl transition-all border border-white/10 cursor-pointer text-sm shadow-md"
-                >
-                  <FiX className="mr-2" />
-                  Cancel
-                </button>
-              </>
-            ) : (
-              <>
-                <div className="w-full sm:w-48">
-                  <CustomDropdown
-                    value="Actions"
-                    options={[
-                      'Download Sample Excel',
-                      'Export to Excel',
-                      'Export Product Details (Local)',
-                      'Bulk Upload Excel',
-                      'Rollback Bulk Upload',
-                      'Deactivate Products',
-                      'Activate Products',
-                      'Delete Products'
-                    ]}
-                    onChange={(option) => {
-                      if (option === 'Download Sample Excel') {
-                        handleDownloadSampleExcel();
-                      } else if (option === 'Export to Excel') {
-                        handleExportToExcel();
-                      } else if (option === 'Export Product Details (Local)') {
-                        handleExportCustomDetails();
-                      } else if (option === 'Bulk Upload Excel') {
-                        fileInputRef.current?.click();
-                      } else if (option === 'Rollback Bulk Upload') {
-                        handleRollbackBulkUpload();
-                      } else if (option === 'Deactivate Products') {
-                        setIsDeactivateModalOpen(true);
-                      } else if (option === 'Activate Products') {
-                        setIsActivateModalOpen(true);
-                      } else if (option === 'Delete Products') {
-                        setIsDeleteMode(true);
-                        setSelectedProducts([]);
-                      }
-                    }}
-                    statusColor="bg-slate-800 text-slate-300 border-white/10 hover:bg-slate-700 hover:text-white"
-                  />
-                  <input 
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleUploadExcel}
-                    accept=".xlsx, .xls"
-                    className="hidden"
-                  />
-                </div>
-
-                <button 
-                  onClick={handleExportCustomDetails} 
-                  className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-emerald-600/50 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/5 cursor-pointer"
-                  title="Export Product Details with Variants"
-                >
-                  <FiDownload className="mr-2" />
-                  Export Details
-                </button>
-
-                <button onClick={openAddModal} className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-blue-600/50 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/5 cursor-pointer">
-                  <FiPlus className="mr-2" />
-                  Add Product
-                </button>
-              </>
-            )}
-          </div>
+          )}
         </div>
+        {/* Right part: Action Buttons */}
+        <div className="flex flex-col sm:flex-row justify-end items-center gap-3 w-full xl:w-auto order-1 xl:order-2">
+          {isDeleteMode ? (
+            <>
+              <button
+                onClick={async () => {
+                  if (selectedProducts.length === 0) {
+                    alert('Please select products to delete.');
+                    return;
+                  }
+                  const deleted = await handleBulkDelete();
+                  if (deleted) {
+                    setIsDeleteMode(false);
+                  }
+                }}
+                className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-rose-500/10 cursor-pointer text-sm"
+              >
+                <FiTrash2 className="mr-2" />
+                Confirm Delete ({selectedProducts.length})
+              </button>
+              <button
+                onClick={() => {
+                  setIsDeleteMode(false);
+                  setSelectedProducts([]);
+                }}
+                className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl transition-all border border-white/10 cursor-pointer text-sm shadow-md"
+              >
+                <FiX className="mr-2" />
+                Cancel
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="w-full sm:w-48">
+                <CustomDropdown
+                  value="Actions"
+                  options={[
+                    'Download Sample Excel',
+                    'Export to Excel',
+                    'Export Product Details (Local)',
+                    'Bulk Upload Excel',
+                    'Rollback Bulk Upload',
+                    'Deactivate Products',
+                    'Activate Products',
+                    'Delete Products'
+                  ]}
+                  onChange={(option) => {
+                    if (option === 'Download Sample Excel') {
+                      handleDownloadSampleExcel();
+                    } else if (option === 'Export to Excel') {
+                      handleExportToExcel();
+                    } else if (option === 'Export Product Details (Local)') {
+                      handleExportCustomDetails();
+                    } else if (option === 'Bulk Upload Excel') {
+                      fileInputRef.current?.click();
+                    } else if (option === 'Rollback Bulk Upload') {
+                      handleRollbackBulkUpload();
+                    } else if (option === 'Deactivate Products') {
+                      setIsDeactivateModalOpen(true);
+                    } else if (option === 'Activate Products') {
+                      setIsActivateModalOpen(true);
+                    } else if (option === 'Delete Products') {
+                      setIsDeleteMode(true);
+                      setSelectedProducts([]);
+                    }
+                  }}
+                  statusColor="bg-slate-800 text-slate-300 border-white/10 hover:bg-slate-700 hover:text-white"
+                />
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleUploadExcel}
+                  accept=".xlsx, .xls"
+                  className="hidden"
+                />
+              </div>
+
+              <button
+                onClick={handleExportCustomDetails}
+                className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-emerald-600/50 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/5 cursor-pointer"
+                title="Export Product Details with Variants"
+              >
+                <FiDownload className="mr-2" />
+                Export Details
+              </button>
+
+              <button onClick={openAddModal} className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-blue-600/50 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/5 cursor-pointer">
+                <FiPlus className="mr-2" />
+                Add Product
+              </button>
+            </>
+          )}
+        </div>
+      </div>
 
       {/* Catalog Tabs */}
       <div className="flex border-b border-white/10 justify-between items-center mb-2 flex-wrap gap-4">
         <div className="flex gap-6">
           <button
             onClick={() => { setCatalogTab('active'); setSearchParams(prev => { prev.set('page', '1'); return prev; }); }}
-            className={`pb-3 font-bold text-sm transition-all cursor-pointer ${
-              catalogTab === 'active' 
-                ? 'text-blue-400 border-b-2 border-blue-400 font-extrabold' 
+            className={`pb-3 font-bold text-sm transition-all cursor-pointer ${catalogTab === 'active'
+                ? 'text-blue-400 border-b-2 border-blue-400 font-extrabold'
                 : 'text-slate-400 hover:text-slate-200'
-            }`}
+              }`}
           >
             Active Catalog ({products.filter(p => p.isActive !== false).length})
           </button>
           <button
             onClick={() => { setCatalogTab('deactivated'); setSearchParams(prev => { prev.set('page', '1'); return prev; }); }}
-            className={`pb-3 font-bold text-sm transition-all cursor-pointer ${
-              catalogTab === 'deactivated' 
-                ? 'text-rose-400 border-b-2 border-rose-400 font-extrabold' 
+            className={`pb-3 font-bold text-sm transition-all cursor-pointer ${catalogTab === 'deactivated'
+                ? 'text-rose-400 border-b-2 border-rose-400 font-extrabold'
                 : 'text-slate-400 hover:text-slate-200'
-            }`}
+              }`}
           >
             Deactivated Items ({products.filter(p => p.isActive === false || (p.variants && p.variants.some(v => v.isActive === false))).length})
           </button>
         </div>
 
       </div>
+
+      {brokenImages.length > 0 && (
+        <div className="fixed bottom-6 right-6 z-[9999] max-w-sm bg-slate-900 border border-red-500/20 shadow-2xl p-4 rounded-2xl backdrop-blur-md animate-in slide-in-from-bottom-5 duration-300 flex items-start gap-3 text-rose-300">
+          <FiAlertCircle className="text-xl shrink-0 mt-0.5 text-rose-400 animate-pulse" />
+          <div className="flex-1 text-xs">
+            <span className="font-bold block text-sm mb-1 text-rose-200">Image Load Failed</span>
+            Failed to load image for: <strong className="text-rose-100">{Array.from(new Set(brokenImages)).join(', ')}</strong>
+          </div>
+          <button
+            onClick={() => setBrokenImages([])}
+            className="text-xs font-bold text-rose-400 hover:text-white underline cursor-pointer shrink-0"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Table Section */}
       <div key="list-view-table-wrapper" className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-2xl md:rounded-3xl overflow-hidden flex flex-col h-full animate-in fade-in duration-200">
@@ -1593,8 +1639,8 @@ console.log(products)
               <tr className="align-middle">
                 {isDeleteMode && (
                   <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs w-10 text-center animate-in fade-in slide-in-from-left-2 duration-200">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       className="w-4 h-4 rounded border-slate-500 bg-slate-800 text-blue-500 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-slate-900 transition-all cursor-pointer accent-blue-500 scheme-dark"
                       checked={currentProducts.length > 0 && currentProducts.every(p => selectedProducts.includes(p._id))}
                       onChange={handleSelectAll}
@@ -1626,7 +1672,7 @@ console.log(products)
                     statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedCategory ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'}`}
                   />
                 </th>
-                <th 
+                <th
                   onClick={() => handleSortChange('name')}
                   className="px-4 py-3 font-medium uppercase tracking-wider text-xs cursor-pointer select-none hover:text-white transition-colors"
                 >
@@ -1639,7 +1685,7 @@ console.log(products)
                     )}
                   </div>
                 </th>
-                <th 
+                <th
                   onClick={() => handleSortChange('basePrice')}
                   className="px-4 py-3 font-medium uppercase tracking-wider text-xs cursor-pointer select-none hover:text-white transition-colors"
                 >
@@ -1652,7 +1698,7 @@ console.log(products)
                     )}
                   </div>
                 </th>
-                <th 
+                <th
                   onClick={() => handleSortChange('offerPrice')}
                   className="px-4 py-3 font-medium uppercase tracking-wider text-xs cursor-pointer select-none hover:text-white transition-colors"
                 >
@@ -1708,15 +1754,15 @@ console.log(products)
               ) : currentProducts.length > 0 ? (
                 currentProducts.map((product, index) => {
                   return (
-                    <tr 
-                      key={product._id || index} 
+                    <tr
+                      key={product._id || index}
                       onClick={() => openDetailsView(product)}
                       className="hover:bg-white/[0.02] cursor-pointer transition-colors group"
                     >
                       {isDeleteMode && (
                         <td className="px-4 py-3 text-center animate-in fade-in slide-in-from-left-2 duration-200">
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             className="w-4 h-4 rounded border-slate-500 bg-slate-800 text-blue-500 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-slate-900 transition-all cursor-pointer accent-blue-500 scheme-dark"
                             checked={selectedProducts.includes(product._id)}
                             onChange={() => handleSelectProduct(product._id)}
@@ -1730,12 +1776,20 @@ console.log(products)
                       <td className="px-4 py-3 text-sm text-white font-bold">
                         <div className="flex items-center gap-3">
                           {product.images && product.images.length > 0 ? (
-                            <div 
+                            <div
                               onClick={(e) => { e.stopPropagation(); openImageView(product); }}
                               className="w-12 h-12 bg-white rounded-lg overflow-hidden border border-white/10 cursor-pointer hover:border-blue-500 transition-colors relative group/img shrink-0 animate-in fade-in zoom-in-95 duration-200"
                               title="Click to view images"
                             >
-                              <img src={getImageUrl(product.images[0])} alt={product.name} className="w-full h-full object-cover" />
+                              <img
+                                src={getImageUrl(product.images[0])}
+                                alt={product.name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.target.src = 'https://placehold.co/150x150?text=No+Image';
+                                  handleImageError(product.name);
+                                }}
+                              />
                               {product.images.length > 1 && (
                                 <span className="absolute bottom-0 right-0 bg-slate-950/80 border-t border-l border-white/10 text-[9px] font-black text-white px-1 py-0.25 rounded-tl-md">
                                   +{product.images.length - 1}
@@ -1743,7 +1797,7 @@ console.log(products)
                               )}
                             </div>
                           ) : (
-                            <div 
+                            <div
                               onClick={(e) => { e.stopPropagation(); openImageView(product); }}
                               className="w-12 h-12 bg-slate-800 text-slate-500 hover:bg-slate-700 hover:text-white rounded-lg border border-white/10 flex flex-col items-center justify-center transition-colors cursor-pointer shrink-0"
                               title="No Images"
@@ -1777,7 +1831,7 @@ console.log(products)
                             const validSlabs = (product.quantityPricing || []).filter(qp => Number(qp.minQty) > 0 && Number(qp.price) > 0);
                             if (validSlabs.length === 0) return null;
                             return (
-                              <span 
+                              <span
                                 className="inline-flex items-center gap-1 text-[9px] font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.5 rounded"
                                 title={validSlabs.map(qp => `Qty: ${qp.minQty}+ → ₹${qp.price}`).join('\n')}
                               >
@@ -1796,7 +1850,7 @@ console.log(products)
                         </div>
                       </td>
                       <td className="px-4 py-3 text-center">{getQuantityBadge(product)}</td>
-                      <td className="px-4 py-3 text-sm text-slate-400 text-center">{product.variants ? product.variants.length>1 ? `${product.variants.length}`: `0` : '-'}</td>
+                      <td className="px-4 py-3 text-sm text-slate-400 text-center">{product.variants ? product.variants.length > 1 ? `${product.variants.length}` : `0` : '-'}</td>
                       <td className="px-4 py-3 text-[11px] text-slate-400 font-medium leading-relaxed">
                         <div className="flex flex-col gap-0.5">
                           <div><span className="text-[9px] text-slate-500 font-bold uppercase mr-1">Created:</span>{formatDateTimeDDMMYYYY(product.createdAt)}</div>
@@ -1804,9 +1858,9 @@ console.log(products)
                         </div>
                       </td>
                       <td className="px-4 py-3 text-center space-x-2">
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); setProductToDelete(product); setDeleteConfirmOpen(true); }} 
-                          className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-900/30 rounded-lg transition-colors cursor-pointer" 
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setProductToDelete(product); setDeleteConfirmOpen(true); }}
+                          className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-900/30 rounded-lg transition-colors cursor-pointer"
                           title="Delete Product"
                         >
                           <FiTrash2 />
@@ -1833,7 +1887,7 @@ console.log(products)
               Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredProducts.length)} of {filteredProducts.length} entries
             </span> */}
             <div className="flex gap-2">
-              <button 
+              <button
                 onClick={() => {
                   setSearchParams(prev => {
                     prev.set('page', Math.max(currentPage - 1, 1));
@@ -1879,20 +1933,19 @@ console.log(products)
                         }
                       }}
                       disabled={page === '...'}
-                      className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-sm font-medium border transition-colors shrink-0 ${
-                        page === currentPage
+                      className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-sm font-medium border transition-colors shrink-0 ${page === currentPage
                           ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
                           : page === '...'
-                          ? 'bg-transparent text-slate-500 border-transparent cursor-default'
-                          : 'bg-slate-800 text-slate-300 border-white/10 hover:bg-slate-700 cursor-pointer'
-                      }`}
+                            ? 'bg-transparent text-slate-500 border-transparent cursor-default'
+                            : 'bg-slate-800 text-slate-300 border-white/10 hover:bg-slate-700 cursor-pointer'
+                        }`}
                     >
                       {page}
                     </button>
                   ));
                 })()}
               </div>
-              <button 
+              <button
                 onClick={() => {
                   setSearchParams(prev => {
                     prev.set('page', Math.min(currentPage + 1, totalPages));
@@ -1907,14 +1960,14 @@ console.log(products)
             </div>
           </div>
         )}
-        </div>
+      </div>
 
       {/* Product Details Modal */}
       {isDetailsModalOpen && currentProductForView && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={() => setIsDetailsModalOpen(false)}></div>
           <div className="relative bg-linear-to-br from-slate-950 to-blue-950/65 border border-white/10 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
-            
+
             <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-950/30">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-900/50 text-blue-400 flex items-center justify-center text-lg">
@@ -1926,9 +1979,9 @@ console.log(products)
                 <FiX className="text-xl" />
               </button>
             </div>
-            
+
             <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
-              
+
               {/* General Information */}
               <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5">
                 <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-2"><span className="w-1.5 h-5 bg-blue-500 rounded-full"></span>General Information</h3>
@@ -1962,11 +2015,10 @@ console.log(products)
                       <button
                         onClick={() => handleToggleActive(currentProductForView.isActive === false)}
                         disabled={isTogglingActive}
-                        className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                          currentProductForView.isActive !== false 
-                            ? 'bg-rose-600/20 text-rose-400 border-rose-500/30 hover:bg-rose-600/30' 
+                        className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${currentProductForView.isActive !== false
+                            ? 'bg-rose-600/20 text-rose-400 border-rose-500/30 hover:bg-rose-600/30'
                             : 'bg-emerald-600/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-600/30'
-                        }`}
+                          }`}
                       >
                         {isTogglingActive ? 'Updating...' : (currentProductForView.isActive !== false ? 'Deactivate' : 'Activate')}
                       </button>
@@ -2022,28 +2074,28 @@ console.log(products)
                   <p className="text-slate-300 text-sm whitespace-pre-wrap">{currentProductForView.description || 'N/A'}</p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                   <div>
-                      <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Details</p>
-                      <p className="text-slate-300 text-sm whitespace-pre-wrap">{currentProductForView.details || 'N/A'}</p>
-                   </div>
-                   <div>
-                      <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Expert Notes</p>
-                      <p className="text-slate-300 text-sm whitespace-pre-wrap">{currentProductForView.expertNotes || 'N/A'}</p>
-                   </div>
+                  <div>
+                    <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Details</p>
+                    <p className="text-slate-300 text-sm whitespace-pre-wrap">{currentProductForView.details || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Expert Notes</p>
+                    <p className="text-slate-300 text-sm whitespace-pre-wrap">{currentProductForView.expertNotes || 'N/A'}</p>
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-white/5 pt-4">
-                   <div>
-                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Warranty</p>
-                      <p className="text-slate-300 text-sm">{currentProductForView.warranty || 'N/A'}</p>
-                   </div>
-                   <div>
-                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Return Policy</p>
-                      <p className="text-slate-300 text-sm">{currentProductForView.sevenDaysReturn || 'N/A'}</p>
-                   </div>
-                   <div>
-                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Cancellation Policy</p>
-                      <p className="text-slate-300 text-sm">{currentProductForView.cancellationPolicy || 'N/A'}</p>
-                   </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Warranty</p>
+                    <p className="text-slate-300 text-sm">{currentProductForView.warranty || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Return Policy</p>
+                    <p className="text-slate-300 text-sm">{currentProductForView.sevenDaysReturn || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Cancellation Policy</p>
+                    <p className="text-slate-300 text-sm">{currentProductForView.cancellationPolicy || 'N/A'}</p>
+                  </div>
                 </div>
               </div>
 
@@ -2054,7 +2106,7 @@ console.log(products)
                   <div className="flex flex-wrap gap-4">
                     {currentProductForView.images.map((url, i) => (
                       <div key={i} className="relative w-24 h-24 border border-white/10 rounded-xl overflow-hidden bg-slate-800 flex items-center justify-center">
-                        <img src={getImageUrl(url)} alt={`Image ${i+1}`} className="max-w-full max-h-full object-contain bg-white p-2" onError={(e) => e.target.src='https://placehold.co/150x150?text=Error'} />
+                        <img src={getImageUrl(url)} alt={`Image ${i + 1}`} className="max-w-full max-h-full object-contain bg-white p-2" onError={(e) => e.target.src = 'https://placehold.co/150x150?text=Error'} />
                       </div>
                     ))}
                   </div>
@@ -2065,7 +2117,7 @@ console.log(products)
 
               {/* Variants Dropdown */}
               <div className="mt-2">
-                <button 
+                <button
                   onClick={() => setIsVariantsExpanded(!isVariantsExpanded)}
                   className="w-full flex items-center justify-between px-5 py-4 bg-slate-950/30 border border-white/10 rounded-2xl hover:bg-slate-900/30 transition-colors cursor-pointer"
                 >
@@ -2077,7 +2129,7 @@ console.log(products)
                   </div>
                   {isVariantsExpanded ? <FiChevronUp className="text-slate-400 text-xl" /> : <FiChevronDown className="text-slate-400 text-xl" />}
                 </button>
-                
+
                 {isVariantsExpanded && (
                   <div className="mt-3 space-y-3">
                     {currentProductForView.variants && currentProductForView.variants.length > 0 ? (
@@ -2094,11 +2146,10 @@ console.log(products)
                               type="button"
                               onClick={() => handleToggleVariantActive(variant._id, variant.isActive !== false)}
                               disabled={togglingVariantId !== null}
-                              className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                                variant.isActive !== false
+                              className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${variant.isActive !== false
                                   ? 'bg-rose-600/20 text-rose-400 border-rose-500/30 hover:bg-rose-600/30'
                                   : 'bg-emerald-600/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-600/30'
-                              }`}
+                                }`}
                             >
                               {togglingVariantId === variant._id ? 'Updating...' : (variant.isActive !== false ? 'Deactivate' : 'Activate')}
                             </button>
@@ -2163,18 +2214,18 @@ console.log(products)
               </div>
 
             </div>
-            
+
             <div className="px-4 sm:px-6 py-4 border-t border-white/10 bg-slate-950/30 flex flex-col sm:flex-row justify-between gap-3 shrink-0">
-              <button 
+              <button
                 type="button"
-                onClick={() => setIsDetailsModalOpen(false)} 
+                onClick={() => setIsDetailsModalOpen(false)}
                 className="w-full sm:w-auto px-5 py-2.5 text-slate-300 font-bold rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 Close
               </button>
-              <button 
-                type="button" 
-                onClick={() => navigate(`/products/variants/${currentProductForView._id}`)} 
+              <button
+                type="button"
+                onClick={() => navigate(`/products/variants/${currentProductForView._id}`)}
                 className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 cursor-pointer"
               >
                 <FiEdit2 className="mr-2" />
@@ -2183,14 +2234,14 @@ console.log(products)
             </div>
           </div>
         </div>
-      , document.body)}
+        , document.body)}
 
       {/* Add Product Modal */}
       {isAddModalOpen && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={closeAddModal}></div>
           <div className="relative bg-linear-to-br from-slate-950 to-blue-900/60 border border-white/10 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
-            
+
             <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-950/30">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-900/50 text-blue-400 flex items-center justify-center text-lg">
@@ -2202,10 +2253,10 @@ console.log(products)
                 <FiX className="text-xl" />
               </button>
             </div>
-            
+
             <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
               <form id="addProductForm" onSubmit={handleAddSubmit} className="space-y-6">
-                
+
                 {/* General Information */}
                 <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5">
                   <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-2"><span className="w-1.5 h-5 bg-blue-500 rounded-full"></span>General Information</h3>
@@ -2332,7 +2383,7 @@ console.log(products)
                         <div className="flex flex-wrap gap-3 mt-3">
                           {addFormData.image_urls.split(',').map((url, i) => url.trim() && (
                             <div key={i} className="relative w-16 h-16 border border-white/10 rounded-lg overflow-hidden bg-slate-800 shadow-sm shrink-0 flex items-center justify-center">
-                              <img src={getImageUrl(url.trim())} alt={`Preview ${i}`} className="max-w-full max-h-full object-contain bg-white p-1" onError={(e) => e.target.src='https://placehold.co/150x150?text=Error'} />
+                              <img src={getImageUrl(url.trim())} alt={`Preview ${i}`} className="max-w-full max-h-full object-contain bg-white p-1" onError={(e) => e.target.src = 'https://placehold.co/150x150?text=Error'} />
                             </div>
                           ))}
                         </div>
@@ -2400,7 +2451,7 @@ console.log(products)
                     {addVariants.map((variant, index) => (
                       <div key={index} className="bg-transparent border border-white/10 shadow-lg shadow-black/50 rounded-2xl overflow-hidden group">
                         {/* Accordion Header */}
-                        <div 
+                        <div
                           className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors bg-slate-800/30"
                           onClick={() => setExpandedAddVariantIndex(expandedAddVariantIndex === index ? null : index)}
                         >
@@ -2412,7 +2463,7 @@ console.log(products)
                               {variant.name || <span className="text-slate-500 italic">Unnamed Variant</span>}
                             </h3>
                           </div>
-                          
+
                           <div className="flex items-center gap-4">
                             <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
                               <button type="button" onClick={(e) => { e.stopPropagation(); handleMoveVariantUp(index); }} disabled={index === 0} className="p-2 text-slate-400 hover:text-blue-400 rounded-lg disabled:opacity-30 transition-colors cursor-pointer" title="Move Up"><FiArrowUp /></button>
@@ -2436,7 +2487,7 @@ console.log(products)
                                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Variant Name</label>
                                 <input type="text" value={variant.name} onChange={e => handleVariantChange(index, 'name', e.target.value)} placeholder="e.g. Active Black" required className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500 text-white" />
                               </div>
-                              
+
                               <div>
                                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Quantity</label>
                                 <input type="number" value={variant.quantity} onChange={e => handleVariantChange(index, 'quantity', e.target.value)} className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500 text-white scheme-dark" />
@@ -2461,7 +2512,7 @@ console.log(products)
                                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">L3 Price</label>
                                 <input type="number" value={variant.l3Price} onChange={e => handleVariantChange(index, 'l3Price', e.target.value)} className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500 text-white scheme-dark" />
                               </div>
-                              
+
                               <div className="sm:col-span-2 md:col-span-3">
                                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Quantity Pricing Slabs</label>
                                 {(variant.quantityPricing || []).map((qp, qpIndex) => (
@@ -2481,7 +2532,7 @@ console.log(products)
                                   + Add Quantity Slab
                                 </button>
                               </div>
-                              
+
                               <div className="sm:col-span-2 md:col-span-3">
                                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Image URLs (comma separated)</label>
                                 <input type="text" value={variant.image_urls} onChange={e => handleVariantChange(index, 'image_urls', e.target.value)} placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg" className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500 text-white" />
@@ -2489,7 +2540,7 @@ console.log(products)
                                   <div className="flex flex-wrap gap-3 mt-3">
                                     {variant.image_urls.split(',').map((url, i) => url.trim() && (
                                       <div key={i} className="w-16 h-16 border border-white/10 rounded-lg overflow-hidden bg-slate-800 shadow-sm shrink-0 flex items-center justify-center">
-                                        <img src={getImageUrl(url.trim())} alt={`Preview ${i}`} className="max-w-full max-h-full object-contain bg-white p-1" onError={(e) => e.target.src='https://placehold.co/150x150?text=Error'} />
+                                        <img src={getImageUrl(url.trim())} alt={`Preview ${i}`} className="max-w-full max-h-full object-contain bg-white p-1" onError={(e) => e.target.src = 'https://placehold.co/150x150?text=Error'} />
                                       </div>
                                     ))}
                                   </div>
@@ -2508,7 +2559,7 @@ console.log(products)
                 </div>
               </form>
             </div>
-            
+
             <div className="px-4 sm:px-6 py-4 border-t border-white/10 bg-slate-950/30 flex flex-col sm:flex-row justify-end gap-3 shrink-0">
               <button onClick={closeAddModal} className="w-full sm:w-auto px-5 py-2.5 text-slate-300 font-bold rounded-xl hover:bg-slate-800 transition-colors">Cancel</button>
               <button type="submit" form="addProductForm" className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30">
@@ -2518,13 +2569,13 @@ console.log(products)
             </div>
           </div>
         </div>
-      , document.body)}
+        , document.body)}
 
       {/* Deactivate Products Conditions Modal */}
       {isDeactivateModalOpen && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={() => !isBulkUpdating && setIsDeactivateModalOpen(false)}></div>
-          
+
           <div className="relative bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-950/30">
               <div className="flex items-center gap-3">
@@ -2533,15 +2584,15 @@ console.log(products)
                 </div>
                 <h2 className="text-xl font-bold text-white">Deactivate Products</h2>
               </div>
-              <button 
-                onClick={() => setIsDeactivateModalOpen(false)} 
+              <button
+                onClick={() => setIsDeactivateModalOpen(false)}
                 disabled={isBulkUpdating}
                 className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors"
               >
                 <FiX className="text-xl" />
               </button>
             </div>
-            
+
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Condition</label>
@@ -2654,14 +2705,14 @@ console.log(products)
             </div>
 
             <div className="px-6 py-4 border-t border-white/10 bg-slate-950/30 flex flex-col sm:flex-row justify-end gap-3">
-              <button 
-                onClick={() => setIsDeactivateModalOpen(false)} 
+              <button
+                onClick={() => setIsDeactivateModalOpen(false)}
                 disabled={isBulkUpdating}
                 className="w-full sm:w-auto px-5 py-2.5 text-slate-300 font-bold rounded-xl hover:bg-slate-800 transition-colors"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={handleBulkDeactivate}
                 disabled={isBulkUpdating}
                 className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-red-500/30 cursor-pointer"
@@ -2681,13 +2732,13 @@ console.log(products)
             </div>
           </div>
         </div>
-      , document.body)}
+        , document.body)}
 
       {/* Activate Products Conditions Modal */}
       {isActivateModalOpen && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={() => !isBulkUpdating && setIsActivateModalOpen(false)}></div>
-          
+
           <div className="relative bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-950/30">
               <div className="flex items-center gap-3">
@@ -2696,15 +2747,15 @@ console.log(products)
                 </div>
                 <h2 className="text-xl font-bold text-white">Activate Products</h2>
               </div>
-              <button 
-                onClick={() => setIsActivateModalOpen(false)} 
+              <button
+                onClick={() => setIsActivateModalOpen(false)}
                 disabled={isBulkUpdating}
                 className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors"
               >
                 <FiX className="text-xl" />
               </button>
             </div>
-            
+
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Condition</label>
@@ -2817,14 +2868,14 @@ console.log(products)
             </div>
 
             <div className="px-6 py-4 border-t border-white/10 bg-slate-950/30 flex flex-col sm:flex-row justify-end gap-3">
-              <button 
-                onClick={() => setIsActivateModalOpen(false)} 
+              <button
+                onClick={() => setIsActivateModalOpen(false)}
                 disabled={isBulkUpdating}
                 className="w-full sm:w-auto px-5 py-2.5 text-slate-300 font-bold rounded-xl hover:bg-slate-800 transition-colors"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={handleBulkActivate}
                 disabled={isBulkUpdating}
                 className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/30 cursor-pointer"
@@ -2844,7 +2895,7 @@ console.log(products)
             </div>
           </div>
         </div>
-      , document.body)}
+        , document.body)}
 
       {/* Image View Modal */}
       {isImageViewOpen && currentProductForView && createPortal(
@@ -2862,41 +2913,105 @@ console.log(products)
                 <FiX className="text-xl" />
               </button>
             </div>
-            
-            <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
-              {currentProductForView.images && currentProductForView.images.length > 0 ? (
-                <div className="flex flex-col space-y-4">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    {currentProductForView.images.map((url, i) => (
-                      <div key={i} className="relative aspect-square border border-white/10 rounded-xl overflow-hidden bg-slate-800 flex items-center justify-center">
-                        <img src={getImageUrl(url)} alt={`Product ${i+1}`} className="max-w-full max-h-full object-contain bg-white p-2" onError={(e) => e.target.src='https://placehold.co/150x150?text=Error'} />
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-2">
-                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Image URLs</label>
-                    <textarea 
-                      readOnly 
-                      rows="3"
-                      value={currentProductForView.images.map(url => getImageUrl(url)).join(', ')} 
-                      className="w-full text-sm bg-slate-900/50 border border-white/10 rounded-xl px-4 py-2.5 text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 cursor-text resize-none" 
-                      onClick={(e) => e.target.select()} 
-                    />
-                  </div>
+
+            {(() => {
+              let mainImages = [];
+              if (Array.isArray(currentProductForView.images)) {
+                mainImages = currentProductForView.images;
+              } else if (typeof currentProductForView.images === 'string') {
+                mainImages = currentProductForView.images.split(',').map(url => url.trim()).filter(Boolean);
+              }
+              
+              let variantGroups = [];
+              if (currentProductForView.variants && Array.isArray(currentProductForView.variants)) {
+                currentProductForView.variants.forEach(v => {
+                  if (v.images) {
+                    let imgs = [];
+                    if (Array.isArray(v.images)) {
+                      imgs = v.images;
+                    } else if (typeof v.images === 'string') {
+                      imgs = v.images.split(',').map(url => url.trim()).filter(Boolean);
+                    }
+                    const uniqueImgs = imgs.filter(url => !mainImages.includes(url));
+                    if (uniqueImgs.length > 0) {
+                      variantGroups.push({
+                        name: v.name || 'Unnamed Variant',
+                        images: uniqueImgs
+                      });
+                    }
+                  }
+                });
+              }
+
+              const allVariantUrls = variantGroups.reduce((acc, g) => [...acc, ...g.images], []);
+              const hasAnyImages = mainImages.length > 0 || variantGroups.length > 0;
+
+              return (
+                <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
+                  {hasAnyImages ? (
+                    <>
+                      {/* Main Product Images */}
+                      {mainImages.length > 0 && (
+                        <div>
+                          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Main Product Images</h3>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                            {mainImages.map((url, i) => (
+                              <div key={`main-${i}`} className="relative aspect-square border border-white/10 rounded-xl overflow-hidden bg-slate-800 flex items-center justify-center">
+                                <img src={getImageUrl(url)} alt={`Product Main ${i + 1}`} className="max-w-full max-h-full object-contain bg-white p-2" onError={(e) => e.target.src = 'https://placehold.co/150x150?text=Error'} />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Variant Images Grouped by Variant Name */}
+                      {variantGroups.length > 0 && (
+                        <div className="space-y-6 pt-4 border-t border-white/5">
+                          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Variant Images</h3>
+                          {variantGroups.map((group, groupIdx) => (
+                            <div key={groupIdx} className="space-y-2 border-l-2 border-blue-500/20 pl-4 py-1 animate-in fade-in duration-200">
+                              <span className="inline-block px-2.5 py-0.5 rounded-full text-[18px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 mb-1">
+                                {group.name}
+                              </span>
+                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                {group.images.map((url, i) => (
+                                  <div key={`${groupIdx}-${i}`} className="relative aspect-square border border-white/10 rounded-xl overflow-hidden bg-slate-800 flex items-center justify-center">
+                                    <img src={getImageUrl(url)} alt={`${group.name} ${i + 1}`} className="max-w-full max-h-full object-contain bg-white p-2" onError={(e) => e.target.src = 'https://placehold.co/150x150?text=Error'} />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* URLs for copying */}
+                      {/* <div className="mt-2 border-t border-white/5 pt-4">
+                        <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">All Image URLs</label>
+                        <textarea
+                          readOnly
+                          rows="3"
+                          value={[...mainImages, ...allVariantUrls].map(url => getImageUrl(url)).join(', ')}
+                          className="w-full text-sm bg-slate-900/50 border border-white/10 rounded-xl px-4 py-2.5 text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 cursor-text resize-none"
+                          onClick={(e) => e.target.select()}
+                        />
+                      </div> */}
+                    </>
+                  ) : (
+                    <div className="text-center py-10 text-slate-400">
+                      <FiImage className="text-5xl mx-auto mb-3 opacity-50" />
+                      <p>No images available for this product or its variants.</p>
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div className="text-center py-10 text-slate-400">
-                  <FiImage className="text-5xl mx-auto mb-3 opacity-50" />
-                  <p>No images available for this product.</p>
-                </div>
-              )}
-            </div>
+              );
+            })()}
             <div className="px-6 py-4 border-t border-white/10 bg-slate-950/30 flex justify-end shrink-0">
               <button onClick={() => setIsImageViewOpen(false)} className="px-6 py-2.5 bg-slate-700 text-white font-bold rounded-xl hover:bg-slate-600 transition-colors cursor-pointer">Close</button>
             </div>
           </div>
         </div>
-      , document.body)}
+        , document.body)}
 
       {/* Delete Confirmation Modal */}
       {deleteConfirmOpen && productToDelete && createPortal(

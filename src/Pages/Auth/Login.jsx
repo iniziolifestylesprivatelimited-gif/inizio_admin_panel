@@ -39,8 +39,8 @@ const Login = () => {
       <div className="flex lg:flex lg:w-1/2 items-center justify-center relative">
         
         {/* Decorative blurred blobs for depth */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob transform-gpu"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 transform-gpu"></div>
+        <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob transform-gpu bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 transform-gpu bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"></div>
 
         {/* Subtle glow behind the image */}
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[70%] h-[70%] bg-blue-600/60 rounded-full mix-blend-screen filter blur-[100px] z-0 transform-gpu"></div>
@@ -58,7 +58,7 @@ const Login = () => {
         
         {/* Decorative blurred blobs for depth */}
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob transform-gpu"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 transform-gpu"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 transform-gpu bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"></div>
 
         {/* Glassmorphism Login Card */}
         <div className="relative scale-90 w-full max-w-md mx-4 p-8 sm:p-10 bg-transparent backdrop-blur-md transform-gpu border border-white/20 shadow-2xl rounded-3xl z-10">
@@ -119,7 +119,7 @@ const Login = () => {
             <button 
               type="submit"
               disabled={isLoading}
-              className="w-full mt-4 flex items-center justify-center bg-blue-600/50 hover:bg-blue-700 text-white py-3.5 rounded-xl transition-all duration-300 font-semibold shadow-lg shadow-blue-600/5 group disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+              className="w-full mt-4 flex items-center justify-center text-white py-3.5 rounded-xl transition-all duration-300 font-semibold group disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
             >
               {isLoading ? (
                 <FiLoader className="animate-spin text-xl" />

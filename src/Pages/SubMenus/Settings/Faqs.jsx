@@ -155,7 +155,7 @@ const Faqs = () => {
         {!isAdding && (
           <button
             onClick={() => setIsAdding(true)}
-            className="flex items-center px-4 py-2 bg-blue-600/50 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-600/30 gap-2"
+            className="flex items-center px-4 py-2 text-white font-bold rounded-xl transition-all gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
           >
             <FiPlus size={20} /> Add FAQ
           </button>
@@ -205,7 +205,7 @@ const Faqs = () => {
                 <button
                   type="submit"
                   disabled={isActionLoading}
-                  className="flex-1 bg-blue-600/50 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-blue-600/30 flex justify-center items-center gap-2 disabled:opacity-50"
+                  className="flex-1 text-white font-bold py-3 px-4 rounded-xl transition-all flex justify-center items-center gap-2 disabled:opacity-50 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                 >
                   {isActionLoading ? <FiLoader className="animate-spin" /> : <FiSave />} Save
                 </button>
@@ -286,7 +286,7 @@ const Faqs = () => {
                             <button
                               onClick={handleSaveEdit}
                               disabled={isActionLoading}
-                              className="bg-emerald-600/50 hover:bg-emerald-500 text-white text-sm font-bold py-2.5 px-4 rounded-lg transition-all flex items-center gap-2 disabled:opacity-50"
+                              className="text-white text-sm font-bold py-2.5 px-4 rounded-lg transition-all flex items-center gap-2 disabled:opacity-50 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
                             >
                               {isActionLoading ? <FiLoader className="animate-spin" /> : <FiSave />} Save Changes
                             </button>

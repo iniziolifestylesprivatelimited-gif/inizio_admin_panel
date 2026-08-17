@@ -163,3 +163,68 @@ input:-webkit-autofill:active {
   caret-color: #ffffff !important;
   transition: background-color 5000s ease-in-out 0s;
 }
+
+/* ========================================================
+   GLOWING ROTATING BORDER FOR CARDS (ON HOVER)
+   ======================================================== */
+@keyframes rotate-glow {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.glowing-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px; /* Matches rounded-3xl */
+  padding: 1.5px; /* Border width */
+  background: rgba(255, 255, 255, 0.05);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+}
+
+.glowing-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 30%,
+    var(--glow-color, #3b82f6) 50%,
+    var(--glow-color-alt, #818cf8) 70%,
+    transparent 100%
+  );
+  animation: rotate-glow 4s linear infinite;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.glowing-card:hover::before {
+  opacity: 1;
+}
+
+.glowing-card-inner {
+  position: relative;
+  background: rgba(10, 15, 30, 0.85);
+  backdrop-filter: blur(24px);
+  border-radius: 23px; /* Slightly smaller than outer border-radius to nest cleanly */
+  z-index: 2;
+  height: 100%;
+  width: 100%;
+  transition: background-color 0.4s ease;
+}
+
+.glowing-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px -10px var(--glow-shadow, rgba(59, 130, 246, 0.4));
+}
+
+.glowing-card:hover .glowing-card-inner {
+  background: rgba(15, 23, 42, 0.95);
+}

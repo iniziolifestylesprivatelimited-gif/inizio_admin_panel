@@ -222,7 +222,7 @@ const OrderVolumeCard = ({ deliveredCountData, processingCountData, cancelledCou
                     <span className="text-blue-400">{totalProcessing} ({totalOrders > 0 ? Math.round((totalProcessing/totalOrders)*100) : 0}%)</span>
                   </div>
                   <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full bg-blue-500 rounded-full" style={{ width: `${totalOrders > 0 ? (totalProcessing/totalOrders)*100 : 0}%` }}></div>
+                    <div className="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" style={{ width: `${totalOrders > 0 ? (totalProcessing/totalOrders)*100 : 0}%` }}></div>
                   </div>
                 </div>
 
@@ -1774,7 +1774,25 @@ const Dashboard = () => {
           <Card
             key={index}
             hoverable
-            className={`p-4 sm:p-5 xl:p-6 transition-all duration-300 hover:-translate-y-1 cursor-pointer relative overflow-hidden group ${metric.hoverBorder} ${metric.hoverGlow}`}
+            glowing
+            style={{
+              '--glow-color': metric.title === "Total Revenue" ? '#10b981' :
+                              metric.title === "No of Brands" ? '#3b82f6' :
+                              metric.title === "No of Products" ? '#8b5cf6' :
+                              metric.title === "Total Products (with Variants)" ? '#f43f5e' :
+                              metric.title === "Total Users" ? '#f59e0b' : '#3b82f6',
+              '--glow-color-alt': metric.title === "Total Revenue" ? '#34d399' :
+                                  metric.title === "No of Brands" ? '#60a5fa' :
+                                  metric.title === "No of Products" ? '#a78bfa' :
+                                  metric.title === "Total Products (with Variants)" ? '#fb7185' :
+                                  metric.title === "Total Users" ? '#fbbf24' : '#60a5fa',
+              '--glow-shadow': metric.title === "Total Revenue" ? 'rgba(16, 185, 129, 0.4)' :
+                               metric.title === "No of Brands" ? 'rgba(59, 130, 246, 0.4)' :
+                               metric.title === "No of Products" ? 'rgba(139, 92, 246, 0.4)' :
+                               metric.title === "Total Products (with Variants)" ? 'rgba(244, 63, 94, 0.4)' :
+                               metric.title === "Total Users" ? 'rgba(245, 158, 11, 0.4)' : 'rgba(59, 130, 246, 0.4)'
+            }}
+            className={`p-4 sm:p-5 xl:p-6 transition-all duration-300 hover:-translate-y-1 cursor-pointer relative overflow-hidden group ${metric.hoverBorder}`}
             onClick={() => {
               if (metric.path) {
                 navigate(`${metric.path}${getFilterQueryParams()}`);
@@ -1862,10 +1880,49 @@ const Dashboard = () => {
 
               <div className="relative grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-5 z-10">
                 {activityMetricCards.map((card, idx) => (
-                  <div
+                  <Card
                     key={idx}
+                    glowing
                     onClick={() => navigate(`${card.path}${getFilterQueryParams()}`)}
-                    className={`relative overflow-hidden bg-slate-950/20 border border-white/5 ${card.hoverBorder} p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col justify-between min-h-[145px] group hover:bg-slate-950/45 hover:shadow-xl ${card.hoverGlow} shadow-black/30`}
+                    style={{
+                      '--glow-color': card.theme === "emerald" ? '#10b981' :
+                                      card.theme === "rose" ? '#f43f5e' :
+                                      card.theme === "blue" ? '#3b82f6' :
+                                      card.theme === "indigo" ? '#6366f1' :
+                                      card.theme === "purple" ? '#8b5cf6' :
+                                      card.theme === "amber" ? '#f59e0b' :
+                                      card.theme === "teal" ? '#14b8a6' :
+                                      card.theme === "orange" ? '#f97316' :
+                                      card.theme === "fuchsia" ? '#d946ef' :
+                                      card.theme === "violet" ? '#7c3aed' :
+                                      card.theme === "cyan" ? '#06b6d4' :
+                                      card.theme === "pink" ? '#ec4899' : '#3b82f6',
+                      '--glow-color-alt': card.theme === "emerald" ? '#34d399' :
+                                          card.theme === "rose" ? '#fb7185' :
+                                          card.theme === "blue" ? '#60a5fa' :
+                                          card.theme === "indigo" ? '#818cf8' :
+                                          card.theme === "purple" ? '#a78bfa' :
+                                          card.theme === "amber" ? '#fbbf24' :
+                                          card.theme === "teal" ? '#2dd4bf' :
+                                          card.theme === "orange" ? '#fb923c' :
+                                          card.theme === "fuchsia" ? '#f472b6' :
+                                          card.theme === "violet" ? '#a78bfa' :
+                                          card.theme === "cyan" ? '#22d3ee' :
+                                          card.theme === "pink" ? '#f472b6' : '#60a5fa',
+                      '--glow-shadow': card.theme === "emerald" ? 'rgba(16, 185, 129, 0.4)' :
+                                       card.theme === "rose" ? 'rgba(244, 63, 94, 0.4)' :
+                                       card.theme === "blue" ? 'rgba(59, 130, 246, 0.4)' :
+                                       card.theme === "indigo" ? 'rgba(99, 102, 241, 0.4)' :
+                                       card.theme === "purple" ? 'rgba(139, 92, 246, 0.4)' :
+                                       card.theme === "amber" ? 'rgba(245, 158, 11, 0.4)' :
+                                       card.theme === "teal" ? 'rgba(20, 184, 166, 0.4)' :
+                                       card.theme === "orange" ? 'rgba(249, 115, 22, 0.4)' :
+                                       card.theme === "fuchsia" ? 'rgba(217, 70, 239, 0.4)' :
+                                       card.theme === "violet" ? 'rgba(124, 58, 237, 0.4)' :
+                                       card.theme === "cyan" ? 'rgba(6, 182, 212, 0.4)' :
+                                       card.theme === "pink" ? 'rgba(236, 72, 153, 0.4)' : 'rgba(59, 130, 246, 0.4)'
+                    }}
+                    className={`relative overflow-hidden bg-slate-950/20 border border-white/5 ${card.hoverBorder} p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col justify-between min-h-[145px] group hover:bg-slate-950/45 hover:shadow-xl shadow-black/30`}
                   >
                     <div className={`absolute inset-0 bg-linear-to-b ${card.fromColor} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none`}></div>
                     <div className="relative flex justify-between items-center mb-3 z-10">
@@ -1880,7 +1937,7 @@ const Dashboard = () => {
                         {card.desc} &rarr;
                       </p>
                     </div>
-                  </div>
+                  </Card>
                 ))}
               </div>
             </Card>
@@ -1994,7 +2051,7 @@ const Dashboard = () => {
             <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                  <span className="w-1.5 h-1.5 rounded-full animate-pulse bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"></span>
                   User Engagement Analytics
                 </h3>
                 <p className="text-[10px] text-slate-400 mt-0.5 font-medium">

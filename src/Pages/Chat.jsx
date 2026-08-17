@@ -624,7 +624,7 @@ const Chat = () => {
                       </p>
                     </div>
                     {contact.unreadCount > 0 && activeContact !== contact.userId && (
-                      <span className="bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ml-2">
+                      <span className="text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ml-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
                         {contact.unreadCount}
                       </span>
                     )}
@@ -651,7 +651,7 @@ const Chat = () => {
                       <FiArrowLeft className="text-xl" />
                     </button>
                     <div className="relative">
-                      <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold shadow-inner">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
                         {activeContactDetails.name?.charAt(0).toUpperCase() || 'U'}
                       </div>
                       {activeContactDetails.isOnline && (
@@ -816,7 +816,7 @@ const Chat = () => {
                                         href={getImageUrl(msg.fileUrl)}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors shrink-0 cursor-pointer"
+                                        className="p-1.5 text-white rounded-md transition-colors shrink-0 cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                                         title="Open / Download"
                                         download
                                         onClick={(e) => e.stopPropagation()}
@@ -993,7 +993,7 @@ const Chat = () => {
                     <button
                       type="submit"
                       disabled={editingMessage ? !message.trim() : (!message.trim() && !attachment)}
-                      className="h-10 w-10 sm:h-11 sm:w-11 mb-1 rounded-2xl bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-500/20 shrink-0"
+                      className="h-10 w-10 sm:h-11 sm:w-11 mb-1 rounded-2xl text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                     >
                       <FiSend className="text-xl" />
                     </button>
@@ -1118,7 +1118,7 @@ const Chat = () => {
                   setDeleteConfirmOpen(false);
                   setMessageToDelete(null);
                 }}
-                className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all text-sm shadow-lg shadow-red-600/10"
+                className="flex-1 px-4 py-2.5 text-white font-bold rounded-xl transition-all text-sm bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700"
               >
                 Proceed Delete
               </button>
@@ -1146,7 +1146,7 @@ const Chat = () => {
 
             <div className="bg-black/20 border border-white/5 p-4 rounded-xl mb-6">
               <div className="flex justify-end">
-                <div className="px-4 py-2.5 rounded-2xl bg-blue-600 text-white rounded-br-sm shadow-sm max-w-[90%] text-left">
+                <div className="px-4 py-2.5 rounded-2xl text-white rounded-br-sm max-w-[90%] text-left bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
                   {replyToMessage && (
                     <div className="mb-1.5 p-1.5 rounded-lg bg-black/30 border-l-2 border-indigo-400 text-slate-400 text-[11px] truncate max-w-full">
                       <span className="font-bold block text-indigo-400 text-[9px] uppercase tracking-wider mb-0.5">Replied to message</span>
@@ -1183,7 +1183,7 @@ const Chat = () => {
               <button
                 type="button"
                 onClick={confirmAndSendMessage}
-                className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all text-sm shadow-lg shadow-blue-600/20 animate-pulse"
+                className="flex-1 px-4 py-2.5 text-white font-bold rounded-xl transition-all text-sm animate-pulse bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
               >
                 Confirm & Send
               </button>
@@ -1207,7 +1207,7 @@ const Chat = () => {
             <button
               type="button"
               onClick={() => setAlertOpen(false)}
-              className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors text-sm shadow-lg shadow-blue-600/10"
+              className="w-full px-4 py-2.5 text-white font-bold rounded-xl transition-colors text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
             >
               OK
             </button>
@@ -1237,7 +1237,7 @@ const Chat = () => {
                 download={mediaPreview.fileName}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition-colors shadow-lg"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-bold rounded-lg transition-colors bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                 onClick={(e) => e.stopPropagation()}
               >
                 <FiDownload size={13} />

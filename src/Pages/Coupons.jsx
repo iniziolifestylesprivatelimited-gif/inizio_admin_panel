@@ -378,7 +378,7 @@ const Coupons = () => {
                 <p>No discount rules created yet.</p>
                 <button
                   onClick={() => setActiveTab('create')}
-                  className="mt-4 inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer"
+                  className="mt-4 inline-flex items-center gap-2 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                 >
                   <FiPlus /> Add First Rule
                 </button>
@@ -826,7 +826,7 @@ const Coupons = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="px-6 py-3 text-white rounded-xl text-sm font-bold transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                 >
                   {submitting && <FiLoader className="animate-spin" />}
                   Create Discount Rule
@@ -970,7 +970,7 @@ const Coupons = () => {
                       type="button"
                       onClick={handleAddToTestCart}
                       disabled={!selectedTestProduct}
-                      className="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
+                      className="disabled:opacity-40 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                     >
                       <FiPlus /> Add to Cart
                     </button>
@@ -1030,7 +1030,7 @@ const Coupons = () => {
                     type="button"
                     onClick={handleValidateCoupon}
                     disabled={validating || testCart.length === 0 || !testCode}
-                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2"
+                    className="w-full py-3 disabled:opacity-50 text-white font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                   >
                     {validating && <FiLoader className="animate-spin" />}
                     Validate Code

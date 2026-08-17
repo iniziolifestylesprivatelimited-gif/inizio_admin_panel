@@ -2060,7 +2060,7 @@ const ActivityDetails = () => {
             <td className="py-4 px-5">
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden max-w-[120px]">
-                  <div className="h-full bg-amber-500 rounded-full" style={{ width: `${Math.round((item.count / maxCount) * 100)}%` }} />
+                  <div className="h-full rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600" style={{ width: `${Math.round((item.count / maxCount) * 100)}%` }} />
                 </div>
                 <span className="text-amber-400 font-extrabold text-sm">{item.count} searches</span>
               </div>
@@ -2162,7 +2162,7 @@ const ActivityDetails = () => {
             <td className="py-4 px-5">
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden max-w-[120px]">
-                  <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.round(((item.views || 0) / maxViews) * 100)}%` }} />
+                  <div className="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" style={{ width: `${Math.round(((item.views || 0) / maxViews) * 100)}%` }} />
                 </div>
                 <span className="text-blue-400 font-extrabold text-sm">{item.views || 0} views</span>
               </div>
@@ -2726,7 +2726,7 @@ const ActivityDetails = () => {
                     <span className="text-white">{extraData.funnel?.checkoutInitiations || 0}</span>
                   </div>
                   <div className="h-4 bg-slate-800 rounded-lg overflow-hidden">
-                    <div className="h-full bg-blue-500 rounded-lg transition-all duration-500" style={{ width: `${extraData.funnel?.cartAdds ? Math.round(((extraData.funnel?.checkoutInitiations || 0) / extraData.funnel.cartAdds) * 100) : 0}%` }} />
+                    <div className="h-full rounded-lg transition-all duration-500 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" style={{ width: `${extraData.funnel?.cartAdds ? Math.round(((extraData.funnel?.checkoutInitiations || 0) / extraData.funnel.cartAdds) * 100) : 0}%` }} />
                   </div>
                 </div>
                 {/* Checkout Successes */}

@@ -314,7 +314,7 @@ const Variants = () => {
         <button 
           onClick={handleSave} 
           disabled={saving}
-          className="flex items-center justify-center px-6 py-2.5 bg-blue-600/50 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 disabled:opacity-50"
+          className="flex items-center justify-center px-6 py-2.5 text-white font-bold rounded-xl transition-all disabled:opacity-50 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
         >
           {saving ? <FiLoader className="animate-spin mr-2" /> : <FiSave className="mr-2" />}
           Save Changes
@@ -352,7 +352,7 @@ const Variants = () => {
         
         {/* General Information */}
         <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6">
-          <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2"><span className="w-1.5 h-5 bg-blue-500 rounded-full"></span>General Information</h3>
+          <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2"><span className="w-1.5 h-5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"></span>General Information</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Brand</label>
@@ -435,7 +435,7 @@ const Variants = () => {
         
         {/* Extended Details */}
         <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6">
-          <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2"><span className="w-1.5 h-5 bg-amber-500 rounded-full"></span>Descriptions & Policies</h3>
+          <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2"><span className="w-1.5 h-5 rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600"></span>Descriptions & Policies</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Warranty</label>

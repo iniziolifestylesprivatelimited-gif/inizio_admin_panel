@@ -850,7 +850,7 @@ const RolesPermissions = () => {
                 <button
                   type="submit"
                   disabled={creatingUser}
-                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-lg shadow-blue-600/35 border border-blue-500/35"
+                  className="px-6 py-3 disabled:opacity-50 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer border border-blue-500/35 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                 >
                   {creatingUser ? (
                     <>
@@ -956,7 +956,7 @@ const RolesPermissions = () => {
                   <button
                     onClick={handleSavePermissions}
                     disabled={savingPermissions}
-                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-lg shadow-blue-600/35 border border-blue-500/35"
+                    className="px-6 py-3 disabled:opacity-50 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer border border-blue-500/35 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                   >
                     {savingPermissions ? (
                       <>

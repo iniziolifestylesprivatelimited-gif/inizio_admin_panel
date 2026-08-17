@@ -429,7 +429,7 @@ export default function QuantitySlabs() {
           {/* Slab Settings Box */}
           <div className="bg-slate-900/40 border border-white/10 backdrop-blur-2xl rounded-3xl p-5 md:p-6 space-y-5 shadow-xl">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <span className="w-1.5 h-5 bg-blue-500 rounded-full"></span>
+              <span className="w-1.5 h-5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"></span>
               Slab Pricing Rules
             </h2>
 
@@ -605,7 +605,7 @@ export default function QuantitySlabs() {
           <div className="bg-slate-900/40 border border-white/10 backdrop-blur-2xl rounded-3xl p-5 md:p-6 space-y-5 shadow-xl">
             <h2 className="text-lg font-bold text-white flex items-center justify-between">
               <span className="flex items-center gap-2">
-                <span className="w-1.5 h-5 bg-blue-500 rounded-full"></span>
+                <span className="w-1.5 h-5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"></span>
                 Select Products & View Previews
               </span>
               {selectedIds.size > 0 && (
@@ -941,7 +941,7 @@ export default function QuantitySlabs() {
                 </div>
                 <div className="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-white/5">
                   <div 
-                    className="bg-blue-500 h-full rounded-full transition-all duration-300"
+                    className="h-full rounded-full transition-all duration-300 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                     style={{ width: `${(updateProgress.current / updateProgress.total) * 100}%` }}
                   ></div>
                 </div>

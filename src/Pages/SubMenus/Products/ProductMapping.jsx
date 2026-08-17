@@ -951,7 +951,7 @@ const ProductMapping = () => {
                   <button
                     onClick={handleUpload}
                     disabled={!file || isUploading}
-                    className="flex items-center justify-center px-6 py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/5 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center justify-center px-6 py-2.5 text-white font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
                   >
                     {isUploading ? <FiLoader className="animate-spin mr-2" /> : <FiUpload className="mr-2" />}
                     {isUploading ? 'Uploading...' : 'Upload'}
@@ -1155,7 +1155,7 @@ const ProductMapping = () => {
                 <button
                   onClick={handleSync}
                   disabled={!uploadSuccess || isSyncing}
-                  className="w-full flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center px-6 py-3 text-white font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                 >
                   {isSyncing ? <FiLoader className="animate-spin mr-2" /> : <FiRefreshCcw className="mr-2" />}
                   {isSyncing ? 'Syncing...' : 'Bulk Sync'}
@@ -1232,7 +1232,7 @@ const ProductMapping = () => {
                   <button
                     onClick={handleStockUpload}
                     disabled={!stockFile || isUploadingStock}
-                    className="flex items-center justify-center px-6 py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/5 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center justify-center px-6 py-2.5 text-white font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
                   >
                     {isUploadingStock ? <FiLoader className="animate-spin mr-2" /> : <FiUpload className="mr-2" />}
                     {isUploadingStock ? 'Uploading...' : 'Upload'}
@@ -1503,7 +1503,7 @@ const ProductMapping = () => {
                   <button
                     onClick={handleBulkSyncStock}
                     disabled={!stockUploadSuccess || isSyncingStock}
-                    className="flex-1 flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 flex items-center justify-center px-6 py-3 text-white font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                   >
                     {isSyncingStock ? <FiLoader className="animate-spin mr-2" /> : <FiRefreshCcw className="mr-2" />}
                     {isSyncingStock ? 'Syncing Stock...' : 'Bulk Sync Stock'}
@@ -1585,7 +1585,7 @@ const ProductMapping = () => {
                 </div>
                 <div className="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-white/5">
                   <div 
-                    className="bg-blue-500 h-full rounded-full transition-all duration-300"
+                    className="h-full rounded-full transition-all duration-300 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                     style={{ width: `${syncProgress.total > 0 ? (syncProgress.current / syncProgress.total) * 100 : 0}%` }}
                   ></div>
                 </div>

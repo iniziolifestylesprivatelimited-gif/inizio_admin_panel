@@ -10,7 +10,7 @@ import { getAccessibleMenus } from '../config/menus';
 import HeaderSearch from './HeaderSearch';
 import logoImg from '../assets/logos.png';
 import appIconImg from '../assets/app-icon-png.png';
-import { api } from '../api/axios';
+import { api, BASE_URL } from '../api/axios';
 import { isRouteAllowed } from '../utils/rbac';
 
 const Layout = () => {
@@ -469,6 +469,101 @@ const Layout = () => {
     }
   }, [chatUnreadCount, ordersUnreadCount, usersUnreadCount, usersVerifyUnreadCount, usersDeletionUnreadCount, quotesUnreadCount]);
 
+  // Global event listener for image load failures
+  useEffect(() => {
+    const handleImageErrorEvent = (e) => {
+      addToast(
+        "Image Load Failed",
+        `Failed to load product image for: ${e.detail.name}. Please check WordPress library access.`,
+        "/products/list",
+        FiAlertTriangle
+      );
+    };
+    window.addEventListener('product-image-error', handleImageErrorEvent);
+    return () => window.removeEventListener('product-image-error', handleImageErrorEvent);
+  }, []);
+
+  // Poll product images every 30 seconds to check for loading failures proactively
+  useEffect(() => {
+    let isMounted = true;
+    let timeoutId;
+    let intervalId;
+
+    const checkProductImages = async () => {
+      if (!user) return;
+      try {
+        const response = await api.get(`/products/?t=${Date.now()}`);
+        const products = Array.isArray(response.data) ? response.data : [];
+        const activeProductsWithImages = products.filter(p => p.isActive !== false && p.images && p.images.length > 0);
+        if (activeProductsWithImages.length === 0) return;
+
+        // Check ALL active products across all pagination pages (e.g. Page 1, Page 13, etc.)
+        const failedProducts = [];
+
+        const testPromises = activeProductsWithImages.map(product => {
+          return new Promise((resolve) => {
+            let path = '';
+            if (Array.isArray(product.images)) {
+              path = product.images[0] || '';
+            } else if (typeof product.images === 'string') {
+              path = product.images.split(',')[0] || '';
+            }
+            path = path.trim();
+            if (!path) return resolve(true);
+
+            let url = path;
+            if (!url.startsWith('http') && !url.startsWith('blob:') && !url.startsWith('//')) {
+              const cleanPath = url.replace(/\\/g, '/');
+              url = `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
+            }
+
+            const img = new Image();
+            let timer = setTimeout(() => {
+              failedProducts.push(product.name || 'Product');
+              resolve(false);
+            }, 8000);
+
+            img.onload = () => {
+              clearTimeout(timer);
+              resolve(true);
+            };
+            img.onerror = () => {
+              clearTimeout(timer);
+              failedProducts.push(product.name || 'Product');
+              resolve(false);
+            };
+            img.src = url;
+          });
+        });
+
+        await Promise.all(testPromises);
+
+        if (isMounted && failedProducts.length > 0) {
+          const namesPreview = Array.from(new Set(failedProducts)).slice(0, 2).join(', ');
+          const totalFailed = failedProducts.length;
+          addToast(
+            "Image Load Alert",
+            `Failed to load ${totalFailed} product image(s) (${namesPreview}${totalFailed > 2 ? '...' : ''}). Check your WordPress library access.`,
+            "/products/list",
+            FiAlertTriangle
+          );
+        }
+      } catch (error) {
+        console.error("Failed to poll product images status", error);
+      }
+    };
+
+    // Run first check after 1s (almost immediately), then check every 30s
+    timeoutId = setTimeout(checkProductImages, 1000);
+    intervalId = setInterval(checkProductImages, 30000);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+      clearInterval(intervalId);
+    };
+  }, [user]);
+
   if (!user) {
     return <Navigate to="/login" replace />;
   }
@@ -749,7 +844,7 @@ const Layout = () => {
                     className={`
                       w-full h-12 flex items-center justify-between px-4 transition-all duration-300 group
                       ${isChildActive
-                        ? 'bg-blue-600/20 text-blue-500 border border-blue-600/50 shadow-sm rounded-xl'
+                        ? 'bg-blue-600/20 text-blue-500 border border-blue-600/50 shadow-sm rounded-xl cursor-pointer'
                         : isExpanded
                           ? 'text-slate-300 hover:bg-blue-600/20 hover:text-blue-500 border border-transparent cursor-pointer rounded-xl'
                           : 'bg-white/[0.03] backdrop-blur-md border border-white/5 text-slate-300 hover:bg-blue-600/20 hover:text-blue-500 cursor-pointer shadow-xs rounded-xl'

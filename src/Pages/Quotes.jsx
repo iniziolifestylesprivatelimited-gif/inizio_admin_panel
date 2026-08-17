@@ -452,7 +452,7 @@ const Quotes = () => {
                 <button
                   type="submit"
                   disabled={updating}
-                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-lg shadow-blue-600/35 border border-blue-500/35"
+                  className="px-5 py-2 disabled:opacity-50 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer border border-blue-500/35 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                 >
                   {updating ? <FiLoader className="animate-spin" /> : 'Save Updates'}
                 </button>
@@ -499,7 +499,7 @@ const Quotes = () => {
               <button
                 onClick={handleDeleteQuote}
                 disabled={deleting || typedConfirmName.trim().toLowerCase() !== (quoteToDelete.name || quoteToDelete.user?.name || '').trim().toLowerCase()}
-                className="flex-1 py-2 bg-rose-600 hover:bg-rose-700 disabled:opacity-30 disabled:hover:bg-rose-600 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-lg shadow-rose-600/35 border border-rose-500/35"
+                className="flex-1 py-2 disabled:opacity-30 disabled:hover:bg-rose-600 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-rose-500/35 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700"
               >
                 {deleting ? <FiLoader className="animate-spin" /> : 'Confirm Delete'}
               </button>
@@ -547,7 +547,7 @@ const Quotes = () => {
               <button
                 onClick={handleUpdateStatus}
                 disabled={updating}
-                className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-30 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-lg shadow-blue-600/35 border border-blue-500/35"
+                className="flex-1 py-2 disabled:opacity-30 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-blue-500/35 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
               >
                 {updating ? <FiLoader className="animate-spin" /> : 'Yes, Update'}
               </button>
@@ -571,7 +571,7 @@ const Quotes = () => {
 
             <button
               onClick={() => setAlertOpen(false)}
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-lg shadow-blue-600/35 border border-blue-500/35"
+              className="w-full py-2.5 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer border border-blue-500/35 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
             >
               Okay
             </button>

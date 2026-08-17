@@ -1162,7 +1162,7 @@ const UsersList = () => {
                   setUserToDelete(null);
                   setTypedConfirmName('');
                 }}
-                className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all text-sm shadow-lg shadow-red-600/10"
+                className="flex-1 px-4 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all text-sm bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700"
               >
                 Proceed Delete
               </button>
@@ -1186,7 +1186,7 @@ const UsersList = () => {
             <button
               type="button"
               onClick={() => setAlertOpen(false)}
-              className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors text-sm shadow-lg shadow-blue-600/10"
+              className="w-full px-4 py-2.5 text-white font-bold rounded-xl transition-colors text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
             >
               OK
             </button>
