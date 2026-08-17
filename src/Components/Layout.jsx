@@ -797,13 +797,13 @@ const Layout = () => {
           {/* Full Logo (logos.png) */}
           <div className={`absolute transition-all duration-300 ease-in-out flex items-center justify-center ${isExpanded ? 'opacity-100 scale-100 rotate-0' : 'opacity-0 scale-75 rotate-[-12deg] pointer-events-none'
             }`}>
-            <img src={logoImg} alt="logo" className="h-14 w-auto object-contain scale-200 mt-1.5" />
+            <Link to="/"><img src={logoImg} alt="logo" className="h-14 w-auto object-contain scale-200 mt-1.5" /></Link>
           </div>
 
           {/* Collapsed App Icon (app-icon-png.png) */}
           <div className={`absolute transition-all duration-300 ease-in-out flex items-center justify-center ${isExpanded ? 'opacity-0 scale-75 rotate-[12deg] pointer-events-none' : 'opacity-100 scale-100 rotate-0'
             }`}>
-            <img src={appIconImg} alt="logo" className="lg:h-10 lg:w-10 h-14 w-auto object-contain lg:scale-100 scale-200 lg:mt-0 mt-1.5" />
+            <Link to="/"><img src={appIconImg} alt="logo" className="lg:h-10 lg:w-10 h-14 w-auto object-contain lg:scale-100 scale-200 lg:mt-0 mt-1.5" /></Link>
           </div>
 
           {/* Mobile Close Button */}

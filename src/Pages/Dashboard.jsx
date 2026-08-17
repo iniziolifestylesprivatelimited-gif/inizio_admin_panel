@@ -2183,37 +2183,49 @@ const Dashboard = () => {
           <div className="bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 shadow-2xl rounded-3xl p-6 max-w-md w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
 
-            <div className="flex justify-between items-start mb-5 relative z-1000">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-blue-500/20 text-blue-400 shrink-0">
-                  <FiEye size={20} />
-                </div>
-                <div>
-                  <h3 className="text-base font-black text-white tracking-tight leading-snug truncate max-w-[240px]" title={selectedProductViews.product.name}>
-                    {selectedProductViews.product.name}
-                  </h3>
-                  <div className="flex items-center gap-1.5 text-[10px] font-mono mt-0.5">
-                    <span className="text-emerald-400 font-extrabold">
-                      Price: ₹{(selectedProductViews.product.offerPrice && Number(selectedProductViews.product.offerPrice) > 0 ? Number(selectedProductViews.product.offerPrice) : Number(selectedProductViews.product.basePrice || 0)).toLocaleString('en-IN')}
-                    </span>
-                    {selectedProductViews.product.offerPrice && Number(selectedProductViews.product.offerPrice) > 0 && Number(selectedProductViews.product.offerPrice) < Number(selectedProductViews.product.basePrice || 0) && (
-                      <span className="text-slate-500 line-through">
-                        ₹{(selectedProductViews.product.basePrice || 0).toLocaleString('en-IN')}
-                      </span>
+            {(() => {
+              const firstImg = selectedProductViews.product?.images?.[0] || '';
+              const imgUrl = firstImg.startsWith('http') ? firstImg : (firstImg ? `${BASE_URL}${firstImg.startsWith('/') ? '' : '/'}${firstImg}` : '');
+              return (
+                <div className="flex justify-between items-start mb-5 relative z-1000">
+                  <div className="flex items-center gap-3">
+                    {imgUrl ? (
+                      <div className="w-10 h-10 rounded-xl overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center p-0.5 shadow-inner">
+                        <img src={imgUrl} alt={selectedProductViews.product.name} className="w-full h-full object-contain" />
+                      </div>
+                    ) : (
+                      <div className="p-2.5 rounded-xl bg-blue-500/20 text-blue-400 shrink-0">
+                        <FiEye size={20} />
+                      </div>
                     )}
+                    <div>
+                      <h3 className="text-base font-black text-white tracking-tight leading-snug truncate max-w-[240px]" title={selectedProductViews.product.name}>
+                        {selectedProductViews.product.name}
+                      </h3>
+                      <div className="flex items-center gap-1.5 text-[10px] font-mono mt-0.5">
+                        <span className="text-emerald-400 font-extrabold">
+                          Price: ₹{(selectedProductViews.product.offerPrice && Number(selectedProductViews.product.offerPrice) > 0 ? Number(selectedProductViews.product.offerPrice) : Number(selectedProductViews.product.basePrice || 0)).toLocaleString('en-IN')}
+                        </span>
+                        {selectedProductViews.product.offerPrice && Number(selectedProductViews.product.offerPrice) > 0 && Number(selectedProductViews.product.offerPrice) < Number(selectedProductViews.product.basePrice || 0) && (
+                          <span className="text-slate-500 line-through">
+                            ₹{(selectedProductViews.product.basePrice || 0).toLocaleString('en-IN')}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
+                  <button
+                    onClick={() => {
+                      setIsProductModalOpen(false);
+                      setSelectedProductViews(null);
+                    }}
+                    className="p-1.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer"
+                  >
+                    <FiX size={16} />
+                  </button>
                 </div>
-              </div>
-              <button
-                onClick={() => {
-                  setIsProductModalOpen(false);
-                  setSelectedProductViews(null);
-                }}
-                className="p-1.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer"
-              >
-                <FiX size={16} />
-              </button>
-            </div>
+              );
+            })()}
 
             {/* Total Metric Highlight Banner */}
             <div className="bg-transparent backdrop-blur-2xl border border-white/10 rounded-2xl p-4.5 mb-5 flex justify-between items-center text-xs relative z-10">

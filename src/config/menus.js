@@ -64,7 +64,7 @@ const PAGES = {
     icon: FiUser,
     subMenus: [
       { path: '/users/list', name: 'Users List', icon: FiUsers, permission: 'customers_view' },
-      { path: '/users/active', name: 'Active Users', icon: FiActivity, permission: 'customers_manage' },
+      { path: '/users/active', name: 'Login Activity', icon: FiActivity, permission: 'customers_manage' },
       { path: '/users/roles-permissions', name: 'Roles & Permissions', icon: FiShield, role: 'admin' }
     ]
   },

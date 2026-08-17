@@ -2932,11 +2932,10 @@ const ProductList = () => {
                     } else if (typeof v.images === 'string') {
                       imgs = v.images.split(',').map(url => url.trim()).filter(Boolean);
                     }
-                    const uniqueImgs = imgs.filter(url => !mainImages.includes(url));
-                    if (uniqueImgs.length > 0) {
+                    if (imgs.length > 0) {
                       variantGroups.push({
                         name: v.name || 'Unnamed Variant',
-                        images: uniqueImgs
+                        images: imgs
                       });
                     }
                   }

@@ -120,7 +120,7 @@ const ActiveUsers = () => {
         <div>
           <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
             <FiActivity className="text-blue-400" />
-            Users Activity Reports
+            Login & Setup Reports
           </h1>
           <p className="text-slate-400 font-medium mt-1">
             Track user login activities, session frequencies, and security setup reports.

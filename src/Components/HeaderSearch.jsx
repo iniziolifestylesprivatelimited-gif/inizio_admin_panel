@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
 import { 
-  FiSearch, FiX, FiLoader, FiFileText, FiPackage, FiTag, FiGrid
+  FiSearch, FiX, FiLoader, FiFileText, FiPackage, FiTag, FiGrid, FiUser
 } from 'react-icons/fi';
 import { getAccessibleMenus } from '../config/menus';
 import axios from 'axios';
@@ -17,7 +17,7 @@ const HeaderSearch = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [searchData, setSearchData] = useState({ products: [], brands: [], categories: [] });
+  const [searchData, setSearchData] = useState({ products: [], brands: [], categories: [], users: [] });
   const [dataFetched, setDataFetched] = useState(false);
   const searchRef = useRef(null);
 
@@ -44,16 +44,18 @@ const HeaderSearch = () => {
         const token = sessionStorage.getItem('accessToken');
         const headers = { Authorization: `Bearer ${token}` };
         
-        const [prodRes, brandRes, catRes] = await Promise.all([
+        const [prodRes, brandRes, catRes, userRes] = await Promise.all([
           axios.get(`${BASE_URL}/api/products/`, { headers }).catch(() => ({ data: [] })),
           axios.get(`${BASE_URL}/api/brands/admin`, { headers }).catch(() => ({ data: [] })),
-          axios.get(`${BASE_URL}/api/categories/admin/all`, { headers }).catch(() => ({ data: [] }))
+          axios.get(`${BASE_URL}/api/categories/admin/all`, { headers }).catch(() => ({ data: [] })),
+          axios.get(`${BASE_URL}/admin/customers`, { headers }).catch(() => ({ data: [] }))
         ]);
         
         setSearchData({
           products: prodRes.data || [],
           brands: brandRes.data || [],
-          categories: catRes.data || []
+          categories: catRes.data || [],
+          users: userRes.data || []
         });
         setDataFetched(true);
       } catch (err) {
@@ -145,6 +147,21 @@ const HeaderSearch = () => {
         url: `/products/categories`
       })));
 
+      // 5. Search Users
+      const matchedUsers = searchData.users.filter(u => {
+        const nameText = (u.name || '').toLowerCase();
+        const emailText = (u.email || '').toLowerCase();
+        const phoneText = (u.phone || '').toLowerCase();
+        return terms.every(term => nameText.includes(term) || emailText.includes(term) || phoneText.includes(term));
+      });
+      results = results.concat(matchedUsers.map(u => ({
+        _id: `user-${u._id}`,
+        title: u.name || 'No Name',
+        subtitle: `${u.email || 'No Email'}${u.phone ? ` • ${u.phone}` : ''}`,
+        type: 'User',
+        url: `/users/list/${u._id}`
+      })));
+
       setSearchResults(results.slice(0, 8)); // Limit to top 8 results
       setIsSearching(false);
     }, 300); // 300ms debounce
@@ -170,7 +187,7 @@ const HeaderSearch = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onFocus={() => searchQuery.trim() && setShowSuggestions(true)}
-          placeholder="Search products, brands, or categories..." 
+          placeholder="Search products, brands, categories, or users..." 
           className="w-full pl-10 pr-10 py-2 bg-transparent border border-white/10 focus:border-blue-500/50 focus:bg-white/10 rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all text-sm text-white placeholder-slate-400"
         />
         {searchQuery && (
@@ -197,6 +214,7 @@ const HeaderSearch = () => {
                   if (item.type === 'Product') Icon = FiPackage;
                   else if (item.type === 'Brand') Icon = FiTag;
                   else if (item.type === 'Category') Icon = FiGrid;
+                  else if (item.type === 'User') Icon = FiUser;
 
                   return (
                     <li key={item._id}>
