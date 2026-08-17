@@ -865,7 +865,7 @@ const Notifications = () => {
               <div className="bg-slate-900/80 backdrop-blur-lg border border-white/10 p-3.5 rounded-2xl shadow-xl space-y-1.5 transition-all duration-300 transform hover:scale-[1.02]">
                 <div className="flex justify-between items-center text-[10px] text-slate-400 font-bold">
                   <div className="flex items-center gap-1.5">
-                    <span className="w-4 h-4 rounded-md bg-blue-600 flex items-center justify-center text-[8px] text-white font-black"><img src="src\assets\app_icon.png" alt="I" /></span>
+                    <span className="w-4 h-4 rounded-md bg-blue-600 flex items-center justify-center text-[8px] text-white font-black"><img src="src/assets/app_icon.png" alt="I" /></span>
                     <span>INIZIO</span>
                   </div>
                   <span>now</span>
