@@ -23,9 +23,6 @@ const PAGES = {
     icon: FiShoppingCart,
     subMenus: [
       { path: '/orders/all', name: 'All Orders', icon: FiShoppingCart, permission: 'orders_view' },
-      { path: '/orders/processing', name: 'Processing', icon: FiLoader, permission: 'orders_manage' },
-      { path: '/orders/shipped', name: 'Shipped', icon: FiTruck, permission: 'orders_manage' },
-      { path: '/orders/cancelled', name: 'Cancelled', icon: FiX, permission: 'orders_manage' },
       { path: '/orders/delivered', name: 'Delivered & Returns', icon: FiCheckCircle, permission: 'orders_manage' }
     ]
   },

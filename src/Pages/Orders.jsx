@@ -6,7 +6,7 @@ import {
   FiBox, FiLoader, FiAlertCircle, FiChevronDown, FiCalendar, 
   FiX, FiMapPin, FiCreditCard, FiUser, FiPhone, FiMail, 
   FiFileText, FiUpload, FiDownload, FiCheckCircle, FiTrash2, FiInfo, FiRefreshCcw, FiCheck,
-  FiTruck, FiCopy, FiEye
+  FiTruck, FiCopy, FiEye, FiSearch
 } from 'react-icons/fi';
 import CustomDropdown from '../Components/CustomDropdown';
 import CopyButton from '../Components/CopyButton';
@@ -22,6 +22,26 @@ const getImageUrl = (path) => {
 
 const Orders = ({ defaultStatus = 'all' }) => {
   const [orders, setOrders] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortKey, setSortKey] = useState('');
+  const [sortOrder, setSortOrder] = useState('asc');
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  const handleSortChange = (key) => {
+    if (sortKey === key) {
+      if (sortOrder === 'asc') {
+        setSortOrder('desc');
+      } else {
+        setSortKey('');
+        setSortOrder('asc');
+      }
+    } else {
+      setSortKey(key);
+      setSortOrder('asc');
+    }
+    setCurrentPage(1);
+  };
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updatingId, setUpdatingId] = useState(null);
@@ -307,19 +327,36 @@ const Orders = ({ defaultStatus = 'all' }) => {
     }
   };
 
-  // Filter orders according to sub-menu state and payment status
+  // Filter orders according to sub-menu state, payment status and search term
   const filteredOrders = orders.filter(order => {
     // 1. Filter by orderStatus
-    if (defaultStatus !== 'all') {
+    if (defaultStatus === 'all') {
+      if (statusFilter !== 'all') {
+        if (order.orderStatus?.toLowerCase() !== statusFilter.toLowerCase()) return false;
+      }
+    } else {
       if (order.orderStatus?.toLowerCase() !== defaultStatus.toLowerCase()) return false;
     }
     
     // 2. Filter by paymentStatus
     if (paymentFilter === 'paid') {
-      return order.paymentStatus?.toLowerCase() === 'paid';
+      if (order.paymentStatus?.toLowerCase() !== 'paid') return false;
     }
     if (paymentFilter === 'pending') {
-      return order.paymentStatus?.toLowerCase() !== 'paid';
+      if (order.paymentStatus?.toLowerCase() === 'paid') return false;
+    }
+
+    // 3. Search query filter
+    if (searchTerm.trim()) {
+      const query = searchTerm.toLowerCase();
+      const orderIdMatch = (order._id || '').toLowerCase().includes(query) || (order.orderId || '').toLowerCase().includes(query);
+      const customerNameMatch = (order.user?.name || '').toLowerCase().includes(query) || (order.shippingAddress?.name || '').toLowerCase().includes(query);
+      const customerEmailMatch = (order.user?.email || '').toLowerCase().includes(query);
+      const customerPhoneMatch = (order.user?.phone || '').toLowerCase().includes(query) || (order.shippingAddress?.phone || '').toLowerCase().includes(query);
+      
+      if (!orderIdMatch && !customerNameMatch && !customerEmailMatch && !customerPhoneMatch) {
+        return false;
+      }
     }
     
     return true;
@@ -330,11 +367,36 @@ const Orders = ({ defaultStatus = 'all' }) => {
     setCurrentPage(1);
   };
 
+  // Sort orders before pagination
+  const sortedOrders = [...filteredOrders].sort((a, b) => {
+    if (!sortKey) {
+      // Default: sort latest first
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    }
+    
+    let valA = a[sortKey];
+    let valB = b[sortKey];
+    
+    if (sortKey === 'createdAt') {
+      valA = new Date(valA || 0);
+      valB = new Date(valB || 0);
+    }
+    
+    if (sortKey === 'totalAmount') {
+      valA = parseFloat(valA || 0);
+      valB = parseFloat(valB || 0);
+    }
+    
+    if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+    if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+    return 0;
+  });
+
   // Pagination for orders
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const currentOrders = sortedOrders.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(sortedOrders.length / itemsPerPage);
 
   // Pagination for returns
   const indexOfLastReturn = currentReturnsPage * itemsPerPage;
@@ -363,6 +425,35 @@ const Orders = ({ defaultStatus = 'all' }) => {
               : 'View and manage customer order fulfillment statuses.'}
           </p>
         </div>
+
+        {/* Search Bar right to the title */}
+        {(defaultStatus !== 'delivered' || activeDeliveredTab === 'orders') && (
+          <div className="relative w-full md:w-80">
+            <input
+              type="text"
+              placeholder="Search ID, customer, phone..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full pl-10 pr-10 py-2 bg-slate-900/60 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 shadow-inner text-white placeholder-slate-500 text-xs font-semibold"
+            />
+            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchTerm('');
+                  setCurrentPage(1);
+                }}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <FiX className="text-sm" />
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {loading && (
@@ -402,55 +493,77 @@ const Orders = ({ defaultStatus = 'all' }) => {
             </div>
           )}
 
-          {/* Payment Status Filter Switching Section */}
-          {(defaultStatus !== 'delivered' || activeDeliveredTab === 'orders') && (
-            <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-3.5 border-b border-white/10 bg-slate-900/20">
-              <div className="flex bg-slate-950/40 p-1 rounded-xl border border-white/5 w-fit">
-                {[
-                  { id: 'all', label: 'All Payments' },
-                  { id: 'paid', label: 'Paid Only' },
-                  { id: 'pending', label: 'Pending Only' }
-                ].map((tab) => {
-                  const count = orders.filter(order => {
-                    if (defaultStatus !== 'all' && order.orderStatus?.toLowerCase() !== defaultStatus.toLowerCase()) return false;
-                    if (tab.id === 'paid') return order.paymentStatus?.toLowerCase() === 'paid';
-                    if (tab.id === 'pending') return order.paymentStatus?.toLowerCase() !== 'paid';
-                    return true;
-                  }).length;
-
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => handlePaymentFilterChange(tab.id)}
-                      className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                        paymentFilter === tab.id
-                          ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                          : 'text-slate-400 hover:text-slate-200 border border-transparent'
-                      }`}
-                    >
-                      {tab.label} ({count})
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
           {/* DELIVERED ORDERS VIEW TAB OR OTHER VIEWS */}
           {(defaultStatus !== 'delivered' || activeDeliveredTab === 'orders') ? (
             <>
               <div className="overflow-auto custom-scrollbar max-h-[70vh]">
                 <table className="w-full text-left border-collapse min-w-200">
-                  <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md shadow-md">
+                  <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md shadow-md border-b border-white/10">
                     <tr className="border-b border-white/10 text-xs font-bold text-slate-400 uppercase tracking-wider">
                       <th className="p-2 pl-6 w-16">S.No</th>
                       <th className="p-4">Order ID</th>
-                      <th className="p-4">Date</th>
+                      <th 
+                        onClick={() => handleSortChange('createdAt')}
+                        className="p-4 cursor-pointer select-none hover:text-white transition-colors"
+                      >
+                        <div className="flex items-center gap-1">
+                          <span className={sortKey === 'createdAt' ? 'text-blue-400 font-extrabold' : ''}>Date</span>
+                          {sortKey === 'createdAt' ? (
+                            sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                          ) : (
+                            <span className="text-slate-500">⇅</span>
+                          )}
+                        </div>
+                      </th>
                       <th className="p-4">Customer</th>
-                      <th className="p-4">Items</th>
-                      <th className="p-4">Amount</th>
-                      <th className="p-4">Payment</th>
-                      <th className="p-4 pr-6">Status</th>
+                      <th className="p-4 text-center">Items</th>
+                      <th 
+                        onClick={() => handleSortChange('totalAmount')}
+                        className="p-4 cursor-pointer select-none hover:text-white transition-colors"
+                      >
+                        <div className="flex items-center gap-1">
+                          <span className={sortKey === 'totalAmount' ? 'text-blue-400 font-extrabold' : ''}>Amount</span>
+                          {sortKey === 'totalAmount' ? (
+                            sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                          ) : (
+                            <span className="text-slate-500">⇅</span>
+                          )}
+                        </div>
+                      </th>
+                      <th className="p-4 min-w-[130px]">
+                        <CustomDropdown
+                          value={paymentFilter}
+                          onChange={(val) => handlePaymentFilterChange(val)}
+                          options={[
+                            { value: 'all', label: 'All Payments' },
+                            { value: 'paid', label: 'Paid Only' },
+                            { value: 'pending', label: 'Pending Only' }
+                          ]}
+                          defaultLabel="Payment"
+                          statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${paymentFilter !== 'all' ? 'text-blue-400 font-extrabold' : 'text-slate-400 font-bold'}`}
+                        />
+                      </th>
+                      <th className="p-4 min-w-[145px]">
+                        {defaultStatus === 'all' ? (
+                          <CustomDropdown
+                            value={statusFilter}
+                            onChange={(val) => {
+                              setStatusFilter(val);
+                              setCurrentPage(1);
+                            }}
+                            options={[
+                              { value: 'all', label: 'All Statuses' },
+                              { value: 'processing', label: 'Processing' },
+                              { value: 'shipped', label: 'Shipped' },
+                              { value: 'cancelled', label: 'Cancelled' }
+                            ]}
+                            defaultLabel="Status"
+                            statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${statusFilter !== 'all' ? 'text-blue-400 font-extrabold' : 'text-slate-400'}`}
+                          />
+                        ) : (
+                          <span>Status</span>
+                        )}
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
