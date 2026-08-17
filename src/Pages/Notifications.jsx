@@ -165,11 +165,14 @@ const Notifications = () => {
       return;
     }
 
-    const targetCount = targetType === 'All Users' ? customers.length : selectedCustomerIds.length;
-    if (targetCount > 10) {
-      const isConfirmed = await confirm(`Warning: You are about to send a notification campaign to ${targetCount} customers. Do you want to proceed?`);
-      if (!isConfirmed) return;
-    }
+    const targetCount = targetType === 'All Users' 
+      ? (platform === 'all' ? customers.length : platform === 'android' ? customers.filter(c => c.devices?.some(d => d.devicePlatform?.toLowerCase() === 'android')).length : customers.filter(c => c.devices?.some(d => d.devicePlatform?.toLowerCase() === 'ios')).length)
+      : selectedCustomerIds.length;
+
+    const isConfirmed = await confirm(
+      `Are you sure you want to send this notification to ${targetType === 'All Users' ? 'all' : targetCount} user(s) on ${platform === 'all' ? 'all platforms' : platform}?`
+    );
+    if (!isConfirmed) return;
 
     setIsSending(true);
     try {
@@ -489,63 +492,6 @@ const Notifications = () => {
               </div>
             </div>
 
-            {/* Target users summary warning label */}
-            <div className="md:col-span-2 flex items-center gap-1.5 text-[10px] font-bold text-slate-400 bg-white/[0.02] border border-white/5 rounded-lg px-3 py-1.5 select-none">
-              <FiCheck className="text-emerald-500 shrink-0" />
-              <span>
-                Targeting:{' '}
-                <strong className="text-white">
-                  {targetType === 'All Users' ? (
-                    platform === 'all' ? customers.length :
-                    platform === 'android' ? customers.filter(c => c.devices?.some(d => d.devicePlatform?.toLowerCase() === 'android')).length :
-                    customers.filter(c => c.devices?.some(d => d.devicePlatform?.toLowerCase() === 'ios')).length
-                  ) : selectedCustomerIds.length}
-                </strong>{' '}
-                {targetType === 'All Users' 
-                  ? `user(s) matching ${platform === 'all' ? 'All Platforms' : platform === 'android' ? 'Android' : 'iOS'}`
-                  : `selected user(s)`
-                }
-              </span>
-            </div>
-
-            <div className="md:col-span-1">
-              <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">Image URL (Optional)</label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="https://example.com/image.png"
-                  className="w-full pl-9 pr-4 py-2 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 transition-all text-sm font-medium"
-                />
-                <MdImage className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-base" />
-              </div>
-              {imageUrl.trim() && (
-                <div className="mt-2.5 relative w-full max-w-xs h-24 rounded-xl overflow-hidden border border-white/10 bg-slate-800/50 flex items-center justify-center">
-                  <img src={imageUrl.trim()} alt="Preview" className="max-w-full max-h-full object-contain" onError={(e) => e.target.src='https://placehold.co/300x150?text=Invalid+Image+URL'} />
-                </div>
-              )}
-            </div>
-
-            {/* Click Action Dropdown */}
-            <div className="md:col-span-1">
-              <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">Click Action (Optional)</label>
-              <div className="relative">
-                <CustomDropdown 
-                  value={clickAction}
-                  onChange={(val) => {
-                    setClickAction(val);
-                    setActionId('');
-                    setSearchTerm('');
-                    setIsActionDropdownOpen(false);
-                  }}
-                  options={clickActionOptions}
-                  statusColor="pl-9 py-2 text-white border-white/10 bg-black/20 text-sm font-medium rounded-xl"
-                />
-                <FiLink className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none z-10" />
-              </div>
-            </div>
-
             {/* Target Customers selector inline */}
             {targetType !== 'All Users' && (
               <div ref={customerDropdownRef} className="md:col-span-2 relative">
@@ -664,6 +610,65 @@ const Notifications = () => {
                 )}
               </div>
             )}
+
+            {/* Target users summary warning label */}
+            <div className="md:col-span-2 flex items-center gap-1.5 text-[10px] font-bold text-slate-400 bg-white/[0.02] border border-white/5 rounded-lg px-3 py-1.5 select-none">
+              <FiCheck className="text-emerald-500 shrink-0" />
+              <span>
+                Targeting:{' '}
+                <strong className="text-white">
+                  {targetType === 'All Users' ? (
+                    platform === 'all' ? customers.length :
+                    platform === 'android' ? customers.filter(c => c.devices?.some(d => d.devicePlatform?.toLowerCase() === 'android')).length :
+                    customers.filter(c => c.devices?.some(d => d.devicePlatform?.toLowerCase() === 'ios')).length
+                  ) : selectedCustomerIds.length}
+                </strong>{' '}
+                {targetType === 'All Users' 
+                  ? `user(s) matching ${platform === 'all' ? 'All Platforms' : platform === 'android' ? 'Android' : 'iOS'}`
+                  : `selected user(s)`
+                }
+              </span>
+            </div>
+
+            <div className="md:col-span-1">
+              <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">Image URL (Optional)</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="https://example.com/image.png"
+                  className="w-full pl-9 pr-4 py-2 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 transition-all text-sm font-medium"
+                />
+                <MdImage className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-base" />
+              </div>
+              {imageUrl.trim() && (
+                <div className="mt-2.5 relative w-full max-w-xs h-24 rounded-xl overflow-hidden border border-white/10 bg-slate-800/50 flex items-center justify-center">
+                  <img src={imageUrl.trim()} alt="Preview" className="max-w-full max-h-full object-contain" onError={(e) => e.target.src='https://placehold.co/300x150?text=Invalid+Image+URL'} />
+                </div>
+              )}
+            </div>
+
+            {/* Click Action Dropdown */}
+            <div className="md:col-span-1">
+              <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">Click Action (Optional)</label>
+              <div className="relative">
+                <CustomDropdown 
+                  value={clickAction}
+                  onChange={(val) => {
+                    setClickAction(val);
+                    setActionId('');
+                    setSearchTerm('');
+                    setIsActionDropdownOpen(false);
+                  }}
+                  options={clickActionOptions}
+                  statusColor="pl-9 py-2 text-white border-white/10 bg-black/20 text-sm font-medium rounded-xl"
+                />
+                <FiLink className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none z-10" />
+              </div>
+            </div>
+
+
 
             {/* Click Action Dynamic Fields */}
             {clickAction !== 'none' && clickAction !== 'home' && (
@@ -833,7 +838,7 @@ const Notifications = () => {
 
         {/* Right Side: Phone simulator container */}
         <Card className="xl:col-span-4 sm:p-8 h-fit flex flex-col items-center justify-start gap-4">
-          <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Live Preview Simulator</label>
+          <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Live Preview</label>
           <div className="w-full max-w-[270px] aspect-[9/18.5] bg-gradient-to-b from-blue-900/60 via-slate-900 to-black border-[6px] border-slate-800 rounded-[36px] shadow-2xl relative overflow-hidden flex flex-col animate-in fade-in duration-300 select-none">
             {/* Notch / Dynamic Island */}
             {platform === 'ios' ? (
@@ -865,7 +870,7 @@ const Notifications = () => {
               <div className="bg-slate-900/80 backdrop-blur-lg border border-white/10 p-3.5 rounded-2xl shadow-xl space-y-1.5 transition-all duration-300 transform hover:scale-[1.02]">
                 <div className="flex justify-between items-center text-[10px] text-slate-400 font-bold">
                   <div className="flex items-center gap-1.5">
-                    <span className="w-4 h-4 rounded-md bg-blue-600 flex items-center justify-center text-[8px] text-white font-black"><img src="src/assets/app_icon.png" alt="I" /></span>
+                    <span className="w-4 h-4 rounded-sm bg-blue-600 flex items-center justify-center text-[8px] text-white font-black overflow-hidden"><img src="src/assets/app_icon.png" alt="I" /></span>
                     <span>INIZIO</span>
                   </div>
                   <span>now</span>
@@ -885,7 +890,7 @@ const Notifications = () => {
             {/* Home indicator bar */}
             <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-28 h-1 bg-white/40 rounded-full"></div>
           </div>
-          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider text-center">Live Preview Mockup ({platform === 'all' ? 'All Platforms' : platform})</p>
+          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider text-center">Live Preview ({platform === 'all' ? 'All Platforms' : platform})</p>
         </Card>
 
       {/* Bottom Section: Notification History */}
