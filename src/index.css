@@ -211,7 +211,7 @@ input:-webkit-autofill:active {
 
 .glowing-card-inner {
   position: relative;
-  background: rgba(10, 15, 30, 0.85);
+  background: rgba(10, 15, 30);
   backdrop-filter: blur(24px);
   border-radius: 23px; /* Slightly smaller than outer border-radius to nest cleanly */
   z-index: 2;

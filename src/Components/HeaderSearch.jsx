@@ -1,12 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
 import { 
   FiSearch, FiX, FiLoader, FiFileText, FiPackage, FiTag, FiGrid, FiUser
 } from 'react-icons/fi';
 import { getAccessibleMenus } from '../config/menus';
-import axios from 'axios';
-import { BASE_URL } from '../api/axios';
+import { api } from '../api/axios';
 
 const HeaderSearch = () => {
   const { user } = useAuth();
@@ -19,6 +18,7 @@ const HeaderSearch = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [searchData, setSearchData] = useState({ products: [], brands: [], categories: [], users: [] });
   const [dataFetched, setDataFetched] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false);
   const searchRef = useRef(null);
 
   // Close suggestions automatically when a route changes
@@ -37,42 +37,49 @@ const HeaderSearch = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Fetch data once when searching starts
-  useEffect(() => {
-    const fetchAllData = async () => {
-      try {
-        const token = sessionStorage.getItem('accessToken');
-        const headers = { Authorization: `Bearer ${token}` };
-        
-        const [prodRes, brandRes, catRes, userRes] = await Promise.all([
-          axios.get(`${BASE_URL}/api/products/`, { headers }).catch(() => ({ data: [] })),
-          axios.get(`${BASE_URL}/api/brands/admin`, { headers }).catch(() => ({ data: [] })),
-          axios.get(`${BASE_URL}/api/categories/admin/all`, { headers }).catch(() => ({ data: [] })),
-          axios.get(`${BASE_URL}/admin/customers`, { headers }).catch(() => ({ data: [] }))
-        ]);
-        
-        setSearchData({
-          products: prodRes.data || [],
-          brands: brandRes.data || [],
-          categories: catRes.data || [],
-          users: userRes.data || []
-        });
-        setDataFetched(true);
-      } catch (err) {
-        console.error('Failed to fetch data for search', err);
-      }
-    };
-    
-    if (searchQuery && !dataFetched) {
-      fetchAllData();
+  const fetchAllData = useCallback(async () => {
+    if (dataFetched || isLoadingData) return;
+    setIsLoadingData(true);
+    try {
+      const [prodRes, brandRes, catRes, userRes] = await Promise.all([
+        api.get('/products/').catch(() => ({ data: [] })),
+        api.get('/brands/admin').catch(() => ({ data: [] })),
+        api.get('/categories/admin/all').catch(() => ({ data: [] })),
+        api.get('/admin/customers').catch(() => ({ data: [] }))
+      ]);
+      
+      setSearchData({
+        products: Array.isArray(prodRes.data) ? prodRes.data : [],
+        brands: Array.isArray(brandRes.data) ? brandRes.data : [],
+        categories: Array.isArray(catRes.data) ? catRes.data : [],
+        users: Array.isArray(userRes.data) ? userRes.data : []
+      });
+      setDataFetched(true);
+    } catch (err) {
+      console.error('Failed to fetch data for search', err);
+    } finally {
+      setIsLoadingData(false);
     }
-  }, [searchQuery, dataFetched]);
+  }, [dataFetched, isLoadingData]);
+
+  // Fetch data on mount so it's ready when user focuses/searches
+  useEffect(() => {
+    fetchAllData();
+  }, [fetchAllData]);
 
   // Filter based on search query
   useEffect(() => {
-    if (!searchQuery.trim()) {
+    const query = searchQuery.trim();
+    if (!query) {
       setSearchResults([]);
       setIsSearching(false);
+      return;
+    }
+
+    if (!dataFetched) {
+      setIsSearching(true);
+      setShowSuggestions(true);
+      fetchAllData();
       return;
     }
 
@@ -80,8 +87,7 @@ const HeaderSearch = () => {
     setShowSuggestions(true);
 
     const timeoutId = setTimeout(() => {
-      // Split the search query into individual terms for better multi-word matching
-      const terms = searchQuery.toLowerCase().trim().split(/\s+/);
+      const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
       let results = [];
 
       if (user) {
@@ -164,10 +170,10 @@ const HeaderSearch = () => {
 
       setSearchResults(results.slice(0, 8)); // Limit to top 8 results
       setIsSearching(false);
-    }, 300); // 300ms debounce
+    }, 150);
 
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, searchData, user]);
+  }, [searchQuery, searchData, dataFetched, user, fetchAllData]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();

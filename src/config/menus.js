@@ -44,7 +44,8 @@ const PAGES = {
     subMenus: [
       { path: '/products/list', name: 'Product List', icon: FiPackage, permission: 'products_view' },
       { path: '/products/mapping', name: 'Product Mapping', icon: FiFilter, permission: 'products_manage' },
-      { path: '/products/slabs', name: 'Quantity Slabs', icon: FiSliders, permission: 'products_manage' }
+      { path: '/products/slabs', name: 'Quantity Slabs', icon: FiSliders, permission: 'products_manage' },
+      { path: '/products/broken-images', name: 'Broken Images', icon: FiAlertTriangle, permission: 'products_manage' }
     ]
   },
 

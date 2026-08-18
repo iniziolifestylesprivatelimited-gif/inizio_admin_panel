@@ -31,7 +31,7 @@ const DeletionRequests = ({ hideHeader = false, searchQuery: externalSearchQuery
       let fetchedUsers = [];
       if (Array.isArray(response.data)) {
         fetchedUsers = response.data;
-        console.log(fetchedUsers)
+        // console.log(fetchedUsers)
       } else if (response.data && typeof response.data === 'object') {
         fetchedUsers = response.data.users || response.data.data || [];
       }

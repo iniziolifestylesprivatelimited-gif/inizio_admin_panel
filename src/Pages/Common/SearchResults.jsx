@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import axios from 'axios';
 import { FiSearch, FiPackage, FiLoader, FiAlertCircle, FiTag, FiGrid, FiFileText } from 'react-icons/fi';
-import { BASE_URL } from '../../api/axios';
+import { api, BASE_URL } from '../../api/axios';
 import { useAuth } from '../../Context/AuthContext';
 import { getAccessibleMenus } from '../../config/menus';
 
@@ -26,14 +25,11 @@ const SearchResults = () => {
       setError(null);
       
       try {
-        const token = sessionStorage.getItem('accessToken');
-        const headers = { Authorization: `Bearer ${token}` };
-        
         const [prodRes, brandRes, catRes, userRes] = await Promise.all([
-          axios.get(`${BASE_URL}/api/products/`, { headers }).catch(() => ({ data: [] })),
-          axios.get(`${BASE_URL}/api/brands/admin`, { headers }).catch(() => ({ data: [] })),
-          axios.get(`${BASE_URL}/api/categories/admin/all`, { headers }).catch(() => ({ data: [] })),
-          axios.get(`${BASE_URL}/admin/customers`, { headers }).catch(() => ({ data: [] }))
+          api.get('/products/').catch(() => ({ data: [] })),
+          api.get('/brands/admin').catch(() => ({ data: [] })),
+          api.get('/categories/admin/all').catch(() => ({ data: [] })),
+          api.get('/admin/customers').catch(() => ({ data: [] }))
         ]);
 
         const terms = query.toLowerCase().trim().split(/\s+/);

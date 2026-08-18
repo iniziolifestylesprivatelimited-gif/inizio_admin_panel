@@ -443,7 +443,7 @@ const Notifications = () => {
                   onClick={() => setPlatform('ios')}
                   className={`flex items-center justify-center gap-1 py-2 px-1 rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${
                     platform === 'ios'
-                      ? 'bg-slate-500/25 border-slate-400/50 text-slate-200 ring-1 ring-slate-400/40'
+                      ? 'bg-white border-slate-400/50 text-black ring-1 ring-slate-400/40'
                       : 'bg-black/20 border-white/10 text-slate-400 hover:bg-white/5 hover:text-white'
                   }`}
                 >

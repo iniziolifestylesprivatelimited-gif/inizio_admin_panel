@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
@@ -222,7 +222,21 @@ const ProductList = () => {
   });
 
   const handleAddVariant = () => {
-    setAddVariants([...addVariants, getEmptyVariant()]);
+    let newVariant = getEmptyVariant();
+    if (addVariants.length === 0) {
+      newVariant = {
+        name: '',
+        quantity: addFormData.totalQuantity !== undefined && addFormData.totalQuantity !== null ? addFormData.totalQuantity : '',
+        price: addFormData.basePrice !== undefined && addFormData.basePrice !== null ? addFormData.basePrice : '',
+        offerPrice: addFormData.offerPrice !== undefined && addFormData.offerPrice !== null ? addFormData.offerPrice : '',
+        l1Price: addFormData.l1Price !== undefined && addFormData.l1Price !== null ? addFormData.l1Price : '',
+        l2Price: addFormData.l2Price !== undefined && addFormData.l2Price !== null ? addFormData.l2Price : '',
+        l3Price: addFormData.l3Price !== undefined && addFormData.l3Price !== null ? addFormData.l3Price : '',
+        quantityPricing: Array.isArray(addFormData.quantityPricing) ? addFormData.quantityPricing.map(qp => ({ ...qp })) : [],
+        image_urls: addFormData.image_urls || ''
+      };
+    }
+    setAddVariants([...addVariants, newVariant]);
     setExpandedAddVariantIndex(addVariants.length);
   };
 
@@ -343,7 +357,7 @@ const ProductList = () => {
     fetchData();
   }, []);
 
-  console.log(products)
+  // console.log(products)
 
   const handleDelete = async (id) => {
     try {
@@ -1262,19 +1276,33 @@ const ProductList = () => {
     }
   };
 
-  const getBrandName = (brandId) => {
-    if (!brandId) return '-';
-    if (brandId.name) return brandId.name;
-    const b = brands.find(item => item._id === brandId);
-    return b ? b.name : '-';
-  };
+  const brandMap = useMemo(() => {
+    const map = new Map();
+    brands.forEach(b => {
+      if (b && b._id) map.set(b._id, b.name);
+    });
+    return map;
+  }, [brands]);
 
-  const getCategoryName = (categoryId) => {
+  const categoryMap = useMemo(() => {
+    const map = new Map();
+    categories.forEach(c => {
+      if (c && c._id) map.set(c._id, c.name);
+    });
+    return map;
+  }, [categories]);
+
+  const getBrandName = useCallback((brandId) => {
+    if (!brandId) return '-';
+    if (typeof brandId === 'object' && brandId.name) return brandId.name;
+    return brandMap.get(brandId) || '-';
+  }, [brandMap]);
+
+  const getCategoryName = useCallback((categoryId) => {
     if (!categoryId) return '-';
-    if (categoryId.name) return categoryId.name;
-    const c = categories.find(item => item._id === categoryId);
-    return c ? c.name : '-';
-  };
+    if (typeof categoryId === 'object' && categoryId.name) return categoryId.name;
+    return categoryMap.get(categoryId) || '-';
+  }, [categoryMap]);
 
   const getQuantityBadge = (product) => {
     if (product.variants && product.variants.length > 0) {
@@ -1337,78 +1365,126 @@ const ProductList = () => {
     );
   };
 
-  // Filter products based on catalog tab, filters, and search term
-  const filteredProducts = products.filter(product => {
-    // 1. Tab filter
-    if (catalogTab === 'active') {
-      if (product.isActive === false) return false;
-    } else if (catalogTab === 'deactivated') {
-      const hasDeactivatedVariant = product.variants && product.variants.some(v => v.isActive === false);
-      if (product.isActive !== false && !hasDeactivatedVariant) return false;
-    }
+  // Summary Metrics Memoization to prevent multiple O(N) traversals on every render
+  const metricsSummary = useMemo(() => {
+    const totalProducts = products.length;
+    let productsWithVariants = 0;
+    let totalItems = 0;
+    let activeCount = 0;
+    let deactivatedCount = 0;
 
-    // 2. Brand filter
-    if (selectedBrand) {
-      const pBrandId = product.brand?._id || product.brand;
-      if (pBrandId !== selectedBrand) return false;
-    }
+    for (let i = 0; i < products.length; i++) {
+      const p = products[i];
+      const hasVariants = Array.isArray(p.variants) && p.variants.length > 0;
+      if (hasVariants) {
+        productsWithVariants++;
+        totalItems += p.variants.length > 1 ? p.variants.length : 1;
+      } else {
+        totalItems += 1;
+      }
 
-    // 3. Category filter
-    if (selectedCategory) {
-      const pCategoryId = product.category?._id || product.category;
-      if (pCategoryId !== selectedCategory) return false;
-    }
-
-    // 4. Stock status filter
-    if (selectedStockStatus) {
-      const hasVariants = product.variants && product.variants.length > 0;
-
-      if (selectedStockStatus === 'in_stock') {
-        if (hasVariants) {
-          const hasInStockVariant = product.variants.some(v => (Number(v.quantity) || 0) > 0);
-          if (!hasInStockVariant) return false;
-        } else {
-          const qty = Number(product.totalQuantity) || 0;
-          if (qty <= 0) return false;
-        }
-      } else if (selectedStockStatus === 'low_stock') {
-        if (hasVariants) {
-          const hasLowStockVariant = product.variants.some(v => {
-            const qty = Number(v.quantity) || 0;
-            return qty > 0 && qty <= 10;
-          });
-          if (!hasLowStockVariant) return false;
-        } else {
-          const qty = Number(product.totalQuantity) || 0;
-          if (qty <= 0 || qty > 10) return false;
-        }
-      } else if (selectedStockStatus === 'out_of_stock') {
-        if (hasVariants) {
-          const hasOutOfStockVariant = product.variants.some(v => (Number(v.quantity) || 0) <= 0);
-          if (!hasOutOfStockVariant) return false;
-        } else {
-          const qty = Number(product.totalQuantity) || 0;
-          if (qty > 0) return false;
-        }
+      if (p.isActive !== false) {
+        activeCount++;
+      }
+      if (p.isActive === false || (hasVariants && p.variants.some(v => v.isActive === false))) {
+        deactivatedCount++;
       }
     }
 
-    // 5. Search term filter
-    const term = searchTerm.toLowerCase();
-    const ean = product.eanNumber?.toString() || '';
-    const productId = product._id?.toString().toLowerCase() || '';
-    const matchesVariantsId = product.variants?.some(v => v._id?.toString().toLowerCase().includes(term)) || false;
-    return (
-      product.name?.toLowerCase().includes(term) || ean.includes(term) ||
-      productId.includes(term) || matchesVariantsId ||
-      getBrandName(product.brand).toLowerCase().includes(term) ||
-      getCategoryName(product.category).toLowerCase().includes(term)
-    );
-  });
+    return {
+      totalProducts,
+      productsWithVariants,
+      totalItems,
+      activeCount,
+      deactivatedCount
+    };
+  }, [products]);
 
-  // Apply sorting
-  if (sortKey) {
-    filteredProducts.sort((a, b) => {
+  // Filter products based on catalog tab, filters, and search term (Memoized)
+  const filteredProducts = useMemo(() => {
+    const term = (searchTerm || '').toLowerCase().trim();
+
+    return products.filter(product => {
+      // 1. Tab filter
+      if (catalogTab === 'active') {
+        if (product.isActive === false) return false;
+      } else if (catalogTab === 'deactivated') {
+        const hasDeactivatedVariant = product.variants && product.variants.some(v => v.isActive === false);
+        if (product.isActive !== false && !hasDeactivatedVariant) return false;
+      }
+
+      // 2. Brand filter
+      if (selectedBrand) {
+        const pBrandId = product.brand?._id || product.brand;
+        if (pBrandId !== selectedBrand) return false;
+      }
+
+      // 3. Category filter
+      if (selectedCategory) {
+        const pCategoryId = product.category?._id || product.category;
+        if (pCategoryId !== selectedCategory) return false;
+      }
+
+      // 4. Stock status filter
+      if (selectedStockStatus) {
+        const hasVariants = product.variants && product.variants.length > 0;
+
+        if (selectedStockStatus === 'in_stock') {
+          if (hasVariants) {
+            const hasInStockVariant = product.variants.some(v => (Number(v.quantity) || 0) > 0);
+            if (!hasInStockVariant) return false;
+          } else {
+            const qty = Number(product.totalQuantity) || 0;
+            if (qty <= 0) return false;
+          }
+        } else if (selectedStockStatus === 'low_stock') {
+          if (hasVariants) {
+            const hasLowStockVariant = product.variants.some(v => {
+              const qty = Number(v.quantity) || 0;
+              return qty > 0 && qty <= 10;
+            });
+            if (!hasLowStockVariant) return false;
+          } else {
+            const qty = Number(product.totalQuantity) || 0;
+            if (qty <= 0 || qty > 10) return false;
+          }
+        } else if (selectedStockStatus === 'out_of_stock') {
+          if (hasVariants) {
+            const hasOutOfStockVariant = product.variants.some(v => (Number(v.quantity) || 0) <= 0);
+            if (!hasOutOfStockVariant) return false;
+          } else {
+            const qty = Number(product.totalQuantity) || 0;
+            if (qty > 0) return false;
+          }
+        }
+      }
+
+      // 5. Search term filter
+      if (term) {
+        const ean = product.eanNumber?.toString() || '';
+        const productId = product._id?.toString().toLowerCase() || '';
+        const matchesVariantsId = product.variants?.some(v => v._id?.toString().toLowerCase().includes(term)) || false;
+        const brandName = getBrandName(product.brand).toLowerCase();
+        const catName = getCategoryName(product.category).toLowerCase();
+        const prodName = (product.name || '').toLowerCase();
+
+        return (
+          prodName.includes(term) || ean.includes(term) ||
+          productId.includes(term) || matchesVariantsId ||
+          brandName.includes(term) ||
+          catName.includes(term)
+        );
+      }
+
+      return true;
+    });
+  }, [products, catalogTab, selectedBrand, selectedCategory, selectedStockStatus, searchTerm, getBrandName, getCategoryName]);
+
+  // Apply sorting (Memoized)
+  const sortedProducts = useMemo(() => {
+    if (!sortKey) return filteredProducts;
+    const list = [...filteredProducts];
+    list.sort((a, b) => {
       let aVal = a[sortKey];
       let bVal = b[sortKey];
 
@@ -1424,12 +1500,19 @@ const ProductList = () => {
       if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
       return 0;
     });
-  }
+    return list;
+  }, [filteredProducts, sortKey, sortOrder]);
 
+  const filteredItemsCount = useMemo(() => {
+    return filteredProducts.reduce((sum, p) => sum + (Array.isArray(p.variants) && p.variants.length > 1 ? p.variants.length : 1), 0);
+  }, [filteredProducts]);
+
+  const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const currentProducts = useMemo(() => {
+    return sortedProducts.slice(indexOfFirstItem, indexOfLastItem);
+  }, [sortedProducts, indexOfFirstItem, indexOfLastItem]);
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
@@ -1481,17 +1564,17 @@ const ProductList = () => {
         {/* Left part: Total products info */}
         <div className="flex flex-wrap gap-2 text-xs font-semibold text-slate-400 order-2 xl:order-1 w-full xl:w-auto">
           <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
-            Total Products: <strong className="text-white">{products.length}</strong>
+            Total Products: <strong className="text-white">{metricsSummary.totalProducts}</strong>
           </span>
           <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
-            Products with Variants: <strong className="text-white">{products.filter(p => p.variants && p.variants.length > 0).length}</strong>
+            Products with Variants: <strong className="text-white">{metricsSummary.productsWithVariants}</strong>
           </span>
           <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
-            Total Items (incl. Variants): <strong className="text-white">{products.reduce((sum, p) => sum + (Array.isArray(p.variants) && p.variants.length > 1 ? p.variants.length : 1), 0)}</strong>
+            Total Items (incl. Variants): <strong className="text-white">{metricsSummary.totalItems}</strong>
           </span>
           {(searchTerm || selectedBrand || selectedCategory || selectedStockStatus) && (
             <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full">
-              Found: <strong className="text-white">{filteredProducts.length}</strong> (incl. Variants: <strong className="text-white">{filteredProducts.reduce((sum, p) => sum + (Array.isArray(p.variants) && p.variants.length > 1 ? p.variants.length : 1), 0)}</strong>)
+              Found: <strong className="text-white">{filteredProducts.length}</strong> (incl. Variants: <strong className="text-white">{filteredItemsCount}</strong>)
             </span>
           )}
         </div>
@@ -1510,7 +1593,7 @@ const ProductList = () => {
                     setIsDeleteMode(false);
                   }
                 }}
-                className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-rose-500/10 cursor-pointer text-sm"
+                className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-[14px] md:text-[13px] text-white font-bold rounded-xl transition-all shadow-lg shadow-rose-500/10 cursor-pointer text-sm"
               >
                 <FiTrash2 className="mr-2" />
                 Confirm Delete ({selectedProducts.length})
@@ -1528,7 +1611,7 @@ const ProductList = () => {
             </>
           ) : (
             <>
-              <div className="w-full sm:w-48">
+              <div className="w-full sm:w-48 text-[14px] md:text-[13px]">
                 <CustomDropdown
                   value="Actions"
                   options={[
@@ -1574,14 +1657,14 @@ const ProductList = () => {
 
               <button
                 onClick={handleExportCustomDetails}
-                className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-emerald-600/50 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/5 cursor-pointer"
+                className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-emerald-600/50 text-[14px] md:text-[13px] text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/5 cursor-pointer"
                 title="Export Product Details with Variants"
               >
                 <FiDownload className="mr-2" />
                 Export Details
               </button>
 
-              <button onClick={openAddModal} className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-blue-600/50 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/5 cursor-pointer">
+              <button onClick={openAddModal} className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-blue-600/50 text-[14px] md:text-[13px] text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/5 cursor-pointer">
                 <FiPlus className="mr-2" />
                 Add Product
               </button>
@@ -1600,7 +1683,7 @@ const ProductList = () => {
                 : 'text-slate-400 hover:text-slate-200'
               }`}
           >
-            Active Catalog ({products.filter(p => p.isActive !== false).length})
+            Active Catalog ({metricsSummary.activeCount})
           </button>
           <button
             onClick={() => { setCatalogTab('deactivated'); setSearchParams(prev => { prev.set('page', '1'); return prev; }); }}
@@ -1609,7 +1692,7 @@ const ProductList = () => {
                 : 'text-slate-400 hover:text-slate-200'
               }`}
           >
-            Deactivated Items ({products.filter(p => p.isActive === false || (p.variants && p.variants.some(v => v.isActive === false))).length})
+            Deactivated Items ({metricsSummary.deactivatedCount})
           </button>
         </div>
 

@@ -2054,12 +2054,12 @@ const Dashboard = () => {
                   <span className="w-1.5 h-1.5 rounded-full animate-pulse bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"></span>
                   User Engagement Analytics
                 </h3>
-                <p className="text-[10px] text-slate-400 mt-0.5 font-medium">
+                {/* <p className="text-[10px] text-slate-400 mt-0.5 font-medium">
                   {trendsRange === '1d' ? 'Hourly activity intervals for the day' :
                     trendsRange === '1m' ? 'Daily activity counts for the last 30 days' :
                       trendsRange === '1y' ? 'Monthly aggregate activity counts' :
                         'Daily aggregate activity and query counts'}
-                </p>
+                </p> */}
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex bg-slate-950/40 p-1 rounded-xl border border-white/5">
@@ -2076,7 +2076,7 @@ const Dashboard = () => {
                     </button>
                   ))}
                 </div>
-                <span className="hidden sm:inline text-[10px] text-slate-500 font-bold uppercase">live insights</span>
+                {/* <span className="hidden sm:inline text-[10px] text-slate-500 font-bold uppercase">live insights</span> */}
               </div>
             </div>
 

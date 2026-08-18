@@ -467,13 +467,17 @@ const ActivityDetails = () => {
             }).sort((a, b) => b.searches - a.searches);
             setData(processed);
           } else if (type === 'most-searched') {
-            let rawSearches = res.data?.mostSearched || [];
-            if (queryBreakdown === 'true' && activities.length > 0) {
+            let rawSearches = (queryBreakdown === 'true' ? [] : (res.data?.mostSearched || []));
+            if (rawSearches.length === 0 && activities.length > 0) {
               const searchMap = {};
               activities.forEach(act => {
-                if ((act.action || '').toUpperCase() === 'SEARCH' && act.details?.query) {
-                  const query = act.details.query.trim();
-                  searchMap[query] = (searchMap[query] || 0) + 1;
+                const action = (act.action || '').toUpperCase();
+                const queryVal = act.details?.query || act.details?.searchTerm || act.query;
+                if (action === 'SEARCH' && queryVal) {
+                  const query = String(queryVal).trim();
+                  if (query) {
+                    searchMap[query] = (searchMap[query] || 0) + 1;
+                  }
                 }
               });
               rawSearches = Object.entries(searchMap).map(([query, count]) => ({
@@ -1148,6 +1152,19 @@ const ActivityDetails = () => {
           item.email?.toLowerCase().includes(query) ||
           item.phone?.includes(query)
         );
+      } else if (type === 'search-queries') {
+        const userName = item.user?.name || '';
+        const userEmail = item.user?.email || '';
+        const userPhone = item.user?.phone || '';
+        const queryText = item.details?.query || item.query || item.details?.searchTerm || '';
+        const logId = item._id || '';
+        return (
+          userName.toLowerCase().includes(query) ||
+          userEmail.toLowerCase().includes(query) ||
+          userPhone.includes(query) ||
+          queryText.toLowerCase().includes(query) ||
+          logId.toLowerCase().includes(query)
+        );
       } else if (type === 'most-searched-brands') {
         return (item.brand?.name || '').toLowerCase().includes(query);
       } else if (type === 'most-searched-categories') {
@@ -1283,7 +1300,7 @@ const ActivityDetails = () => {
     if (type === 'revenue') {
       return currentItems.map((item, index) => (
         <tr key={item._id} className="hover:bg-transparent transition-colors">
-          {console.log(item)}
+          {/* {console.log(item)} */}
           <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
           <td className="py-4 px-5 text-xs font-mono text-blue-400 select-all font-semibold">#{item._id}</td>
           <td className="py-4 px-5 text-sm font-bold text-white">{item.address.name || 'Walk-in Customer'}</td>
@@ -1693,6 +1710,52 @@ const ActivityDetails = () => {
           <td className="py-4 px-5 text-sm text-slate-400 font-medium">{formatDateTime(item.createdAt || item.timestamp)}</td>
         </tr>
       ));
+    }
+
+    if (type === 'search-queries') {
+      return currentItems.map((item, index) => {
+        const queryText = item.details?.query || item.query || item.details?.searchTerm || 'Search Query';
+        const initials = (item.user?.name || 'U').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        return (
+          <tr
+            key={item._id || index}
+            className="hover:bg-white/[0.02] transition-colors group/row"
+          >
+            <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+            <td className="py-4 px-5 text-xs font-mono text-slate-500">#{item._id}</td>
+            <td className="py-4 px-5">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg border bg-gradient-to-tr from-amber-500/20 to-yellow-500/20 border-amber-500/30 text-amber-300 flex items-center justify-center font-bold text-xs tracking-wider shadow-inner shrink-0">
+                  {initials}
+                </div>
+                <div>
+                  <span className="text-sm font-bold text-white block">
+                    {item.user?.name || 'Unknown User'}
+                  </span>
+                  {item.user?.phone && (
+                    <span className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1">
+                      <FiPhone className="text-slate-500 text-[8px]" />
+                      <span>{item.user.phone}</span>
+                    </span>
+                  )}
+                </div>
+              </div>
+            </td>
+            <td className="py-4 px-5 text-sm text-slate-300 font-mono select-all font-medium">{item.user?.email || '-'}</td>
+            <td className="py-4 px-5 text-xs font-extrabold text-amber-400 font-mono tracking-wider">
+              <span className="px-2.5 py-1 rounded-full font-bold text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                SEARCH
+              </span>
+            </td>
+            <td className="py-4 px-5">
+              <code className="text-sm font-bold text-amber-300 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20 font-mono">
+                {queryText}
+              </code>
+            </td>
+            <td className="py-4 px-5 text-sm text-slate-400 font-medium">{formatDateTime(item.createdAt || item.timestamp)}</td>
+          </tr>
+        );
+      });
     }
 
     if (type === 'request-stats') {
@@ -2234,8 +2297,9 @@ const ActivityDetails = () => {
           }
         }
       } else if (actionUpper === 'SEARCH') {
-        if (item.details?.query && item.details.query !== 'Search Query') {
-          resolvedText = `Searched query: "${item.details.query}"`;
+        const q = item.details?.query || item.query || item.details?.searchTerm;
+        if (q && q !== 'Search Query') {
+          resolvedText = `Searched query: "${q}"`;
         } else {
           resolvedText = `Searched catalog (Total: ${item.count || 1} queries)`;
         }
@@ -2453,6 +2517,19 @@ const ActivityDetails = () => {
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Category Name</th>
           <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Views</th>
           <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Actions</th>
+        </>
+      );
+    }
+    if (type === 'search-queries') {
+      return (
+        <>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">Log ID</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Email</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Action</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Search Query</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Timestamp</th>
         </>
       );
     }

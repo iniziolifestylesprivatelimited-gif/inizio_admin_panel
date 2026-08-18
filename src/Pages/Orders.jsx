@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { BASE_URL } from '../api/axios';
@@ -327,82 +327,93 @@ const Orders = ({ defaultStatus = 'all' }) => {
     }
   };
 
-  // Filter orders according to sub-menu state, payment status and search term
-  const filteredOrders = orders.filter(order => {
-    // 1. Filter by orderStatus
-    if (defaultStatus === 'all') {
-      if (statusFilter !== 'all') {
-        if (order.orderStatus?.toLowerCase() !== statusFilter.toLowerCase()) return false;
-      }
-    } else {
-      if (order.orderStatus?.toLowerCase() !== defaultStatus.toLowerCase()) return false;
-    }
-    
-    // 2. Filter by paymentStatus
-    if (paymentFilter === 'paid') {
-      if (order.paymentStatus?.toLowerCase() !== 'paid') return false;
-    }
-    if (paymentFilter === 'pending') {
-      if (order.paymentStatus?.toLowerCase() === 'paid') return false;
-    }
+  // Filter orders according to sub-menu state, payment status and search term (Memoized)
+  const filteredOrders = useMemo(() => {
+    const query = (searchTerm || '').toLowerCase().trim();
 
-    // 3. Search query filter
-    if (searchTerm.trim()) {
-      const query = searchTerm.toLowerCase();
-      const orderIdMatch = (order._id || '').toLowerCase().includes(query) || (order.orderId || '').toLowerCase().includes(query);
-      const customerNameMatch = (order.user?.name || '').toLowerCase().includes(query) || (order.shippingAddress?.name || '').toLowerCase().includes(query);
-      const customerEmailMatch = (order.user?.email || '').toLowerCase().includes(query);
-      const customerPhoneMatch = (order.user?.phone || '').toLowerCase().includes(query) || (order.shippingAddress?.phone || '').toLowerCase().includes(query);
-      
-      if (!orderIdMatch && !customerNameMatch && !customerEmailMatch && !customerPhoneMatch) {
-        return false;
+    return orders.filter(order => {
+      // 1. Filter by orderStatus
+      if (defaultStatus === 'all') {
+        if (statusFilter !== 'all') {
+          if (order.orderStatus?.toLowerCase() !== statusFilter.toLowerCase()) return false;
+        }
+      } else {
+        if (order.orderStatus?.toLowerCase() !== defaultStatus.toLowerCase()) return false;
       }
-    }
-    
-    return true;
-  });
+      
+      // 2. Filter by paymentStatus
+      if (paymentFilter === 'paid') {
+        if (order.paymentStatus?.toLowerCase() !== 'paid') return false;
+      }
+      if (paymentFilter === 'pending') {
+        if (order.paymentStatus?.toLowerCase() === 'paid') return false;
+      }
+
+      // 3. Search query filter
+      if (query) {
+        const orderIdMatch = (order._id || '').toLowerCase().includes(query) || (order.orderId || '').toLowerCase().includes(query);
+        const customerNameMatch = (order.user?.name || '').toLowerCase().includes(query) || (order.shippingAddress?.name || '').toLowerCase().includes(query);
+        const customerEmailMatch = (order.user?.email || '').toLowerCase().includes(query);
+        const customerPhoneMatch = (order.user?.phone || '').toLowerCase().includes(query) || (order.shippingAddress?.phone || '').toLowerCase().includes(query);
+        
+        if (!orderIdMatch && !customerNameMatch && !customerEmailMatch && !customerPhoneMatch) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+  }, [orders, defaultStatus, statusFilter, paymentFilter, searchTerm]);
 
   const handlePaymentFilterChange = (filter) => {
     setPaymentFilter(filter);
     setCurrentPage(1);
   };
 
-  // Sort orders before pagination
-  const sortedOrders = [...filteredOrders].sort((a, b) => {
-    if (!sortKey) {
-      // Default: sort latest first
-      return new Date(b.createdAt) - new Date(a.createdAt);
-    }
-    
-    let valA = a[sortKey];
-    let valB = b[sortKey];
-    
-    if (sortKey === 'createdAt') {
-      valA = new Date(valA || 0);
-      valB = new Date(valB || 0);
-    }
-    
-    if (sortKey === 'totalAmount') {
-      valA = parseFloat(valA || 0);
-      valB = parseFloat(valB || 0);
-    }
-    
-    if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
-    if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
-    return 0;
-  });
+  // Sort orders before pagination (Memoized)
+  const sortedOrders = useMemo(() => {
+    const list = [...filteredOrders];
+    list.sort((a, b) => {
+      if (!sortKey) {
+        // Default: sort latest first
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      }
+      
+      let valA = a[sortKey];
+      let valB = b[sortKey];
+      
+      if (sortKey === 'createdAt') {
+        valA = new Date(valA || 0);
+        valB = new Date(valB || 0);
+      }
+      
+      if (sortKey === 'totalAmount') {
+        valA = parseFloat(valA || 0);
+        valB = parseFloat(valB || 0);
+      }
+      
+      if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+      if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return list;
+  }, [filteredOrders, sortKey, sortOrder]);
 
-  // Pagination for orders
+  // Pagination for orders (Memoized)
+  const totalPages = Math.ceil(sortedOrders.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentOrders = sortedOrders.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(sortedOrders.length / itemsPerPage);
+  const currentOrders = useMemo(() => {
+    return sortedOrders.slice(indexOfFirstItem, indexOfLastItem);
+  }, [sortedOrders, indexOfFirstItem, indexOfLastItem]);
 
-  // Pagination for returns
+  // Pagination for returns (Memoized)
+  const totalReturnsPages = Math.ceil(returnsList.length / itemsPerPage);
   const indexOfLastReturn = currentReturnsPage * itemsPerPage;
   const indexOfFirstReturn = indexOfLastReturn - itemsPerPage;
-  const currentReturns = returnsList.slice(indexOfFirstReturn, indexOfLastReturn);
-  const totalReturnsPages = Math.ceil(returnsList.length / itemsPerPage);
+  const currentReturns = useMemo(() => {
+    return returnsList.slice(indexOfFirstReturn, indexOfLastReturn);
+  }, [returnsList, indexOfFirstReturn, indexOfLastReturn]);
 
   return (
     <div className="relative space-y-4 min-h-full z-0">

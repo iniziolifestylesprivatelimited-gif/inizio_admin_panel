@@ -21,6 +21,7 @@ const CampaignDetail = lazy(() => import('./Pages/CampaignDetail'));
 const Maintenance = lazy(() => import('./Pages/SubMenus/Settings/Maintenance'));
 const Profile = lazy(() => import('./Pages/Common/Profile'));
 const Variants = lazy(() => import('./Pages/SubMenus/Products/editProduct'));
+const BrokenImages = lazy(() => import('./Pages/SubMenus/Products/BrokenImages'));
 const Cart = lazy(() => import('./Pages/Cart'));
 const Chat = lazy(() => import('./Pages/Chat'));
 const UsersList = lazy(() => import('./Pages/SubMenus/Users/UsersList'));
@@ -63,6 +64,7 @@ function App() {
                   <Route path="/products/list" element={<ProductList />} />
                   <Route path="/products/mapping" element={<ProductMapping />} />
                   <Route path="/products/slabs" element={<QuantitySlabs />} />
+                  <Route path="/products/broken-images" element={<BrokenImages />} />
                   <Route path="/products/categories" element={<Category />} />
                   <Route path="/products/brands" element={<Brands />} />
                   <Route path="/products/home-order" element={<HomeOrdering />} />

@@ -161,7 +161,7 @@ export const Ledgers = () => {
     return user ? user.name : 'Unknown User';
   };
 
-  console.log(ledgers)
+  // console.log(ledgers)
   return (
     <div className="relative space-y-4 min-h-full z-0 isolate w-full">
       {/* Header */}

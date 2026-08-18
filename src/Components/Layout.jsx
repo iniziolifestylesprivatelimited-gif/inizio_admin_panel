@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
 import {
@@ -50,6 +51,7 @@ const Layout = () => {
   const prevQuotesRef = useRef(null);
   const isInitialDataLoad = useRef(true);
   const [toasts, setToasts] = useState([]);
+  const [failedImageProductNames, setFailedImageProductNames] = useState([]);
 
   const addToast = (title, message, path, IconComponent = FiBell) => {
     const id = Date.now() + Math.random().toString(36).substring(2, 9);
@@ -59,8 +61,11 @@ const Layout = () => {
     }, 6000);
   };
 
-  const handleNotificationClick = (path) => {
+  const handleNotificationClick = (path, id) => {
     setIsNotificationsDropdownOpen(false);
+    if (id === 'image-errors') {
+      setFailedImageProductNames([]);
+    }
     navigation(path);
   };
 
@@ -175,11 +180,23 @@ const Layout = () => {
         color: 'text-blue-400 bg-blue-500/10'
       });
     }
+    if (failedImageProductNames.length > 0) {
+      const namesPreview = failedImageProductNames.slice(0, 2).join(', ');
+      const totalFailed = failedImageProductNames.length;
+      list.push({
+        id: 'image-errors',
+        title: 'Image Load Failure',
+        description: `Failed to load ${totalFailed} product image${totalFailed > 1 ? 's' : ''} (${namesPreview}${totalFailed > 2 ? '...' : ''}). Check WordPress library access.`,
+        path: '/products/broken-images',
+        icon: <FiAlertTriangle />,
+        color: 'text-rose-400 bg-rose-500/10'
+      });
+    }
     return list;
   };
 
   const notificationsList = getNotificationsList();
-  const totalUnreadCount = chatUnreadCount + ordersUnreadCount + usersUnreadCount + usersVerifyUnreadCount + usersDeletionUnreadCount + quotesUnreadCount;
+  const totalUnreadCount = chatUnreadCount + ordersUnreadCount + usersUnreadCount + usersVerifyUnreadCount + usersDeletionUnreadCount + quotesUnreadCount + (failedImageProductNames.length > 0 ? 1 : 0);
 
   // Request Browser Notification Permission on load / show banner
   useEffect(() => {
@@ -461,27 +478,40 @@ const Layout = () => {
 
   // Update browser tab title with total unread notification counts
   useEffect(() => {
-    const totalNotifications = chatUnreadCount + ordersUnreadCount + usersUnreadCount + usersVerifyUnreadCount + usersDeletionUnreadCount + quotesUnreadCount;
+    const totalNotifications = chatUnreadCount + ordersUnreadCount + usersUnreadCount + usersVerifyUnreadCount + usersDeletionUnreadCount + quotesUnreadCount + (failedImageProductNames.length > 0 ? 1 : 0);
     if (totalNotifications > 0) {
       document.title = `(${totalNotifications}) Inizio`;
     } else {
       document.title = 'Inizio';
     }
-  }, [chatUnreadCount, ordersUnreadCount, usersUnreadCount, usersVerifyUnreadCount, usersDeletionUnreadCount, quotesUnreadCount]);
+  }, [chatUnreadCount, ordersUnreadCount, usersUnreadCount, usersVerifyUnreadCount, usersDeletionUnreadCount, quotesUnreadCount, failedImageProductNames]);
 
   // Global event listener for image load failures
   useEffect(() => {
     const handleImageErrorEvent = (e) => {
+      const productName = e.detail.name || 'Product';
+      setFailedImageProductNames(prev => {
+        if (prev.includes(productName)) return prev;
+        return [...prev, productName];
+      });
       addToast(
         "Image Load Failed",
-        `Failed to load product image for: ${e.detail.name}. Please check WordPress library access.`,
-        "/products/list",
+        `Failed to load product image for: ${productName}. Please check WordPress library access.`,
+        "/products/broken-images",
         FiAlertTriangle
       );
     };
     window.addEventListener('product-image-error', handleImageErrorEvent);
     return () => window.removeEventListener('product-image-error', handleImageErrorEvent);
   }, []);
+
+  // Helper to format image URLs
+  const formatImageUrl = (path) => {
+    if (!path || typeof path !== 'string') return '';
+    if (path.startsWith('http') || path.startsWith('blob:') || path.startsWith('//')) return path;
+    const cleanPath = path.replace(/\\/g, '/');
+    return `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
+  };
 
   // Poll product images every 30 seconds to check for loading failures proactively
   useEffect(() => {
@@ -492,70 +522,143 @@ const Layout = () => {
     const checkProductImages = async () => {
       if (!user) return;
       try {
-        const response = await api.get(`/products/?t=${Date.now()}`);
-        const products = Array.isArray(response.data) ? response.data : [];
-        const activeProductsWithImages = products.filter(p => p.isActive !== false && p.images && p.images.length > 0);
-        if (activeProductsWithImages.length === 0) return;
+        const token = sessionStorage.getItem('accessToken');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const response = await axios.get(`${BASE_URL}/api/products/?t=${Date.now()}`, { headers });
+        const products = Array.isArray(response.data) ? response.data : (response.data?.data || []);
+        if (!products.length) return;
 
-        // Check ALL active products across all pagination pages (e.g. Page 1, Page 13, etc.)
+        const activeProducts = products.filter(p => p.isActive !== false);
         const failedProducts = [];
 
-        const testPromises = activeProductsWithImages.map(product => {
-          return new Promise((resolve) => {
-            let path = '';
-            if (Array.isArray(product.images)) {
-              path = product.images[0] || '';
-            } else if (typeof product.images === 'string') {
-              path = product.images.split(',')[0] || '';
-            }
-            path = path.trim();
-            if (!path) return resolve(true);
+        // Collect all images from main product or variants
+        const imagesToTest = [];
+        activeProducts.forEach(product => {
+          const prodName = product.name || 'Product';
 
-            let url = path;
-            if (!url.startsWith('http') && !url.startsWith('blob:') && !url.startsWith('//')) {
-              const cleanPath = url.replace(/\\/g, '/');
-              url = `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
-            }
+          // 1. Main product images
+          if (Array.isArray(product.images) && product.images.length > 0) {
+            product.images.forEach(img => {
+              if (typeof img === 'string' && img.trim()) {
+                imagesToTest.push({ productName: prodName, url: formatImageUrl(img.trim()) });
+              }
+            });
+          } else if (typeof product.images === 'string' && product.images.trim()) {
+            product.images.split(',').forEach(img => {
+              if (img.trim()) {
+                imagesToTest.push({ productName: prodName, url: formatImageUrl(img.trim()) });
+              }
+            });
+          }
 
-            const img = new Image();
-            let timer = setTimeout(() => {
-              failedProducts.push(product.name || 'Product');
-              resolve(false);
-            }, 8000);
-
-            img.onload = () => {
-              clearTimeout(timer);
-              resolve(true);
-            };
-            img.onerror = () => {
-              clearTimeout(timer);
-              failedProducts.push(product.name || 'Product');
-              resolve(false);
-            };
-            img.src = url;
-          });
+          // 2. Variant images
+          if (Array.isArray(product.variants)) {
+            product.variants.forEach(v => {
+              if (Array.isArray(v.images)) {
+                v.images.forEach(img => {
+                  if (typeof img === 'string' && img.trim()) {
+                    imagesToTest.push({ productName: prodName, url: formatImageUrl(img.trim()) });
+                  }
+                });
+              } else if (typeof v.images === 'string' && v.images.trim()) {
+                v.images.split(',').forEach(img => {
+                  if (img.trim()) {
+                    imagesToTest.push({ productName: prodName, url: formatImageUrl(img.trim()) });
+                  }
+                });
+              }
+            });
+          }
         });
 
-        await Promise.all(testPromises);
+        // Deduplicate URLs so each unique image URL is tested once
+        const uniqueImageMap = new Map();
+        imagesToTest.forEach(item => {
+          if (item.url && !uniqueImageMap.has(item.url)) {
+            uniqueImageMap.set(item.url, item.productName);
+          }
+        });
 
-        if (isMounted && failedProducts.length > 0) {
-          const namesPreview = Array.from(new Set(failedProducts)).slice(0, 2).join(', ');
-          const totalFailed = failedProducts.length;
-          addToast(
-            "Image Load Alert",
-            `Failed to load ${totalFailed} product image(s) (${namesPreview}${totalFailed > 2 ? '...' : ''}). Check your WordPress library access.`,
-            "/products/list",
-            FiAlertTriangle
+        const uniqueItems = Array.from(uniqueImageMap.entries()).map(([url, productName]) => ({ url, productName }));
+        if (uniqueItems.length === 0) return;
+
+        // Test in parallel batches of 15 to avoid browser network connection saturation
+        const BATCH_SIZE = 15;
+        for (let i = 0; i < uniqueItems.length; i += BATCH_SIZE) {
+          if (!isMounted) return;
+          const batch = uniqueItems.slice(i, i + BATCH_SIZE);
+          const results = await Promise.all(
+            batch.map(({ productName, url }) => {
+              return new Promise((resolve) => {
+                const img = new Image();
+                let hasResolved = false;
+
+                // Generous 20s timeout so slow or large WordPress images have ample time to load
+                const timer = setTimeout(() => {
+                  if (!hasResolved) {
+                    hasResolved = true;
+                    img.src = '';
+                    resolve({ failed: true, productName });
+                  }
+                }, 30000);
+
+                img.onload = () => {
+                  if (!hasResolved) {
+                    hasResolved = true;
+                    clearTimeout(timer);
+                    resolve({ failed: false, productName });
+                  }
+                };
+
+                img.onerror = () => {
+                  if (!hasResolved) {
+                    hasResolved = true;
+                    clearTimeout(timer);
+                    resolve({ failed: true, productName });
+                  }
+                };
+
+                img.src = url;
+              });
+            })
           );
+
+          results.forEach(res => {
+            if (res.failed) {
+              failedProducts.push(res.productName);
+            }
+          });
+        }
+
+        if (isMounted) {
+          const uniqueFailed = Array.from(new Set(failedProducts));
+          setFailedImageProductNames(prev => {
+            const prevSet = new Set(prev);
+            const newlyAdded = uniqueFailed.filter(name => !prevSet.has(name));
+
+            // Only trigger toast if there are newly discovered broken images
+            if (newlyAdded.length > 0) {
+              const namesPreview = newlyAdded.slice(0, 2).join(', ');
+              const totalFailed = newlyAdded.length;
+              addToast(
+                "Image Load Alert",
+                `Failed to load ${totalFailed} product image(s) (${namesPreview}${totalFailed > 2 ? '...' : ''}). Check your WordPress library access.`,
+                "/products/broken-images",
+                FiAlertTriangle
+              );
+            }
+
+            return uniqueFailed;
+          });
         }
       } catch (error) {
         console.error("Failed to poll product images status", error);
       }
     };
 
-    // Run first check after 1s (almost immediately), then check every 30s
-    timeoutId = setTimeout(checkProductImages, 1000);
-    intervalId = setInterval(checkProductImages, 30000);
+    // Run first check after 2s, then recurring every 15 minutes
+    timeoutId = setTimeout(checkProductImages, 2000);
+    intervalId = setInterval(checkProductImages, 3 * 60 * 1000);
 
     return () => {
       isMounted = false;
@@ -706,7 +809,7 @@ const Layout = () => {
                     notificationsList.map((notif) => (
                       <div
                         key={notif.id}
-                        onClick={() => handleNotificationClick(notif.path)}
+                        onClick={() => handleNotificationClick(notif.path, notif.id)}
                         className="flex items-start gap-2.5 p-2.5 hover:bg-white/5 transition-all cursor-pointer group"
                       >
                         <div className={`p-1.5 rounded-lg text-sm shrink-0 ${notif.color}`}>
@@ -1012,7 +1115,7 @@ const Layout = () => {
                       notificationsList.map((notif) => (
                         <div
                           key={notif.id}
-                          onClick={() => handleNotificationClick(notif.path)}
+                          onClick={() => handleNotificationClick(notif.path, notif.id)}
                           className="flex items-start gap-3 p-3 hover:bg-white/5 transition-all cursor-pointer group"
                         >
                           <div className={`p-2 rounded-xl text-base shrink-0 ${notif.color}`}>

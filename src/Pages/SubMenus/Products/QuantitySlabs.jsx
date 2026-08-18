@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { api, BASE_URL } from '../../../api/axios';
 import { 
   FiSliders, FiPlus, FiTrash2, FiSave, FiLoader, FiSearch, 
@@ -203,42 +203,54 @@ export default function QuantitySlabs() {
     return unique;
   };
 
-  // Filter Logic
-  const filteredProducts = products.filter(p => {
-    // Search filter
-    const matchesSearch = p.name?.toLowerCase().includes(search.toLowerCase()) ||
-      p.eanNumber?.toLowerCase().includes(search.toLowerCase());
-    
-    // Brand filter
-    const brandId = typeof p.brand === 'object' ? p.brand?._id : p.brand;
-    const matchesBrand = !selectedBrand || brandId === selectedBrand;
-    
-    // Category filter
-    const catId = typeof p.category === 'object' ? p.category?._id : p.category;
-    const matchesCategory = !selectedCategory || catId === selectedCategory;
-    
-    // Variants filter
-    const hasVariants = p.variants && p.variants.length > 0;
-    const matchesVariants = 
-      variantFilter === 'all' ? true :
-      variantFilter === 'has_variants' ? hasVariants : !hasVariants;
-      
-    // Stock filter
-    const stock = Number(p.totalQuantity) || 0;
-    const matchesStock = 
-      stockFilter === 'all' ? true :
-      stockFilter === 'in_stock' ? stock > 0 :
-      stockFilter === 'low_stock' ? stock < 100 : stock === 0;
-      
-    return matchesSearch && matchesBrand && matchesCategory && matchesVariants && matchesStock;
-  });
+  // Filter Logic (Memoized)
+  const filteredProducts = useMemo(() => {
+    const searchLower = (search || '').toLowerCase().trim();
 
-  // Pagination calculations
+    return products.filter(p => {
+      // Search filter
+      const matchesSearch = !searchLower || (
+        (p.name && p.name.toLowerCase().includes(searchLower)) ||
+        (p.eanNumber && p.eanNumber.toString().toLowerCase().includes(searchLower))
+      );
+      if (!matchesSearch) return false;
+      
+      // Brand filter
+      const brandId = typeof p.brand === 'object' ? p.brand?._id : p.brand;
+      const matchesBrand = !selectedBrand || brandId === selectedBrand;
+      if (!matchesBrand) return false;
+      
+      // Category filter
+      const catId = typeof p.category === 'object' ? p.category?._id : p.category;
+      const matchesCategory = !selectedCategory || catId === selectedCategory;
+      if (!matchesCategory) return false;
+      
+      // Variants filter
+      const hasVariants = p.variants && p.variants.length > 0;
+      const matchesVariants = 
+        variantFilter === 'all' ? true :
+        variantFilter === 'has_variants' ? hasVariants : !hasVariants;
+      if (!matchesVariants) return false;
+        
+      // Stock filter
+      const stock = Number(p.totalQuantity) || 0;
+      const matchesStock = 
+        stockFilter === 'all' ? true :
+        stockFilter === 'in_stock' ? stock > 0 :
+        stockFilter === 'low_stock' ? stock < 100 : stock === 0;
+        
+      return matchesStock;
+    });
+  }, [products, search, selectedBrand, selectedCategory, variantFilter, stockFilter]);
+
+  // Pagination calculations (Memoized)
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-  const currentItems = filteredProducts.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const currentItems = useMemo(() => {
+    return filteredProducts.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
+    );
+  }, [filteredProducts, currentPage, itemsPerPage]);
 
   // Selection handlers
   const handleSelectToggle = (id) => {

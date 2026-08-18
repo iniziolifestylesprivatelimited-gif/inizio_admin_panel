@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { api, BASE_URL } from '../../../api/axios';
 import {
@@ -359,16 +359,33 @@ const UsersList = () => {
     return () => clearInterval(intervalId);
   }, []);
 
-  // Filter approved, rejected and deleted users
-  const deletedUsers = users.filter(u => u.deleteRequested === true);
-  const approvedUsers = users.filter(u => u.deleteRequested !== true && (u.isApproved === true || (u.isApproved !== false && !u.isRejected)));
-  const rejectedUsers = users.filter(u => u.deleteRequested !== true && (u.isApproved === false || u.isRejected === true));
+  // Filter approved, rejected and deleted users (Memoized)
+  const { deletedUsers, approvedUsers, rejectedUsers } = useMemo(() => {
+    const deleted = [];
+    const approved = [];
+    const rejected = [];
 
-  const baseUsers = userTab === 'approved' 
-    ? approvedUsers 
-    : userTab === 'rejected' 
-      ? rejectedUsers 
-      : deletedUsers;
+    for (let i = 0; i < users.length; i++) {
+      const u = users[i];
+      if (u.deleteRequested === true) {
+        deleted.push(u);
+      } else if (u.isApproved === true || (u.isApproved !== false && !u.isRejected)) {
+        approved.push(u);
+      } else if (u.isApproved === false || u.isRejected === true) {
+        rejected.push(u);
+      }
+    }
+
+    return { deletedUsers: deleted, approvedUsers: approved, rejectedUsers: rejected };
+  }, [users]);
+
+  const baseUsers = useMemo(() => {
+    return userTab === 'approved' 
+      ? approvedUsers 
+      : userTab === 'rejected' 
+        ? rejectedUsers 
+        : deletedUsers;
+  }, [userTab, approvedUsers, rejectedUsers, deletedUsers]);
 
   // Delete User
   const handleDelete = async (id) => {
@@ -409,80 +426,89 @@ const UsersList = () => {
     }
   };
 
-  const filteredUsers = baseUsers.filter(user => {
-    // 1. Business Type Filter
-    if (selectedBusinessType && (user.businessType || 'L1') !== selectedBusinessType) {
-      return false;
-    }
+  const filteredUsers = useMemo(() => {
+    const term = (searchTerm || '').toLowerCase().trim();
 
-    // 2. App Status Filter
-    if (selectedAppStatus) {
-      const status = checkAppStatus(user);
-      if (status !== selectedAppStatus) return false;
-    }
-
-    // 3. Device Filter
-    if (selectedDevice) {
-      const devs = user.devices || [];
-      const hasDevicePlat = devs.some(d => d.devicePlatform?.toLowerCase() === selectedDevice.toLowerCase());
-      if (!hasDevicePlat) return false;
-    }
-
-    // 4. Search Query Filter
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      const nameMatch = user.name?.toLowerCase().includes(term);
-      const emailMatch = user.email?.toLowerCase().includes(term);
-      const phoneMatch = user.phone?.includes(term);
-      const userIdMatch = user.userId?.toLowerCase().includes(term);
-      const gstNumberMatch = user.gstNumber?.toLowerCase().includes(term);
-      const onlineText = user.isOnline ? 'online' : 'offline';
-      const onlineMatch = onlineText.includes(term);
-      const appVersionMatch = user.appVersion?.toLowerCase().includes(term);
-      const loginMethodMatch = user.lastLoginMethod?.toLowerCase().includes(term);
-
-      const userCreatedAt = user.createdAt || user.created_at || user.registrationDate;
-      const createdDateStr = userCreatedAt ? formatDateDDMMYYYY(userCreatedAt).toLowerCase() : '';
-      const createdDateMatch = createdDateStr.includes(term);
-
-      if (!(nameMatch || emailMatch || phoneMatch || userIdMatch || gstNumberMatch || onlineMatch || appVersionMatch || loginMethodMatch || createdDateMatch)) {
+    return baseUsers.filter(user => {
+      // 1. Business Type Filter
+      if (selectedBusinessType && (user.businessType || 'L1') !== selectedBusinessType) {
         return false;
       }
-    }
 
-    return true;
-  });
+      // 2. App Status Filter
+      if (selectedAppStatus) {
+        const status = checkAppStatus(user);
+        if (status !== selectedAppStatus) return false;
+      }
 
-  const sortedUsers = [...filteredUsers].sort((a, b) => {
-    if (!sortKey) return 0;
-    let aVal = a[sortKey];
-    let bVal = b[sortKey];
+      // 3. Device Filter
+      if (selectedDevice) {
+        const devs = user.devices || [];
+        const hasDevicePlat = devs.some(d => d.devicePlatform?.toLowerCase() === selectedDevice.toLowerCase());
+        if (!hasDevicePlat) return false;
+      }
 
-    if (sortKey === 'createdAt') {
-      const dateA = a.createdAt || a.created_at || a.registrationDate;
-      const dateB = b.createdAt || b.created_at || b.registrationDate;
-      aVal = dateA ? new Date(dateA).getTime() : 0;
-      bVal = dateB ? new Date(dateB).getTime() : 0;
-    } else if (sortKey === 'loginCount') {
-      aVal = a.loginCount || 0;
-      bVal = b.loginCount || 0;
-    } else if (sortKey === 'lastActive') {
-      aVal = a.lastActive ? new Date(a.lastActive).getTime() : 0;
-      bVal = b.lastActive ? new Date(b.lastActive).getTime() : 0;
-    } else if (sortKey === 'name' || sortKey === 'email' || sortKey === 'businessType') {
-      aVal = (aVal || '').toLowerCase();
-      bVal = (bVal || '').toLowerCase();
-    }
+      // 4. Search Query Filter
+      if (term) {
+        const nameMatch = user.name?.toLowerCase().includes(term);
+        const emailMatch = user.email?.toLowerCase().includes(term);
+        const phoneMatch = user.phone?.includes(term);
+        const userIdMatch = user.userId?.toLowerCase().includes(term);
+        const gstNumberMatch = user.gstNumber?.toLowerCase().includes(term);
+        const onlineText = user.isOnline ? 'online' : 'offline';
+        const onlineMatch = onlineText.includes(term);
+        const appVersionMatch = user.appVersion?.toLowerCase().includes(term);
+        const loginMethodMatch = user.lastLoginMethod?.toLowerCase().includes(term);
 
-    if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
-    if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
-    return 0;
-  });
+        const userCreatedAt = user.createdAt || user.created_at || user.registrationDate;
+        const createdDateStr = userCreatedAt ? formatDateDDMMYYYY(userCreatedAt).toLowerCase() : '';
+        const createdDateMatch = createdDateStr.includes(term);
 
-  // Dynamic filter dropdown options
-  const availableBusinessTypes = Array.from(
-    new Set(users.map(u => u.businessType).filter(Boolean))
-  );
+        if (!(nameMatch || emailMatch || phoneMatch || userIdMatch || gstNumberMatch || onlineMatch || appVersionMatch || loginMethodMatch || createdDateMatch)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [baseUsers, selectedBusinessType, selectedAppStatus, selectedDevice, searchTerm]);
+
+  const sortedUsers = useMemo(() => {
+    if (!sortKey) return filteredUsers;
+    const list = [...filteredUsers];
+    list.sort((a, b) => {
+      let aVal = a[sortKey];
+      let bVal = b[sortKey];
+
+      if (sortKey === 'createdAt') {
+        const dateA = a.createdAt || a.created_at || a.registrationDate;
+        const dateB = b.createdAt || b.created_at || b.registrationDate;
+        aVal = dateA ? new Date(dateA).getTime() : 0;
+        bVal = dateB ? new Date(dateB).getTime() : 0;
+      } else if (sortKey === 'loginCount') {
+        aVal = a.loginCount || 0;
+        bVal = b.loginCount || 0;
+      } else if (sortKey === 'lastActive') {
+        aVal = a.lastActive ? new Date(a.lastActive).getTime() : 0;
+        bVal = b.lastActive ? new Date(b.lastActive).getTime() : 0;
+      } else if (sortKey === 'name' || sortKey === 'email' || sortKey === 'businessType') {
+        aVal = (aVal || '').toLowerCase();
+        bVal = (bVal || '').toLowerCase();
+      }
+
+      if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return list;
+  }, [filteredUsers, sortKey, sortOrder]);
+
+  // Dynamic filter dropdown options (Memoized)
+  const availableBusinessTypes = useMemo(() => {
+    return Array.from(
+      new Set(users.map(u => u.businessType).filter(Boolean))
+    );
+  }, [users]);
 
   const businessTypeOptions = [
     { value: '', label: selectedBusinessType ? `Type: ${selectedBusinessType}` : 'Business Type' },
@@ -499,7 +525,7 @@ const UsersList = () => {
   const deviceOptions = [
     { value: '', label: selectedDevice ? `Device: ${selectedDevice.toUpperCase()}` : 'Device' },
     { value: 'android', label: 'Android' },
-    { value: 'ios', label: 'iOS' }
+    { value: 'ios', label: 'IOS' }
   ];
 
   // Pagination logic
@@ -508,7 +534,7 @@ const UsersList = () => {
   const currentUsers = sortedUsers.slice(indexOfFirstUser, indexOfLastUser);
   const totalPages = Math.ceil(sortedUsers.length / usersPerPage);
 
-  console.log(users)
+  // console.log(users)
   
     const handleRoleLogout = async (role) => {
       if (!role) return;
@@ -633,11 +659,11 @@ const UsersList = () => {
             onClick={() => handleFilterChange('device', 'ios')}
             className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
               selectedDevice === 'ios'
-                ? 'bg-indigo-600 text-white shadow-sm'
+                ? 'bg-white text-black shadow-sm'
                 : 'text-slate-400 hover:text-indigo-400'
             }`}
           >
-            <DiApple className="text-sm text-indigo-400" /> iOS
+            <DiApple className="text-sm" /> IOS
           </button>
         </div>
       </div>
@@ -774,7 +800,7 @@ const UsersList = () => {
                   className="w-full px-3 py-2 text-left text-xs font-bold text-indigo-400 hover:bg-indigo-500/15 rounded-xl transition-all flex items-center gap-2.5 cursor-pointer"
                 >
                   <MdPhoneIphone size={14} className="shrink-0" />
-                  <span>Logout iOS Only</span>
+                  <span>Logout IOS Only</span>
                 </button>
               </div>
             </>
@@ -805,7 +831,7 @@ const UsersList = () => {
                       onClick={() => handleSortChange('name')}
                       className="p-4 font-bold text-left cursor-pointer select-none hover:text-white transition-colors"
                     >
-                      <div className="flex items-center gap-1">
+                      <div className="flex justify-center items-center gap-1">
                         <span className={sortKey === 'name' ? 'text-blue-400 font-extrabold' : ''}>Name</span>
                         {sortKey === 'name' ? (
                           sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
@@ -818,7 +844,7 @@ const UsersList = () => {
                       onClick={() => handleSortChange('email')}
                       className="p-4 font-bold text-left cursor-pointer select-none hover:text-white transition-colors"
                     >
-                      <div className="flex items-center gap-1">
+                      <div className="flex justify-center items-center gap-1">
                         <span className={sortKey === 'email' ? 'text-blue-400 font-extrabold' : ''}>Email</span>
                         {sortKey === 'email' ? (
                           sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
@@ -827,7 +853,7 @@ const UsersList = () => {
                         )}
                       </div>
                     </th>
-                    <th className="p-4 font-bold text-left">Phone</th>
+                    <th className="p-4 font-bold text-center">Phone</th>
                     <th className="p-4 font-bold text-left min-w-[140px]">
                       <CustomDropdown
                         value=""
@@ -1007,7 +1033,7 @@ const UsersList = () => {
                             )}
                           </div>
                         </td>
-                        <td className="p-4 text-sm text-yellow-400 font-mono font-semibold">{user.gstNumber || 'N/A'}</td>
+                        <td className="p-4 text-center text-sm text-yellow-400 font-mono font-semibold">{user.gstNumber || 'N/A'}</td>
                         <td className="p-4 justify-center gap-2">
                           {user.deleteRequested ? (
                             <button 

@@ -92,7 +92,22 @@ const Variants = () => {
   });
 
   const handleAdd = () => {
-    setVariants([...variants, getEmptyVariant()]);
+    let newVariant = getEmptyVariant();
+    if (variants.length === 0 && fullProduct) {
+      newVariant = {
+        name: '',
+        quantity: fullProduct.totalQuantity !== undefined && fullProduct.totalQuantity !== null ? fullProduct.totalQuantity : '',
+        price: fullProduct.basePrice !== undefined && fullProduct.basePrice !== null ? fullProduct.basePrice : '',
+        offerPrice: fullProduct.offerPrice !== undefined && fullProduct.offerPrice !== null ? fullProduct.offerPrice : '',
+        l1Price: fullProduct.l1Price !== undefined && fullProduct.l1Price !== null ? fullProduct.l1Price : '',
+        l2Price: fullProduct.l2Price !== undefined && fullProduct.l2Price !== null ? fullProduct.l2Price : '',
+        l3Price: fullProduct.l3Price !== undefined && fullProduct.l3Price !== null ? fullProduct.l3Price : '',
+        quantityPricing: Array.isArray(fullProduct.quantityPricing) ? fullProduct.quantityPricing.map(qp => ({ ...qp })) : [],
+        image_urls: fullProduct.image_urls || (Array.isArray(fullProduct.images) ? fullProduct.images.join(', ') : ''),
+        isActive: true
+      };
+    }
+    setVariants([...variants, newVariant]);
     setExpandedVariantIndex(variants.length);
   };
 
