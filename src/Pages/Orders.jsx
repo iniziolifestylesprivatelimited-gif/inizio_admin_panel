@@ -10,7 +10,7 @@ import {
 } from 'react-icons/fi';
 import CustomDropdown from '../Components/CustomDropdown';
 import CopyButton from '../Components/CopyButton';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import { formatDateDDMMYYYY, formatDateTimeDDMMYYYY } from '../utils/dateUtils';
 
 const getImageUrl = (path) => {
@@ -21,6 +21,10 @@ const getImageUrl = (path) => {
 };
 
 const Orders = ({ defaultStatus = 'all' }) => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [orders, setOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortKey, setSortKey] = useState('');
@@ -256,6 +260,48 @@ const Orders = ({ defaultStatus = 'all' }) => {
       fetchTrackingInfo(order._id);
     }
   };
+
+  useEffect(() => {
+    const targetOrderId = searchParams.get('viewOrderId') || location.state?.viewOrderId;
+    if (!targetOrderId) return;
+
+    let isMounted = true;
+    const foundOrder = orders.find(o => o._id === targetOrderId || o.orderId === targetOrderId);
+    if (foundOrder) {
+      handleViewDetails(foundOrder);
+      if (searchParams.has('viewOrderId')) {
+        setSearchParams(prev => {
+          prev.delete('viewOrderId');
+          return prev;
+        }, { replace: true });
+      }
+      if (location.state?.viewOrderId) {
+        navigate(location.pathname + location.search, { replace: true, state: {} });
+      }
+    } else if (orders.length === 0) {
+      const token = sessionStorage.getItem('accessToken');
+      const headers = { Authorization: `Bearer ${token}` };
+      axios.get(`${BASE_URL}/api/orders/${targetOrderId}`, { headers })
+        .then(res => {
+          if (!isMounted || !res.data) return;
+          handleViewDetails(res.data);
+          if (searchParams.has('viewOrderId')) {
+            setSearchParams(prev => {
+              prev.delete('viewOrderId');
+              return prev;
+            }, { replace: true });
+          }
+          if (location.state?.viewOrderId) {
+            navigate(location.pathname + location.search, { replace: true, state: {} });
+          }
+        })
+        .catch(() => {});
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [searchParams.get('viewOrderId'), location.state?.viewOrderId, orders, navigate, location.pathname, location.search, setSearchParams]);
 
   const closeModal = () => {
     setIsModalOpen(false);

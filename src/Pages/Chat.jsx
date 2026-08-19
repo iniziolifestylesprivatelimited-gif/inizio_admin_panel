@@ -1,10 +1,11 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import {
   FiSearch, FiSend, FiPaperclip, FiMoreVertical, FiPhone, FiVideo,
   FiSmile, FiInfo, FiArrowLeft, FiCheck, FiCornerUpLeft, FiEdit2,
   FiTrash2, FiX, FiFileText, FiDownload, FiLoader, FiAlertCircle,
-  FiShoppingCart, FiSmartphone, FiUser, FiShoppingBag, FiActivity, FiEye
+  FiShoppingCart, FiSmartphone, FiUser, FiShoppingBag, FiActivity, FiEye,
+  FiPackage, FiAtSign
 } from 'react-icons/fi';
 import { RiCheckDoubleFill } from "react-icons/ri";
 import { api, BASE_URL } from '../api/axios';
@@ -97,7 +98,19 @@ const Chat = () => {
   const [replyToMessage, setReplyToMessage] = useState(null); // message object being replied to
   const [editingMessage, setEditingMessage] = useState(null); // message object being edited
   const fileInputRef = useRef(null);
+  const textareaRef = useRef(null);
+  const mentionMenuRef = useRef(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // '@' Mention Feature States for Products & Orders
+  const [showMentionMenu, setShowMentionMenu] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [mentionTab, setMentionTab] = useState('all'); // 'all' | 'products' | 'orders'
+  const [mentionProducts, setMentionProducts] = useState([]);
+  const [mentionOrders, setMentionOrders] = useState([]);
+  const [mentionDataLoaded, setMentionDataLoaded] = useState(false);
+  const [mentionLoading, setMentionLoading] = useState(false);
+  const [mentionSelectedIndex, setMentionSelectedIndex] = useState(0);
 
   // Custom Confirmation & Alert States
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -403,6 +416,201 @@ const Chat = () => {
 
     fetchCustomerJourney();
   }, [activeContact]);
+
+  // Fetch Products and Orders for '@' Mention Menu
+  const fetchMentionData = useCallback(async () => {
+    if (mentionLoading || mentionDataLoaded) return;
+    setMentionLoading(true);
+    try {
+      const token = sessionStorage.getItem('accessToken');
+      const headers = { Authorization: `Bearer ${token}` };
+      const [prodRes, orderRes] = await Promise.all([
+        api.get('/products/').catch(() => ({ data: [] })),
+        api.get('/orders/all', { headers }).catch(() => ({ data: [] }))
+      ]);
+
+      const prods = Array.isArray(prodRes.data) ? prodRes.data : [];
+      const ords = Array.isArray(orderRes.data) ? orderRes.data : (orderRes.data?.orders || []);
+
+      setMentionProducts(prods);
+      setMentionOrders(ords);
+      setMentionDataLoaded(true);
+    } catch (err) {
+      console.error('Failed to load products/orders for @ mention:', err);
+    } finally {
+      setMentionLoading(false);
+    }
+  }, [mentionLoading, mentionDataLoaded]);
+
+  // Preload mention data
+  useEffect(() => {
+    fetchMentionData();
+  }, [fetchMentionData]);
+
+  // Close mention menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (mentionMenuRef.current && !mentionMenuRef.current.contains(e.target)) {
+        setShowMentionMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Filtered Products & Orders for '@' Mention
+  const filteredMentionItems = useMemo(() => {
+    const q = (mentionQuery || '').toLowerCase().trim();
+    let prods = [];
+    let ords = [];
+
+    if (mentionTab === 'all' || mentionTab === 'products') {
+      prods = mentionProducts.filter(p => {
+        if (!q) return true;
+        const searchable = `${p._id || ''} ${p.name || ''} ${p.description || ''} ${p.eanNumber || ''} ${(p.variants || []).map(v => `${v.sku || ''} ${v._id || ''}`).join(' ')}`.toLowerCase();
+        return searchable.includes(q);
+      }).map(p => ({ ...p, _mentionType: 'product' }));
+    }
+
+    if (mentionTab === 'all' || mentionTab === 'orders') {
+      ords = mentionOrders.filter(o => {
+        if (!q) return true;
+        const searchable = `${o._id || ''} ${o.orderId || ''} ${o.user?.name || ''} ${o.user?.phone || ''} ${o.shippingAddress?.fullName || ''} ${o.orderStatus || ''}`.toLowerCase();
+        return searchable.includes(q);
+      }).map(o => ({
+        ...o,
+        _mentionType: 'order',
+        _isCustomerOrder: activeContact ? (String(typeof o.user === 'object' ? o.user?._id : o.user) === String(activeContact)) : false
+      }));
+
+      // Prioritize current customer's orders
+      ords.sort((a, b) => (b._isCustomerOrder ? 1 : 0) - (a._isCustomerOrder ? 1 : 0));
+    }
+
+    if (mentionTab === 'products') return prods.slice(0, 25);
+    if (mentionTab === 'orders') return ords.slice(0, 25);
+
+    return [...ords.slice(0, 10), ...prods.slice(0, 10)];
+  }, [mentionProducts, mentionOrders, mentionQuery, mentionTab, activeContact]);
+
+  useEffect(() => {
+    setMentionSelectedIndex(0);
+  }, [mentionQuery, mentionTab]);
+
+  const handleSelectMentionItem = (type, item) => {
+    let formattedText = '';
+
+    if (type === 'product') {
+      const primaryVariant = item.variants?.[0] || {};
+      const price = primaryVariant.offerPrice || primaryVariant.price || item.offerPrice || item.basePrice || 0;
+      const sku = primaryVariant.sku || item.sku || 'N/A';
+      const stock = item.totalQuantity !== undefined ? item.totalQuantity : (primaryVariant.quantity !== undefined ? primaryVariant.quantity : 'In Stock');
+
+      formattedText = `📦 Product: ${item.name || 'Product'}\n` +
+        `• SKU: ${sku}\n` +
+        `• Price: ₹${price}\n` +
+        `• Stock: ${stock}\n` +
+        (item.brand?.name || item.brand ? `• Brand: ${item.brand?.name || item.brand}\n` : '') +
+        (item.warranty ? `• Warranty: ${item.warranty}\n` : '') +
+        `• Product ID: ${item._id}`;
+    } else if (type === 'order') {
+      const orderNum = item.orderId || item._id?.slice(-8).toUpperCase();
+      const customerName = item.user?.name || item.shippingAddress?.fullName || 'Customer';
+      const orderDate = item.createdAt ? formatDateDDMMYYYY(item.createdAt) : 'Recent';
+      const itemsSummary = (item.items || [])
+        .map(it => `${it.product?.name || it.name || 'Item'} (x${it.quantity || 1})`)
+        .slice(0, 3)
+        .join(', ');
+
+      formattedText = `🛍️ Order Details: #${orderNum}\n` +
+        `• Customer: ${customerName}\n` +
+        `• Date: ${orderDate}\n` +
+        (itemsSummary ? `• Items: ${itemsSummary}${item.items?.length > 3 ? ` +${item.items.length - 3} more` : ''}\n` : '') +
+        `• Total: ₹${item.totalAmount || 0}\n` +
+        `• Status: ${item.orderStatus || 'Pending'}\n` +
+        (item.paymentMethod ? `• Payment: ${item.paymentMethod}\n` : '') +
+        `• Order ID: ${item._id}`;
+    }
+
+    const textarea = textareaRef.current;
+    const cursorPos = textarea ? textarea.selectionStart : message.length;
+    const textBeforeCursor = message.slice(0, cursorPos);
+    const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+
+    if (lastAtIndex !== -1) {
+      const beforeAt = message.slice(0, lastAtIndex);
+      const afterCursor = message.slice(cursorPos);
+      const newMessage = `${beforeAt}${formattedText}${afterCursor ? ' ' + afterCursor : ''}`;
+      setMessage(newMessage);
+    } else {
+      setMessage(prev => (prev ? `${prev}\n\n${formattedText}` : formattedText));
+    }
+
+    setShowMentionMenu(false);
+    setMentionQuery('');
+
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+      }
+    }, 50);
+  };
+
+  const handleMessageChange = (e) => {
+    const val = e.target.value;
+    const cursorPos = e.target.selectionStart;
+    setMessage(val);
+
+    const textBeforeCursor = val.slice(0, cursorPos);
+    const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+
+    if (lastAtIndex !== -1) {
+      const charBeforeAt = lastAtIndex > 0 ? textBeforeCursor[lastAtIndex - 1] : ' ';
+      if (charBeforeAt === ' ' || charBeforeAt === '\n' || lastAtIndex === 0) {
+        const query = textBeforeCursor.slice(lastAtIndex + 1);
+        if (!query.includes('\n')) {
+          setMentionQuery(query);
+          setShowMentionMenu(true);
+          if (!mentionDataLoaded) fetchMentionData();
+          return;
+        }
+      }
+    }
+    setShowMentionMenu(false);
+  };
+
+  const handleTextareaKeyDown = (e) => {
+    if (showMentionMenu && filteredMentionItems.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setMentionSelectedIndex(prev => (prev + 1) % filteredMentionItems.length);
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setMentionSelectedIndex(prev => (prev - 1 + filteredMentionItems.length) % filteredMentionItems.length);
+        return;
+      }
+      if (e.key === 'Enter' || e.key === 'Tab') {
+        e.preventDefault();
+        const selected = filteredMentionItems[mentionSelectedIndex];
+        if (selected) {
+          handleSelectMentionItem(selected._mentionType, selected);
+        }
+        return;
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setShowMentionMenu(false);
+        return;
+      }
+    }
+
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend(e);
+    }
+  };
 
   const handleAttachClick = () => {
     fileInputRef.current?.click();
@@ -864,7 +1072,170 @@ const Chat = () => {
                 </div>
 
                 {/* Input Area */}
-                <div className="p-3 sm:p-4 border-t border-white/10 bg-black/20 shrink-0 animate-in fade-in duration-200">
+                <div className="p-3 sm:p-4 border-t border-white/10 bg-black/20 shrink-0 animate-in fade-in duration-200 relative z-30">
+
+                  {/* '@' Mention Menu for Products & Orders */}
+                  {showMentionMenu && (
+                    <div
+                      ref={mentionMenuRef}
+                      className="absolute bottom-full left-2 right-2 sm:left-4 sm:right-4 mb-2 bg-slate-900/95 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-2 max-w-xl mx-auto flex flex-col max-h-[280px] sm:max-h-[320px]"
+                    >
+                      {/* Header & Filter Tabs */}
+                      <div className="flex items-center justify-between gap-2 px-3 sm:px-4 py-2 border-b border-white/10 bg-slate-950/80 shrink-0">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-xs font-bold text-white flex items-center gap-1.5 shrink-0">
+                            <FiAtSign className="text-blue-400 text-sm" /> Insert Details
+                          </span>
+                          {mentionQuery && (
+                            <span className="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-md font-mono truncate max-w-28 sm:max-w-40">
+                              @{mentionQuery}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-1 bg-white/5 p-0.5 rounded-lg border border-white/5 text-[11px] shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setMentionTab('all')}
+                            className={`px-2.5 py-0.5 rounded-md font-bold transition-all cursor-pointer ${mentionTab === 'all' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                          >
+                            All
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setMentionTab('products')}
+                            className={`px-2.5 py-0.5 rounded-md font-bold transition-all flex items-center gap-1 cursor-pointer ${mentionTab === 'products' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                          >
+                            <FiPackage className="text-xs" /> Products
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setMentionTab('orders')}
+                            className={`px-2.5 py-0.5 rounded-md font-bold transition-all flex items-center gap-1 cursor-pointer ${mentionTab === 'orders' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                          >
+                            <FiShoppingBag className="text-xs" /> Orders
+                          </button>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => setShowMentionMenu(false)}
+                          className="p-1 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer shrink-0"
+                          title="Close"
+                        >
+                          <FiX className="text-sm" />
+                        </button>
+                      </div>
+
+                      {/* Items List */}
+                      <div className="flex-1 overflow-y-auto custom-scrollbar p-1.5 min-h-0">
+                        {mentionLoading ? (
+                          <div className="py-8 text-center text-slate-400 flex items-center justify-center gap-2 text-xs font-semibold">
+                            <FiLoader className="animate-spin text-blue-400 text-base" />
+                            Loading products and orders...
+                          </div>
+                        ) : filteredMentionItems.length > 0 ? (
+                          <div className="space-y-1">
+                            {filteredMentionItems.map((item, idx) => {
+                              const isProduct = item._mentionType === 'product';
+                              const isSelected = idx === mentionSelectedIndex;
+
+                              if (isProduct) {
+                                const primaryVariant = item.variants?.[0] || {};
+                                const price = primaryVariant.offerPrice || primaryVariant.price || item.offerPrice || item.basePrice || 0;
+                                const imgUrl = (item.images && item.images[0]) || (primaryVariant.images && primaryVariant.images[0]);
+
+                                return (
+                                  <div
+                                    key={`prod-${item._id}`}
+                                    onClick={() => handleSelectMentionItem('product', item)}
+                                    onMouseEnter={() => setMentionSelectedIndex(idx)}
+                                    className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-all ${
+                                      isSelected ? 'bg-blue-600/20 border border-blue-500/40 text-white' : 'hover:bg-white/5 border border-transparent text-slate-200'
+                                    }`}
+                                  >
+                                    <div className="w-10 h-10 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden">
+                                      {imgUrl ? (
+                                        <img src={getImageUrl(imgUrl)} alt={item.name} className="w-full h-full object-cover" />
+                                      ) : (
+                                        <FiPackage className="text-slate-400 text-lg" />
+                                      )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex justify-between items-center mb-0.5">
+                                        <p className="text-xs font-bold truncate text-white">{item.name}</p>
+                                        <span className="text-[10px] font-bold px-1.5 py-0.2 bg-blue-500/20 text-blue-300 rounded ml-2 shrink-0">Product</span>
+                                      </div>
+                                      <div className="flex items-center gap-2 text-[11px] text-slate-400">
+                                        <span>SKU: {primaryVariant.sku || item.sku || 'N/A'}</span>
+                                        <span>•</span>
+                                        <span className="text-emerald-400 font-bold">₹{price}</span>
+                                        {item.brand?.name && (
+                                          <>
+                                            <span>•</span>
+                                            <span className="truncate">{item.brand.name}</span>
+                                          </>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              } else {
+                                // Order item
+                                const orderNum = item.orderId || item._id?.slice(-8).toUpperCase();
+                                const customerName = item.user?.name || item.shippingAddress?.fullName || 'Customer';
+
+                                return (
+                                  <div
+                                    key={`ord-${item._id}`}
+                                    onClick={() => handleSelectMentionItem('order', item)}
+                                    onMouseEnter={() => setMentionSelectedIndex(idx)}
+                                    className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-all ${
+                                      isSelected ? 'bg-indigo-600/20 border border-indigo-500/40 text-white' : 'hover:bg-white/5 border border-transparent text-slate-200'
+                                    }`}
+                                  >
+                                    <div className="w-10 h-10 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0 text-indigo-400">
+                                      <FiShoppingBag className="text-lg" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex justify-between items-center mb-0.5">
+                                        <div className="flex items-center gap-1.5 min-w-0">
+                                          <p className="text-xs font-bold truncate text-white">Order #{orderNum}</p>
+                                          {item._isCustomerOrder && (
+                                            <span className="text-[9px] font-bold px-1.5 py-0.2 bg-emerald-500/20 text-emerald-300 rounded shrink-0">
+                                              This Customer
+                                            </span>
+                                          )}
+                                        </div>
+                                        <span className="text-[10px] font-bold px-1.5 py-0.2 bg-indigo-500/20 text-indigo-300 rounded ml-2 shrink-0">Order</span>
+                                      </div>
+                                      <div className="flex items-center gap-2 text-[11px] text-slate-400">
+                                        <span className="truncate">{customerName}</span>
+                                        <span>•</span>
+                                        <span className="text-emerald-400 font-bold">₹{item.totalAmount || 0}</span>
+                                        <span>•</span>
+                                        <span className="text-slate-400 capitalize">{item.orderStatus || 'Pending'}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              }
+                            })}
+                          </div>
+                        ) : (
+                          <div className="py-8 text-center text-slate-500 text-xs font-medium">
+                            No products or orders found matching "{mentionQuery}"
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Footer tip */}
+                      <div className="px-3 py-1.5 bg-black/40 border-t border-white/5 flex items-center justify-between text-[10px] text-slate-500 font-medium">
+                        <span>Use <kbd className="px-1 py-0.5 bg-white/10 rounded text-slate-300">↑</kbd> <kbd className="px-1 py-0.5 bg-white/10 rounded text-slate-300">↓</kbd> to navigate, <kbd className="px-1 py-0.5 bg-white/10 rounded text-slate-300">Enter</kbd> to insert</span>
+                        <span>Type text after @ to filter</span>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Reply Preview */}
                   {replyToMessage && (
@@ -932,48 +1303,16 @@ const Chat = () => {
                     </div>
                   )}
 
-
-
                   <form onSubmit={handleSend} className="flex items-end gap-2">
                     <div className="flex-1 bg-black/20 border border-white/10 rounded-2xl flex items-end p-1 focus-within:border-blue-500/50 focus-within:bg-black/40 shadow-inner backdrop-blur-md transition-all min-w-0">
-                      {/* <div className="relative shrink-0 flex items-center" ref={emojiPickerRef}>
-                      <button
-                        type="button"
-                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                        className={`p-2.5 transition-colors rounded-xl ${showEmojiPicker ? 'text-blue-400 bg-white/5' : 'text-slate-400 hover:text-blue-400'}`}
-                        title="Emoji"
-                      >
-                        <FiSmile className="text-xl cursor-pointer" />
-                      </button>
-                      {showEmojiPicker && (
-                        <div className="absolute bottom-full left-0 mb-3 w-64 sm:w-80 h-48 bg-slate-900/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl p-3 z-50 overflow-y-auto no-scrollbar animate-in fade-in slide-in-from-bottom-2">
-                          <div className="grid grid-cols-8 gap-2">
-                            {popularEmojis.map((emoji) => (
-                              <button
-                                key={emoji}
-                                type="button"
-                                onClick={() => setMessage(prev => prev + emoji)}
-                                className="text-xl p-1.5 hover:bg-white/10 rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center select-none"
-                              >
-                                {emoji}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div> */}
                       <textarea
+                        ref={textareaRef}
                         value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        placeholder={editingMessage ? "Edit message..." : "Type a message..."}
+                        onChange={handleMessageChange}
+                        placeholder={editingMessage ? "Edit message..." : "Type a message or '@' to insert product/order details..."}
                         className="flex-1 max-h-32 bg-transparent text-white placeholder-slate-500 text-sm px-2 py-3 focus:outline-none resize-none custom-scrollbar"
                         rows="1"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSend(e);
-                          }
-                        }}
+                        onKeyDown={handleTextareaKeyDown}
                       />
                       <input
                         type="file"
@@ -983,8 +1322,20 @@ const Chat = () => {
                       />
                       <button
                         type="button"
+                        onClick={() => {
+                          setShowMentionMenu(prev => !prev);
+                          if (!mentionDataLoaded) fetchMentionData();
+                          if (textareaRef.current) textareaRef.current.focus();
+                        }}
+                        className={`p-2.5 transition-colors shrink-0 cursor-pointer ${showMentionMenu ? 'text-blue-400 bg-blue-500/10 rounded-xl' : 'text-slate-400 hover:text-blue-400'}`}
+                        title="Insert Product or Order details (@)"
+                      >
+                        <FiAtSign className="text-xl" />
+                      </button>
+                      <button
+                        type="button"
                         onClick={handleAttachClick}
-                        className="p-2.5 text-slate-400 hover:text-blue-400 transition-colors shrink-0"
+                        className="p-2.5 text-slate-400 hover:text-blue-400 transition-colors shrink-0 cursor-pointer"
                         title="Attach File"
                       >
                         <FiPaperclip className="text-xl" />
@@ -993,7 +1344,7 @@ const Chat = () => {
                     <button
                       type="submit"
                       disabled={editingMessage ? !message.trim() : (!message.trim() && !attachment)}
-                      className="h-10 w-10 sm:h-11 sm:w-11 mb-1 rounded-2xl text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                      className="h-10 w-10 sm:h-11 sm:w-11 mb-1 rounded-2xl text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 cursor-pointer"
                     >
                       <FiSend className="text-xl" />
                     </button>

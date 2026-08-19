@@ -104,7 +104,6 @@ const UsersList = () => {
   const currentPage = parseInt(searchParams.get('page') || '1', 10);
 
   const selectedBusinessType = searchParams.get('businessType') || '';
-  const selectedAppStatus = searchParams.get('appStatus') || '';
   const selectedDevice = searchParams.get('device') || '';
   const sortKey = searchParams.get('sortKey') || '';
   const sortOrder = searchParams.get('sortOrder') || 'asc';
@@ -435,20 +434,14 @@ const UsersList = () => {
         return false;
       }
 
-      // 2. App Status Filter
-      if (selectedAppStatus) {
-        const status = checkAppStatus(user);
-        if (status !== selectedAppStatus) return false;
-      }
-
-      // 3. Device Filter
+      // 2. Device Filter
       if (selectedDevice) {
         const devs = user.devices || [];
         const hasDevicePlat = devs.some(d => d.devicePlatform?.toLowerCase() === selectedDevice.toLowerCase());
         if (!hasDevicePlat) return false;
       }
 
-      // 4. Search Query Filter
+      // 3. Search Query Filter
       if (term) {
         const nameMatch = user.name?.toLowerCase().includes(term);
         const emailMatch = user.email?.toLowerCase().includes(term);
@@ -471,7 +464,7 @@ const UsersList = () => {
 
       return true;
     });
-  }, [baseUsers, selectedBusinessType, selectedAppStatus, selectedDevice, searchTerm]);
+  }, [baseUsers, selectedBusinessType, selectedDevice, searchTerm]);
 
   const sortedUsers = useMemo(() => {
     if (!sortKey) return filteredUsers;
@@ -513,13 +506,6 @@ const UsersList = () => {
   const businessTypeOptions = [
     { value: '', label: selectedBusinessType ? `Type: ${selectedBusinessType}` : 'Business Type' },
     ...availableBusinessTypes.map(type => ({ value: type, label: type }))
-  ];
-
-  const appStatusOptions = [
-    { value: '', label: selectedAppStatus ? `Status: ${selectedAppStatus.toUpperCase()}` : 'App Status' },
-    { value: 'installed', label: 'Installed' },
-    { value: 'uninstalled', label: 'Uninstalled' },
-    { value: 'pending', label: 'Pending' }
   ];
 
   const deviceOptions = [
@@ -626,7 +612,7 @@ const UsersList = () => {
           <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
             Total Users: <strong className="text-white">{baseUsers.length}</strong>
           </span>
-          {(searchTerm || selectedBusinessType || selectedAppStatus || selectedDevice || sortKey) && (
+          {(searchTerm || selectedBusinessType || selectedDevice || sortKey) && (
             <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full">
               Found: <strong>{sortedUsers.length}</strong>
             </span>
@@ -653,7 +639,7 @@ const UsersList = () => {
                 : 'text-slate-400 hover:text-green-400'
             }`}
           >
-            <DiAndroid className="text-sm text-green-400" /> Android
+            <DiAndroid className="text-sm" /> Android
           </button>
           <button
             onClick={() => handleFilterChange('device', 'ios')}
@@ -692,7 +678,7 @@ const UsersList = () => {
             onClick={() => handleTabChange('rejected')}
             className={`px-4.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
               userTab === 'rejected'
-                ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30'
+                ? 'bg-rose-500 text-white shadow-lg shadow-rose-600/30'
                 : 'text-slate-400 hover:text-white hover:bg-white/5'
             }`}
           >
@@ -862,14 +848,7 @@ const UsersList = () => {
                         statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedBusinessType ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'}`}
                       />
                     </th>
-                    <th className="p-4 font-bold text-left min-w-[140px]">
-                      <CustomDropdown
-                        value=""
-                        onChange={(val) => handleFilterChange('appStatus', val)}
-                        options={appStatusOptions}
-                        statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedAppStatus ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'}`}
-                      />
-                    </th>
+                    <th className="p-4 font-bold text-center">Status</th>
                     <th 
                       onClick={() => handleSortChange('createdAt')}
                       className="p-4 font-bold text-center cursor-pointer select-none hover:text-white transition-colors"
@@ -900,7 +879,7 @@ const UsersList = () => {
                     <th className="p-4 font-bold text-center">
                       <div className="flex items-center justify-center gap-1">
                         <span>Actions</span>
-                        {(searchTerm || selectedBusinessType || selectedAppStatus || selectedDevice || sortKey) && (
+                        {(searchTerm || selectedBusinessType || selectedDevice || sortKey) && (
                           <button
                             onClick={handleClearFilters}
                             className="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold rounded border border-white/10 transition-all cursor-pointer hover:text-white ml-2"

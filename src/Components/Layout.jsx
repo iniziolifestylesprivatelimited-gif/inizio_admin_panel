@@ -40,6 +40,7 @@ const Layout = () => {
   const [usersVerifyUnreadCount, setUsersVerifyUnreadCount] = useState(0);
   const [usersDeletionUnreadCount, setUsersDeletionUnreadCount] = useState(0);
   const [quotesUnreadCount, setQuotesUnreadCount] = useState(0);
+  const [brokenImagesUnreadCount, setBrokenImagesUnreadCount] = useState(0);
   const [showPermissionBanner, setShowPermissionBanner] = useState(false);
   const navigation = useNavigate();
   const prevContactsRef = useRef([]);
@@ -49,6 +50,7 @@ const Layout = () => {
   const prevPendingRef = useRef(null);
   const prevDeletionRef = useRef(null);
   const prevQuotesRef = useRef(null);
+  const prevBrokenImagesRef = useRef(null);
   const isInitialDataLoad = useRef(true);
   const [toasts, setToasts] = useState([]);
   const [failedImageProductNames, setFailedImageProductNames] = useState([]);
@@ -180,6 +182,16 @@ const Layout = () => {
         color: 'text-blue-400 bg-blue-500/10'
       });
     }
+    if (brokenImagesUnreadCount > 0) {
+      list.push({
+        id: 'broken-images',
+        title: 'Broken Images Detected',
+        description: `${brokenImagesUnreadCount} broken image${brokenImagesUnreadCount > 1 ? 's' : ''} reported by the app.`,
+        path: '/products/broken-images',
+        icon: <FiAlertTriangle />,
+        color: 'text-rose-400 bg-rose-500/10'
+      });
+    }
     if (failedImageProductNames.length > 0) {
       const namesPreview = failedImageProductNames.slice(0, 2).join(', ');
       const totalFailed = failedImageProductNames.length;
@@ -196,7 +208,7 @@ const Layout = () => {
   };
 
   const notificationsList = getNotificationsList();
-  const totalUnreadCount = chatUnreadCount + ordersUnreadCount + usersUnreadCount + usersVerifyUnreadCount + usersDeletionUnreadCount + quotesUnreadCount + (failedImageProductNames.length > 0 ? 1 : 0);
+  const totalUnreadCount = chatUnreadCount + ordersUnreadCount + usersUnreadCount + usersVerifyUnreadCount + usersDeletionUnreadCount + quotesUnreadCount + brokenImagesUnreadCount + (failedImageProductNames.length > 0 ? 1 : 0);
 
   // Request Browser Notification Permission on load / show banner
   useEffect(() => {
@@ -350,9 +362,12 @@ const Layout = () => {
     if (location.pathname === '/quotes') {
       setQuotesUnreadCount(0);
     }
+    if (location.pathname === '/products/broken-images') {
+      setBrokenImagesUnreadCount(0);
+    }
   }, [location.pathname, location.search]);
 
-  // Poll orders and users
+  // Poll orders, users, and broken images
   useEffect(() => {
     const fetchOrdersAndUsers = async () => {
       if (!user) return;
@@ -360,12 +375,13 @@ const Layout = () => {
         const token = sessionStorage.getItem('accessToken');
         const headers = { Authorization: `Bearer ${token}` };
 
-        const [ordersRes, usersRes, pendingRes, deletionRes, quotesRes] = await Promise.all([
+        const [ordersRes, usersRes, pendingRes, deletionRes, quotesRes, brokenImagesRes] = await Promise.all([
           api.get('/orders/all', { headers }).catch(() => ({ data: [] })),
           api.get('/admin/customers', { headers }).catch(() => ({ data: [] })),
           api.get('/admin/pending', { headers }).catch(() => ({ data: [] })),
           api.get('/admin/deletion-requests', { headers }).catch(() => ({ data: [] })),
-          api.get('/quotes/admin/all', { headers }).catch(() => ({ data: [] }))
+          api.get('/quotes/admin/all', { headers }).catch(() => ({ data: [] })),
+          api.get('/analytics/admin/broken-images?status=PENDING', { headers }).catch(() => ({ data: [] }))
         ]);
 
         const orders = Array.isArray(ordersRes.data) ? ordersRes.data : ordersRes.data?.orders || [];
@@ -388,6 +404,20 @@ const Layout = () => {
           quotes = quotesData;
         } else if (quotesData && typeof quotesData === 'object') {
           quotes = quotesData.quotes || quotesData.data || [];
+        }
+
+        const brokenData = brokenImagesRes.data;
+        let pendingBrokenLogs = [];
+        if (Array.isArray(brokenData?.logs)) {
+          pendingBrokenLogs = brokenData.logs.filter(i => (i.status || 'PENDING').toUpperCase() === 'PENDING');
+        } else if (Array.isArray(brokenData)) {
+          pendingBrokenLogs = brokenData.filter(i => (i.status || 'PENDING').toUpperCase() === 'PENDING');
+        } else if (Array.isArray(brokenData?.brokenImages)) {
+          pendingBrokenLogs = brokenData.brokenImages.filter(i => (i.status || 'PENDING').toUpperCase() === 'PENDING');
+        }
+
+        if (location.pathname !== '/products/broken-images') {
+          setBrokenImagesUnreadCount(pendingBrokenLogs.length);
         }
 
         if (!isInitialDataLoad.current) {
@@ -457,6 +487,18 @@ const Layout = () => {
               FiFileText
             );
           }
+
+          const prevBrokenCount = prevBrokenImagesRef.current?.length || 0;
+          const currentBrokenCount = pendingBrokenLogs.length;
+          if (currentBrokenCount > prevBrokenCount && location.pathname !== '/products/broken-images') {
+            const countDiff = currentBrokenCount - prevBrokenCount;
+            addToast(
+              `Broken Image Alert`,
+              `${countDiff} new broken image${countDiff > 1 ? 's' : ''} reported by the app.`,
+              '/products/broken-images',
+              FiAlertTriangle
+            );
+          }
         }
 
         prevOrdersRef.current = orders;
@@ -464,6 +506,7 @@ const Layout = () => {
         prevPendingRef.current = pendingUsers;
         prevDeletionRef.current = deletionUsers;
         prevQuotesRef.current = quotes;
+        prevBrokenImagesRef.current = pendingBrokenLogs;
         isInitialDataLoad.current = false;
 
       } catch (error) {
@@ -478,13 +521,13 @@ const Layout = () => {
 
   // Update browser tab title with total unread notification counts
   useEffect(() => {
-    const totalNotifications = chatUnreadCount + ordersUnreadCount + usersUnreadCount + usersVerifyUnreadCount + usersDeletionUnreadCount + quotesUnreadCount + (failedImageProductNames.length > 0 ? 1 : 0);
+    const totalNotifications = chatUnreadCount + ordersUnreadCount + usersUnreadCount + usersVerifyUnreadCount + usersDeletionUnreadCount + quotesUnreadCount + brokenImagesUnreadCount + (failedImageProductNames.length > 0 ? 1 : 0);
     if (totalNotifications > 0) {
       document.title = `(${totalNotifications}) Inizio`;
     } else {
       document.title = 'Inizio';
     }
-  }, [chatUnreadCount, ordersUnreadCount, usersUnreadCount, usersVerifyUnreadCount, usersDeletionUnreadCount, quotesUnreadCount, failedImageProductNames]);
+  }, [chatUnreadCount, ordersUnreadCount, usersUnreadCount, usersVerifyUnreadCount, usersDeletionUnreadCount, quotesUnreadCount, brokenImagesUnreadCount, failedImageProductNames]);
 
   // Global event listener for image load failures
   useEffect(() => {
@@ -676,6 +719,7 @@ const Layout = () => {
     if (path === '/orders' || path === '/orders/all') return ordersUnreadCount;
     if (path === '/users/list') return usersUnreadCount + usersVerifyUnreadCount + usersDeletionUnreadCount;
     if (path === '/quotes') return quotesUnreadCount;
+    if (path === '/products/broken-images') return brokenImagesUnreadCount;
     return 0;
   };
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { FiSearch, FiPackage, FiLoader, FiAlertCircle, FiTag, FiGrid, FiFileText } from 'react-icons/fi';
+import { FiSearch, FiPackage, FiLoader, FiAlertCircle, FiTag, FiGrid, FiFileText, FiUser, FiSend, FiShoppingBag } from 'react-icons/fi';
 import { api, BASE_URL } from '../../api/axios';
 import { useAuth } from '../../Context/AuthContext';
 import { getAccessibleMenus } from '../../config/menus';
@@ -25,11 +25,13 @@ const SearchResults = () => {
       setError(null);
       
       try {
-        const [prodRes, brandRes, catRes, userRes] = await Promise.all([
+        const [prodRes, brandRes, catRes, userRes, campRes, orderRes] = await Promise.all([
           api.get('/products/').catch(() => ({ data: [] })),
           api.get('/brands/admin').catch(() => ({ data: [] })),
           api.get('/categories/admin/all').catch(() => ({ data: [] })),
-          api.get('/admin/customers').catch(() => ({ data: [] }))
+          api.get('/admin/customers').catch(() => ({ data: [] })),
+          api.get('/admin/campaign-stats').catch(() => ({ data: [] })),
+          api.get('/orders/all').catch(() => ({ data: [] }))
         ]);
 
         const terms = query.toLowerCase().trim().split(/\s+/);
@@ -60,62 +62,91 @@ const SearchResults = () => {
           })));
         }
 
-        // 2. Search Products
-        const productsData = prodRes.data || [];
+        // 2. Search Products (Name, Description, SKU, EAN, ID)
+        const productsData = Array.isArray(prodRes.data) ? prodRes.data : [];
         const matchedProducts = productsData.filter(product => {
-          const searchableText = `${product.name || ''} ${product.description || ''} ${product.variants?.[0]?.sku || ''}`.toLowerCase();
+          const searchableText = `${product._id || ''} ${product.id || ''} ${product.name || ''} ${product.description || ''} ${product.eanNumber || ''} ${(product.variants || []).map(v => `${v.sku || ''} ${v._id || ''}`).join(' ')}`.toLowerCase();
           return terms.every(term => searchableText.includes(term));
         });
         searchResultsList = searchResultsList.concat(matchedProducts.map(p => ({
           _id: `prod-${p._id}`,
           title: p.name,
-          subtitle: `SKU: ${p.variants?.[0]?.sku || 'N/A'}`,
+          subtitle: `SKU: ${p.variants?.[0]?.sku || 'N/A'}${p._id ? ` • ID: ${p._id}` : ''}`,
           type: 'Product',
-          url: `/products/list`,
+          url: `/products/list?viewProductId=${p._id}`,
           state: { viewProductId: p._id },
           price: p.variants?.[0]?.price
         })));
 
-        // 3. Search Brands
-        const brandsData = brandRes.data || [];
-        const matchedBrands = brandsData.filter(b => 
-          terms.every(term => b.name?.toLowerCase().includes(term))
-        );
+        // 3. Search Brands (Name, ID, Description)
+        const brandsData = Array.isArray(brandRes.data) ? brandRes.data : [];
+        const matchedBrands = brandsData.filter(b => {
+          const searchableText = `${b._id || ''} ${b.id || ''} ${b.name || ''} ${b.description || ''}`.toLowerCase();
+          return terms.every(term => searchableText.includes(term));
+        });
         searchResultsList = searchResultsList.concat(matchedBrands.map(b => ({
           _id: `brand-${b._id}`,
           title: b.name,
-          subtitle: 'Brand',
+          subtitle: `Brand${b._id ? ` • ID: ${b._id}` : ''}`,
           type: 'Brand',
           url: `/products/brands`
         })));
 
-        // 4. Search Categories
-        const categoriesData = catRes.data || [];
-        const matchedCategories = categoriesData.filter(c => 
-          terms.every(term => c.name?.toLowerCase().includes(term))
-        );
+        // 4. Search Categories (Name, ID, Description)
+        const categoriesData = Array.isArray(catRes.data) ? catRes.data : [];
+        const matchedCategories = categoriesData.filter(c => {
+          const searchableText = `${c._id || ''} ${c.id || ''} ${c.name || ''} ${c.description || ''}`.toLowerCase();
+          return terms.every(term => searchableText.includes(term));
+        });
         searchResultsList = searchResultsList.concat(matchedCategories.map(c => ({
           _id: `cat-${c._id}`,
           title: c.name,
-          subtitle: 'Category',
+          subtitle: `Category${c._id ? ` • ID: ${c._id}` : ''}`,
           type: 'Category',
           url: `/products/categories`
         })));
 
-        // 5. Search Users
-        const usersData = userRes.data || [];
+        // 5. Search Users (Name, Email, Phone, ID, Company, GST)
+        const usersData = Array.isArray(userRes.data) ? userRes.data : [];
         const matchedUsers = usersData.filter(u => {
-          const nameText = (u.name || '').toLowerCase();
-          const emailText = (u.email || '').toLowerCase();
-          const phoneText = (u.phone || '').toLowerCase();
-          return terms.every(term => nameText.includes(term) || emailText.includes(term) || phoneText.includes(term));
+          const searchableText = `${u._id || ''} ${u.id || ''} ${u.name || ''} ${u.email || ''} ${u.phone || ''} ${u.companyName || ''} ${u.gstNumber || ''}`.toLowerCase();
+          return terms.every(term => searchableText.includes(term));
         });
         searchResultsList = searchResultsList.concat(matchedUsers.map(u => ({
           _id: `user-${u._id}`,
           title: u.name || 'No Name',
-          subtitle: `${u.email || 'No Email'}${u.phone ? ` • ${u.phone}` : ''}`,
+          subtitle: `${u.email || 'No Email'}${u.phone ? ` • ${u.phone}` : ''}${u._id ? ` • ID: ${u._id}` : ''}`,
           type: 'User',
           url: `/users/list/${u._id}`
+        })));
+
+        // 6. Search Campaigns (Title, Message, ID, CampaignID)
+        const campaignsData = Array.isArray(campRes.data) ? campRes.data : [];
+        const matchedCampaigns = campaignsData.filter(cmp => {
+          const searchableText = `${cmp._id || ''} ${cmp.id || ''} ${cmp.campaignId || ''} ${cmp.title || ''} ${cmp.message || ''}`.toLowerCase();
+          return terms.every(term => searchableText.includes(term));
+        });
+        searchResultsList = searchResultsList.concat(matchedCampaigns.map(cmp => ({
+          _id: `cmp-${cmp._id || cmp.campaignId}`,
+          title: cmp.title || 'Campaign',
+          subtitle: `Campaign${cmp.campaignId || cmp._id ? ` • ID: ${cmp.campaignId || cmp._id}` : ''}${cmp.message ? ` • ${cmp.message}` : ''}`,
+          type: 'Campaign',
+          url: `/campaign-stats/${cmp._id || cmp.campaignId}`
+        })));
+
+        // 7. Search Orders (Order ID, _ID, Customer Name, Email, Phone, AWB, Status)
+        const ordersData = Array.isArray(orderRes.data) ? orderRes.data : (orderRes.data?.orders || []);
+        const matchedOrders = ordersData.filter(o => {
+          const searchableText = `${o._id || ''} ${o.id || ''} ${o.orderId || ''} ${o.user?.name || ''} ${o.user?.email || ''} ${o.user?.phone || ''} ${o.shippingAddress?.fullName || ''} ${o.shippingAddress?.phone || ''} ${o.awbNumber || ''} ${o.orderStatus || ''}`.toLowerCase();
+          return terms.every(term => searchableText.includes(term));
+        });
+        searchResultsList = searchResultsList.concat(matchedOrders.map(o => ({
+          _id: `order-${o._id}`,
+          title: `Order #${o.orderId || (o._id ? o._id.slice(-8).toUpperCase() : 'N/A')}`,
+          subtitle: `${o.user?.name || o.shippingAddress?.fullName || 'Customer'} • ₹${o.totalAmount || 0} • ID: ${o._id || o.orderId}`,
+          type: 'Order',
+          url: `/orders/all?viewOrderId=${o._id}`,
+          state: { viewOrderId: o._id }
         })));
 
         setResults(searchResultsList);
@@ -157,7 +188,7 @@ const SearchResults = () => {
 
       {/* Results List */}
       {!loading && !error && (
-        <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6">
+        <div className="bg-linear-to-br from-slate-950 to-blue-950/65 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6">
           {results.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {results.map((item) => {
@@ -166,6 +197,8 @@ const SearchResults = () => {
                 else if (item.type === 'Brand') Icon = FiTag;
                 else if (item.type === 'Category') Icon = FiGrid;
                 else if (item.type === 'User') Icon = FiUser;
+                else if (item.type === 'Campaign') Icon = FiSend;
+                else if (item.type === 'Order') Icon = FiShoppingBag;
 
                 return (
                   <Link 

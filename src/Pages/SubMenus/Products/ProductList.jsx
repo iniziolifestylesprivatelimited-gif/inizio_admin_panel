@@ -17,6 +17,227 @@ const getImageUrl = (path) => {
   return `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
 };
 
+const QuantityFilterDropdown = ({ qtyOp, qtyVal, onApply, onClear }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [localOp, setLocalOp] = useState(qtyOp || '>');
+  const [localVal, setLocalVal] = useState(qtyVal !== undefined && qtyVal !== null ? String(qtyVal) : '');
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const triggerRef = useRef(null);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    setLocalOp(qtyOp || '>');
+    setLocalVal(qtyVal !== undefined && qtyVal !== null ? String(qtyVal) : '');
+  }, [qtyOp, qtyVal]);
+
+  const updatePosition = useCallback(() => {
+    if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      const popoverWidth = 270;
+      let left = rect.left + (rect.width / 2) - (popoverWidth / 2);
+      if (left + popoverWidth > window.innerWidth - 16) {
+        left = window.innerWidth - popoverWidth - 16;
+      }
+      if (left < 16) left = 16;
+
+      setPosition({
+        top: rect.bottom + 8,
+        left
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      updatePosition();
+      const handleScrollOrResize = (e) => {
+        if (dropdownRef.current && dropdownRef.current.contains(e?.target)) return;
+        updatePosition();
+      };
+      window.addEventListener('scroll', handleScrollOrResize, true);
+      window.addEventListener('resize', handleScrollOrResize);
+      return () => {
+        window.removeEventListener('scroll', handleScrollOrResize, true);
+        window.removeEventListener('resize', handleScrollOrResize);
+      };
+    }
+  }, [isOpen, updatePosition]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target) &&
+        triggerRef.current &&
+        !triggerRef.current.contains(event.target)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleApply = (e) => {
+    if (e) e.preventDefault();
+    if (localVal.trim() === '') {
+      onClear();
+    } else {
+      onApply(localOp, localVal.trim());
+    }
+    setIsOpen(false);
+  };
+
+  const handleClear = (e) => {
+    if (e) e.stopPropagation();
+    setLocalVal('');
+    onClear();
+    setIsOpen(false);
+  };
+
+  const isActive = qtyVal !== '' && qtyVal !== null && qtyVal !== undefined;
+
+  return (
+    <div className="relative font-medium inline-block text-left" ref={triggerRef}>
+      {/* Trigger Button */}
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center justify-between gap-1.5 px-3 py-1 rounded-lg border cursor-pointer transition-all select-none ${
+          isActive
+            ? 'bg-blue-600/20 text-blue-400 border-blue-500/40 font-extrabold shadow-sm'
+            : 'border-transparent text-slate-300 font-bold hover:text-white'
+        }`}
+      >
+        <span className="text-xs uppercase tracking-wider">
+          {isActive ? `Qty ${qtyOp} ${qtyVal}` : 'Total Qty'}
+        </span>
+        {isActive ? (
+          <button
+            type="button"
+            onClick={handleClear}
+            className="p-0.5 hover:bg-white/10 rounded text-slate-400 hover:text-white transition-colors ml-0.5"
+            title="Clear quantity filter"
+          >
+            <FiX size={12} />
+          </button>
+        ) : (
+          <FiChevronDown
+            className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''} text-current opacity-70 text-xs`}
+          />
+        )}
+      </div>
+
+      {/* Popover Dropdown rendered into document.body to avoid any table overflow clipping */}
+      {isOpen && createPortal(
+        <div
+          ref={dropdownRef}
+          style={{
+            position: 'fixed',
+            top: `${position.top}px`,
+            left: `${position.left}px`,
+            zIndex: 999999
+          }}
+          className="w-[270px] bg-slate-900 border border-white/20 rounded-2xl shadow-2xl shadow-black p-4 animate-in fade-in slide-in-from-top-2 text-left backdrop-blur-3xl"
+        >
+          <div className="flex items-center justify-between border-b border-white/10 pb-2.5 mb-3">
+            <span className="text-xs font-bold text-white uppercase tracking-wider">Filter by Quantity</span>
+            {isActive && (
+              <button
+                type="button"
+                onClick={handleClear}
+                className="text-[10px] font-bold text-rose-400 hover:text-rose-300 underline cursor-pointer"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+
+          {/* Condition Operators */}
+          <div className="space-y-1.5 mb-3">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Condition</span>
+            <div className="grid grid-cols-3 gap-1.5 p-1 bg-black/60 border border-white/10 rounded-xl">
+              {[
+                { op: '>', label: 'Greater than (>)' },
+                { op: '=', label: 'Equal to (=)' },
+                { op: '<', label: 'Less than (<)' }
+              ].map(({ op, label }) => (
+                <button
+                  key={op}
+                  type="button"
+                  onClick={() => setLocalOp(op)}
+                  className={`py-1.5 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer ${
+                    localOp === op
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                      : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  }`}
+                  title={label}
+                >
+                  {op}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Quantity Input Field */}
+          <form onSubmit={handleApply} className="space-y-3">
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                Quantity Number
+              </span>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                placeholder="Type quantity number..."
+                value={localVal}
+                onChange={(e) => setLocalVal(e.target.value)}
+                autoFocus
+                className="w-full px-3 py-2 bg-black/60 border border-white/15 rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+              />
+            </div>
+
+            {/* Quick Preset Buttons */}
+            <div className="flex items-center gap-1.5 flex-wrap pt-1 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => { setLocalOp('='); setLocalVal('0'); onApply('=', '0'); setIsOpen(false); }}
+                className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer"
+              >
+                = 0 (Out of stock)
+              </button>
+              <button
+                type="button"
+                onClick={() => { setLocalOp('>'); setLocalVal('0'); onApply('>', '0'); setIsOpen(false); }}
+                className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer"
+              >
+                &gt; 0 (In stock)
+              </button>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-2 pt-2 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="flex-1 py-2 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white text-xs font-bold rounded-xl transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-blue-600/30 cursor-pointer"
+              >
+                Apply
+              </button>
+            </div>
+          </form>
+        </div>,
+        document.body
+      )}
+    </div>
+  );
+};
+
 const ProductList = () => {
   const { confirm } = useConfirm();
   const [products, setProducts] = useState([]);
@@ -70,6 +291,8 @@ const ProductList = () => {
   const selectedBrand = searchParams.get('brand') || '';
   const selectedCategory = searchParams.get('category') || '';
   const selectedStockStatus = searchParams.get('stock') || '';
+  const qtyOp = searchParams.get('qtyOp') || '>';
+  const qtyVal = searchParams.get('qtyVal') || '';
   const sortKey = searchParams.get('sortKey') || '';
   const sortOrder = searchParams.get('sortOrder') || 'asc';
 
@@ -80,6 +303,26 @@ const ProductList = () => {
       } else {
         prev.delete(key);
       }
+      prev.set('page', '1');
+      return prev;
+    });
+  };
+
+  const handleQtyFilterApply = (operator, value) => {
+    setSearchParams(prev => {
+      prev.set('qtyOp', operator);
+      prev.set('qtyVal', value);
+      prev.delete('stock');
+      prev.set('page', '1');
+      return prev;
+    });
+  };
+
+  const handleQtyFilterClear = () => {
+    setSearchParams(prev => {
+      prev.delete('qtyOp');
+      prev.delete('qtyVal');
+      prev.delete('stock');
       prev.set('page', '1');
       return prev;
     });
@@ -113,6 +356,8 @@ const ProductList = () => {
       prev.delete('brand');
       prev.delete('category');
       prev.delete('stock');
+      prev.delete('qtyOp');
+      prev.delete('qtyVal');
       prev.delete('sortKey');
       prev.delete('sortOrder');
       prev.set('page', '1');
@@ -132,10 +377,10 @@ const ProductList = () => {
   // Debounce search updates to searchParams to prevent lag during fast typing
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
-      setSearchParams(prev => {
-        const currentSearch = prev.get('search') || '';
-        if (searchInput === currentSearch) return prev;
+      const currentSearch = searchParams.get('search') || '';
+      if (searchInput === currentSearch) return;
 
+      setSearchParams(prev => {
         if (searchInput) {
           if (!currentSearch) {
             preSearchPageRef.current = parseInt(prev.get('page') || '1', 10);
@@ -152,7 +397,7 @@ const ProductList = () => {
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [searchInput, setSearchParams]);
+  }, [searchInput, searchParams, setSearchParams]);
   const itemsPerPage = 10;
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [isDeleteMode, setIsDeleteMode] = useState(false);
@@ -319,17 +564,57 @@ const ProductList = () => {
   };
 
   useEffect(() => {
-    if (location.state?.viewProductId && products.length > 0) {
-      const productToView = products.find(p => p._id === location.state.viewProductId);
-      if (productToView) {
-        setCurrentProductForView(productToView);
-        setIsDetailsModalOpen(true);
-        setIsVariantsExpanded(false);
-        // Clean up state so it doesn't reopen on refresh
-        navigate(location.pathname, { replace: true, state: {} });
+    const targetProductId = searchParams.get('viewProductId') || location.state?.viewProductId;
+    if (!targetProductId) return;
+
+    let isMounted = true;
+
+    // Check if product is already in the loaded products list
+    const productToView = products.find(p => p._id === targetProductId);
+    if (productToView) {
+      setCurrentProductForView(productToView);
+      setIsDetailsModalOpen(true);
+      setIsVariantsExpanded(false);
+      
+      if (searchParams.has('viewProductId')) {
+        setSearchParams(prev => {
+          prev.delete('viewProductId');
+          return prev;
+        }, { replace: true });
       }
+      if (location.state?.viewProductId) {
+        navigate(location.pathname + location.search, { replace: true, state: {} });
+      }
+    } else {
+      // If products list isn't loaded yet or product is not in current list, fetch directly
+      const token = sessionStorage.getItem('accessToken');
+      const headers = { Authorization: `Bearer ${token}` };
+      axios.get(`${BASE_URL}/api/products/${targetProductId}`, { headers })
+        .then(res => {
+          if (!isMounted || !res.data) return;
+          setCurrentProductForView(res.data);
+          setIsDetailsModalOpen(true);
+          setIsVariantsExpanded(false);
+
+          if (searchParams.has('viewProductId')) {
+            setSearchParams(prev => {
+              prev.delete('viewProductId');
+              return prev;
+            }, { replace: true });
+          }
+          if (location.state?.viewProductId) {
+            navigate(location.pathname + location.search, { replace: true, state: {} });
+          }
+        })
+        .catch(err => {
+          console.error('Failed to fetch product for details view', err);
+        });
     }
-  }, [location.state, products, navigate, location.pathname]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [searchParams.get('viewProductId'), location.state?.viewProductId, products, navigate, location.pathname, location.search, setSearchParams]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -1306,23 +1591,22 @@ const ProductList = () => {
 
   const getQuantityBadge = (product) => {
     if (product.variants && product.variants.length > 0) {
-      const visibleVariants = product.variants.filter(v => {
-        if (!selectedStockStatus) return true;
-        const qty = Number(v.quantity) || 0;
-        if (selectedStockStatus === 'in_stock') return qty > 0;
-        if (selectedStockStatus === 'low_stock') return qty > 0 && qty <= 10;
-        if (selectedStockStatus === 'out_of_stock') return qty <= 0;
-        return true;
-      });
+      const hasQtyFilter = qtyVal !== '' && !isNaN(Number(qtyVal));
+      const threshold = Number(qtyVal);
 
-      if (visibleVariants.length === 0) {
-        return <span className="text-slate-500 font-bold">-</span>;
-      }
+      const checkMatches = (val) => {
+        const num = Number(val) || 0;
+        if (qtyOp === '<') return num < threshold;
+        if (qtyOp === '>') return num > threshold;
+        if (qtyOp === '=') return num === threshold;
+        return true;
+      };
 
       return (
         <span className="text-slate-400 font-bold text-xs tracking-wide flex flex-col items-center gap-1.5 py-1">
-          {visibleVariants.map((v, i) => {
+          {product.variants.map((v, i) => {
             const qty = Number(v.quantity) || 0;
+            const isMatch = hasQtyFilter && checkMatches(qty);
             let colorClass = '';
             if (qty <= 0) {
               colorClass = 'text-rose-400';
@@ -1333,7 +1617,14 @@ const ProductList = () => {
             }
             const variantLabel = v.name ? `${v.name}: ` : '';
             return (
-              <span key={v._id || i} className={`inline-flex items-center px-2 py-0.5 rounded bg-white/5 border border-white/5 ${colorClass}`}>
+              <span
+                key={v._id || i}
+                className={`inline-flex items-center px-2 py-0.5 rounded border transition-all ${
+                  isMatch
+                    ? 'bg-blue-500/25 border-blue-400 text-blue-300 font-black shadow-sm ring-1 ring-blue-400/40'
+                    : `bg-white/5 border-white/5 ${colorClass}`
+                }`}
+              >
                 {variantLabel}{qty}
               </span>
             );
@@ -1425,8 +1716,31 @@ const ProductList = () => {
         if (pCategoryId !== selectedCategory) return false;
       }
 
-      // 4. Stock status filter
-      if (selectedStockStatus) {
+      // 4. Quantity / Stock status filter
+      if (qtyVal !== '') {
+        const threshold = Number(qtyVal);
+        if (!isNaN(threshold)) {
+          const checkMatches = (val) => {
+            const num = Number(val) || 0;
+            if (qtyOp === '<') return num < threshold;
+            if (qtyOp === '>') return num > threshold;
+            if (qtyOp === '=') return num === threshold;
+            return true;
+          };
+
+          const hasVariants = Array.isArray(product.variants) && product.variants.length > 0;
+          if (hasVariants) {
+            // Check if any variant's individual quantity matches the condition (no summing)
+            const anyVariantMatches = product.variants.some(v => checkMatches(v.quantity));
+            if (!anyVariantMatches) return false;
+          } else {
+            const directQty = product.totalQuantity !== undefined && product.totalQuantity !== null && product.totalQuantity !== ''
+              ? Number(product.totalQuantity)
+              : 0;
+            if (!checkMatches(directQty)) return false;
+          }
+        }
+      } else if (selectedStockStatus) {
         const hasVariants = product.variants && product.variants.length > 0;
 
         if (selectedStockStatus === 'in_stock') {
@@ -1478,7 +1792,7 @@ const ProductList = () => {
 
       return true;
     });
-  }, [products, catalogTab, selectedBrand, selectedCategory, selectedStockStatus, searchTerm, getBrandName, getCategoryName]);
+  }, [products, catalogTab, selectedBrand, selectedCategory, selectedStockStatus, qtyOp, qtyVal, searchTerm, getBrandName, getCategoryName]);
 
   // Apply sorting (Memoized)
   const sortedProducts = useMemo(() => {
@@ -1794,18 +2108,12 @@ const ProductList = () => {
                     )}
                   </div>
                 </th>
-                <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs text-center min-w-[130px]">
-                  <CustomDropdown
-                    value={selectedStockStatus}
-                    onChange={(val) => handleFilterChange('stock', val)}
-                    options={[
-                      { value: '', label: 'All' },
-                      { value: 'in_stock', label: 'In Stock' },
-                      { value: 'low_stock', label: 'Low Stock' },
-                      { value: 'out_of_stock', label: 'Out of Stock' }
-                    ]}
-                    defaultLabel="Total Qty"
-                    statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedStockStatus ? 'text-blue-400 font-extrabold' : 'text-slate-300'}`}
+                <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs text-center min-w-[140px]">
+                  <QuantityFilterDropdown
+                    qtyOp={qtyOp}
+                    qtyVal={qtyVal}
+                    onApply={handleQtyFilterApply}
+                    onClear={handleQtyFilterClear}
                   />
                 </th>
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs text-center">Variants</th>
@@ -1813,7 +2121,7 @@ const ProductList = () => {
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs text-center">
                   <div className="flex items-center justify-center gap-1">
                     <span>Action</span>
-                    {(selectedBrand || selectedCategory || selectedStockStatus || sortKey) && (
+                    {(selectedBrand || selectedCategory || selectedStockStatus || qtyVal || sortKey) && (
                       <button
                         onClick={handleClearFilters}
                         className="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold rounded border border-white/10 transition-all cursor-pointer hover:text-white ml-2"
@@ -2067,53 +2375,84 @@ const ProductList = () => {
 
               {/* General Information */}
               <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5">
-                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-2"><span className="w-1.5 h-5 bg-blue-500 rounded-full"></span>General Information</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-                  <div className="sm:col-span-2 md:col-span-3">
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Product Name</p>
-                    <p className="text-white font-medium text-lg">{currentProductForView.name || 'N/A'}</p>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <span className='text-xs text-slate-500 font-mono'>{currentProductForView._id}</span>
-                      <CopyButton text={currentProductForView._id} className="text-slate-500 hover:text-slate-300" size={10} />
+                {/* <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-2"><span className="w-1.5 h-5 bg-blue-500 rounded-full"></span>General Information</h3> */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="md:col-span-2 space-y-4">
+                    <div>
+                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Product Name</p>
+                      <p className="text-white font-medium text-lg">{currentProductForView.name || 'N/A'}</p>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <span className='text-xs text-slate-500 font-mono'>{currentProductForView._id}</span>
+                        <CopyButton text={currentProductForView._id} className="text-slate-500 hover:text-slate-300" size={10} />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Brand</p>
+                        <p className="text-white font-medium">{getBrandName(currentProductForView.brand)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Category</p>
+                        <p className="text-white font-medium">{getCategoryName(currentProductForView.category)}</p>
+                      </div>
+
+                      <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Status</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${currentProductForView.isActive !== false ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
+                            {currentProductForView.isActive !== false ? 'Active' : 'Inactive'}
+                          </span>
+                          <button
+                            onClick={() => handleToggleActive(currentProductForView.isActive === false)}
+                            disabled={isTogglingActive}
+                            className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${currentProductForView.isActive !== false
+                                ? 'bg-rose-600/20 text-rose-400 border-rose-500/30 hover:bg-rose-600/30'
+                                : 'bg-emerald-600/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-600/30'
+                              }`}
+                          >
+                            {isTogglingActive ? 'Updating...' : (currentProductForView.isActive !== false ? 'Deactivate' : 'Activate')}
+                          </button>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Created At</p>
+                        <p className="text-white font-medium text-sm">{formatDateTimeDDMMYYYY(currentProductForView.createdAt)}</p>
+                      </div>
+
+                      <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">EAN Number</p>
+                        <p className="text-white font-medium">{currentProductForView.eanNumber || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Updated At</p>
+                        <p className="text-white font-medium text-sm">{formatDateTimeDDMMYYYY(currentProductForView.updatedAt)}</p>
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Brand</p>
-                    <p className="text-white font-medium">{getBrandName(currentProductForView.brand)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Category</p>
-                    <p className="text-white font-medium">{getCategoryName(currentProductForView.category)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">EAN Number</p>
-                    <p className="text-white font-medium">{currentProductForView.eanNumber || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Status</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${currentProductForView.isActive !== false ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
-                        {currentProductForView.isActive !== false ? 'Active' : 'Inactive'}
-                      </span>
-                      <button
-                        onClick={() => handleToggleActive(currentProductForView.isActive === false)}
-                        disabled={isTogglingActive}
-                        className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${currentProductForView.isActive !== false
-                            ? 'bg-rose-600/20 text-rose-400 border-rose-500/30 hover:bg-rose-600/30'
-                            : 'bg-emerald-600/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-600/30'
-                          }`}
-                      >
-                        {isTogglingActive ? 'Updating...' : (currentProductForView.isActive !== false ? 'Deactivate' : 'Activate')}
-                      </button>
+
+                  {/* Product Image in Previous Column Position */}
+                  <div className="flex flex-col items-center justify-start">
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 self-start">Product Image</p>
+                    <div className="w-full h-44 sm:h-52 md:h-full max-h-56 rounded-2xl border border-white/10 overflow-hidden bg-slate-900/60 p-2 flex items-center justify-center">
+                      {(() => {
+                        const firstImage = (currentProductForView.images && currentProductForView.images.length > 0 && currentProductForView.images[0]) ||
+                          (currentProductForView.variants && currentProductForView.variants.length > 0 && currentProductForView.variants[0]?.images && currentProductForView.variants[0]?.images[0]);
+                        return firstImage ? (
+                          <img
+                            src={getImageUrl(firstImage)}
+                            alt={currentProductForView.name || 'Product Image'}
+                            className="max-w-full max-h-full object-contain rounded-xl bg-white"
+                            onError={(e) => { e.target.src = 'https://placehold.co/200x200?text=No+Image'; }}
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center text-slate-500 gap-2">
+                            <FiPackage className="text-3xl text-slate-600" />
+                            <span className="text-xs italic">No image available</span>
+                          </div>
+                        );
+                      })()}
                     </div>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Created At</p>
-                    <p className="text-white font-medium text-sm">{formatDateTimeDDMMYYYY(currentProductForView.createdAt)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Updated At</p>
-                    <p className="text-white font-medium text-sm">{formatDateTimeDDMMYYYY(currentProductForView.updatedAt)}</p>
                   </div>
                 </div>
               </div>

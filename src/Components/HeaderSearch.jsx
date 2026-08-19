@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
 import { 
-  FiSearch, FiX, FiLoader, FiFileText, FiPackage, FiTag, FiGrid, FiUser
+  FiSearch, FiX, FiLoader, FiFileText, FiPackage, FiTag, FiGrid, FiUser, FiSend, FiShoppingBag
 } from 'react-icons/fi';
 import { getAccessibleMenus } from '../config/menus';
 import { api } from '../api/axios';
@@ -16,7 +16,7 @@ const HeaderSearch = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [searchData, setSearchData] = useState({ products: [], brands: [], categories: [], users: [] });
+  const [searchData, setSearchData] = useState({ products: [], brands: [], categories: [], users: [], campaigns: [], orders: [] });
   const [dataFetched, setDataFetched] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const searchRef = useRef(null);
@@ -41,18 +41,22 @@ const HeaderSearch = () => {
     if (dataFetched || isLoadingData) return;
     setIsLoadingData(true);
     try {
-      const [prodRes, brandRes, catRes, userRes] = await Promise.all([
+      const [prodRes, brandRes, catRes, userRes, campRes, orderRes] = await Promise.all([
         api.get('/products/').catch(() => ({ data: [] })),
-        api.get('/brands/admin').catch(() => ({ data: [] })),
-        api.get('/categories/admin/all').catch(() => ({ data: [] })),
-        api.get('/admin/customers').catch(() => ({ data: [] }))
+        api.get('/brands/').catch(() => ({ data: [] })),
+        api.get('/categories/').catch(() => ({ data: [] })),
+        api.get('/admin/customers').catch(() => ({ data: [] })),
+        api.get('/admin/campaign-stats').catch(() => ({ data: [] })),
+        api.get('/orders/all').catch(() => ({ data: [] }))
       ]);
       
       setSearchData({
         products: Array.isArray(prodRes.data) ? prodRes.data : [],
         brands: Array.isArray(brandRes.data) ? brandRes.data : [],
         categories: Array.isArray(catRes.data) ? catRes.data : [],
-        users: Array.isArray(userRes.data) ? userRes.data : []
+        users: Array.isArray(userRes.data) ? userRes.data : [],
+        campaigns: Array.isArray(campRes.data) ? campRes.data : [],
+        orders: Array.isArray(orderRes.data) ? orderRes.data : (orderRes.data?.orders || [])
       });
       setDataFetched(true);
     } catch (err) {
@@ -115,60 +119,87 @@ const HeaderSearch = () => {
         })));
       }
 
-      // 2. Search Products
+      // 2. Search Products (Name, Description, SKU, EAN, ID)
       const matchedProducts = searchData.products.filter(product => {
-        const searchableText = `${product.name || ''} ${product.description || ''} ${product.variants?.[0]?.sku || ''}`.toLowerCase();
+        const searchableText = `${product._id || ''} ${product.id || ''} ${product.name || ''} ${product.description || ''} ${product.eanNumber || ''} ${(product.variants || []).map(v => `${v.sku || ''} ${v._id || ''}`).join(' ')}`.toLowerCase();
         return terms.every(term => searchableText.includes(term));
       });
       results = results.concat(matchedProducts.map(p => ({
         _id: `prod-${p._id}`,
         title: p.name,
-        subtitle: `SKU: ${p.variants?.[0]?.sku || 'N/A'}`,
+        subtitle: `SKU: ${p.variants?.[0]?.sku || 'N/A'}${p._id ? ` • ID: ${p._id}` : ''}`,
         type: 'Product',
-        url: `/products/list`,
+        url: `/products/list?viewProductId=${p._id}`,
         state: { viewProductId: p._id }
       })));
 
-      // 3. Search Brands
-      const matchedBrands = searchData.brands.filter(b => 
-        terms.every(term => b.name?.toLowerCase().includes(term))
-      );
+      // 3. Search Brands (Name, ID, Description)
+      const matchedBrands = searchData.brands.filter(b => {
+        const searchableText = `${b._id || ''} ${b.id || ''} ${b.name || ''} ${b.description || ''}`.toLowerCase();
+        return terms.every(term => searchableText.includes(term));
+      });
       results = results.concat(matchedBrands.map(b => ({
         _id: `brand-${b._id}`,
         title: b.name,
-        subtitle: 'Brand',
+        subtitle: `Brand${b._id ? ` • ID: ${b._id}` : ''}`,
         type: 'Brand',
         url: `/products/brands`
       })));
 
-      // 4. Search Categories
-      const matchedCategories = searchData.categories.filter(c => 
-        terms.every(term => c.name?.toLowerCase().includes(term))
-      );
+      // 4. Search Categories (Name, ID, Description)
+      const matchedCategories = searchData.categories.filter(c => {
+        const searchableText = `${c._id || ''} ${c.id || ''} ${c.name || ''} ${c.description || ''}`.toLowerCase();
+        return terms.every(term => searchableText.includes(term));
+      });
       results = results.concat(matchedCategories.map(c => ({
         _id: `cat-${c._id}`,
         title: c.name,
-        subtitle: 'Category',
+        subtitle: `Category${c._id ? ` • ID: ${c._id}` : ''}`,
         type: 'Category',
         url: `/products/categories`
       })));
 
-      // 5. Search Users
+      // 5. Search Users (Name, Email, Phone, ID, Company, GST)
       const matchedUsers = searchData.users.filter(u => {
-        const nameText = (u.name || '').toLowerCase();
-        const emailText = (u.email || '').toLowerCase();
-        const phoneText = (u.phone || '').toLowerCase();
-        return terms.every(term => nameText.includes(term) || emailText.includes(term) || phoneText.includes(term));
+        const searchableText = `${u._id || ''} ${u.id || ''} ${u.name || ''} ${u.email || ''} ${u.phone || ''} ${u.companyName || ''} ${u.gstNumber || ''}`.toLowerCase();
+        return terms.every(term => searchableText.includes(term));
       });
       results = results.concat(matchedUsers.map(u => ({
         _id: `user-${u._id}`,
         title: u.name || 'No Name',
-        subtitle: `${u.email || 'No Email'}${u.phone ? ` • ${u.phone}` : ''}`,
+        subtitle: `${u.email || 'No Email'}${u.phone ? ` • ${u.phone}` : ''}${u._id ? ` • ID: ${u._id}` : ''}`,
         type: 'User',
         url: `/users/list/${u._id}`
       })));
 
-      setSearchResults(results.slice(0, 8)); // Limit to top 8 results
+      // 6. Search Campaigns (Title, Message, ID, CampaignID)
+      const matchedCampaigns = searchData.campaigns.filter(cmp => {
+        const searchableText = `${cmp._id || ''} ${cmp.id || ''} ${cmp.campaignId || ''} ${cmp.title || ''} ${cmp.message || ''}`.toLowerCase();
+        return terms.every(term => searchableText.includes(term));
+      });
+      results = results.concat(matchedCampaigns.map(cmp => ({
+        _id: `cmp-${cmp._id || cmp.campaignId}`,
+        title: cmp.title || 'Campaign',
+        subtitle: `Campaign${cmp.campaignId || cmp._id ? ` • ID: ${cmp.campaignId || cmp._id}` : ''}${cmp.message ? ` • ${cmp.message}` : ''}`,
+        type: 'Campaign',
+        url: `/campaign-stats/${cmp._id || cmp.campaignId}`
+      })));
+
+      // 7. Search Orders (Order ID, _ID, Customer Name, Email, Phone, AWB, Status)
+      const matchedOrders = searchData.orders.filter(o => {
+        const searchableText = `${o._id || ''} ${o.id || ''} ${o.orderId || ''} ${o.user?.name || ''} ${o.user?.email || ''} ${o.user?.phone || ''} ${o.shippingAddress?.fullName || ''} ${o.shippingAddress?.phone || ''} ${o.awbNumber || ''} ${o.orderStatus || ''}`.toLowerCase();
+        return terms.every(term => searchableText.includes(term));
+      });
+      results = results.concat(matchedOrders.map(o => ({
+        _id: `order-${o._id}`,
+        title: `Order #${o.orderId || (o._id ? o._id.slice(-8).toUpperCase() : 'N/A')}`,
+        subtitle: `${o.user?.name || o.shippingAddress?.fullName || 'Customer'} • ₹${o.totalAmount || 0} • ID: ${o._id || o.orderId}`,
+        type: 'Order',
+        url: `/orders/all?viewOrderId=${o._id}`,
+        state: { viewOrderId: o._id }
+      })));
+
+      setSearchResults(results.slice(0, 10)); // Limit to top 10 results
       setIsSearching(false);
     }, 150);
 
@@ -193,8 +224,8 @@ const HeaderSearch = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onFocus={() => searchQuery.trim() && setShowSuggestions(true)}
-          placeholder="Search products, brands, categories, or users..." 
-          className="w-full pl-10 pr-10 py-2 bg-transparent border border-white/10 focus:border-blue-500/50 focus:bg-white/10 rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all text-sm text-white placeholder-slate-400"
+          placeholder="Search products, brands, categories, users, campaigns, orders..." 
+          className="w-full pl-10 pr-10 py-2 bg-transparent border border-white/10 focus:border-blue-500/50 focus:bg-blue-950/10 rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all text-sm text-white placeholder-slate-400"
         />
         {searchQuery && (
           <button
@@ -208,7 +239,7 @@ const HeaderSearch = () => {
 
         {/* Search Suggestions Dropdown */}
         {showSuggestions && searchQuery.trim() && (
-          <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-xl shadow-lg overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+          <div className="absolute top-full left-0 right-0 mt-2 bg-linear-to-br from-slate-950 to-blue-950/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-lg overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
             {isSearching ? (
               <div className="p-4 text-center text-slate-400 flex items-center justify-center text-sm font-medium">
                 <FiLoader className="animate-spin mr-2 text-blue-400 text-lg" /> Searching...
@@ -221,6 +252,8 @@ const HeaderSearch = () => {
                   else if (item.type === 'Brand') Icon = FiTag;
                   else if (item.type === 'Category') Icon = FiGrid;
                   else if (item.type === 'User') Icon = FiUser;
+                  else if (item.type === 'Campaign') Icon = FiSend;
+                  else if (item.type === 'Order') Icon = FiShoppingBag;
 
                   return (
                     <li key={item._id}>
@@ -231,7 +264,7 @@ const HeaderSearch = () => {
                           setShowSuggestions(false);
                           setSearchQuery('');
                         }}
-                        className="flex items-center gap-3 p-3 hover:bg-white/10 transition-colors border-b border-white/10 last:border-0"
+                        className="flex items-center gap-3 p-3 hover:bg-blue-950/65 transition-colors border-b border-white/10 last:border-0"
                       >
                         <div className="w-10 h-10 shrink-0 bg-white/10 rounded-lg flex items-center justify-center text-slate-300">
                           <Icon />

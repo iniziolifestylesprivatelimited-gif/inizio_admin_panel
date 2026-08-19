@@ -9,6 +9,7 @@ import {
 } from 'react-icons/fi';
 import { formatDateTimeDDMMYYYY } from '../../../utils/dateUtils';
 import { TableRowSkeleton, KPISkeleton } from '../../../Components/Skeleton';
+import CopyButton from '../../../Components/CopyButton';
 
 // Format image URLs safely
 const formatImageUrl = (path) => {
@@ -23,6 +24,7 @@ export default function BrokenImages() {
 
   // Data states
   const [brokenImages, setBrokenImages] = useState([]);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState(null);
@@ -49,6 +51,117 @@ export default function BrokenImages() {
     }, 4000);
   };
 
+  // Fetch all products for URL / filename matching
+  const fetchProducts = useCallback(async () => {
+    try {
+      const res = await api.get('/products/');
+      const prodList = Array.isArray(res.data) ? res.data : (res.data?.products || []);
+      setProducts(prodList);
+    } catch (err) {
+      console.error('Failed to load products for broken image matching:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  // Build lookup maps for rapid URL/filename matching to products
+  const productLookups = useMemo(() => {
+    const urlMap = new Map();
+    const filenameMap = new Map();
+    const idMap = new Map();
+
+    const registerImage = (imgUrl, product, variant = null) => {
+      if (!imgUrl || typeof imgUrl !== 'string') return;
+      const raw = imgUrl.trim();
+      const lower = raw.toLowerCase();
+      const withoutQuery = lower.split('?')[0].split('#')[0];
+      const filename = withoutQuery.split('/').pop();
+
+      const matchData = { product, variant, originalUrl: raw };
+
+      urlMap.set(lower, matchData);
+      urlMap.set(withoutQuery, matchData);
+
+      // Store cleaned relative path if contains /uploads/ or /wp-content/
+      const wpIdx = lower.indexOf('/wp-content/');
+      if (wpIdx !== -1) {
+        urlMap.set(lower.substring(wpIdx), matchData);
+      }
+      const upIdx = lower.indexOf('/uploads/');
+      if (upIdx !== -1) {
+        urlMap.set(lower.substring(upIdx), matchData);
+      }
+
+      if (filename && filename.length > 3) {
+        filenameMap.set(filename, matchData);
+      }
+    };
+
+    products.forEach(p => {
+      if (p._id) idMap.set(String(p._id), p);
+      if (p.id) idMap.set(String(p.id), p);
+
+      if (Array.isArray(p.images)) {
+        p.images.forEach(img => registerImage(img, p, null));
+      }
+
+      if (Array.isArray(p.variants)) {
+        p.variants.forEach(v => {
+          if (Array.isArray(v.images)) {
+            v.images.forEach(img => registerImage(img, p, v));
+          }
+        });
+      }
+    });
+
+    return { urlMap, filenameMap, idMap };
+  }, [products]);
+
+  // Helper to find matching product for a broken image item
+  const getMatchedProduct = useCallback((item) => {
+    if (!item) return null;
+
+    // 1. Match by entityId if provided
+    if (item.entityId) {
+      const p = productLookups.idMap.get(String(item.entityId));
+      if (p) return { product: p, variant: null, matchType: 'entityId' };
+    }
+
+    const rawUrl = item.imageUrl || item.url || item.image || '';
+    if (!rawUrl) return null;
+
+    const lower = rawUrl.toLowerCase().trim();
+    const withoutQuery = lower.split('?')[0].split('#')[0];
+    const filename = withoutQuery.split('/').pop();
+
+    // 2. Match exact URL or without query
+    if (productLookups.urlMap.has(lower)) {
+      return productLookups.urlMap.get(lower);
+    }
+    if (productLookups.urlMap.has(withoutQuery)) {
+      return productLookups.urlMap.get(withoutQuery);
+    }
+
+    // 3. Match relative paths
+    const wpIdx = lower.indexOf('/wp-content/');
+    if (wpIdx !== -1 && productLookups.urlMap.has(lower.substring(wpIdx))) {
+      return productLookups.urlMap.get(lower.substring(wpIdx));
+    }
+    const upIdx = lower.indexOf('/uploads/');
+    if (upIdx !== -1 && productLookups.urlMap.has(lower.substring(upIdx))) {
+      return productLookups.urlMap.get(lower.substring(upIdx));
+    }
+
+    // 4. Match by filename
+    if (filename && filename.length > 3 && productLookups.filenameMap.has(filename)) {
+      return productLookups.filenameMap.get(filename);
+    }
+
+    return null;
+  }, [productLookups]);
+
   // Fetch broken images
   const fetchBrokenImages = useCallback(async (isBackground = false) => {
     if (isBackground) setRefreshing(true);
@@ -63,7 +176,9 @@ export default function BrokenImages() {
 
       const res = await api.get(endpoint);
       let data = [];
-      if (Array.isArray(res.data)) {
+      if (Array.isArray(res.data?.logs)) {
+        data = res.data.logs;
+      } else if (Array.isArray(res.data)) {
         data = res.data;
       } else if (Array.isArray(res.data?.brokenImages)) {
         data = res.data.brokenImages;
@@ -84,8 +199,13 @@ export default function BrokenImages() {
     }
   }, [activeTab]);
 
+  // Fetch broken images and poll every 15s
   useEffect(() => {
     fetchBrokenImages();
+    const pollInterval = setInterval(() => {
+      fetchBrokenImages(true);
+    }, 15000);
+    return () => clearInterval(pollInterval);
   }, [fetchBrokenImages]);
 
   // Update status of single broken image
@@ -178,21 +298,33 @@ export default function BrokenImages() {
     if (!searchQuery.trim()) return brokenImages;
     const q = searchQuery.toLowerCase().trim();
     return brokenImages.filter(item => {
-      const pName = item.productName || item.product?.name || '';
-      const pId = item.productId || item.product?._id || item._id || '';
+      const match = getMatchedProduct(item);
+      const matchedProductName = match?.product?.name || '';
+      const matchedVariantName = match?.variant?.name || '';
+      const matchedProductId = match?.product?._id || '';
+
       const imgUrl = item.imageUrl || item.url || item.image || '';
-      const reason = item.reason || item.errorMessage || item.error || '';
-      const variantName = item.variantName || item.variant?.name || '';
+      const screen = item.screenName || '';
+      const entityType = item.entityType || '';
+      const entityId = item.entityId ? String(item.entityId) : '';
+      const errorDetails = item.errorDetails || item.reason || item.errorMessage || item.error || '';
+      const id = item._id || item.id || '';
+      const user = typeof item.user === 'object' ? (item.user?.name || item.user?.email || item.user?.phone || '') : (item.user || '');
 
       return (
-        pName.toLowerCase().includes(q) ||
-        pId.toLowerCase().includes(q) ||
         imgUrl.toLowerCase().includes(q) ||
-        reason.toLowerCase().includes(q) ||
-        variantName.toLowerCase().includes(q)
+        screen.toLowerCase().includes(q) ||
+        entityType.toLowerCase().includes(q) ||
+        entityId.toLowerCase().includes(q) ||
+        errorDetails.toLowerCase().includes(q) ||
+        id.toLowerCase().includes(q) ||
+        matchedProductName.toLowerCase().includes(q) ||
+        matchedVariantName.toLowerCase().includes(q) ||
+        matchedProductId.toLowerCase().includes(q) ||
+        user.toLowerCase().includes(q)
       );
     });
-  }, [brokenImages, searchQuery]);
+  }, [brokenImages, searchQuery, getMatchedProduct]);
 
   // Statistics
   const stats = useMemo(() => {
@@ -252,13 +384,28 @@ export default function BrokenImages() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 z-10 relative">
         <div>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-400">
+            <div className="p-2.5 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-400 relative">
               <FiAlertTriangle size={24} />
+              {stats.pending > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500 border-2 border-slate-900"></span>
+                </span>
+              )}
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight flex items-center gap-3">
-                Broken Images Center
-              </h1>
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">
+                  Broken Images Center
+                </h1>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-400">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                  </span>
+                  <span>Live Polling (15s)</span>
+                </div>
+              </div>
               <p className="text-xs md:text-sm text-slate-400 mt-0.5">
                 Monitor, verify, resolve, and ignore catalog image loading failures reported by the mobile app & store.
               </p>
@@ -291,14 +438,22 @@ export default function BrokenImages() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 z-10 relative">
         <div 
           onClick={() => { setActiveTab('PENDING'); setCurrentPage(1); }}
-          className={`p-4.5 rounded-2xl border transition-all cursor-pointer backdrop-blur-xl ${
+          className={`p-4.5 rounded-2xl border transition-all cursor-pointer backdrop-blur-xl relative overflow-hidden ${
             activeTab === 'PENDING'
               ? 'bg-rose-500/15 border-rose-500/40 shadow-lg shadow-rose-500/10'
               : 'bg-slate-900/40 border-white/10 hover:border-rose-500/30'
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pending Action</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pending Action</span>
+              {stats.pending > 0 && (
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                </span>
+              )}
+            </div>
             <div className="p-2 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20">
               <FiAlertTriangle size={16} />
             </div>
@@ -386,12 +541,18 @@ export default function BrokenImages() {
                 setActiveTab(tab.id);
                 setCurrentPage(1);
               }}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer relative ${
                 activeTab === tab.id
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
                   : 'text-slate-400 hover:text-white hover:bg-white/5'
               }`}
             >
+              {tab.id === 'PENDING' && tab.count > 0 && (
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                </span>
+              )}
               <span>{tab.label}</span>
               <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono ${activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-white/5 text-slate-400'}`}>
                 {tab.count}
@@ -494,10 +655,11 @@ export default function BrokenImages() {
                     />
                   </th>
                   <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider w-20">Preview</th>
-                  <th className="py-4 px-5 text-xs font-bold text-slate-400 uppercase tracking-wider">Product Name / ID</th>
+                  <th className="py-4 px-5 text-xs font-bold text-slate-400 uppercase tracking-wider">Product / Screen</th>
                   <th className="py-4 px-5 text-xs font-bold text-slate-400 uppercase tracking-wider">Broken Image URL</th>
                   <th className="py-4 px-5 text-xs font-bold text-slate-400 uppercase tracking-wider">Error Details</th>
-                  <th className="py-4 px-5 text-xs font-bold text-slate-400 uppercase tracking-wider">Reported At</th>
+                  <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Reports</th>
+                  <th className="py-4 px-5 text-xs font-bold text-slate-400 uppercase tracking-wider">Last Reported</th>
                   <th className="py-4 px-5 text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
                   <th className="py-4 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Actions</th>
                 </tr>
@@ -510,10 +672,17 @@ export default function BrokenImages() {
                   const itemStatus = (item.status || 'PENDING').toUpperCase();
                   const rawUrl = item.imageUrl || item.url || item.image || '';
                   const formattedUrl = formatImageUrl(rawUrl);
-                  const pName = item.productName || item.product?.name || 'Unnamed Product';
-                  const pId = item.productId || item.product?._id || '';
-                  const vName = item.variantName || item.variant?.name || '';
-                  const errorReason = item.reason || item.errorMessage || item.error || 'Failed to load (HTTP / Network Error)';
+                  const screen = item.screenName || 'AppScreen';
+                  const entityType = item.entityType || 'general';
+                  const entityId = item.entityId ? String(item.entityId) : null;
+                  const reportCount = item.reportCount || 1;
+                  const errorReason = item.errorDetails || item.reason || item.errorMessage || item.error || 'Failed to load (HTTP 404 / Network Error)';
+                  const timestamp = item.lastReportedAt || item.createdAt || item.updatedAt;
+
+                  // Matched product from catalog
+                  const match = getMatchedProduct(item);
+                  const matchedProduct = match?.product;
+                  const matchedVariant = match?.variant;
 
                   return (
                     <tr
@@ -536,12 +705,12 @@ export default function BrokenImages() {
                       <td className="py-4 px-4">
                         <div
                           onClick={() => setPreviewItem(item)}
-                          className="w-14 h-14 rounded-xl bg-slate-800 border border-white/10 p-1 flex items-center justify-center relative overflow-hidden group-hover:border-rose-500/40 transition-colors cursor-pointer shrink-0"
+                          className="w-14 h-14 rounded-xl bg-slate-800 border border-white/10 p-1 flex items-center justify-center relative overflow-hidden group-hover:border-rose-500/40 transition-colors cursor-pointer shrink-0 bg-white"
                           title="Click to zoom / inspect"
                         >
                           <img
                             src={formattedUrl}
-                            alt={pName}
+                            alt={matchedProduct?.name || screen}
                             className="w-full h-full object-contain"
                             onError={(e) => {
                               e.target.onerror = null;
@@ -558,36 +727,70 @@ export default function BrokenImages() {
                         </div>
                       </td>
 
-                      {/* Product Name & Details */}
+                      {/* Product / Screen Details */}
                       <td className="py-4 px-5">
-                        <div className="flex flex-col max-w-xs">
-                          <span 
-                            onClick={() => {
-                              if (pId) navigate(`/products/list?search=${encodeURIComponent(pName)}`);
-                            }}
-                            className="text-sm font-bold text-white group-hover:text-blue-400 transition-colors truncate cursor-pointer"
-                            title={pName}
-                          >
-                            {pName}
-                          </span>
-                          <div className="flex items-center gap-2 mt-1">
-                            {pId && (
-                              <span className="text-[10px] font-mono text-slate-500 bg-white/5 px-1.5 py-0.5 rounded">
-                                #{pId.substring(Math.max(0, pId.length - 8))}
+                        {matchedProduct ? (
+                          <div className="flex flex-col max-w-xs">
+                            <span 
+                              onClick={() => navigate(`/products/list?viewProductId=${matchedProduct._id}`)}
+                              className="text-sm font-bold text-white hover:text-blue-400 transition-colors truncate cursor-pointer flex items-center gap-1.5"
+                              title={`Product: ${matchedProduct.name} (Click to open)`}
+                            >
+                              <FiPackage className="text-blue-400 shrink-0 text-xs" />
+                              <span className="truncate">{matchedProduct.name}</span>
+                            </span>
+                            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
+                                Product Matched
                               </span>
-                            )}
-                            {vName && (
-                              <span className="text-[10px] font-semibold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.5 rounded">
-                                Variant: {vName}
+                              {matchedVariant?.name && (
+                                <span className="text-[10px] font-semibold text-blue-300 bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.2 rounded truncate max-w-[120px]" title={`Variant: ${matchedVariant.name}`}>
+                                  {matchedVariant.name}
+                                </span>
+                              )}
+                              <span className="text-[10px] text-slate-500 font-medium">
+                                on {screen}
                               </span>
-                            )}
+                            </div>
                           </div>
-                        </div>
+                        ) : (
+                          <div className="flex flex-col max-w-xs">
+                            <span 
+                              onClick={() => setPreviewItem(item)}
+                              className="text-sm font-bold text-white group-hover:text-blue-400 transition-colors truncate cursor-pointer"
+                              title={screen}
+                            >
+                              {screen}
+                            </span>
+                            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded-md">
+                                {entityType}
+                              </span>
+                              {entityId && (
+                                <span 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (entityType === 'product') navigate(`/products/list?viewProductId=${entityId}`);
+                                  }}
+                                  className={`text-[10px] font-mono text-slate-400 bg-white/5 px-1.5 py-0.5 rounded border border-white/5 ${entityType === 'product' ? 'hover:text-blue-300 cursor-pointer' : ''}`}
+                                  title={`Entity ID: ${entityId}`}
+                                >
+                                  #{entityId.substring(Math.max(0, entityId.length - 8))}
+                                </span>
+                              )}
+                              {item.user && (
+                                <span className="text-[10px] text-slate-500 font-medium">
+                                  by {typeof item.user === 'object' ? (item.user.name || item.user.email || 'User') : 'User'}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </td>
 
                       {/* Broken Image URL */}
                       <td className="py-4 px-5">
-                        <div className="flex items-center gap-2 max-w-sm">
+                        <div className="flex items-center gap-2 max-w-xs sm:max-w-sm">
                           <span
                             className="text-xs font-mono text-slate-300 truncate select-all"
                             title={rawUrl}
@@ -621,33 +824,47 @@ export default function BrokenImages() {
                       {/* Error Details */}
                       <td className="py-4 px-5">
                         <div className="flex items-center gap-1.5 text-xs text-rose-400 max-w-xs truncate" title={errorReason}>
-                          <span className="px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-[10px] font-bold uppercase tracking-wider shrink-0">
-                            Failed
+                          <span className="px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-[10px] font-bold uppercase tracking-wider shrink-0 font-mono">
+                            {errorReason.includes('404') ? '404' : errorReason.includes('500') ? '500' : 'Error'}
                           </span>
-                          <span className="truncate text-slate-300 font-medium">{errorReason}</span>
+                          <span className="truncate text-slate-300 font-medium text-[11px]">{errorReason}</span>
                         </div>
+                      </td>
+
+                      {/* Report Count */}
+                      <td className="py-4 px-4 text-center">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-black font-mono ${
+                          reportCount > 3 ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'bg-white/5 text-slate-300 border border-white/10'
+                        }`}>
+                          {reportCount}x
+                        </span>
                       </td>
 
                       {/* Timestamp */}
                       <td className="py-4 px-5 text-xs text-slate-400 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
                           <FiClock className="text-slate-500" size={12} />
-                          <span>{formatDateTimeDDMMYYYY(item.createdAt || item.timestamp || item.updatedAt)}</span>
+                          <span>{formatDateTimeDDMMYYYY(timestamp)}</span>
                         </div>
                       </td>
 
                       {/* Status Badge */}
                       <td className="py-4 px-5">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider border ${
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider border ${
                           itemStatus === 'RESOLVED'
                             ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                             : itemStatus === 'IGNORED'
                               ? 'bg-slate-800 text-slate-400 border-white/10'
-                              : 'bg-amber-500/10 text-amber-400 border-amber-500/20 animate-pulse'
+                              : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
                         }`}>
                           {itemStatus === 'RESOLVED' && <FiCheckCircle size={11} />}
                           {itemStatus === 'IGNORED' && <FiXCircle size={11} />}
-                          {itemStatus === 'PENDING' && <FiAlertTriangle size={11} />}
+                          {itemStatus === 'PENDING' && (
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                            </span>
+                          )}
                           {itemStatus}
                         </span>
                       </td>
@@ -689,15 +906,23 @@ export default function BrokenImages() {
                             </button>
                           )}
 
-                          {pId && (
+                          {matchedProduct && (
                             <button
-                              onClick={() => navigate(`/products/variants/${pId}`)}
+                              onClick={() => navigate(`/products/variants/${matchedProduct._id}`)}
                               className="p-1.5 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 hover:text-blue-300 rounded-lg transition-colors cursor-pointer"
                               title="Edit product variants & images"
                             >
                               <FiSliders size={13} />
                             </button>
                           )}
+
+                          <button
+                            onClick={() => setPreviewItem(item)}
+                            className="p-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
+                            title="Inspect details"
+                          >
+                            <FiEye size={13} />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -760,108 +985,186 @@ export default function BrokenImages() {
       </div>
 
       {/* Modal: Detailed Image Inspector */}
-      {previewItem && (
-        <div 
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in"
-          onClick={() => setPreviewItem(null)}
-        >
+      {previewItem && (() => {
+        const modalMatch = getMatchedProduct(previewItem);
+        const modalMatchedProduct = modalMatch?.product;
+        const modalMatchedVariant = modalMatch?.variant;
+
+        return (
           <div 
-            className="bg-slate-900 border border-white/10 rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl p-6 relative space-y-5"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in"
+            onClick={() => setPreviewItem(null)}
           >
-            {/* Modal Header */}
-            <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-400">
-                  <FiAlertTriangle size={20} />
+            <div 
+              className="bg-slate-900 border border-white/10 rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl p-6 relative space-y-5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-400">
+                    <FiAlertTriangle size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white">Broken Image Inspector</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {modalMatchedProduct ? `Matched: ${modalMatchedProduct.name}` : (previewItem.screenName ? `Screen: ${previewItem.screenName}` : 'Image Incident Report')}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-base font-bold text-white">Broken Image Inspector</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    {previewItem.productName || previewItem.product?.name || 'Product Image Issue'}
+                <button
+                  onClick={() => setPreviewItem(null)}
+                  className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Image Preview & Test Loader Box */}
+              <div className="w-full h-56 rounded-2xl bg-slate-950 border border-white/10 flex items-center justify-center p-4 relative overflow-hidden">
+                <img
+                  src={formatImageUrl(previewItem.imageUrl || previewItem.url || previewItem.image)}
+                  alt="Test reload"
+                  className="max-w-full max-h-full object-contain"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.style.display = 'none';
+                    if (e.target.nextSibling) {
+                      e.target.nextSibling.style.display = 'flex';
+                    }
+                  }}
+                />
+                <div className="hidden absolute inset-0 bg-slate-950/95 flex-col items-center justify-center gap-2 text-center p-4">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+                    <FiAlertTriangle size={22} />
+                  </div>
+                  <p className="text-sm font-bold text-white">Image Failed to Render</p>
+                  <p className="text-xs text-slate-400 max-w-xs">
+                    {previewItem.errorDetails || previewItem.reason || previewItem.errorMessage || 'HTTP request failed (404 / Network Error).'}
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => setPreviewItem(null)}
-                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
 
-            {/* Image Preview & Test Loader Box */}
-            <div className="w-full h-56 rounded-2xl bg-slate-950 border border-white/10 flex items-center justify-center p-4 relative overflow-hidden">
-              <img
-                src={formatImageUrl(previewItem.imageUrl || previewItem.url || previewItem.image)}
-                alt="Test reload"
-                className="max-w-full max-h-full object-contain"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.style.display = 'none';
-                  if (e.target.nextSibling) {
-                    e.target.nextSibling.style.display = 'flex';
-                  }
-                }}
-              />
-              <div className="hidden absolute inset-0 bg-slate-950/95 flex-col items-center justify-center gap-2 text-center p-4">
-                <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
-                  <FiAlertTriangle size={22} />
+              {/* Info Fields */}
+              <div className="space-y-2.5 text-xs">
+                {modalMatchedProduct && (
+                  <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-2xl space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-blue-300 font-bold uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                        <FiPackage size={13} />
+                        Matched Catalog Product
+                      </span>
+                      <button
+                        onClick={() => {
+                          setPreviewItem(null);
+                          navigate(`/products/list?viewProductId=${modalMatchedProduct._id}`);
+                        }}
+                        className="text-xs font-bold text-blue-400 hover:text-blue-300 underline cursor-pointer"
+                      >
+                        View in Catalog →
+                      </button>
+                    </div>
+                    <p className="text-white font-bold text-sm">{modalMatchedProduct.name}</p>
+                    <div className="flex items-center gap-2 text-[11px] text-slate-400 font-mono">
+                      <span>ID: {modalMatchedProduct._id}</span>
+                      <CopyButton text={modalMatchedProduct._id} size={11} className="text-slate-400 hover:text-white" />
+                      {modalMatchedVariant?.name && (
+                        <span className="text-blue-300 bg-blue-500/20 px-2 py-0.5 rounded font-sans font-semibold">
+                          Variant: {modalMatchedVariant.name}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center py-1.5 border-b border-white/5">
+                  <span className="text-slate-500 font-bold uppercase tracking-wider">Screen Name</span>
+                  <span className="text-white font-semibold">{previewItem.screenName || 'AppScreen'}</span>
                 </div>
-                <p className="text-sm font-bold text-white">Image Failed to Render</p>
-                <p className="text-xs text-slate-400 max-w-xs">
-                  {previewItem.reason || previewItem.errorMessage || 'HTTP 404 or Network Connection Failed.'}
-                </p>
-              </div>
-            </div>
-
-            {/* Info Fields */}
-            <div className="space-y-2.5 text-xs">
-              <div className="flex justify-between items-center py-1.5 border-b border-white/5">
-                <span className="text-slate-500 font-bold uppercase tracking-wider">Product Name</span>
-                <span className="text-white font-semibold text-right">{previewItem.productName || previewItem.product?.name || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between items-center py-1.5 border-b border-white/5">
-                <span className="text-slate-500 font-bold uppercase tracking-wider">Product ID</span>
-                <span className="font-mono text-slate-300">{previewItem.productId || previewItem.product?._id || previewItem._id || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between items-center py-1.5 border-b border-white/5">
-                <span className="text-slate-500 font-bold uppercase tracking-wider">Status</span>
-                <span className="font-bold text-amber-400">{previewItem.status || 'PENDING'}</span>
-              </div>
-              <div className="flex flex-col gap-1 py-1.5">
-                <span className="text-slate-500 font-bold uppercase tracking-wider">Source URL</span>
-                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-black/40 border border-white/10 font-mono text-[11px] text-slate-300 select-all break-all">
-                  <span className="flex-1">{previewItem.imageUrl || previewItem.url || previewItem.image}</span>
-                  <button
-                    onClick={(e) => handleCopyUrl(previewItem.imageUrl || previewItem.url || previewItem.image, e)}
-                    className="p-1 text-slate-400 hover:text-white"
-                    title="Copy"
-                  >
-                    <FiCopy size={13} />
-                  </button>
+                <div className="flex justify-between items-center py-1.5 border-b border-white/5">
+                  <span className="text-slate-500 font-bold uppercase tracking-wider">Entity Type & ID</span>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-300 border border-blue-500/20 font-bold uppercase text-[10px]">
+                      {previewItem.entityType || 'general'}
+                    </span>
+                    {previewItem.entityId && (
+                      <span className="font-mono text-slate-300">#{String(previewItem.entityId)}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex justify-between items-center py-1.5 border-b border-white/5">
+                  <span className="text-slate-500 font-bold uppercase tracking-wider">Report Count</span>
+                  <span className="font-bold text-white font-mono">{previewItem.reportCount || 1} times reported</span>
+                </div>
+                <div className="flex justify-between items-center py-1.5 border-b border-white/5">
+                  <span className="text-slate-500 font-bold uppercase tracking-wider">Status</span>
+                  <span className={`font-bold uppercase ${
+                    (previewItem.status || '').toUpperCase() === 'RESOLVED'
+                      ? 'text-emerald-400'
+                      : (previewItem.status || '').toUpperCase() === 'IGNORED'
+                        ? 'text-slate-400'
+                        : 'text-amber-400'
+                  }`}>
+                    {previewItem.status || 'PENDING'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-1.5 border-b border-white/5">
+                  <span className="text-slate-500 font-bold uppercase tracking-wider">Last Reported</span>
+                  <span className="text-slate-300 font-mono">
+                    {formatDateTimeDDMMYYYY(previewItem.lastReportedAt || previewItem.createdAt || previewItem.updatedAt)}
+                  </span>
+                </div>
+                {previewItem.errorDetails && (
+                  <div className="py-1.5 border-b border-white/5 space-y-1">
+                    <span className="text-slate-500 font-bold uppercase tracking-wider block">Error Details</span>
+                    <p className="font-mono text-[11px] text-rose-300 bg-rose-500/10 border border-rose-500/20 p-2 rounded-xl break-all">
+                      {previewItem.errorDetails}
+                    </p>
+                  </div>
+                )}
+                <div className="flex flex-col gap-1 py-1.5">
+                  <span className="text-slate-500 font-bold uppercase tracking-wider">Image Source URL</span>
+                  <div className="flex items-center gap-2 p-2.5 rounded-xl bg-black/40 border border-white/10 font-mono text-[11px] text-slate-300 select-all break-all">
+                    <span className="flex-1">{previewItem.imageUrl || previewItem.url || previewItem.image}</span>
+                    <button
+                      onClick={(e) => handleCopyUrl(previewItem.imageUrl || previewItem.url || previewItem.image, e)}
+                      className="p-1 text-slate-400 hover:text-white"
+                      title="Copy"
+                    >
+                      <FiCopy size={13} />
+                    </button>
+                    <a
+                      href={formatImageUrl(previewItem.imageUrl || previewItem.url || previewItem.image)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="p-1 text-slate-400 hover:text-blue-400"
+                      title="Open in new tab"
+                    >
+                      <FiExternalLink size={13} />
+                    </a>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Modal Actions */}
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
-              <button
-                onClick={(e) => handleUpdateStatus(previewItem._id || previewItem.id, 'IGNORED', e)}
-                className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-bold rounded-xl text-xs transition-all cursor-pointer"
-              >
-                Ignore
-              </button>
-              <button
-                onClick={(e) => handleUpdateStatus(previewItem._id || previewItem.id, 'RESOLVED', e)}
-                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-lg shadow-emerald-600/30"
-              >
-                Mark as Resolved
-              </button>
+              {/* Modal Actions */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
+                <button
+                  onClick={(e) => handleUpdateStatus(previewItem._id || previewItem.id, 'IGNORED', e)}
+                  className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-bold rounded-xl text-xs transition-all cursor-pointer"
+                >
+                  Ignore
+                </button>
+                <button
+                  onClick={(e) => handleUpdateStatus(previewItem._id || previewItem.id, 'RESOLVED', e)}
+                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-lg shadow-emerald-600/30"
+                >
+                  Mark as Resolved
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
