@@ -364,7 +364,7 @@ const Category = () => {
                   <tr>
                     <th className="px-3 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider w-16">S.No.</th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider">Category Name</th>
-<th className="px-3 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider text-center">Products<br></br><span className='text-[10px]'>(varaints)</span></th>
+                    <th className="px-3 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider text-center">Products<br></br><span className='text-[10px]'>(varaints)</span></th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider text-center">Date Info</th>
                     <th className="px-3 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider text-center">Actions</th>
                   </tr>

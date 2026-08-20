@@ -21,6 +21,7 @@ import { formatDateDDMMYYYY, formatYYYYMMDDToDDMMYYYY } from '../utils/dateUtils
 import Card from '../Components/Card';
 import CustomDropdown from '../Components/CustomDropdown';
 import CustomDatePicker from '../Components/CustomDatePicker';
+import ProductDetailsModal from '../Components/ProductDetailsModal';
 
 
 
@@ -618,6 +619,7 @@ const Dashboard = () => {
   const [trendsRange, setTrendsRange] = useState('1w'); // '1d', '1w', '1y'
   const [expandedChart, setExpandedChart] = useState(null); // 'revenue' | 'volume' | 'brand' | null
   const [expandedSecondRowChart, setExpandedSecondRowChart] = useState(null); // 'version' | 'notifications' | 'priceTier' | null
+  const [viewModalProductId, setViewModalProductId] = useState(null);
   const navigate = useNavigate();
 
   const getActivityStatsUrl = () => {
@@ -2002,11 +2004,31 @@ const Dashboard = () => {
 
                         {/* Product Image preview */}
                         {imgUrl ? (
-                          <div className="w-12 h-12 rounded-xl overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center shadow-inner p-0.5 group-hover:scale-105 transition-transform duration-300">
+                          <div 
+                            onClick={(e) => {
+                              const prodId = prod._id || prod.id;
+                              if (prodId) {
+                                e.stopPropagation();
+                                setViewModalProductId(prodId);
+                              }
+                            }}
+                            className="w-12 h-12 rounded-xl overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center shadow-inner p-0.5 hover:scale-110 hover:border-blue-500/50 transition-all duration-200 cursor-pointer"
+                            title="View Product Details"
+                          >
                             <img src={imgUrl} alt={prod.name} className="w-full h-full object-contain" />
                           </div>
                         ) : (
-                          <div className="w-12 h-12 rounded-xl bg-slate-800/80 shrink-0 flex items-center justify-center text-slate-500 border border-white/5 group-hover:scale-105 transition-transform duration-300">
+                          <div 
+                            onClick={(e) => {
+                              const prodId = prod._id || prod.id;
+                              if (prodId) {
+                                e.stopPropagation();
+                                setViewModalProductId(prodId);
+                              }
+                            }}
+                            className="w-12 h-12 rounded-xl bg-slate-800/80 shrink-0 flex items-center justify-center text-slate-500 border border-white/5 hover:scale-110 hover:border-blue-500/50 transition-all duration-200 cursor-pointer"
+                            title="View Product Details"
+                          >
                             <FiBox size={18} />
                           </div>
                         )}
@@ -2190,11 +2212,29 @@ const Dashboard = () => {
                 <div className="flex justify-between items-start mb-5 relative z-1000">
                   <div className="flex items-center gap-3">
                     {imgUrl ? (
-                      <div className="w-10 h-10 rounded-xl overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center p-0.5 shadow-inner">
+                      <div 
+                        onClick={() => {
+                          const prodId = selectedProductViews.product?._id || selectedProductViews.product?.id;
+                          if (prodId) {
+                            setViewModalProductId(prodId);
+                          }
+                        }}
+                        className="w-10 h-10 rounded-xl overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center p-0.5 shadow-inner cursor-pointer hover:scale-110 hover:border-blue-500/50 transition-all duration-200"
+                        title="View Product Details"
+                      >
                         <img src={imgUrl} alt={selectedProductViews.product.name} className="w-full h-full object-contain" />
                       </div>
                     ) : (
-                      <div className="p-2.5 rounded-xl bg-blue-500/20 text-blue-400 shrink-0">
+                      <div 
+                        onClick={() => {
+                          const prodId = selectedProductViews.product?._id || selectedProductViews.product?.id;
+                          if (prodId) {
+                            setViewModalProductId(prodId);
+                          }
+                        }}
+                        className="p-2.5 rounded-xl bg-blue-500/20 text-blue-400 shrink-0 cursor-pointer hover:scale-110 transition-all duration-200"
+                        title="View Product Details"
+                      >
                         <FiEye size={20} />
                       </div>
                     )}
@@ -2427,6 +2467,14 @@ const Dashboard = () => {
         </div>,
         document.body
       )}
+
+      {/* In-Page Product Details Modal */}
+      <ProductDetailsModal
+        isOpen={!!viewModalProductId}
+        productId={viewModalProductId}
+        onClose={() => setViewModalProductId(null)}
+        showEditButton={false}
+      />
     </div>
   );
 };

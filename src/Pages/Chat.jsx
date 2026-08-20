@@ -219,6 +219,17 @@ const Chat = () => {
     scrollToBottom();
   }, [messages, activeContact]);
 
+  // Auto-expand textarea height as message length grows
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    textarea.style.height = 'auto';
+    const minHeight = 40;
+    const maxHeight = 180;
+    const newHeight = Math.min(Math.max(textarea.scrollHeight, minHeight), maxHeight);
+    textarea.style.height = `${newHeight}px`;
+  }, [message]);
+
   useEffect(() => {
     fetchContacts();
     fetchUnreadCount();
@@ -1304,14 +1315,15 @@ const Chat = () => {
                   )}
 
                   <form onSubmit={handleSend} className="flex items-end gap-2">
-                    <div className="flex-1 bg-black/20 border border-white/10 rounded-2xl flex items-end p-1 focus-within:border-blue-500/50 focus-within:bg-black/40 shadow-inner backdrop-blur-md transition-all min-w-0">
+                    <div className="flex-1 bg-black/20 border border-white/10 rounded-2xl flex items-end p-1.5 focus-within:border-blue-500/50 focus-within:bg-black/40 shadow-inner backdrop-blur-md transition-all min-w-0">
                       <textarea
                         ref={textareaRef}
                         value={message}
                         onChange={handleMessageChange}
                         placeholder={editingMessage ? "Edit message..." : "Type a message or '@' to insert product/order details..."}
-                        className="flex-1 max-h-32 bg-transparent text-white placeholder-slate-500 text-sm px-2 py-3 focus:outline-none resize-none custom-scrollbar"
+                        className="flex-1 bg-transparent text-white placeholder-slate-500 text-sm px-3 py-2 focus:outline-none resize-none custom-scrollbar overflow-y-auto leading-relaxed"
                         rows="1"
+                        style={{ minHeight: '40px', maxHeight: '180px' }}
                         onKeyDown={handleTextareaKeyDown}
                       />
                       <input

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import { api } from '../api/axios';
 import {
   FiFileText, FiTrash2, FiSearch, FiEdit2, FiCheckCircle,
@@ -7,6 +7,7 @@ import {
   FiPhone, FiMail, FiCheck, FiX, FiActivity, FiTag
 } from 'react-icons/fi';
 import CustomDropdown from '../Components/CustomDropdown';
+import ProductDetailsModal from '../Components/ProductDetailsModal';
 
 // Simple Copy ID helper
 const CopyIdBadge = ({ id }) => {
@@ -28,12 +29,14 @@ const CopyIdBadge = ({ id }) => {
 };
 
 const Quotes = () => {
+  const navigate = useNavigate();
   const { setQuotesUnreadCount } = useOutletContext() || {};
   const [quotes, setQuotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [viewModalProductId, setViewModalProductId] = useState(null);
 
   // Modal States
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -333,13 +336,34 @@ const Quotes = () => {
                 {/* Product details */}
                 <div className="p-3 bg-black/20 rounded-2xl border border-white/5 space-y-3 text-left">
                   <div className="flex items-center gap-2.5">
-                    {productImage ? (
-                      <img src={productImage} alt={productName} className="w-10 h-10 object-cover rounded-lg shrink-0 border border-white/10 bg-white" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-lg bg-slate-800 text-slate-500 flex items-center justify-center shrink-0 border border-white/10">
-                        <FiTag size={16} />
-                      </div>
-                    )}
+                    {(() => {
+                      const prodId = q.product?._id || q.product || q.productId;
+                      return productImage ? (
+                        <div
+                          onClick={() => {
+                            if (prodId) {
+                              setViewModalProductId(prodId);
+                            }
+                          }}
+                          className={`w-10 h-10 rounded-lg overflow-hidden bg-white shrink-0 border border-white/10 ${prodId ? 'cursor-pointer hover:border-blue-500/50 hover:scale-110 transition-all shadow-sm' : ''}`}
+                          title={prodId ? "View Product Details" : undefined}
+                        >
+                          <img src={productImage} alt={productName} className="w-full h-full object-cover" />
+                        </div>
+                      ) : (
+                        <div
+                          onClick={() => {
+                            if (prodId) {
+                              setViewModalProductId(prodId);
+                            }
+                          }}
+                          className={`w-10 h-10 rounded-lg bg-slate-800 text-slate-500 flex items-center justify-center shrink-0 border border-white/10 ${prodId ? 'cursor-pointer hover:border-blue-500/50 hover:scale-110 transition-all shadow-sm' : ''}`}
+                          title={prodId ? "View Product Details" : undefined}
+                        >
+                          <FiTag size={16} />
+                        </div>
+                      );
+                    })()}
                     <div className="min-w-0">
                       <h4 className="text-xs font-bold text-white truncate">{productName}</h4>
                       {offerPrice > 0 && <span className="text-[10px] text-slate-500 font-bold">Offer: ₹{offerPrice} | Base: ₹{basePrice}</span>}
@@ -578,6 +602,14 @@ const Quotes = () => {
           </div>
         </div>
       )}
+
+      {/* In-Page Product Details Modal */}
+      <ProductDetailsModal
+        isOpen={!!viewModalProductId}
+        productId={viewModalProductId}
+        onClose={() => setViewModalProductId(null)}
+        showEditButton={false}
+      />
 
     </div>
   );

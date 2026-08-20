@@ -12,6 +12,7 @@ import {
   FiRefreshCcw, FiCopy
 } from 'react-icons/fi';
 import { useConfirm } from '../../../Context/ConfirmationContext';
+import ProductDetailsModal from '../../../Components/ProductDetailsModal';
 
 const hasValidAppVersion = (appVersion) => {
   if (!appVersion) return false;
@@ -101,6 +102,7 @@ const UserDetails = () => {
   const [devices, setDevices] = useState([]);
   const [authStatus, setAuthStatus] = useState(null);
   const [loadingAuthStatus, setLoadingAuthStatus] = useState(false);
+  const [viewModalProductId, setViewModalProductId] = useState(null);
 
   const [isActionLoading, setIsActionLoading] = useState(false);
 
@@ -1038,11 +1040,27 @@ const UserDetails = () => {
                               <td className="p-3">
                                 <div className="flex items-center gap-3">
                                   {item.image ? (
-                                    <div className="w-9 h-9 rounded-lg overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center p-0.5">
+                                    <div 
+                                      onClick={() => {
+                                        if (item.id) {
+                                          setViewModalProductId(item.id);
+                                        }
+                                      }}
+                                      className={`w-9 h-9 rounded-lg overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center p-0.5 ${item.id ? 'cursor-pointer hover:scale-110 hover:border-blue-500/50 transition-all shadow-sm' : ''}`}
+                                      title={item.id ? "View Product Details" : undefined}
+                                    >
                                       <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
                                     </div>
                                   ) : (
-                                    <div className="w-9 h-9 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center text-slate-500 shrink-0">
+                                    <div 
+                                      onClick={() => {
+                                        if (item.id) {
+                                          setViewModalProductId(item.id);
+                                        }
+                                      }}
+                                      className={`w-9 h-9 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center text-slate-500 shrink-0 ${item.id ? 'cursor-pointer hover:scale-110 hover:border-blue-500/50 transition-all shadow-sm' : ''}`}
+                                      title={item.id ? "View Product Details" : undefined}
+                                    >
                                       <FiFileText />
                                     </div>
                                   )}
@@ -1282,6 +1300,14 @@ const UserDetails = () => {
         </div>,
         document.body
       )}
+
+      {/* In-Page Product Details Modal */}
+      <ProductDetailsModal
+        isOpen={!!viewModalProductId}
+        productId={viewModalProductId}
+        onClose={() => setViewModalProductId(null)}
+        showEditButton={false}
+      />
 
     </div>
   );

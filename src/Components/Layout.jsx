@@ -54,13 +54,91 @@ const Layout = () => {
   const isInitialDataLoad = useRef(true);
   const [toasts, setToasts] = useState([]);
   const [failedImageProductNames, setFailedImageProductNames] = useState([]);
+  const [notificationPermission, setNotificationPermission] = useState(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      return Notification.permission;
+    }
+    return 'default';
+  });
 
-  const addToast = (title, message, path, IconComponent = FiBell) => {
+  const playNotificationSoundAndVibrate = () => {
+    try {
+      if (navigator.vibrate) navigator.vibrate([150, 80, 150]);
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) {
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.35);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.35);
+      }
+    } catch (err) {
+      // Audio autoplay policy fallback
+    }
+  };
+
+  const triggerNativeNotification = (title, message, path, tag = '') => {
+    try {
+      const notification = new Notification(title, {
+        body: message,
+        icon: logoImg,
+        tag: tag || `notif-${Date.now()}`
+      });
+      notification.onclick = () => {
+        window.focus();
+        if (path) navigation(path);
+        notification.close();
+      };
+    } catch (err) {
+      console.log('Native notification error:', err);
+    }
+  };
+
+  const sendChromeNotification = (title, message, path, tag = '') => {
+    playNotificationSoundAndVibrate();
+
+    if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted') {
+      return;
+    }
+
+    try {
+      if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+        navigator.serviceWorker.ready.then(registration => {
+          registration.showNotification(title, {
+            body: message,
+            icon: logoImg,
+            badge: logoImg,
+            vibrate: [200, 100, 200],
+            tag: tag || `notif-${Date.now()}`,
+            data: { path }
+          });
+        }).catch(() => {
+          triggerNativeNotification(title, message, path, tag);
+        });
+      } else {
+        triggerNativeNotification(title, message, path, tag);
+      }
+    } catch (e) {
+      triggerNativeNotification(title, message, path, tag);
+    }
+  };
+
+  const addToast = (title, message, path, IconComponent = FiBell, tag = '') => {
     const id = Date.now() + Math.random().toString(36).substring(2, 9);
     setToasts(prev => [...prev, { id, title, message, path, IconComponent }]);
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
     }, 6000);
+
+    // Trigger Chrome / Desktop system notification for all notifying messages
+    sendChromeNotification(title, message, path, tag || `notif-${id}`);
   };
 
   const handleNotificationClick = (path, id) => {
@@ -218,20 +296,16 @@ const Layout = () => {
   }, []);
 
   const requestNotificationPermission = () => {
-    if ('Notification' in window) {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
       Notification.requestPermission().then(permission => {
+        setNotificationPermission(permission);
         if (permission === 'granted') {
           console.log('Notification permission granted.');
-          // Show test notification via service worker
-          if (navigator.serviceWorker && navigator.serviceWorker.ready) {
-            navigator.serviceWorker.ready.then(registration => {
-              registration.showNotification('Inizio Notifications', {
-                body: 'Mobile alerts are now active!',
-                icon: logoImg,
-                vibrate: [100, 50, 100]
-              });
-            });
-          }
+          sendChromeNotification(
+            'Inizio Notifications Enabled',
+            'You will now receive Chrome notifications for new orders, customer chats, quote requests, and verifications.',
+            '/'
+          );
         }
         setShowPermissionBanner(false);
       });
@@ -256,74 +330,17 @@ const Layout = () => {
           const currentUnread = Number(contact.unreadCount) || 0;
 
           if (!isInitialLoad.current && currentUnread > prevUnread) {
-            // 1. Vibrate & Play Sound (Supported across most mobile browsers)
-            try {
-              if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-              const AudioContext = window.AudioContext || window.webkitAudioContext;
-              if (AudioContext) {
-                const ctx = new AudioContext();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(587.33, ctx.currentTime);
-                gain.gain.setValueAtTime(0.1, ctx.currentTime);
-                osc.start();
-                gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.5);
-                osc.stop(ctx.currentTime + 0.5);
-              }
-            } catch (err) {
-              console.log('Audio/Vibration failed', err);
-            }
-
             const isNotOnChatPage = !window.location.pathname.includes('/chat');
 
-            // 2. In-App Toast
+            // Trigger In-App Toast & Chrome Desktop Notification
             if (isNotOnChatPage) {
               addToast(
                 `New Message`,
                 `From ${contact.name || 'Customer'}: ${contact.lastMessage || 'You received a new message.'}`,
                 '/chat',
-                FiMessageSquare
+                FiMessageSquare,
+                `chat-${contact.userId}`
               );
-            }
-
-            // 3. System Push Notification (Desktop / Mobile ServiceWorker)
-            if ('Notification' in window && Notification.permission === 'granted' && (document.hidden || isNotOnChatPage)) {
-              try {
-                if (navigator.serviceWorker && navigator.serviceWorker.ready) {
-                  navigator.serviceWorker.ready.then(registration => {
-                    registration.showNotification(`New message from ${contact.name || 'Customer'}`, {
-                      body: contact.lastMessage || 'You received a new message.',
-                      icon: logoImg,
-                      vibrate: [200, 100, 200],
-                      tag: `chat-${contact.userId}`
-                    });
-                  }).catch(() => {
-                    // Fallback to standard constructor
-                    const notification = new Notification(`New message from ${contact.name || 'Customer'}`, {
-                      body: contact.lastMessage || 'You received a new message.',
-                      icon: logoImg
-                    });
-                    notification.onclick = () => {
-                      window.focus();
-                      navigation('/chat');
-                    };
-                  });
-                } else {
-                  const notification = new Notification(`New message from ${contact.name || 'Customer'}`, {
-                    body: contact.lastMessage || 'You received a new message.',
-                    icon: logoImg
-                  });
-                  notification.onclick = () => {
-                    window.focus();
-                    navigation('/chat');
-                  };
-                }
-              } catch (e) {
-                console.log('System notification failed:', e);
-              }
             }
           }
         });
@@ -342,6 +359,7 @@ const Layout = () => {
     const intervalId = setInterval(fetchUnreadCount, 30000);
     return () => clearInterval(intervalId);
   }, [user]);
+
 
   // Clear counts when visiting the page
   useEffect(() => {
@@ -416,16 +434,33 @@ const Layout = () => {
           pendingBrokenLogs = brokenData.brokenImages.filter(i => (i.status || 'PENDING').toUpperCase() === 'PENDING');
         }
 
-        if (location.pathname !== '/products/broken-images') {
+        const pendingOrders = orders.filter(o => (o.orderStatus || o.status || '').toLowerCase() === 'pending');
+        const pendingQuotes = quotes.filter(q => (q.status || '').toLowerCase() === 'pending' || !q.status);
+
+        // Update active pending counts if not currently on those pages
+        if (!window.location.pathname.startsWith('/orders')) {
+          setOrdersUnreadCount(pendingOrders.length);
+        }
+        if (!window.location.pathname.startsWith('/quotes')) {
+          setQuotesUnreadCount(pendingQuotes.length);
+        }
+        if (!window.location.pathname.includes('/products/broken-images')) {
           setBrokenImagesUnreadCount(pendingBrokenLogs.length);
+        }
+        const isAtPendingTab = window.location.pathname.includes('/users/list') && window.location.search.includes('tab=pending');
+        if (!isAtPendingTab) {
+          setUsersVerifyUnreadCount(pendingUsers.length);
+        }
+        const isAtDeletionTab = window.location.pathname.includes('/users/list') && window.location.search.includes('tab=deleted');
+        if (!isAtDeletionTab) {
+          setUsersDeletionUnreadCount(deletionUsers.length);
         }
 
         if (!isInitialDataLoad.current) {
           const prevOrdersCount = prevOrdersRef.current?.length || 0;
           const currentOrdersCount = orders.length;
-          if (currentOrdersCount > prevOrdersCount && !location.pathname.startsWith('/orders')) {
+          if (currentOrdersCount > prevOrdersCount && !window.location.pathname.startsWith('/orders')) {
             const countDiff = currentOrdersCount - prevOrdersCount;
-            setOrdersUnreadCount(prev => prev + countDiff);
             addToast(
               `New Order Received`,
               `You have received ${countDiff} new order${countDiff > 1 ? 's' : ''} to process.`,
@@ -436,7 +471,7 @@ const Layout = () => {
 
           const prevUsersCount = prevUsersRef.current?.length || 0;
           const currentUsersCount = users.length;
-          if (currentUsersCount > prevUsersCount && location.pathname !== '/users/list') {
+          if (currentUsersCount > prevUsersCount && !window.location.pathname.includes('/users/list')) {
             const countDiff = currentUsersCount - prevUsersCount;
             setUsersUnreadCount(prev => prev + countDiff);
             addToast(
@@ -449,10 +484,8 @@ const Layout = () => {
 
           const prevPendingCount = prevPendingRef.current?.length || 0;
           const currentPendingCount = pendingUsers.length;
-          const isAtPendingTab = location.pathname === '/users/list' && new URLSearchParams(location.search).get('tab') === 'pending';
           if (currentPendingCount > prevPendingCount && !isAtPendingTab) {
             const countDiff = currentPendingCount - prevPendingCount;
-            setUsersVerifyUnreadCount(prev => prev + countDiff);
             addToast(
               `Pending Verification`,
               `${countDiff} user${countDiff > 1 ? 's' : ''} pending verification.`,
@@ -463,10 +496,8 @@ const Layout = () => {
 
           const prevDeletionCount = prevDeletionRef.current?.length || 0;
           const currentDeletionCount = deletionUsers.length;
-          const isAtDeletionTab = location.pathname === '/users/list' && new URLSearchParams(location.search).get('tab') === 'deleted';
           if (currentDeletionCount > prevDeletionCount && !isAtDeletionTab) {
             const countDiff = currentDeletionCount - prevDeletionCount;
-            setUsersDeletionUnreadCount(prev => prev + countDiff);
             addToast(
               `Account Deletion Request`,
               `${countDiff} account deletion request${countDiff > 1 ? 's' : ''} pending.`,
@@ -477,9 +508,8 @@ const Layout = () => {
 
           const prevQuotesCount = prevQuotesRef.current?.length || 0;
           const currentQuotesCount = quotes.length;
-          if (currentQuotesCount > prevQuotesCount && location.pathname !== '/quotes') {
+          if (currentQuotesCount > prevQuotesCount && !window.location.pathname.startsWith('/quotes')) {
             const countDiff = currentQuotesCount - prevQuotesCount;
-            setQuotesUnreadCount(prev => prev + countDiff);
             addToast(
               `New Quote Request`,
               `You have received ${countDiff} new quote request${countDiff > 1 ? 's' : ''} to review.`,
@@ -490,7 +520,7 @@ const Layout = () => {
 
           const prevBrokenCount = prevBrokenImagesRef.current?.length || 0;
           const currentBrokenCount = pendingBrokenLogs.length;
-          if (currentBrokenCount > prevBrokenCount && location.pathname !== '/products/broken-images') {
+          if (currentBrokenCount > prevBrokenCount && !window.location.pathname.includes('/products/broken-images')) {
             const countDiff = currentBrokenCount - prevBrokenCount;
             addToast(
               `Broken Image Alert`,
@@ -517,7 +547,7 @@ const Layout = () => {
     fetchOrdersAndUsers();
     const intervalId = setInterval(fetchOrdersAndUsers, 30000);
     return () => clearInterval(intervalId);
-  }, [user, location.pathname]);
+  }, [user]);
 
   // Update browser tab title with total unread notification counts
   useEffect(() => {
@@ -842,6 +872,21 @@ const Layout = () => {
                   )}
                 </div>
 
+                {notificationPermission !== 'granted' && (
+                  <div className="mx-2 mb-2 p-2 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <FiBell className="text-blue-400 text-xs shrink-0" />
+                      <span className="text-[10px] text-slate-300 font-medium truncate">Enable Chrome alerts</span>
+                    </div>
+                    <button
+                      onClick={requestNotificationPermission}
+                      className="px-2 py-0.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-[9px] font-bold transition-all shadow-xs cursor-pointer shrink-0"
+                    >
+                      Allow
+                    </button>
+                  </div>
+                )}
+
                 <div className="max-h-60 overflow-y-auto divide-y divide-white/5 no-scrollbar">
                   {notificationsList.length === 0 ? (
                     <div className="py-6 text-center text-slate-500 text-xs">
@@ -1147,6 +1192,21 @@ const Layout = () => {
                       </span>
                     )}
                   </div>
+
+                  {notificationPermission !== 'granted' && (
+                    <div className="mx-3 my-2 p-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <FiBell className="text-blue-400 text-sm shrink-0" />
+                        <span className="text-xs text-slate-300 font-medium">Enable Chrome notifications</span>
+                      </div>
+                      <button
+                        onClick={requestNotificationPermission}
+                        className="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer shrink-0"
+                      >
+                        Enable
+                      </button>
+                    </div>
+                  )}
 
                   <div className="max-h-72 overflow-y-auto divide-y divide-white/5 no-scrollbar">
                     {notificationsList.length === 0 ? (

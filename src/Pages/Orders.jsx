@@ -10,6 +10,7 @@ import {
 } from 'react-icons/fi';
 import CustomDropdown from '../Components/CustomDropdown';
 import CopyButton from '../Components/CopyButton';
+import ProductDetailsModal from '../Components/ProductDetailsModal';
 import { useOutletContext, useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import { formatDateDDMMYYYY, formatDateTimeDDMMYYYY } from '../utils/dateUtils';
 
@@ -30,6 +31,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
   const [sortKey, setSortKey] = useState('');
   const [sortOrder, setSortOrder] = useState('asc');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [viewModalProductId, setViewModalProductId] = useState(null);
 
   const handleSortChange = (key) => {
     if (sortKey === key) {
@@ -660,11 +662,23 @@ const Orders = ({ defaultStatus = 'all' }) => {
                         </td>
                         <td className="p-4 text-sm">
                           <div className="flex items-center gap-3">
-                            {order.items && (order.items[0]?.image || order.items[0]?.variant?.images?.[0] || order.items[0]?.product?.images?.[0]) && (
-                              <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/10 shrink-0 border border-white/5">
-                                <img src={order.items[0].image || order.items[0].variant?.images?.[0] || order.items[0].product?.images?.[0]} alt="Product" className="w-full h-full object-cover bg-white" />
-                              </div>
-                            )}
+                            {order.items && (order.items[0]?.image || order.items[0]?.variant?.images?.[0] || order.items[0]?.product?.images?.[0]) && (() => {
+                              const prodId = order.items[0]?.product?._id || order.items[0]?.product || order.items[0]?.productId;
+                              return (
+                                <div
+                                  onClick={(e) => {
+                                    if (prodId) {
+                                      e.stopPropagation();
+                                      setViewModalProductId(prodId);
+                                    }
+                                  }}
+                                  className={`w-10 h-10 rounded-lg overflow-hidden bg-white/10 shrink-0 border border-white/5 ${prodId ? 'cursor-pointer hover:border-blue-500/50 hover:scale-105 transition-all shadow-sm' : ''}`}
+                                  title={prodId ? "View Product Details" : undefined}
+                                >
+                                  <img src={order.items[0].image || order.items[0].variant?.images?.[0] || order.items[0].product?.images?.[0]} alt="Product" className="w-full h-full object-cover bg-white" />
+                                </div>
+                              );
+                            })()}
                             <div className="flex flex-col min-w-0">
                               <span className="text-slate-200 font-medium line-clamp-1 max-w-37.5" title={order.items?.[0]?.product?.name || order.items?.[0]?.name}>
                                 {order.items?.[0]?.product?.name || order.items?.[0]?.name || 'Product'}
@@ -1185,14 +1199,32 @@ const Orders = ({ defaultStatus = 'all' }) => {
                                   ? [item.image] 
                                   : [];
                             
+                            const prodId = item.product?._id || item.product || item.productId;
                             return displayImages.length > 0 ? (
                               displayImages.map((img, imgIdx) => (
-                                <div key={imgIdx} className="w-14 h-14 rounded-lg overflow-hidden bg-white/10 shrink-0 border border-white/10 flex items-center justify-center">
+                                <div
+                                  key={imgIdx}
+                                  onClick={() => {
+                                    if (prodId) {
+                                      setViewModalProductId(prodId);
+                                    }
+                                  }}
+                                  className={`w-14 h-14 rounded-lg overflow-hidden bg-white/10 shrink-0 border border-white/10 flex items-center justify-center ${prodId ? 'cursor-pointer hover:border-blue-500/50 hover:scale-105 transition-all shadow-sm' : ''}`}
+                                  title={prodId ? "View Product Details" : undefined}
+                                >
                                   <img src={img} alt={`Product ${imgIdx + 1}`} className="w-full h-full object-cover bg-white" />
                                 </div>
                               ))
                             ) : (
-                              <div className="w-14 h-14 rounded-lg overflow-hidden bg-white/10 shrink-0 border border-white/10 flex items-center justify-center">
+                              <div
+                                onClick={() => {
+                                  if (prodId) {
+                                    setViewModalProductId(prodId);
+                                  }
+                                }}
+                                className={`w-14 h-14 rounded-lg overflow-hidden bg-white/10 shrink-0 border border-white/10 flex items-center justify-center ${prodId ? 'cursor-pointer hover:border-blue-500/50 hover:scale-105 transition-all shadow-sm' : ''}`}
+                                title={prodId ? "View Product Details" : undefined}
+                              >
                                 <FiBox className="text-xl text-slate-500" />
                               </div>
                             );
@@ -1425,16 +1457,33 @@ const Orders = ({ defaultStatus = 'all' }) => {
                     {selectedReturn.items.map((item, idx) => {
                       const productName = item.product?.name || item.name || 'Unknown Product';
                       const productImg = item.product?.images?.[0] || item.image || '';
+                      const prodId = item.product?._id || item.product || item.productId;
                       
                       return (
                         <div key={idx} className="flex flex-col sm:flex-row gap-4 justify-between p-4 bg-transparent rounded-xl border border-white/5">
                           <div className="flex gap-4 items-start flex-1 min-w-0">
                             {productImg ? (
-                              <div className="w-16 h-16 rounded-xl overflow-hidden bg-white/10 border border-white/5 shrink-0">
+                              <div
+                                onClick={() => {
+                                  if (prodId) {
+                                    setViewModalProductId(prodId);
+                                  }
+                                }}
+                                className={`w-16 h-16 rounded-xl overflow-hidden bg-white/10 border border-white/5 shrink-0 ${prodId ? 'cursor-pointer hover:border-blue-500/50 hover:scale-105 transition-all shadow-sm' : ''}`}
+                                title={prodId ? "View Product Details" : undefined}
+                              >
                                 <img src={getImageUrl(productImg)} alt={productName} className="w-full h-full object-cover bg-white" />
                               </div>
                             ) : (
-                              <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-800 border border-white/5 shrink-0 flex items-center justify-center">
+                              <div
+                                onClick={() => {
+                                  if (prodId) {
+                                    setViewModalProductId(prodId);
+                                  }
+                                }}
+                                className={`w-16 h-16 rounded-xl overflow-hidden bg-slate-800 border border-white/5 shrink-0 flex items-center justify-center ${prodId ? 'cursor-pointer hover:border-blue-500/50 hover:scale-105 transition-all shadow-sm' : ''}`}
+                                title={prodId ? "View Product Details" : undefined}
+                              >
                                 <FiBox className="text-xl text-slate-500" />
                               </div>
                             )}
@@ -1707,6 +1756,14 @@ const Orders = ({ defaultStatus = 'all' }) => {
         </div>,
         document.body
       )}
+
+      {/* In-Page Product Details Modal */}
+      <ProductDetailsModal
+        isOpen={!!viewModalProductId}
+        productId={viewModalProductId}
+        onClose={() => setViewModalProductId(null)}
+        showEditButton={false}
+      />
 
     </div>
   );
