@@ -9,7 +9,7 @@ const SearchResults = () => {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
-  
+
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -23,7 +23,7 @@ const SearchResults = () => {
 
       setLoading(true);
       setError(null);
-      
+
       try {
         const [prodRes, brandRes, catRes, userRes, campRes, orderRes] = await Promise.all([
           api.get('/products/').catch(() => ({ data: [] })),
@@ -49,8 +49,8 @@ const SearchResults = () => {
               flattenMenus.push(m);
             }
           });
-          
-          const matchedMenus = flattenMenus.filter(m => 
+
+          const matchedMenus = flattenMenus.filter(m =>
             terms.every(term => m.name.toLowerCase().includes(term))
           );
           searchResultsList = searchResultsList.concat(matchedMenus.map(m => ({
@@ -201,8 +201,8 @@ const SearchResults = () => {
                 else if (item.type === 'Order') Icon = FiShoppingBag;
 
                 return (
-                  <Link 
-                    key={item._id} 
+                  <Link
+                    key={item._id}
                     to={item.url}
                     state={item.state}
                     className="flex items-start gap-4 p-4 rounded-2xl border border-white/10 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/20 transition-all bg-black/20 group cursor-pointer"

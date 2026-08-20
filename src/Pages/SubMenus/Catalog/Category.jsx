@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
-import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiAlertCircle, FiTag, FiImage, FiLoader, FiSearch, FiGrid, FiCopy, FiCheck } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiAlertCircle, FiTag, FiImage, FiLoader, FiSearch, FiGrid, FiCopy, FiCheck,FiInfo } from 'react-icons/fi';
 
 import { api, BASE_URL } from '../../../api/axios';
 import { formatDateTimeDDMMYYYY } from '../../../utils/dateUtils';
@@ -58,16 +58,20 @@ const Category = () => {
 
       const prodList = Array.isArray(productsRes.data) ? productsRes.data : [];
       const categoryCounts = {};
+      const categoryVariantCounts = {};
       prodList.forEach(p => {
         const cId = p.category?._id || p.category;
         if (cId) {
           categoryCounts[cId] = (categoryCounts[cId] || 0) + 1;
+          const varCount = Array.isArray(p.variants) && p.variants.length > 0 ? p.variants.length : 1;
+          categoryVariantCounts[cId] = (categoryVariantCounts[cId] || 0) + varCount;
         }
       });
 
       const categoriesWithCounts = (Array.isArray(categoriesRes.data) ? categoriesRes.data : []).map(c => ({
         ...c,
-        productCount: categoryCounts[c._id] || 0
+        productCount: categoryCounts[c._id] || 0,
+        variantCount: categoryVariantCounts[c._id] || 0
       }));
 
       setCategories(categoriesWithCounts);
@@ -229,7 +233,7 @@ const Category = () => {
               </div>
 
               {/* Category Image Upload Dropzone */}
-              <div>
+              {/* <div>
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Category Image</label>
                 <div 
                   onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -285,7 +289,7 @@ const Category = () => {
                     </>
                   )}
                 </div>
-              </div>
+              </div> */}
 
             {/* Placement Toggles */}
             <div className="grid grid-cols-2 gap-4">
@@ -360,7 +364,7 @@ const Category = () => {
                   <tr>
                     <th className="px-3 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider w-16">S.No.</th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider">Category Name</th>
-                    <th className="px-3 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider">Products</th>
+<th className="px-3 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider text-center">Products<br></br><span className='text-[10px]'>(varaints)</span></th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider text-center">Date Info</th>
                     <th className="px-3 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider text-center">Actions</th>
                   </tr>
@@ -379,13 +383,13 @@ const Category = () => {
                         <td className="px-3 py-4 text-sm text-center font-medium text-slate-300">{indexOfFirstItem + index + 1}</td>
                         <td className="px-6 py-4">
                           <div className="flex items-center">
-                            {category.image ? (
+                            {/* {category.image ? (
                             <img src={getImageUrl(category.image)} alt={category.name} className="w-10 h-10 rounded-lg object-contain bg-white p-1 border border-white/10 mr-3 shrink-0" />
                             ) : (
                             <div className="w-10 h-10 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center mr-3 text-slate-400 shrink-0">
                                 <FiTag />
                               </div>
-                            )}
+                            )} */}
                           <div className="flex flex-col">
                             <span className="font-bold text-white">{category.name}</span>
                             <div className="flex items-center gap-1 mt-0.5">
@@ -406,7 +410,12 @@ const Category = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm font-semibold text-slate-300 text-center">
-                          {category.productCount || 0}
+                          <div className="inline-flex items-center justify-center gap-1.5">
+                            <span className="font-bold text-white" title="Products count">{category.productCount || 0}</span>
+                            <span className="text-xs text-slate-400 font-normal" title="Count including variants">
+                              ({category.variantCount || 0})
+                            </span>
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-[11px] text-slate-400 font-medium leading-relaxed">
                           <div className="flex flex-col gap-0.5">

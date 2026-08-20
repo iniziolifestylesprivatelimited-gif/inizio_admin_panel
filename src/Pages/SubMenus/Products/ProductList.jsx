@@ -2624,6 +2624,56 @@ const ProductList = () => {
                               )}
                             </div>
                           </div>
+
+                          {/* Variant Images */}
+                          <div className="pt-3 border-t border-white/5">
+                            {(() => {
+                              let variantImgs = [];
+                              if (Array.isArray(variant.images)) {
+                                variantImgs = variant.images;
+                              } else if (typeof variant.images === 'string') {
+                                variantImgs = variant.images.split(',').map(url => url.trim()).filter(Boolean);
+                              } else if (typeof variant.image_urls === 'string') {
+                                variantImgs = variant.image_urls.split(',').map(url => url.trim()).filter(Boolean);
+                              } else if (Array.isArray(variant.image_urls)) {
+                                variantImgs = variant.image_urls;
+                              } else if (variant.image) {
+                                variantImgs = [variant.image];
+                              }
+
+                              return (
+                                <div>
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <p className="text-xs text-slate-500 uppercase tracking-wider font-bold">Variant Images</p>
+                                    {variantImgs.length > 0 && (
+                                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                                        {variantImgs.length} {variantImgs.length === 1 ? 'image' : 'images'}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {variantImgs.length > 0 ? (
+                                    <div className="flex flex-wrap gap-3">
+                                      {variantImgs.map((url, imgIdx) => (
+                                        <div
+                                          key={imgIdx}
+                                          className="relative w-16 h-16 sm:w-20 sm:h-20 border border-white/10 rounded-xl overflow-hidden bg-slate-800 flex items-center justify-center group/img shrink-0 shadow-sm hover:border-blue-500/40 transition-colors"
+                                        >
+                                          <img
+                                            src={getImageUrl(url)}
+                                            alt={`${variant.name || 'Variant'} image ${imgIdx + 1}`}
+                                            className="max-w-full max-h-full object-contain bg-white p-1.5 transition-transform duration-200 group-hover/img:scale-105"
+                                            onError={(e) => { e.target.src = 'https://placehold.co/150x150?text=Error'; }}
+                                          />
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <p className="text-xs text-slate-500 italic">No images for this variant.</p>
+                                  )}
+                                </div>
+                              );
+                            })()}
+                          </div>
                         </div>
                       ))
                     ) : (

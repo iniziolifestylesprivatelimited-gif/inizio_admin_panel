@@ -58,16 +58,20 @@ const Brands = () => {
 
       const prodList = Array.isArray(productsRes.data) ? productsRes.data : [];
       const brandCounts = {};
+      const brandVariantCounts = {};
       prodList.forEach(p => {
         const bId = p.brand?._id || p.brand;
         if (bId) {
           brandCounts[bId] = (brandCounts[bId] || 0) + 1;
+          const varCount = Array.isArray(p.variants) && p.variants.length > 0 ? p.variants.length : 1;
+          brandVariantCounts[bId] = (brandVariantCounts[bId] || 0) + varCount;
         }
       });
 
       const brandsWithCounts = (Array.isArray(brandsRes.data) ? brandsRes.data : []).map(b => ({
         ...b,
-        productCount: brandCounts[b._id] || 0
+        productCount: brandCounts[b._id] || 0,
+        variantCount: brandVariantCounts[b._id] || 0
       }));
 
       setBrands(brandsWithCounts);
@@ -374,7 +378,7 @@ const Brands = () => {
                   <tr>
                     <th className="px-3 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider w-16">S.No.</th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider">Brand Name</th>
-                    <th className="px-3 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider">Products</th>
+                    <th className="px-3 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider text-center">Products<br></br><span className='text-[10px]'>(varaints)</span></th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider text-center">Date Info</th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider text-right">Actions</th>
                   </tr>
@@ -423,7 +427,12 @@ const Brands = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm font-semibold text-slate-300 text-center">
-                          {brand.productCount || 0}
+                          <div className="inline-flex items-center justify-center gap-1.5">
+                            <span className="font-bold text-white" title="Products count">{brand.productCount || 0}</span>
+                            <span className="text-xs text-slate-400 font-normal" title="Count including variants">
+                              ({brand.variantCount || 0})
+                            </span>
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-[11px] text-slate-400 font-medium leading-relaxed">
                           <div className="flex flex-col gap-0.5">
