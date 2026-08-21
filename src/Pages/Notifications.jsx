@@ -20,6 +20,7 @@ import { formatDateDDMMYYYY } from '../utils/dateUtils';
 import { TableRowSkeleton } from '../Components/Skeleton';
 import { useConfirm } from '../Context/ConfirmationContext';
 import appIconImg from '../assets/app_icon.png';
+import { showBrowserNotification, requestBrowserNotificationPermission, isBrowserNotificationSupported } from '../utils/browserNotifications';
 
 const Notifications = () => {
   const navigate = useNavigate();
@@ -888,6 +889,28 @@ const Notifications = () => {
             <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-28 h-1 bg-white/40 rounded-full"></div>
           </div>
           <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider text-center">Live Preview ({platform === 'all' ? 'All Platforms' : platform})</p>
+
+          {/* Test Browser Notification Button */}
+          {isBrowserNotificationSupported() && (
+            <button
+              type="button"
+              onClick={async () => {
+                const perm = await requestBrowserNotificationPermission();
+                if (perm === 'granted') {
+                  showBrowserNotification({
+                    title: title || 'Inizio Preview Notification',
+                    body: description || 'This is a live test preview of your browser push notification.',
+                    path: '/notifications',
+                    navigate
+                  });
+                }
+              }}
+              className="w-full max-w-[270px] py-2 px-3 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-98"
+            >
+              <MdNotificationsActive className="text-blue-400" size={15} />
+              Test on this Browser
+            </button>
+          )}
         </Card>
 
         {/* Bottom Section: Notification History */}

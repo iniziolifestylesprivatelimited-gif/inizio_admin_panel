@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { api, BASE_URL } from '../api/axios';
 import {
   FiTrendingUp, FiUsers, FiBox, FiLayers,
-  FiActivity, FiEye, FiSearch, FiLogIn, FiLogOut, FiX, FiCheck, FiBell, FiCalendar, FiPhone, FiTrash2
+  FiActivity, FiEye, FiSearch, FiLogIn, FiLogOut, FiX, FiCheck, FiBell, FiCalendar, FiPhone, FiTrash2,
+  FiPackage, FiShoppingBag, FiExternalLink, FiPercent, FiSliders, FiArrowUpRight, FiTag, FiBarChart2, FiClock, FiUser
 } from 'react-icons/fi';
 import { BiRupee } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
@@ -613,6 +614,7 @@ const Dashboard = () => {
   const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [selectedProductViews, setSelectedProductViews] = useState(null);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [productViewerSearch, setProductViewerSearch] = useState('');
   const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState(false);
   const [selectedNotificationsSegment, setSelectedNotificationsSegment] = useState('All'); // 'All', 'Enabled', 'Disabled'
   const [notificationsSearchQuery, setNotificationsSearchQuery] = useState('');
@@ -2199,148 +2201,402 @@ const Dashboard = () => {
         />
       </div>
 
-      {/* Product Views Details Modal */}
+      {/* Product Views Details Modal (Expanded) */}
       {isProductModalOpen && selectedProductViews && createPortal(
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
-          <div className="bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 shadow-2xl rounded-3xl p-6 max-w-md w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+        <div 
+          className="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center z-[9999] p-3 sm:p-4 md:p-6 animate-in fade-in duration-200"
+          onClick={() => {
+            setIsProductModalOpen(false);
+            setSelectedProductViews(null);
+            setProductViewerSearch('');
+          }}
+        >
+          <div 
+            className="bg-linear-to-br from-slate-950 via-slate-900 to-slate-950 border border-white/10 shadow-2xl rounded-3xl p-5 sm:p-6 max-w-2xl w-full relative overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 via-transparent to-transparent pointer-events-none"></div>
 
             {(() => {
-              const firstImg = selectedProductViews.product?.images?.[0] || '';
+              const prod = selectedProductViews.product || {};
+              const firstImg = prod.images?.[0] || prod.image || '';
               const imgUrl = firstImg.startsWith('http') ? firstImg : (firstImg ? `${BASE_URL}${firstImg.startsWith('/') ? '' : '/'}${firstImg}` : '');
+              
+              const brandName = prod.brand?.name || brands.find(b => b._id === (prod.brand?._id || prod.brand))?.name || (typeof prod.brand === 'string' ? prod.brand : '') || '';
+              const categoryName = prod.category?.name || (typeof prod.category === 'string' ? prod.category : '') || '';
+              const subCategoryName = prod.subCategory?.name || (typeof prod.subCategory === 'string' ? prod.subCategory : '') || '';
+              
+              const offerPrice = Number(prod.offerPrice || 0);
+              const basePrice = Number(prod.basePrice || 0);
+              const effectivePrice = offerPrice > 0 ? offerPrice : basePrice;
+              const discountPercent = (offerPrice > 0 && offerPrice < basePrice) 
+                ? Math.round(((basePrice - offerPrice) / basePrice) * 100) 
+                : 0;
+
+              const variantsCount = prod.variants?.length || 0;
+              const imagesCount = prod.images?.length || (prod.image ? 1 : 0);
+              const uniqueViewers = selectedProductViews.viewsList.length;
+              const repeatViewers = selectedProductViews.viewsList.filter(u => (u.count || 0) > 1).length;
+              const avgViewsPerUser = uniqueViewers > 0 
+                ? (selectedProductViews.totalViews / uniqueViewers).toFixed(1) 
+                : '0';
+
+              // Calculate order stats from orders state
+              let productOrdersCount = 0;
+              let totalUnitsSold = 0;
+              let totalSalesRevenue = 0;
+
+              if (Array.isArray(orders)) {
+                orders.forEach(o => {
+                  const items = o.items || o.orderItems || o.products || [];
+                  let hasProd = false;
+                  items.forEach(it => {
+                    const itProdId = it.product?._id || it.product?.id || it.product || it.productId;
+                    if (itProdId === prod._id || itProdId === prod.id) {
+                      hasProd = true;
+                      const qty = Number(it.quantity || it.qty || 1);
+                      const price = Number(it.price || it.totalPrice || effectivePrice);
+                      totalUnitsSold += qty;
+                      totalSalesRevenue += (price * qty);
+                    }
+                  });
+                  if (hasProd) productOrdersCount++;
+                });
+              }
+
+              // Filter viewers by search query
+              const filteredViewers = selectedProductViews.viewsList.filter(item => {
+                if (!productViewerSearch.trim()) return true;
+                const q = productViewerSearch.toLowerCase().trim();
+                const u = item.user || {};
+                return (
+                  (u.name || '').toLowerCase().includes(q) ||
+                  (u.email || '').toLowerCase().includes(q) ||
+                  (u.phone || '').toLowerCase().includes(q)
+                );
+              });
+
               return (
-                <div className="flex justify-between items-start mb-5 relative z-1000">
-                  <div className="flex items-center gap-3">
-                    {imgUrl ? (
+                <div className="flex flex-col h-full min-h-0 relative z-10 space-y-4">
+                  {/* Top Header: Product Info & 2x2 Compact Metric Grid */}
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 border-b border-white/10 pb-3.5 sm:pb-4 relative">
+                    {/* Close Button - positioned top-right */}
+                    <button
+                      onClick={() => {
+                        setIsProductModalOpen(false);
+                        setSelectedProductViews(null);
+                        setProductViewerSearch('');
+                      }}
+                      className="absolute top-0 right-0 sm:static p-1.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer shrink-0 z-20 sm:order-3"
+                      title="Close modal"
+                    >
+                      <FiX size={16} />
+                    </button>
+
+                    {/* Left Column: Product Image & Details */}
+                    <div className="flex items-center gap-3 min-w-0 flex-1 pr-8 sm:pr-0 sm:order-1">
+                      {/* Product Image preview */}
                       <div 
                         onClick={() => {
-                          const prodId = selectedProductViews.product?._id || selectedProductViews.product?.id;
+                          const prodId = prod._id || prod.id;
                           if (prodId) {
                             setViewModalProductId(prodId);
                           }
                         }}
-                        className="w-10 h-10 rounded-xl overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center p-0.5 shadow-inner cursor-pointer hover:scale-110 hover:border-blue-500/50 transition-all duration-200"
-                        title="View Product Details"
+                        className="w-14 h-14 sm:w-18 sm:h-18 rounded-2xl overflow-hidden bg-white shrink-0 border border-white/15 p-1 flex items-center justify-center shadow-inner cursor-pointer hover:border-blue-500/50 hover:scale-105 transition-all duration-200 relative group"
+                        title="Click to view product details modal"
                       >
-                        <img src={imgUrl} alt={selectedProductViews.product.name} className="w-full h-full object-contain" />
-                      </div>
-                    ) : (
-                      <div 
-                        onClick={() => {
-                          const prodId = selectedProductViews.product?._id || selectedProductViews.product?.id;
-                          if (prodId) {
-                            setViewModalProductId(prodId);
-                          }
-                        }}
-                        className="p-2.5 rounded-xl bg-blue-500/20 text-blue-400 shrink-0 cursor-pointer hover:scale-110 transition-all duration-200"
-                        title="View Product Details"
-                      >
-                        <FiEye size={20} />
-                      </div>
-                    )}
-                    <div>
-                      <h3 className="text-base font-black text-white tracking-tight leading-snug truncate max-w-[240px]" title={selectedProductViews.product.name}>
-                        {selectedProductViews.product.name}
-                      </h3>
-                      <div className="flex items-center gap-1.5 text-[10px] font-mono mt-0.5">
-                        <span className="text-emerald-400 font-extrabold">
-                          Price: ₹{(selectedProductViews.product.offerPrice && Number(selectedProductViews.product.offerPrice) > 0 ? Number(selectedProductViews.product.offerPrice) : Number(selectedProductViews.product.basePrice || 0)).toLocaleString('en-IN')}
-                        </span>
-                        {selectedProductViews.product.offerPrice && Number(selectedProductViews.product.offerPrice) > 0 && Number(selectedProductViews.product.offerPrice) < Number(selectedProductViews.product.basePrice || 0) && (
-                          <span className="text-slate-500 line-through">
-                            ₹{(selectedProductViews.product.basePrice || 0).toLocaleString('en-IN')}
+                        {imgUrl ? (
+                          <img src={imgUrl} alt={prod.name} className="w-full h-full object-contain" />
+                        ) : (
+                          <FiBox className="text-slate-500" size={24} />
+                        )}
+                        {imagesCount > 1 && (
+                          <span className="absolute bottom-1 right-1 bg-black/80 text-slate-300 text-[8px] font-mono px-1 rounded">
+                            +{imagesCount}
                           </span>
                         )}
                       </div>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setIsProductModalOpen(false);
-                      setSelectedProductViews(null);
-                    }}
-                    className="p-1.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer"
-                  >
-                    <FiX size={16} />
-                  </button>
-                </div>
-              );
-            })()}
 
-            {/* Total Metric Highlight Banner */}
-            <div className="bg-transparent backdrop-blur-2xl border border-white/10 rounded-2xl p-4.5 mb-5 flex justify-between items-center text-xs relative z-10">
-              <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Total System Views</span>
-              <button
-                onClick={() => {
-                  setIsProductModalOpen(false);
-                  navigate(`/dashboard/details/product-views${getFilterQueryParams()}`);
-                }}
-                className="px-2.5 py-0.5 rounded-full text-[10px] bg-blue-500/25 hover:bg-blue-500/40 text-blue-300 font-black border border-blue-500/30 transition-all cursor-pointer hover:scale-105 active:scale-95"
-              >
-                {selectedProductViews.totalViews} views &rarr;
-              </button>
-            </div>
+                      {/* Title & Metadata Badges */}
+                      <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
+                        <h3 
+                          className="text-sm sm:text-base font-black text-white tracking-tight leading-snug truncate hover:text-blue-400 cursor-pointer transition-colors"
+                          onClick={() => {
+                            const prodId = prod._id || prod.id;
+                            if (prodId) setViewModalProductId(prodId);
+                          }}
+                          title={prod.name}
+                        >
+                          {prod.name || 'Unnamed Product'}
+                        </h3>
 
-            {/* Scrollable list of user view metrics */}
-            <div className="space-y-2.5 max-h-[280px] overflow-y-auto custom-scrollbar pr-1 relative z-10">
-              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block mb-1">
-                User View Breakdown ({selectedProductViews.viewsList.length} user{selectedProductViews.viewsList.length !== 1 ? 's' : ''})
-              </span>
-              {selectedProductViews.viewsList.length === 0 ? (
-                <p className="text-xs text-slate-500 italic py-6 text-center">No individual user view statistics recorded.</p>
-              ) : (
-                selectedProductViews.viewsList.map((item, index) => {
-                  const u = item.user || {};
-                  const initials = (u.name || 'U').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-                  const percent = selectedProductViews.totalViews > 0
-                    ? Math.round(((item.count || 0) / selectedProductViews.totalViews) * 100)
-                    : 0;
-
-                  return (
-                    <div
-                      key={u._id || u.email || index}
-                      className="flex items-center justify-between bg-transparent backdrop-blur-2xl border border-white/10 p-3 rounded-xl hover:border-white/20 transition-colors animate-in fade-in duration-150"
-                    >
-                      <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
-                        <div className="w-8 h-8 rounded-lg border bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 border-white/10 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-inner">
-                          {initials}
+                        {/* Category & Brand tags */}
+                        <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
+                          {brandName && (
+                            <span className="font-bold px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/10 flex items-center gap-1">
+                              <FiTag size={10} className="text-slate-400" />
+                              {brandName}
+                            </span>
+                          )}
+                          {categoryName && (
+                            <span className="font-semibold px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/10">
+                              {categoryName}{subCategoryName ? ` / ${subCategoryName}` : ''}
+                            </span>
+                          )}
+                          {variantsCount > 0 && (
+                            <span className="font-semibold px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/10">
+                              {variantsCount} Variant{variantsCount > 1 ? 's' : ''}
+                            </span>
+                          )}
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <span className="text-xs text-white font-extrabold block truncate">{u.name || 'Unknown User'}</span>
-                          <span className="text-[9px] text-slate-400 font-mono block truncate select-all">{u.email || '-'}</span>
-                          {u.phone && (
-                            <span className="text-[9px] text-slate-500 flex items-center gap-1 mt-0.5">
-                              <FiPhone size={8} /> {u.phone}
+
+                        {/* Price Row */}
+                        <div className="flex items-center gap-2 text-xs font-mono pt-0.5 flex-wrap">
+                          <span className="text-emerald-400 font-black text-sm">
+                            ₹{effectivePrice.toLocaleString('en-IN')}
+                          </span>
+                          {discountPercent > 0 && (
+                            <>
+                              <span className="text-slate-500 line-through text-[11px]">
+                                ₹{basePrice.toLocaleString('en-IN')}
+                              </span>
+                              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-rose-500/15 text-rose-400 border border-rose-500/25">
+                                {discountPercent}% OFF
+                              </span>
+                            </>
+                          )}
+                          {prod._id && (
+                            <span className="text-[10px] text-slate-500 font-mono">
+                              #{String(prod._id).slice(-6)}
                             </span>
                           )}
                         </div>
                       </div>
+                    </div>
 
-                      <div className="text-right shrink-0 flex flex-col items-end">
-                        <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                          {item.count || 0} view{item.count !== 1 ? 's' : ''} ({percent}%)
-                        </span>
-                        {item.latestView && (
-                          <span className="text-[9px] text-slate-500 font-medium mt-1 font-mono">
-                            {formatActivityTime(item.latestView)}
-                          </span>
-                        )}
+                    {/* Right Column: 2x2 Compact Metric Grid */}
+                    <div className="w-full sm:w-auto sm:order-2">
+                      <div className="grid grid-cols-2 gap-1.5 w-full sm:min-w-[220px]">
+                        {/* Total Views */}
+                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
+                          <div className="flex items-center justify-between text-slate-400">
+                            <span className="text-[9px] font-bold uppercase tracking-wider">Total Views</span>
+                            <FiEye size={11} className="text-slate-400" />
+                          </div>
+                          <div className="mt-1 flex items-baseline justify-between gap-1">
+                            <span className="text-sm font-black text-white font-mono">{selectedProductViews.totalViews}</span>
+                            <span className="text-[9px] text-slate-500">hits</span>
+                          </div>
+                        </div>
+
+                        {/* Unique Users */}
+                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
+                          <div className="flex items-center justify-between text-slate-400">
+                            <span className="text-[9px] font-bold uppercase tracking-wider">Unique</span>
+                            <FiUsers size={11} className="text-slate-400" />
+                          </div>
+                          <div className="mt-1 flex items-baseline justify-between gap-1">
+                            <span className="text-sm font-black text-white font-mono">{uniqueViewers}</span>
+                            <span className="text-[9px] text-slate-500">{repeatViewers} rep</span>
+                          </div>
+                        </div>
+
+                        {/* Avg Views */}
+                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
+                          <div className="flex items-center justify-between text-slate-400">
+                            <span className="text-[9px] font-bold uppercase tracking-wider">Avg Views</span>
+                            <FiActivity size={11} className="text-slate-400" />
+                          </div>
+                          <div className="mt-1 flex items-baseline justify-between gap-1">
+                            <span className="text-sm font-black text-white font-mono">{avgViewsPerUser}x</span>
+                            <span className="text-[9px] text-slate-500">/user</span>
+                          </div>
+                        </div>
+
+                        {/* Ordered */}
+                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
+                          <div className="flex items-center justify-between text-slate-400">
+                            <span className="text-[9px] font-bold uppercase tracking-wider">Ordered</span>
+                            <FiShoppingBag size={11} className="text-slate-400" />
+                          </div>
+                          <div className="mt-1 flex items-baseline justify-between gap-1">
+                            <span className="text-sm font-black text-emerald-400 font-mono">
+                              {totalUnitsSold > 0 ? `${totalUnitsSold}u` : `${productOrdersCount} ord`}
+                            </span>
+                            <span className="text-[9px] text-slate-500">
+                              {totalSalesRevenue > 0 ? `₹${totalSalesRevenue.toLocaleString('en-IN')}` : 'sold'}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  );
-                })
-              )}
-            </div>
+                  </div>
 
-            <button
-              onClick={() => {
-                setIsProductModalOpen(false);
-                setSelectedProductViews(null);
-              }}
-              className="w-full mt-6 py-2.5 bg-slate-800 border border-white/10 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md"
-            >
-              Close Details
-            </button>
+                  {/* Searchable Viewers Section Header */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                        <FiUsers className="text-blue-400" size={13} />
+                        <span>Viewer Breakdown</span>
+                      </span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/10 text-slate-300 font-bold">
+                        {filteredViewers.length} of {uniqueViewers}
+                      </span>
+                    </div>
+
+                    {/* User search bar */}
+                    {uniqueViewers > 0 && (
+                      <div className="relative flex-1 sm:max-w-xs">
+                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={12} />
+                        <input
+                          type="text"
+                          placeholder="Filter user by name, email, phone..."
+                          value={productViewerSearch}
+                          onChange={(e) => setProductViewerSearch(e.target.value)}
+                          className="w-full pl-8 pr-7 py-1.5 bg-black/40 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50"
+                        />
+                        {productViewerSearch && (
+                          <button
+                            onClick={() => setProductViewerSearch('')}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white text-xs"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Scrollable list of user view metrics */}
+                  <div className="space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-1 flex-1">
+                    {filteredViewers.length === 0 ? (
+                      <div className="p-8 text-center bg-white/[0.01] rounded-2xl border border-white/5">
+                        <FiUsers className="mx-auto text-slate-600 text-2xl mb-1.5" />
+                        <p className="text-xs text-slate-400 font-medium">
+                          {productViewerSearch
+                            ? `No viewers match "${productViewerSearch}".`
+                            : 'No individual user view statistics recorded.'}
+                        </p>
+                      </div>
+                    ) : (
+                      filteredViewers.map((item, index) => {
+                        const u = item.user || {};
+                        const initials = (u.name || 'U').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                        const percent = selectedProductViews.totalViews > 0
+                          ? Math.round(((item.count || 0) / selectedProductViews.totalViews) * 100)
+                          : 0;
+
+                        return (
+                          <div
+                            key={u._id || u.email || index}
+                            className="p-3 rounded-2xl bg-white/[0.02] hover:bg-white/[0.04] border border-white/5 hover:border-white/15 transition-all duration-200 space-y-2"
+                          >
+                            <div className="flex items-center justify-between gap-2.5">
+                              {/* User details */}
+                              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                <div className="w-8 h-8 rounded-xl border bg-linear-to-tr from-blue-500/20 to-indigo-500/20 border-white/10 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-inner">
+                                  {initials}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-1.5">
+                                    <span 
+                                      onClick={() => {
+                                        if (u._id) {
+                                          setIsProductModalOpen(false);
+                                          navigate(`/users/list?userId=${u._id}`);
+                                        }
+                                      }}
+                                      className="text-xs text-white font-extrabold truncate hover:text-blue-400 transition-colors cursor-pointer"
+                                      title={u.name || 'Unknown User'}
+                                    >
+                                      {u.name || 'Unknown User'}
+                                    </span>
+                                    {u.role && u.role !== 'user' && (
+                                      <span className="text-[9px] uppercase font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                        {u.role}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono truncate">
+                                    <span className="truncate">{u.email || '-'}</span>
+                                    {u.phone && (
+                                      <span className="text-slate-500 shrink-0 flex items-center gap-0.5">
+                                        • {u.phone}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* View counter & time */}
+                              <div className="text-right shrink-0 flex flex-col items-end">
+                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-500/15 text-blue-300 border border-blue-500/30">
+                                  {item.count || 0} view{item.count !== 1 ? 's' : ''} ({percent}%)
+                                </span>
+                                {item.latestView && (
+                                  <span className="text-[9px] text-slate-500 font-medium mt-0.5 font-mono flex items-center gap-1">
+                                    <FiClock size={9} />
+                                    {formatActivityTime(item.latestView)}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* View Percentage Progress Bar */}
+                            <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+                              <div
+                                className="bg-gradient-to-r from-blue-500 to-indigo-500 h-full rounded-full transition-all duration-300"
+                                style={{ width: `${Math.min(100, Math.max(5, percent))}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  {/* Modal Footer Actions */}
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 pt-3 border-t border-white/10">
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                      {/* {prod._id && (
+                        <button
+                          onClick={() => {
+                            setIsProductModalOpen(false);
+                            navigate(`/products/variants/${prod._id}`);
+                          }}
+                          className="flex-1 sm:flex-initial px-3 py-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-purple-300 font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                        >
+                          <FiSliders size={13} />
+                          <span>Edit Variants</span>
+                        </button>
+                      )} */}
+                      <button
+                        onClick={() => {
+                          setIsProductModalOpen(false);
+                          navigate(`/dashboard/details/most-viewed-products${getFilterQueryParams()}`);
+                        }}
+                        className="flex-1 sm:flex-initial px-3.5 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-300 font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                      >
+                        <FiBarChart2 size={13} />
+                        <span>All Viewed Products</span>
+                      </button>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setIsProductModalOpen(false);
+                        setSelectedProductViews(null);
+                        setProductViewerSearch('');
+                      }}
+                      className="w-full sm:w-auto px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer border border-white/10 shadow-sm"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>,
         document.body

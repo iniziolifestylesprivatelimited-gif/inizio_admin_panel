@@ -10,8 +10,9 @@ import {
   FiArrowLeft, FiSearch, FiActivity, FiUsers, FiBox,
   FiDollarSign, FiLayers, FiTrendingUp, FiEye, FiLogIn,
   FiLogOut, FiClock, FiSettings, FiCheck, FiTrash2, FiX, FiPhone, FiMail, FiSmartphone, FiBell, FiShield, FiCalendar, FiFilter,
-  FiMapPin
+  FiMapPin, FiPackage, FiShoppingBag, FiTag, FiSliders, FiExternalLink, FiPercent, FiBarChart2, FiArrowUpRight
 } from 'react-icons/fi';
+import ProductDetailsModal from '../Components/ProductDetailsModal';
 import { BiRupee } from 'react-icons/bi';
 import { DiAndroid, DiApple } from 'react-icons/di';
 
@@ -49,7 +50,7 @@ const getUserBasedAnalytics = (rawStream, filterType = 'ALL') => {
     if (filterType === 'ADD_TO_CART') return evt === 'ADD_TO_CART';
     if (filterType === 'REMOVE_FROM_CART') return evt === 'REMOVE_FROM_CART';
     if (filterType === 'UPDATE_CART') return evt === 'UPDATE_CART_QTY';
-    if (filterType === 'INITIATED_PAYMENT') return evt === 'INITIATED_PAYMENT'
+    if (filterType === 'INITIATED_PAYMENT') return evt === 'INITIATED_PAYMENT' || evt === 'INITIATE_PAYMENT' || evt.includes('PAY');
     return true;
   });
 
@@ -71,23 +72,42 @@ const getUserBasedAnalytics = (rawStream, filterType = 'ALL') => {
         totalActions: 0,
         lastActiveAt: null,
         lastEventType: '',
+        lastDetails: null,
         activities: []
       };
     }
 
     userMap[key].activities.push(item);
     userMap[key].totalActions += 1;
-
-    const itemTime = new Date(item.timestamp || item.createdAt).getTime();
-    const mapTime = userMap[key].lastActiveAt ? new Date(userMap[key].lastActiveAt).getTime() : 0;
-    if (itemTime > mapTime) {
-      userMap[key].lastActiveAt = item.timestamp || item.createdAt;
-      userMap[key].lastEventType = item.eventType;
-      userMap[key].ip = item.ip || userMap[key].ip;
-    }
   });
 
-  return Object.values(userMap);
+  // Sort each user's activities from NEWEST to OLDEST
+  const userList = Object.values(userMap).map(u => {
+    u.activities.sort((a, b) => {
+      const timeA = new Date(a.timestamp || a.createdAt || 0).getTime();
+      const timeB = new Date(b.timestamp || b.createdAt || 0).getTime();
+      return timeB - timeA; // Descending (newest first)
+    });
+
+    if (u.activities.length > 0) {
+      const latest = u.activities[0];
+      u.lastActiveAt = latest.timestamp || latest.createdAt;
+      u.lastEventType = latest.eventType;
+      u.lastDetails = latest.details;
+      u.ip = latest.ip || u.ip;
+    }
+
+    return u;
+  });
+
+  // Sort users so that the most recently active user appears at the top of the table
+  userList.sort((a, b) => {
+    const timeA = new Date(a.lastActiveAt || 0).getTime();
+    const timeB = new Date(b.lastActiveAt || 0).getTime();
+    return timeB - timeA;
+  });
+
+  return userList;
 };
 
 const ActivityDetails = () => {
@@ -122,6 +142,8 @@ const ActivityDetails = () => {
   const [selectedRowLogins, setSelectedRowLogins] = useState(null);
   const [selectedUserAnalytics, setSelectedUserAnalytics] = useState(null);
   const [selectedViewerBreakdown, setSelectedViewerBreakdown] = useState(null);
+  const [viewerSearchQuery, setViewerSearchQuery] = useState('');
+  const [viewerProductModalId, setViewerProductModalId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const itemsPerPage = 10;
   const [breakdownType, setBreakdownType] = useState('day'); // 'day', 'month', 'custom'
@@ -137,17 +159,21 @@ const ActivityDetails = () => {
         const token = sessionStorage.getItem('accessToken');
         const headers = { Authorization: `Bearer ${token}` };
 
-        // Fetch lookups first or parallelly to map names (products, brands, categories)
-        const [prodRes, brandRes, catRes] = await Promise.all([
+        // Fetch lookups first or parallelly to map names (products, brands, categories, orders)
+        const [prodRes, brandRes, catRes, orderRes] = await Promise.all([
           api.get('/products/', { headers }).catch(() => ({ data: [] })),
           api.get('/brands/', { headers }).catch(() => ({ data: [] })),
-          api.get('/categories', { headers }).catch(() => ({ data: [] }))
+          api.get('/categories', { headers }).catch(() => ({ data: [] })),
+          api.get('/orders/all', { headers }).catch(() => ({ data: [] }))
         ]);
+
+        const rawOrders = Array.isArray(orderRes.data) ? orderRes.data : orderRes.data?.orders || [];
 
         const lookup = {
           products: prodRes.data,
           brands: brandRes.data,
-          categories: catRes.data
+          categories: catRes.data,
+          orders: rawOrders
         };
         setExtraData(prev => ({ ...prev, ...lookup }));
 
@@ -1843,12 +1869,25 @@ const ActivityDetails = () => {
     if (type === 'analytics') {
       return currentItems.map((item, index) => {
         const initials = (item.name || 'G').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-        const eventType = item.lastEventType || 'UNKNOWN';
+        const eventType = (item.lastEventType || 'UNKNOWN').toUpperCase();
+        const isPayment = eventType === 'INITIATED_PAYMENT' || eventType === 'INITIATE_PAYMENT' || eventType.includes('PAY') || eventType.includes('CHECKOUT');
+        
         const badgeColor =
           eventType === 'ADD_TO_CART' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
             eventType === 'REMOVE_FROM_CART' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' :
-              (eventType === 'INITIATED_PAYMENT' || eventType === 'INITIATE_PAYMENT' || eventType === 'CHECKOUT_INITIATED' || eventType === 'CHECKOUT_INITIATION' || eventType.toUpperCase().includes('PAY') || eventType.toUpperCase().includes('CHECKOUT')) ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
+              isPayment ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
                 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+
+        // Context details from latest activity (newest action at index 0)
+        const lastAct = item.activities?.[0] || {};
+        const lastDetails = item.lastDetails || lastAct.details || {};
+        let contextText = '';
+        if (isPayment) {
+          contextText = lastDetails.amount ? `₹${Number(lastDetails.amount).toLocaleString('en-IN')}` : (lastDetails.merchantTxnNo || 'Payment');
+        } else {
+          const prodObj = (extraData.products || []).find(p => p._id === lastDetails.productId);
+          contextText = lastDetails.productName || prodObj?.name || '';
+        }
 
         return (
           <tr
@@ -1858,28 +1897,43 @@ const ActivityDetails = () => {
           >
             <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td className="py-4 px-5">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg border bg-gradient-to-tr from-indigo-500/20 to-blue-500/20 border-indigo-500/30 text-indigo-300 flex items-center justify-center font-bold text-xs tracking-wider shadow-inner">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl border bg-gradient-to-tr from-indigo-500/20 to-blue-500/20 border-indigo-500/30 text-indigo-300 flex items-center justify-center font-bold text-xs tracking-wider shadow-inner shrink-0">
                   {initials}
                 </div>
-                <span className="text-sm font-bold text-white group-hover/row:text-indigo-400 transition-colors block">
-                  {item.name || 'Guest / Unauthenticated'}
-                </span>
+                <div className="min-w-0">
+                  <span className="text-sm font-bold text-white group-hover/row:text-indigo-400 transition-colors block truncate">
+                    {item.name || 'Guest / Unauthenticated'}
+                  </span>
+                  {item.phone && (
+                    <span className="text-[10px] text-slate-400 font-mono flex items-center gap-1 mt-0.5">
+                      <FiPhone size={9} className="text-slate-500" />
+                      <span>{item.phone}</span>
+                    </span>
+                  )}
+                </div>
               </div>
             </td>
             <td className="py-4 px-5 text-sm text-slate-300 font-medium select-all font-mono">{item.email || 'N/A'}</td>
-            <td className="py-4 px-5 text-sm text-slate-300 font-medium">{item.phone || 'N/A'}</td>
-            <td className="py-4 px-5 text-sm text-slate-300 font-bold font-mono text-center">
-              <span className="px-2.5 py-1 rounded bg-blue-500/15 border border-blue-500/20 text-blue-400 text-xs">
-                {item.totalActions} Action(s)
+            <td className="py-4 px-5 text-sm text-slate-300 font-medium font-mono">{item.phone || 'N/A'}</td>
+            <td className="py-4 px-5 text-sm text-center">
+              <span className="px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-bold font-mono">
+                {item.totalActions} Action{item.totalActions !== 1 ? 's' : ''}
               </span>
             </td>
-            <td className="py-4 px-2 text-xs">
-              <span className={`px-2 py-1 rounded-full font-bold uppercase tracking-wider ${badgeColor}`}>
-                {eventType.replace(/_/g, ' ')}
-              </span>
+            <td className="py-4 px-5 text-xs">
+              <div className="flex flex-col items-start gap-1">
+                <span className={`px-2 py-0.5 rounded-md font-bold uppercase tracking-wider text-[10px] ${badgeColor}`}>
+                  {eventType.replace(/_/g, ' ')}
+                </span>
+                {contextText && (
+                  <span className="text-[11px] text-slate-400 font-semibold truncate max-w-[180px]" title={contextText}>
+                    {contextText}
+                  </span>
+                )}
+              </div>
             </td>
-            <td className="py-4 px-5 text-sm text-slate-400 font-medium">{formatDateTime(item.lastActiveAt)}</td>
+            <td className="py-4 px-5 text-sm text-slate-400 font-medium font-mono">{formatDateTime(item.lastActiveAt)}</td>
           </tr>
         );
       });
@@ -1972,8 +2026,12 @@ const ActivityDetails = () => {
                 title: item.brand?.name || 'Unknown Brand',
                 type: 'Brand',
                 logo: logoUrl,
-                searches: item.searches || 0,
-                viewers: item.viewers || []
+                searches: item.searches || item.views || 0,
+                viewers: item.viewers || [],
+                brandId: item.brand?._id,
+                totalProducts: brandProductsCount,
+                isActive: isBrandActive,
+                brandObj: item.brand
               });
             }}
             className="bg-transparent hover:bg-white/[0.02] transition-colors cursor-pointer group/row"
@@ -2048,11 +2106,18 @@ const ActivityDetails = () => {
           <tr
             key={rowKey}
             onClick={() => {
+              const catImg = item.category?.image || item.category?.icon || '';
+              const catLogoUrl = catImg.startsWith('http') ? catImg : (catImg ? `${BASE_URL}${catImg.startsWith('/') ? '' : '/'}${catImg}` : '');
               setSelectedViewerBreakdown({
                 title: item.category?.name || 'Unknown Category',
                 type: 'Category',
-                searches: item.searches || 0,
-                viewers: item.viewers || []
+                logo: catLogoUrl,
+                searches: item.searches || item.views || 0,
+                viewers: item.viewers || [],
+                categoryId: item.category?._id,
+                totalProducts: catProductsCount,
+                isActive: isCatActive,
+                categoryObj: item.category
               });
             }}
             className="bg-transparent hover:bg-white/[0.02] transition-colors cursor-pointer group/row"
@@ -2166,8 +2231,12 @@ const ActivityDetails = () => {
                 title: item.product?.name || 'Unknown Product',
                 type: 'Product',
                 logo: imgUrl,
-                searches: item.views || 0,
-                viewers: item.viewers || []
+                searches: item.views || item.searches || 0,
+                viewers: item.viewers || [],
+                productId: (fullProduct?._id || item.product?._id || item.product?.id),
+                fullProduct: fullProduct || item.product,
+                brandName,
+                categoryName
               });
             }}
             className="bg-transparent hover:bg-white/[0.02] transition-colors cursor-pointer group/row"
@@ -2746,139 +2815,270 @@ const ActivityDetails = () => {
       {type === 'analytics' && extraData.funnel && (
         <div className="space-y-6 z-10 relative">
           {/* KPI Cards Row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
-              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">Active Carts</span>
-              <span className="text-2xl font-black text-white mt-2">{extraData.cartMetrics?.activeCartsCount || 0}</span>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4">
+            {/* Active Carts */}
+            <div className="bg-white/[0.03] backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between relative overflow-hidden group hover:border-white/20 transition-all">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-[9px] font-black uppercase tracking-wider">Active Carts</span>
+                <FiShoppingBag size={12} className="text-amber-400" />
+              </div>
+              <div className="mt-2 flex items-baseline justify-between">
+                <span className="text-xl sm:text-2xl font-black text-white font-mono">{extraData.cartMetrics?.activeCartsCount || 0}</span>
+                <span className="text-[10px] text-slate-500 font-semibold">live carts</span>
+              </div>
             </div>
-            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
-              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">Total Items in Carts</span>
-              <span className="text-2xl font-black text-white mt-2">{extraData.cartMetrics?.totalQuantitiesInCarts || 0}</span>
+
+            {/* Total Items in Carts */}
+            <div className="bg-white/[0.03] backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between relative overflow-hidden group hover:border-white/20 transition-all">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-[9px] font-black uppercase tracking-wider">Cart Items</span>
+                <FiLayers size={12} className="text-blue-400" />
+              </div>
+              <div className="mt-2 flex items-baseline justify-between">
+                <span className="text-xl sm:text-2xl font-black text-white font-mono">{extraData.cartMetrics?.totalQuantitiesInCarts || 0}</span>
+                <span className="text-[10px] text-slate-500 font-semibold">units</span>
+              </div>
             </div>
-            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
-              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">Cart Adds</span>
-              <span className="text-2xl font-black text-white mt-2">{extraData.funnel?.cartAdds || 0}</span>
+
+            {/* Cart Adds */}
+            <div className="bg-white/[0.03] backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between relative overflow-hidden group hover:border-white/20 transition-all">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-[9px] font-black uppercase tracking-wider">Cart Adds</span>
+                <FiBox size={12} className="text-emerald-400" />
+              </div>
+              <div className="mt-2 flex items-baseline justify-between">
+                <span className="text-xl sm:text-2xl font-black text-emerald-400 font-mono">{extraData.funnel?.cartAdds || 0}</span>
+                <span className="text-[10px] text-slate-500 font-semibold">adds</span>
+              </div>
             </div>
-            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
-              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">Checkout Initiations</span>
-              <span className="text-2xl font-black text-white mt-2">{extraData.funnel?.checkoutInitiations || 0}</span>
+
+            {/* Checkout Initiations */}
+            <div className="bg-white/[0.03] backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between relative overflow-hidden group hover:border-white/20 transition-all">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-[9px] font-black uppercase tracking-wider">Checkouts</span>
+                <FiTrendingUp size={12} className="text-indigo-400" />
+              </div>
+              <div className="mt-2 flex items-baseline justify-between">
+                <span className="text-xl sm:text-2xl font-black text-indigo-400 font-mono">{extraData.funnel?.checkoutInitiations || 0}</span>
+                <span className="text-[10px] text-slate-500 font-semibold">initiated</span>
+              </div>
             </div>
-            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
-              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">Purchases</span>
-              <span className="text-2xl font-black text-white mt-2">{extraData.funnel?.checkoutSuccesses || 0}</span>
+
+            {/* Purchases */}
+            <div className="bg-white/[0.03] backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between relative overflow-hidden group hover:border-white/20 transition-all">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-[9px] font-black uppercase tracking-wider">Purchases</span>
+                <FiCheck size={12} className="text-purple-400" />
+              </div>
+              <div className="mt-2 flex items-baseline justify-between">
+                <span className="text-xl sm:text-2xl font-black text-purple-400 font-mono">{extraData.funnel?.checkoutSuccesses || 0}</span>
+                <span className="text-[10px] text-slate-500 font-semibold">orders</span>
+              </div>
             </div>
-            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
-              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">Cart to Checkout</span>
-              <span className="text-2xl font-black text-white mt-2">{extraData.funnel?.conversionRates?.cartToCheckout || '0.0%'}</span>
+
+            {/* Cart to Checkout Rate */}
+            <div className="bg-white/[0.03] backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between relative overflow-hidden group hover:border-white/20 transition-all">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-[9px] font-black uppercase tracking-wider">Cart → Checkout</span>
+                <FiPercent size={12} className="text-cyan-400" />
+              </div>
+              <div className="mt-2 flex items-baseline justify-between">
+                <span className="text-xl sm:text-2xl font-black text-cyan-400 font-mono">{extraData.funnel?.conversionRates?.cartToCheckout || '0.0%'}</span>
+                <span className="text-[10px] text-slate-500 font-semibold">conv.</span>
+              </div>
             </div>
-            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
-              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">Checkout to Purchase</span>
-              <span className="text-2xl font-black text-white mt-2">{extraData.funnel?.conversionRates?.checkoutToPurchase || '0.0%'}</span>
+
+            {/* Checkout to Purchase Rate */}
+            <div className="bg-white/[0.03] backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between relative overflow-hidden group hover:border-white/20 transition-all">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-[9px] font-black uppercase tracking-wider">Checkout → Buy</span>
+                <FiPercent size={12} className="text-emerald-400" />
+              </div>
+              <div className="mt-2 flex items-baseline justify-between">
+                <span className="text-xl sm:text-2xl font-black text-emerald-400 font-mono">{extraData.funnel?.conversionRates?.checkoutToPurchase || '0.0%'}</span>
+                <span className="text-[10px] text-slate-500 font-semibold">conv.</span>
+              </div>
             </div>
           </div>
 
-          {/* Funnel Graph Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Funnel Graph Section & Manager Performance */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
             {/* Funnel Chart/Visual */}
-            <div className="lg:col-span-1 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl p-5 overflow-hidden flex flex-col relative">
+            <div className="lg:col-span-1 bg-white/[0.02] backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl p-5 sm:p-6 flex flex-col justify-between relative overflow-hidden">
               <div className="absolute inset-0 bg-linear-to-b from-blue-500/5 to-transparent pointer-events-none" />
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 border-b border-white/5 pb-2">
-                Conversion Funnel
-              </h3>
-              <div className="space-y-4 flex-1 flex flex-col justify-center">
-                {/* Cart Adds */}
-                <div>
-                  <div className="flex justify-between text-xs font-bold text-slate-400 mb-1">
-                    <span>1. Cart Adds</span>
-                    <span className="text-white">{extraData.funnel?.cartAdds || 0}</span>
-                  </div>
-                  <div className="h-4 bg-slate-800 rounded-lg overflow-hidden">
-                    <div className="h-full bg-emerald-500 rounded-lg transition-all duration-500" style={{ width: '100%' }} />
-                  </div>
-                </div>
-                {/* Checkout Initiations */}
-                <div>
-                  <div className="flex justify-between text-xs font-bold text-slate-400 mb-1">
-                    <span>2. Checkout Initiations</span>
-                    <span className="text-white">{extraData.funnel?.checkoutInitiations || 0}</span>
-                  </div>
-                  <div className="h-4 bg-slate-800 rounded-lg overflow-hidden">
-                    <div className="h-full rounded-lg transition-all duration-500 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" style={{ width: `${extraData.funnel?.cartAdds ? Math.round(((extraData.funnel?.checkoutInitiations || 0) / extraData.funnel.cartAdds) * 100) : 0}%` }} />
+              
+              <div>
+                <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                      <FiActivity size={14} />
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-black text-white uppercase tracking-wider">
+                        Conversion Funnel
+                      </h3>
+                      <span className="text-[10px] text-slate-400 font-medium block">
+                        Customer buying journey stages
+                      </span>
+                    </div>
                   </div>
                 </div>
-                {/* Checkout Successes */}
-                <div>
-                  <div className="flex justify-between text-xs font-bold text-slate-400 mb-1">
-                    <span>3. Purchase Successes</span>
-                    <span className="text-white">{extraData.funnel?.checkoutSuccesses || 0}</span>
+
+                <div className="space-y-4">
+                  {/* 1. Cart Adds */}
+                  <div>
+                    <div className="flex justify-between text-xs font-bold text-slate-300 mb-1.5">
+                      <span className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
+                        1. Cart Adds
+                      </span>
+                      <span className="text-white font-mono">{extraData.funnel?.cartAdds || 0}</span>
+                    </div>
+                    <div className="h-3 bg-slate-900 rounded-full overflow-hidden border border-white/5 p-0.5">
+                      <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500" style={{ width: '100%' }} />
+                    </div>
                   </div>
-                  <div className="h-4 bg-slate-800 rounded-lg overflow-hidden">
-                    <div className="h-full bg-purple-500 rounded-lg transition-all duration-500" style={{ width: `${extraData.funnel?.cartAdds ? Math.round(((extraData.funnel?.checkoutSuccesses || 0) / extraData.funnel.cartAdds) * 100) : 0}%` }} />
+
+                  {/* 2. Checkout Initiations */}
+                  <div>
+                    <div className="flex justify-between text-xs font-bold text-slate-300 mb-1.5">
+                      <span className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-indigo-400 inline-block" />
+                        2. Checkout Initiations
+                      </span>
+                      <span className="text-white font-mono">{extraData.funnel?.checkoutInitiations || 0}</span>
+                    </div>
+                    <div className="h-3 bg-slate-900 rounded-full overflow-hidden border border-white/5 p-0.5">
+                      <div 
+                        className="h-full bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full transition-all duration-500" 
+                        style={{ width: `${extraData.funnel?.cartAdds ? Math.max(5, Math.round(((extraData.funnel?.checkoutInitiations || 0) / extraData.funnel.cartAdds) * 100)) : 0}%` }} 
+                      />
+                    </div>
+                  </div>
+
+                  {/* 3. Purchases */}
+                  <div>
+                    <div className="flex justify-between text-xs font-bold text-slate-300 mb-1.5">
+                      <span className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-purple-400 inline-block" />
+                        3. Successful Purchases
+                      </span>
+                      <span className="text-white font-mono">{extraData.funnel?.checkoutSuccesses || 0}</span>
+                    </div>
+                    <div className="h-3 bg-slate-900 rounded-full overflow-hidden border border-white/5 p-0.5">
+                      <div 
+                        className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500" 
+                        style={{ width: `${extraData.funnel?.cartAdds ? Math.max(5, Math.round(((extraData.funnel?.checkoutSuccesses || 0) / extraData.funnel.cartAdds) * 100)) : 0}%` }} 
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Conversion Rates Sub-Grid */}
-              <div className="mt-4 pt-3 border-t border-white/5 grid grid-cols-2 gap-2 text-center">
-                <div className="bg-white/[0.02] border border-white/5 rounded-xl p-2.5">
-                  <span className="text-[9px] font-black text-slate-500 uppercase block tracking-wider">Cart to Checkout</span>
-                  <span className="text-sm font-extrabold text-indigo-400 mt-1 block">{extraData.funnel?.conversionRates?.cartToCheckout || '0.0%'}</span>
+              <div className="mt-5 pt-3.5 border-t border-white/10 grid grid-cols-2 gap-2.5 text-center">
+                <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-2.5 flex flex-col justify-between">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Cart to Checkout</span>
+                  <span className="text-sm font-black text-indigo-400 mt-1 font-mono">{extraData.funnel?.conversionRates?.cartToCheckout || '0.0%'}</span>
                 </div>
-                <div className="bg-white/[0.02] border border-white/5 rounded-xl p-2.5">
-                  <span className="text-[9px] font-black text-slate-500 uppercase block tracking-wider">Checkout to Purchase</span>
-                  <span className="text-sm font-extrabold text-cyan-400 mt-1 block">{extraData.funnel?.conversionRates?.checkoutToPurchase || '0.0%'}</span>
+                <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-2.5 flex flex-col justify-between">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Checkout to Purchase</span>
+                  <span className="text-sm font-black text-cyan-400 mt-1 font-mono">{extraData.funnel?.conversionRates?.checkoutToPurchase || '0.0%'}</span>
                 </div>
               </div>
             </div>
 
             {/* Manager Performance table */}
-            <div className="lg:col-span-2 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl p-5 overflow-hidden flex flex-col relative">
+            <div className="lg:col-span-2 bg-white/[0.02] backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl p-5 sm:p-6 flex flex-col justify-between relative overflow-hidden">
               <div className="absolute inset-0 bg-linear-to-b from-indigo-500/5 to-transparent pointer-events-none" />
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 border-b border-white/5 pb-2">
-                Manager Performance
-              </h3>
+              
+              <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                    <FiUsers size={14} />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-black text-white uppercase tracking-wider">
+                      Manager Sales Performance
+                    </h3>
+                    <span className="text-[10px] text-slate-400 font-medium block">
+                      State Sales Heads and Territory Managers
+                    </span>
+                  </div>
+                </div>
+              </div>
 
-              <div className="space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-1">
-                {/* Sales Heads */}
-                <div>
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">State Sales Heads</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[320px] overflow-y-auto custom-scrollbar pr-1">
+                {/* State Sales Heads */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">State Sales Heads</span>
+                    <span className="text-[10px] font-mono text-slate-500 font-bold">{extraData.managerPerformance?.salesHeads?.length || 0} active</span>
+                  </div>
+                  
                   {!extraData.managerPerformance?.salesHeads || extraData.managerPerformance.salesHeads.length === 0 ? (
-                    <div className="text-xs text-slate-500 italic py-2">No active Sales Heads recorded.</div>
+                    <div className="text-xs text-slate-500 italic py-3 text-center bg-white/[0.01] rounded-xl border border-white/5">No Sales Heads registered.</div>
                   ) : (
                     <div className="space-y-2">
                       {extraData.managerPerformance.salesHeads.map(sh => (
-                        <div key={sh._id} className="flex justify-between items-center bg-white/[0.02] border border-white/5 p-3 rounded-xl hover:border-white/10 transition-colors">
-                          <div className="text-left">
-                            <span className="text-xs font-bold text-white block">{sh.name}</span>
-                            <span className="text-[9px] text-slate-500 font-semibold">{sh.states?.join(', ')}</span>
+                        <div key={sh._id} className="bg-white/[0.02] border border-white/5 hover:border-white/15 p-3 rounded-2xl transition-all">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <span className="text-xs font-bold text-white block truncate">{sh.name}</span>
+                              <span className="text-[10px] text-slate-400 block font-mono truncate">{sh.email}</span>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <span className="text-xs font-black text-emerald-400 font-mono block">₹{(sh.totalSales || 0).toLocaleString('en-IN')}</span>
+                              <span className="text-[9px] text-slate-500 font-semibold">{sh.orderCount || 0} orders</span>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <span className="text-xs font-extrabold text-blue-400 block">₹{(sh.totalSales || 0).toLocaleString()}</span>
-                            <span className="text-[9px] text-slate-500 font-bold">{sh.orderCount || 0} orders</span>
-                          </div>
+                          {Array.isArray(sh.states) && sh.states.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {sh.states.map((st, i) => (
+                                <span key={i} className="px-1.5 py-0.2 text-[9px] font-bold rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                                  {st}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
 
-                {/* TSMs */}
-                <div>
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Territory Sales Managers</span>
+                {/* Territory Sales Managers */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Territory Sales Managers</span>
+                    <span className="text-[10px] font-mono text-slate-500 font-bold">{extraData.managerPerformance?.territorySalesManagers?.length || 0} active</span>
+                  </div>
+
                   {!extraData.managerPerformance?.territorySalesManagers || extraData.managerPerformance.territorySalesManagers.length === 0 ? (
-                    <div className="text-xs text-slate-500 italic py-2">No active TSMs recorded.</div>
+                    <div className="text-xs text-slate-500 italic py-3 text-center bg-white/[0.01] rounded-xl border border-white/5">No TSMs registered.</div>
                   ) : (
                     <div className="space-y-2">
                       {extraData.managerPerformance.territorySalesManagers.map(tsm => (
-                        <div key={tsm._id} className="flex justify-between items-center bg-white/[0.02] border border-white/5 p-3 rounded-xl hover:border-white/10 transition-colors">
-                          <div className="text-left">
-                            <span className="text-xs font-bold text-white block">{tsm.name}</span>
-                            <span className="text-[9px] text-slate-500 font-semibold">{tsm.territories?.join(', ')}</span>
+                        <div key={tsm._id} className="bg-white/[0.02] border border-white/5 hover:border-white/15 p-3 rounded-2xl transition-all">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <span className="text-xs font-bold text-white block truncate">{tsm.name}</span>
+                              <span className="text-[10px] text-slate-400 block font-mono truncate">{tsm.email}</span>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <span className="text-xs font-black text-emerald-400 font-mono block">₹{(tsm.totalSales || 0).toLocaleString('en-IN')}</span>
+                              <span className="text-[9px] text-slate-500 font-semibold">{tsm.orderCount || 0} orders</span>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <span className="text-xs font-extrabold text-blue-400 block">₹{(tsm.totalSales || 0).toLocaleString()}</span>
-                            <span className="text-[9px] text-slate-500 font-bold">{tsm.orderCount || 0} orders</span>
-                          </div>
+                          {Array.isArray(tsm.territories) && tsm.territories.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {tsm.territories.map((t, i) => (
+                                <span key={i} className="px-1.5 py-0.2 text-[9px] font-bold rounded bg-blue-500/10 text-blue-300 border border-blue-500/20">
+                                  {t}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -3162,224 +3362,734 @@ const ActivityDetails = () => {
 
       {/* User Analytics Activity Popup Modal */}
       {selectedUserAnalytics && createPortal(
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
-          <div className="bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 shadow-2xl rounded-3xl p-6 max-w-2xl w-full h-full relative overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+        <div 
+          className="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center z-[9999] p-3 sm:p-4 md:p-6 animate-in fade-in duration-200"
+          onClick={() => setSelectedUserAnalytics(null)}
+        >
+          <div 
+            className="bg-linear-to-br from-slate-950 via-slate-900 to-slate-950 border border-white/10 shadow-2xl rounded-3xl p-5 sm:p-6 max-w-2xl w-full relative overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="absolute inset-0 bg-linear-to-b from-indigo-500/10 via-transparent to-transparent pointer-events-none" />
 
-            <div className="flex justify-between items-start mb-5 relative z-[1000]">
-              <div>
-                <h3 className="text-lg font-black text-white flex items-center gap-2">
-                  <FiActivity className="text-indigo-400" /> User Activity History
-                </h3>
-                <p className="text-xs text-slate-400 mt-1 font-semibold">{selectedUserAnalytics.name || 'Guest / Unauthenticated'}</p>
+            <div className="flex justify-between items-start mb-4 border-b border-white/10 pb-3.5 relative z-10">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-bold text-sm font-mono shadow-inner">
+                  {(selectedUserAnalytics.name || 'G').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-black text-white leading-tight">
+                      {selectedUserAnalytics.name || 'Guest / Unauthenticated'}
+                    </h3>
+                    <span className="px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                      Customer
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400 font-mono mt-0.5 select-all">{selectedUserAnalytics.email || 'No email'}</p>
+                </div>
               </div>
               <button
                 onClick={() => setSelectedUserAnalytics(null)}
                 className="p-1.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer"
+                title="Close modal"
               >
                 <FiX size={16} />
               </button>
             </div>
 
             {/* User Meta Card */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-transparent backdrop-blur-2xl border border-white/10 rounded-2xl p-4 mb-5 text-xs relative z-10">
-              <div className="flex flex-col min-w-0">
-                <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px] mb-0.5">Email Address</span>
-                <span className="text-slate-200 font-semibold select-all font-mono truncate" title={selectedUserAnalytics.email}>{selectedUserAnalytics.email || '-'}</span>
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-white/[0.02] border border-white/10 rounded-2xl p-3.5 mb-4 text-xs relative z-10 shrink-0">
               <div className="flex flex-col min-w-0">
                 <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px] mb-0.5">Phone Number</span>
                 <span className="text-slate-200 font-semibold select-all font-mono">{selectedUserAnalytics.phone || '-'}</span>
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px] mb-0.5">Total Activity Actions</span>
-                <span className="text-indigo-300 font-black">{selectedUserAnalytics.totalActions} Cart Action(s)</span>
+                <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px] mb-0.5">Last Logged IP</span>
+                <span className="text-slate-200 font-semibold select-all font-mono truncate">{selectedUserAnalytics.ip || '-'}</span>
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px] mb-0.5">Total Activity Logs</span>
+                <span className="text-indigo-400 font-black font-mono">{selectedUserAnalytics.totalActions} Action(s)</span>
               </div>
             </div>
 
             {/* List of individual activity stream entries */}
-            <div className="space-y-2.5 max-h-[350px] overflow-y-auto custom-scrollbar pr-1 relative z-10">
-              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block mb-1">
-                Activity Stream Logs
-              </span>
-              {selectedUserAnalytics.activities.map((item, index) => {
-                const eventType = item.eventType || 'UNKNOWN';
-                const badgeColor =
-                  eventType === 'ADD_TO_CART' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-                    eventType === 'REMOVE_FROM_CART' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' :
-                      (eventType === 'INITIATED_PAYMENT' || eventType === 'INITIATE_PAYMENT' || eventType === 'CHECKOUT_INITIATED' || eventType === 'CHECKOUT_INITIATION' || eventType.toUpperCase().includes('PAY') || eventType.toUpperCase().includes('CHECKOUT')) ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
-                        'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+            <div className="flex-1 min-h-0 flex flex-col relative z-10">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                  <FiActivity size={12} className="text-indigo-400" />
+                  Activity Stream Log ({selectedUserAnalytics.activities?.length || 0})
+                </span>
+              </div>
 
-                return (
-                  <div
-                    key={item._id || index}
-                    className="bg-transparent backdrop-blur-2xl border border-white/10 p-3 rounded-xl hover:border-white/20 transition-colors animate-in fade-in duration-150 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-left"
-                  >
-                    <div className="flex flex-col gap-1 min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${badgeColor}`}>
-                          {eventType.replace(/_/g, ' ')}
+              <div className="space-y-2 overflow-y-auto custom-scrollbar pr-1 flex-1">
+                {selectedUserAnalytics.activities.map((item, index) => {
+                  const eventType = (item.eventType || 'UNKNOWN').toUpperCase();
+                  const isPayment = eventType === 'INITIATED_PAYMENT' || eventType === 'INITIATE_PAYMENT' || eventType.includes('PAY') || eventType.includes('CHECKOUT');
+                  
+                  const badgeColor =
+                    eventType === 'ADD_TO_CART' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                      eventType === 'REMOVE_FROM_CART' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' :
+                        isPayment ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
+                          'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+
+                  return (
+                    <div
+                      key={item._id || index}
+                      className="bg-white/[0.02] border border-white/10 hover:border-white/20 p-3 rounded-2xl transition-colors flex flex-col gap-2 text-left"
+                    >
+                      <div className="flex items-center justify-between gap-2 flex-wrap border-b border-white/5 pb-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${badgeColor}`}>
+                            {eventType.replace(/_/g, ' ')}
+                          </span>
+                          {item.ip && (
+                            <span className="text-slate-500 text-[10px] font-mono select-all">IP: {item.ip}</span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-medium font-mono">
+                          {formatDateTime(item.timestamp || item.createdAt)}
                         </span>
-                        <span className="text-slate-500 text-[10px] font-mono select-all">IP: {item.ip || 'N/A'}</span>
                       </div>
-                      <span className="text-xs text-white font-bold truncate mt-0.5" title={item.details?.productName}>
-                        {(() => {
-                          const productFromLookup = (extraData.products || []).find(p => p._id === item.details?.productId);
-                          return item.details?.productName || productFromLookup?.name || 'Unknown Product';
-                        })()}
-                      </span>
-                    </div>
 
-                    <div className="flex sm:flex-col items-start sm:items-end shrink-0 justify-between sm:justify-start gap-1">
-                      {item.details?.quantity !== undefined && (
-                        <span className="text-xs text-slate-300 font-bold font-mono">
-                          Qty: {item.details.quantity}
-                        </span>
-                      )}
-                      <span className="text-[10px] text-slate-400 font-medium">
-                        {formatDateTime(item.timestamp || item.createdAt)}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                      {/* Event Details Resolution */}
+                      {(() => {
+                        if (isPayment) {
+                          const oId = String(item.details?.orderId || '');
+                          const mTxn = String(item.details?.merchantTxnNo || '');
+                          const amt = item.details?.amount;
 
-            {/* <button
-              onClick={() => setSelectedUserAnalytics(null)}
-              className="w-full mt-6 py-2.5 bg-slate-800 border border-white/10 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md"
-            >
-              Close
-            </button> */}
-          </div>
-        </div>,
-        document.body
-      )}
+                          // Lookup matching order from extraData.orders
+                          const matchedOrder = (extraData.orders || []).find(o => 
+                            (oId && (String(o._id) === oId || String(o.orderId) === oId || String(o.id) === oId)) ||
+                            (mTxn && (String(o.merchantTxnNo) === mTxn || String(o.orderId) === mTxn))
+                          );
 
-      {/* Viewers Breakdown Modal */}
-      {selectedViewerBreakdown && createPortal(
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
-          <div className="bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 shadow-2xl rounded-3xl p-6 max-w-lg w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="absolute inset-0 bg-transparent pointer-events-none"></div>
+                          const orderItems = matchedOrder ? (matchedOrder.items || matchedOrder.orderItems || matchedOrder.products || []) : [];
 
-            {/* Header */}
-            <div className="flex justify-between items-start mb-5 relative z-10">
-              <div className="flex items-center gap-3">
-                {selectedViewerBreakdown.logo ? (
-                  <img src={selectedViewerBreakdown.logo} alt={selectedViewerBreakdown.title} className="w-10 h-10 object-contain rounded-xl bg-white border border-white/10 p-1 shrink-0" />
-                ) : (
-                  <div className={`p-2.5 rounded-xl ${selectedViewerBreakdown.type === 'Brand' ? 'bg-indigo-500/20 text-indigo-400' :
-                    selectedViewerBreakdown.type === 'Category' ? 'bg-purple-500/20 text-purple-400' :
-                      'bg-blue-500/20 text-blue-400'
-                    } shrink-0`}>
-                    {selectedViewerBreakdown.type === 'Brand' ? <FiTrendingUp size={20} /> :
-                      selectedViewerBreakdown.type === 'Category' ? <FiLayers size={20} /> :
-                        <FiBox size={20} />}
-                  </div>
-                )}
-                <div>
-                  <h3 className="text-base font-black text-white tracking-tight leading-snug truncate max-w-[260px]" title={selectedViewerBreakdown.title}>
-                    {selectedViewerBreakdown.title}
-                  </h3>
-                  <p className="text-[10px] text-slate-400 font-bold mt-0.5">
-                    {selectedViewerBreakdown.type} Search & View Breakdown
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setSelectedViewerBreakdown(null)}
-                className="p-1.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer"
-              >
-                <FiX size={16} />
-              </button>
-            </div>
+                          return (
+                            <div className="space-y-2">
+                              {/* Order & Transaction Row */}
+                              <div className="flex items-center gap-2 flex-wrap text-xs">
+                                {amt !== undefined && (
+                                  <span className="text-sm font-black text-emerald-400 font-mono">
+                                    ₹{Number(amt).toLocaleString('en-IN')}
+                                  </span>
+                                )}
+                                {mTxn && (
+                                  <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-slate-300 font-mono text-[10px]">
+                                    Txn: {mTxn}
+                                  </span>
+                                )}
+                                {oId && (
+                                  <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-slate-400 font-mono text-[10px]">
+                                    Order ID: #{oId}
+                                  </span>
+                                )}
+                              </div>
 
-            {/* Total Banner Summary */}
-            <div className={`border border-white/10 bg-transparent backdrop-blur-2xl rounded-2xl p-4 mb-5 flex justify-between items-center text-xs relative z-10`}>
-              <div>
-                <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px] block">Total Views / Searches</span>
-                <span className={`text-base font-black ${selectedViewerBreakdown.type === 'Brand' ? 'text-indigo-400' :
-                  selectedViewerBreakdown.type === 'Category' ? 'text-purple-400' :
-                    'text-blue-400'
-                  }`}>
-                  {selectedViewerBreakdown.searches} views
-                </span>
-              </div>
-              <div className="text-right">
-                <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px] block">Unique Viewers</span>
-                <span className="text-sm font-extrabold text-white">
-                  {selectedViewerBreakdown.viewers.length} user{selectedViewerBreakdown.viewers.length !== 1 ? 's' : ''}
-                </span>
-              </div>
-            </div>
+                              {/* Products inside this Initiated Order */}
+                              {orderItems.length > 0 ? (
+                                <div className="pt-1">
+                                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
+                                    Ordered Products ({orderItems.length}):
+                                  </span>
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {orderItems.map((oi, oiIdx) => {
+                                      const prodObj = (extraData.products || []).find(p => String(p._id) === String(oi.product?._id || oi.product || oi.productId));
+                                      const pName = oi.product?.name || oi.productName || oi.name || prodObj?.name || 'Product';
+                                      const vName = oi.variant?.name || oi.variantName || '';
+                                      const q = oi.quantity || oi.qty || 1;
+                                      return (
+                                        <div key={oiIdx} className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 text-xs text-white">
+                                          <FiBox size={11} className="text-blue-400 shrink-0" />
+                                          <span className="font-bold">{pName}</span>
+                                          {vName && <span className="text-[10px] text-amber-400 font-medium">({vName})</span>}
+                                          <span className="text-[11px] font-mono text-emerald-400 font-bold ml-0.5">×{q}</span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="text-xs text-slate-400 italic">
+                                  Order #{oId ? oId.slice(-8) : 'N/A'} • Initiated with amount ₹{Number(amt || 0).toLocaleString('en-IN')}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        }
 
-            {/* Viewers List */}
-            <div className="space-y-2.5 max-h-[300px] overflow-y-auto custom-scrollbar pr-1 relative z-10">
-              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block mb-1">User Engagement Breakdown</span>
-              {selectedViewerBreakdown.viewers.length === 0 ? (
-                <p className="text-xs text-slate-500 italic py-6 text-center">No individual viewer statistics recorded.</p>
-              ) : (
-                [...selectedViewerBreakdown.viewers]
-                  .sort((a, b) => (b.count || 0) - (a.count || 0))
-                  .map((item, index) => {
-                    const u = item.user || {};
-                    const initials = (u.name || 'U').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-                    const percent = selectedViewerBreakdown.searches > 0
-                      ? Math.round(((item.count || 0) / selectedViewerBreakdown.searches) * 100)
-                      : 0;
+                        // For standard cart events (ADD_TO_CART, REMOVE_FROM_CART, UPDATE_CART_QTY)
+                        const productFromLookup = (extraData.products || []).find(p => p._id === item.details?.productId);
+                        const pName = item.details?.productName || productFromLookup?.name || 'Unknown Product';
+                        const vId = item.details?.variantId;
+                        let vName = '';
+                        if (vId && productFromLookup?.variants) {
+                          const vObj = productFromLookup.variants.find(v => v._id === vId || v.name === vId);
+                          if (vObj) vName = vObj.name;
+                        }
 
-                    return (
-                      <div
-                        key={u._id || index}
-                        className="flex items-center justify-between bg-transparent backdrop-blur-2xl border border-white/10 p-3 rounded-xl hover:border-white/20 transition-colors"
-                      >
-                        <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
-                          <div className="w-8 h-8 rounded-lg border bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 border-white/10 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-inner">
-                            {initials}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <span className="text-xs text-white font-extrabold block truncate">{u.name || 'Unknown User'}</span>
-                            <span className="text-[9px] text-slate-400 font-mono block truncate select-all">{u.email || '-'}</span>
-                            {u.phone && (
-                              <span className="text-[9px] text-slate-500 flex items-center gap-1 mt-0.5">
-                                <FiPhone size={8} /> {u.phone}
+                        return (
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <div className="flex items-center gap-2 flex-wrap min-w-0">
+                              <span className="text-xs text-white font-bold truncate" title={pName}>
+                                {pName}
+                              </span>
+                              {vName && (
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                  Variant: {vName}
+                                </span>
+                              )}
+                            </div>
+                            {item.details?.quantity !== undefined && (
+                              <span className="text-xs text-emerald-400 font-bold font-mono px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
+                                Qty: {item.details.quantity}
                               </span>
                             )}
-                            {(item.lastViewedAt || item.timestamp || item.createdAt || u.lastActive) ? (
-                              <span className="text-[9px] text-indigo-300/80 flex items-center gap-1 mt-1 font-mono">
-                                <FiClock size={9} />
-                                {formatDateTime(item.lastViewedAt || item.timestamp || item.createdAt || u.lastActive)}
-                              </span>
-                            ) : null}
                           </div>
-                        </div>
-
-                        <div className="text-right shrink-0 flex flex-col items-end">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${selectedViewerBreakdown.type === 'Brand'
-                            ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
-                            : selectedViewerBreakdown.type === 'Category'
-                              ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
-                              : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                            }`}>
-                            {item.count || 0} view{item.count !== 1 ? 's' : ''} ({percent}%)
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })
-              )}
+                        );
+                      })()}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-
-            <button
-              onClick={() => setSelectedViewerBreakdown(null)}
-              className="w-full mt-6 py-2.5 bg-slate-800 border border-white/10 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md"
-            >
-              Close Breakdown
-            </button>
           </div>
         </div>,
         document.body
       )}
+
+      {/* Viewers & Engagement Breakdown Modal (Expanded) */}
+      {selectedViewerBreakdown && createPortal(
+        <div 
+          className="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center z-[9999] p-3 sm:p-4 md:p-6 animate-in fade-in duration-200"
+          onClick={() => {
+            setSelectedViewerBreakdown(null);
+            setViewerSearchQuery('');
+          }}
+        >
+          <div 
+            className="bg-linear-to-br from-slate-950 via-slate-900 to-slate-950 border border-white/10 shadow-2xl rounded-3xl p-5 sm:p-6 max-w-2xl w-full relative overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={`absolute inset-0 pointer-events-none ${
+              selectedViewerBreakdown.type === 'Brand' ? 'bg-gradient-to-b from-indigo-500/10 via-transparent to-transparent' :
+              selectedViewerBreakdown.type === 'Category' ? 'bg-gradient-to-b from-purple-500/10 via-transparent to-transparent' :
+              'bg-gradient-to-b from-blue-500/10 via-transparent to-transparent'
+            }`} />
+
+            {(() => {
+              const bType = selectedViewerBreakdown.type;
+              const totalViews = selectedViewerBreakdown.searches || 0;
+              const viewersList = selectedViewerBreakdown.viewers || [];
+              const uniqueCount = viewersList.length;
+              const repeatCount = viewersList.filter(u => (u.count || 0) > 1).length;
+              const avgViews = uniqueCount > 0 ? (totalViews / uniqueCount).toFixed(1) : '0';
+
+              // Product specific metadata
+              const fullProd = selectedViewerBreakdown.fullProduct || {};
+              const offerPrice = Number(fullProd.offerPrice || 0);
+              const basePrice = Number(fullProd.basePrice || 0);
+              const effectivePrice = offerPrice > 0 ? offerPrice : basePrice;
+              const discountPercent = (offerPrice > 0 && offerPrice < basePrice)
+                ? Math.round(((basePrice - offerPrice) / basePrice) * 100)
+                : 0;
+              const variantsCount = fullProd.variants?.length || 0;
+
+              // Calculate order stats from extraData.orders
+              let ordersCount = 0;
+              let totalUnitsSold = 0;
+              let totalSalesRevenue = 0;
+              const allOrders = Array.isArray(extraData.orders) ? extraData.orders : [];
+
+              // Gather matching product IDs for this entity
+              const matchingProdIds = new Set();
+              if (bType === 'Product') {
+                const pId = selectedViewerBreakdown.productId || fullProd._id || fullProd.id;
+                if (pId) matchingProdIds.add(String(pId));
+              } else if (bType === 'Brand') {
+                const bId = selectedViewerBreakdown.brandId || selectedViewerBreakdown.brandObj?._id;
+                if (bId && Array.isArray(extraData.products)) {
+                  extraData.products.forEach(p => {
+                    const pBrand = typeof p.brand === 'object' ? p.brand?._id : p.brand;
+                    if (String(pBrand) === String(bId)) {
+                      matchingProdIds.add(String(p._id));
+                    }
+                  });
+                }
+              } else if (bType === 'Category') {
+                const cId = selectedViewerBreakdown.categoryId || selectedViewerBreakdown.categoryObj?._id;
+                if (cId && Array.isArray(extraData.products)) {
+                  extraData.products.forEach(p => {
+                    const pCat = typeof p.category === 'object' ? p.category?._id : p.category;
+                    if (String(pCat) === String(cId)) {
+                      matchingProdIds.add(String(p._id));
+                    }
+                  });
+                }
+              }
+
+              if (matchingProdIds.size > 0 && allOrders.length > 0) {
+                allOrders.forEach(o => {
+                  const items = o.items || o.orderItems || o.products || [];
+                  let hasMatch = false;
+                  items.forEach(it => {
+                    const itProdId = String(it.product?._id || it.product?.id || it.product || it.productId || '');
+                    if (matchingProdIds.has(itProdId)) {
+                      hasMatch = true;
+                      const qty = Number(it.quantity || it.qty || 1);
+                      const price = Number(it.price || it.totalPrice || effectivePrice || 0);
+                      totalUnitsSold += qty;
+                      totalSalesRevenue += (price * qty);
+                    }
+                  });
+                  if (hasMatch) ordersCount++;
+                });
+              }
+
+              // Calculate traffic share for Brand & Category
+              const totalAggregatedTraffic = Array.isArray(data)
+                ? data.reduce((acc, it) => acc + (it.searches || it.views || 0), 0)
+                : 0;
+              const trafficSharePercent = totalAggregatedTraffic > 0
+                ? ((totalViews / totalAggregatedTraffic) * 100).toFixed(1)
+                : '0';
+
+              // Filter viewers by search query
+              const filteredViewers = viewersList.filter(item => {
+                if (!viewerSearchQuery.trim()) return true;
+                const q = viewerSearchQuery.toLowerCase().trim();
+                const u = item.user || {};
+                return (
+                  (u.name || '').toLowerCase().includes(q) ||
+                  (u.email || '').toLowerCase().includes(q) ||
+                  (u.phone || '').toLowerCase().includes(q)
+                );
+              });
+
+              return (
+                <div className="flex flex-col h-full min-h-0 relative z-10 space-y-4">
+                  {/* Top Header: Info (Left) + 2x2 Compact Metric Grid (Right) */}
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 border-b border-white/10 pb-3.5 sm:pb-4 relative">
+                    {/* Close Button - positioned top-right */}
+                    <button
+                      onClick={() => {
+                        setSelectedViewerBreakdown(null);
+                        setViewerSearchQuery('');
+                      }}
+                      className="absolute top-0 right-0 sm:static p-1.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer shrink-0 z-20 sm:order-3"
+                      title="Close modal"
+                    >
+                      <FiX size={16} />
+                    </button>
+
+                    {/* Left Column: Image/Logo & Details */}
+                    <div className="flex items-center gap-3 min-w-0 flex-1 pr-8 sm:pr-0 sm:order-1">
+                      {/* Logo / Thumbnail */}
+                      {selectedViewerBreakdown.logo ? (
+                        <div 
+                          onClick={() => {
+                            if (bType === 'Product' && selectedViewerBreakdown.productId) {
+                              setViewerProductModalId(selectedViewerBreakdown.productId);
+                            }
+                          }}
+                          className={`w-14 h-14 sm:w-18 sm:h-18 rounded-2xl overflow-hidden bg-white shrink-0 border border-white/15 p-1 flex items-center justify-center shadow-inner ${
+                            bType === 'Product' ? 'cursor-pointer hover:scale-105 hover:border-blue-500/50 transition-all' : ''
+                          }`}
+                        >
+                          <img 
+                            src={selectedViewerBreakdown.logo} 
+                            alt={selectedViewerBreakdown.title} 
+                            className="w-full h-full object-contain" 
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-2xl shrink-0 flex items-center justify-center border bg-white/5 border-white/10 text-slate-300">
+                          {bType === 'Brand' ? <FiTrendingUp size={24} /> :
+                           bType === 'Category' ? <FiLayers size={24} /> :
+                           <FiBox size={24} />}
+                        </div>
+                      )}
+
+                      {/* Title & Tags */}
+                      <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 
+                            onClick={() => {
+                              if (bType === 'Product' && selectedViewerBreakdown.productId) {
+                                setViewerProductModalId(selectedViewerBreakdown.productId);
+                              }
+                            }}
+                            className={`text-sm sm:text-base font-black text-white tracking-tight leading-snug truncate ${
+                              bType === 'Product' ? 'hover:text-blue-400 cursor-pointer transition-colors' : ''
+                            }`}
+                            title={selectedViewerBreakdown.title}
+                          >
+                            {selectedViewerBreakdown.title}
+                          </h3>
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-white/5 text-slate-300 border border-white/10">
+                            {bType}
+                          </span>
+                        </div>
+
+                        {/* Metadata Tags Row */}
+                        <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
+                          {bType === 'Product' && (
+                            <>
+                              {selectedViewerBreakdown.brandName && selectedViewerBreakdown.brandName !== 'N/A' && (
+                                <span className="font-bold px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/10 flex items-center gap-1">
+                                  <FiTag size={10} className="text-slate-400" />
+                                  {selectedViewerBreakdown.brandName}
+                                </span>
+                              )}
+                              {selectedViewerBreakdown.categoryName && selectedViewerBreakdown.categoryName !== 'N/A' && (
+                                <span className="font-semibold px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/10">
+                                  {selectedViewerBreakdown.categoryName}
+                                </span>
+                              )}
+                              {variantsCount > 0 && (
+                                <span className="font-semibold px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/10">
+                                  {variantsCount} Variant{variantsCount > 1 ? 's' : ''}
+                                </span>
+                              )}
+                            </>
+                          )}
+
+                          {(bType === 'Brand' || bType === 'Category') && (
+                            <>
+                              {selectedViewerBreakdown.totalProducts !== undefined && (
+                                <span className="font-bold px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/10 flex items-center gap-1">
+                                  <FiBox size={10} className="text-slate-400" />
+                                  {selectedViewerBreakdown.totalProducts} Catalog Product{selectedViewerBreakdown.totalProducts !== 1 ? 's' : ''}
+                                </span>
+                              )}
+                              {selectedViewerBreakdown.isActive !== undefined && (
+                                <span className={`px-2 py-0.5 rounded-md font-bold uppercase ${
+                                  selectedViewerBreakdown.isActive 
+                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                    : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                                }`}>
+                                  {selectedViewerBreakdown.isActive ? 'Active' : 'Inactive'}
+                                </span>
+                              )}
+                            </>
+                          )}
+                        </div>
+
+                        {/* Product Pricing (if Product) */}
+                        {bType === 'Product' && effectivePrice > 0 && (
+                          <div className="flex items-center gap-2 text-xs font-mono pt-0.5 flex-wrap">
+                            <span className="text-emerald-400 font-black text-sm">
+                              ₹{effectivePrice.toLocaleString('en-IN')}
+                            </span>
+                            {discountPercent > 0 && (
+                              <>
+                                <span className="text-slate-500 line-through text-[11px]">
+                                  ₹{basePrice.toLocaleString('en-IN')}
+                                </span>
+                                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-rose-500/15 text-rose-400 border border-rose-500/25">
+                                  {discountPercent}% OFF
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right Column: 2x2 Compact Metric Grid */}
+                    <div className="w-full sm:w-auto sm:order-2">
+                      <div className="grid grid-cols-2 gap-1.5 w-full sm:min-w-[220px]">
+                        {/* Total Views / Searches */}
+                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
+                          <div className="flex items-center justify-between text-slate-400">
+                            <span className="text-[9px] font-bold uppercase tracking-wider">Total Views</span>
+                            <FiEye size={11} className="text-slate-400" />
+                          </div>
+                          <div className="mt-1 flex items-baseline justify-between gap-1">
+                            <span className="text-sm font-black text-white font-mono">{totalViews}</span>
+                            <span className="text-[9px] text-slate-500">hits</span>
+                          </div>
+                        </div>
+
+                        {/* Unique Viewers */}
+                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
+                          <div className="flex items-center justify-between text-slate-400">
+                            <span className="text-[9px] font-bold uppercase tracking-wider">Unique</span>
+                            <FiUsers size={11} className="text-slate-400" />
+                          </div>
+                          <div className="mt-1 flex items-baseline justify-between gap-1">
+                            <span className="text-sm font-black text-white font-mono">{uniqueCount}</span>
+                            <span className="text-[9px] text-slate-500">{repeatCount} rep</span>
+                          </div>
+                        </div>
+
+                        {/* Avg Views */}
+                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
+                          <div className="flex items-center justify-between text-slate-400">
+                            <span className="text-[9px] font-bold uppercase tracking-wider">Avg Views</span>
+                            <FiActivity size={11} className="text-slate-400" />
+                          </div>
+                          <div className="mt-1 flex items-baseline justify-between gap-1">
+                            <span className="text-sm font-black text-white font-mono">{avgViews}x</span>
+                            <span className="text-[9px] text-slate-500">/user</span>
+                          </div>
+                        </div>
+
+                        {/* 4th Card: Ordered (for Product) vs Traffic Share (for Brand / Category) */}
+                        {bType === 'Product' ? (
+                          <div className="p-2 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
+                            <div className="flex items-center justify-between text-slate-400">
+                              <span className="text-[9px] font-bold uppercase tracking-wider">Ordered</span>
+                              <FiShoppingBag size={11} className="text-slate-400" />
+                            </div>
+                            <div className="mt-1 flex items-baseline justify-between gap-1">
+                              <span className="text-sm font-black text-emerald-400 font-mono">
+                                {totalUnitsSold > 0 ? `${totalUnitsSold}u` : `${ordersCount} ord`}
+                              </span>
+                              <span className="text-[9px] text-slate-500">
+                                {totalSalesRevenue > 0 ? `₹${totalSalesRevenue.toLocaleString('en-IN')}` : 'sold'}
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="p-2 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
+                            <div className="flex items-center justify-between text-slate-400">
+                              <span className="text-[9px] font-bold uppercase tracking-wider">Traffic Share</span>
+                              <FiPercent size={11} className="text-slate-400" />
+                            </div>
+                            <div className="mt-1 flex items-baseline justify-between gap-1">
+                              <span className="text-sm font-black text-blue-400 font-mono">
+                                {trafficSharePercent}%
+                              </span>
+                              <span className="text-[9px] text-slate-500 truncate">
+                                {bType === 'Brand' ? 'of brand traffic' : 'of cat traffic'}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Searchable Viewers Section Header */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                        <FiUsers className="text-blue-400" size={13} />
+                        <span>Viewer Breakdown</span>
+                      </span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/10 text-slate-300 font-bold">
+                        {filteredViewers.length} of {uniqueCount}
+                      </span>
+                    </div>
+
+                    {/* Viewer search input */}
+                    {uniqueCount > 0 && (
+                      <div className="relative flex-1 sm:max-w-xs">
+                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={12} />
+                        <input
+                          type="text"
+                          placeholder="Filter user by name, email, phone..."
+                          value={viewerSearchQuery}
+                          onChange={(e) => setViewerSearchQuery(e.target.value)}
+                          className="w-full pl-8 pr-7 py-1.5 bg-black/40 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50"
+                        />
+                        {viewerSearchQuery && (
+                          <button
+                            onClick={() => setViewerSearchQuery('')}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white text-xs"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Scrollable list of user view metrics */}
+                  <div className="space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-1 flex-1">
+                    {filteredViewers.length === 0 ? (
+                      <div className="p-8 text-center bg-white/[0.01] rounded-2xl border border-white/5">
+                        <FiUsers className="mx-auto text-slate-600 text-2xl mb-1.5" />
+                        <p className="text-xs text-slate-400 font-medium">
+                          {viewerSearchQuery
+                            ? `No viewers match "${viewerSearchQuery}".`
+                            : 'No individual viewer statistics recorded.'}
+                        </p>
+                      </div>
+                    ) : (
+                      [...filteredViewers]
+                        .sort((a, b) => (b.count || 0) - (a.count || 0))
+                        .map((item, index) => {
+                          const u = item.user || {};
+                          const initials = (u.name || 'U').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                          const percent = totalViews > 0
+                            ? Math.round(((item.count || 0) / totalViews) * 100)
+                            : 0;
+
+                          return (
+                            <div
+                              key={u._id || u.email || index}
+                              className="p-3 rounded-2xl bg-white/[0.02] hover:bg-white/[0.04] border border-white/5 hover:border-white/15 transition-all duration-200 space-y-2"
+                            >
+                              <div className="flex items-center justify-between gap-2.5">
+                                {/* User details */}
+                                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                  <div className={`w-8 h-8 rounded-xl border flex items-center justify-center font-bold text-xs shrink-0 shadow-inner text-white ${
+                                    bType === 'Brand' ? 'bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 border-indigo-500/30' :
+                                    bType === 'Category' ? 'bg-gradient-to-tr from-purple-500/20 to-pink-500/20 border-purple-500/30' :
+                                    'bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 border-blue-500/30'
+                                  }`}>
+                                    {initials}
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-1.5">
+                                      <span 
+                                        onClick={() => {
+                                          if (u._id) {
+                                            setSelectedViewerBreakdown(null);
+                                            navigate(`/users/list?userId=${u._id}`);
+                                          }
+                                        }}
+                                        className="text-xs text-white font-extrabold truncate hover:text-blue-400 transition-colors cursor-pointer"
+                                        title={u.name || 'Unknown User'}
+                                      >
+                                        {u.name || 'Unknown User'}
+                                      </span>
+                                      {u.role && u.role !== 'user' && (
+                                        <span className="text-[9px] uppercase font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                          {u.role}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono truncate">
+                                      <span className="truncate">{u.email || '-'}</span>
+                                      {u.phone && (
+                                        <span className="text-slate-500 shrink-0 flex items-center gap-0.5">
+                                          • {u.phone}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* View count & Time */}
+                                <div className="text-right shrink-0 flex flex-col items-end">
+                                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black border ${
+                                    bType === 'Brand' ? 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30' :
+                                    bType === 'Category' ? 'bg-purple-500/15 text-purple-300 border-purple-500/30' :
+                                    'bg-blue-500/15 text-blue-300 border-blue-500/30'
+                                  }`}>
+                                    {item.count || 0} view{item.count !== 1 ? 's' : ''} ({percent}%)
+                                  </span>
+                                  {(item.lastViewedAt || item.timestamp || item.createdAt || u.lastActive) && (
+                                    <span className="text-[9px] text-slate-500 font-medium mt-0.5 font-mono flex items-center gap-1">
+                                      <FiClock size={9} />
+                                      {formatDateTimeSmall(item.lastViewedAt || item.timestamp || item.createdAt || u.lastActive)}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Progress bar */}
+                              <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full transition-all duration-300 ${
+                                    bType === 'Brand' ? 'bg-gradient-to-r from-indigo-500 to-purple-500' :
+                                    bType === 'Category' ? 'bg-gradient-to-r from-purple-500 to-pink-500' :
+                                    'bg-gradient-to-r from-blue-500 to-indigo-500'
+                                  }`}
+                                  style={{ width: `${Math.min(100, Math.max(5, percent))}%` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })
+                    )}
+                  </div>
+
+                  {/* Modal Footer */}
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 pt-3 border-t border-white/10">
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                      {bType === 'Product' && selectedViewerBreakdown.productId && (
+                        <>
+                          <button
+                            onClick={() => {
+                              setSelectedViewerBreakdown(null);
+                              navigate(`/products/variants/${selectedViewerBreakdown.productId}`);
+                            }}
+                            className="flex-1 sm:flex-initial px-3 py-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-purple-300 font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                          >
+                            <FiSliders size={13} />
+                            <span>Edit Variants</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setViewerProductModalId(selectedViewerBreakdown.productId);
+                            }}
+                            className="flex-1 sm:flex-initial px-3 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-300 font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                          >
+                            <FiEye size={13} />
+                            <span>Product Details</span>
+                          </button>
+                        </>
+                      )}
+
+                      {bType === 'Brand' && (
+                        <button
+                          onClick={() => {
+                            setSelectedViewerBreakdown(null);
+                            navigate(`/products/list?brand=${encodeURIComponent(selectedViewerBreakdown.brandId || selectedViewerBreakdown.title)}`);
+                          }}
+                          className="flex-1 sm:flex-initial px-3.5 py-2 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                        >
+                          <FiPackage size={13} />
+                          <span>View Brand Products</span>
+                        </button>
+                      )}
+
+                      {bType === 'Category' && (
+                        <button
+                          onClick={() => {
+                            setSelectedViewerBreakdown(null);
+                            navigate(`/products/list?category=${encodeURIComponent(selectedViewerBreakdown.categoryId || selectedViewerBreakdown.title)}`);
+                          }}
+                          className="flex-1 sm:flex-initial px-3.5 py-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-purple-300 font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                        >
+                          <FiLayers size={13} />
+                          <span>View Category Products</span>
+                        </button>
+                      )}
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setSelectedViewerBreakdown(null);
+                        setViewerSearchQuery('');
+                      }}
+                      className="w-full sm:w-auto px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer border border-white/10 shadow-sm"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* In-Page Product Details Modal */}
+      <ProductDetailsModal
+        isOpen={!!viewerProductModalId}
+        productId={viewerProductModalId}
+        onClose={() => setViewerProductModalId(null)}
+        showEditButton={false}
+      />
     </div>
   );
 };

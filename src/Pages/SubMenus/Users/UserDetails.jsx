@@ -134,203 +134,294 @@ const UserDetails = () => {
         const token = sessionStorage.getItem('accessToken');
         const headers = { Authorization: `Bearer ${token}` };
 
-        const [prodRes, brandRes, catRes, actRes] = await Promise.all([
+        const [prodRes, brandRes, catRes, actRes, analyticsRes, ordersRes] = await Promise.all([
           api.get('/products/', { headers }).catch(() => ({ data: [] })),
           api.get('/brands/', { headers }).catch(() => ({ data: [] })),
           api.get('/categories', { headers }).catch(() => ({ data: [] })),
-          api.get('/activity/stats', { headers }).catch(() => ({ data: { recentActivities: [] } }))
+          api.get('/activity/stats', { headers }).catch(() => ({ data: { recentActivities: [] } })),
+          api.get('/admin/analytics', { headers }).catch(() => ({ data: { activityStream: [] } })),
+          api.get('/orders/all', { headers }).catch(() => ({ data: [] }))
         ]);
 
         const productsList = prodRes.data || [];
         const brandsList = brandRes.data || [];
         const categoriesList = catRes.data || [];
         const activities = actRes.data?.recentActivities || [];
+        const stream = analyticsRes.data?.activityStream || [];
+        const allOrders = Array.isArray(ordersRes.data) ? ordersRes.data : ordersRes.data?.orders || [];
 
-        // Filter activities for this user from recent activities
-        const userLogs = activities.filter(act => {
-          const actUserId = act.user?._id || (typeof act.user === 'string' ? act.user : null);
-          const actUserEmail = act.user?.email;
+        // Flexible User Matching Helper
+        const isTargetUser = (uObj) => {
+          if (!uObj) return false;
+          const uId = typeof uObj === 'string' ? uObj : (uObj._id || uObj.userId || uObj.id);
+          const uEmail = typeof uObj === 'object' ? (uObj.email || '') : '';
+          const uPhone = typeof uObj === 'object' ? (uObj.phone || '') : '';
 
-          return (actUserId && (actUserId === user._id || actUserId === user.userId || actUserId === id)) ||
-            (actUserEmail && user.email && actUserEmail.toLowerCase() === user.email.toLowerCase());
-        });
+          const targetId = user?._id || user?.userId || id;
+          const targetEmail = user?.email || '';
+          const targetPhone = user?.phone || '';
 
-        // Helper to match user details in viewers array
-        const findUserViewer = (viewers) => {
-          if (!Array.isArray(viewers)) return null;
-          return viewers.find(v => {
-            const vId = v.user?._id || (typeof v.user === 'string' ? v.user : null);
-            const vEmail = v.user?.email;
-            return (vId && (vId === user._id || vId === user.userId || vId === id)) ||
-              (vEmail && user.email && vEmail.toLowerCase() === user.email.toLowerCase());
-          });
+          if (uId && targetId && String(uId) === String(targetId)) return true;
+          if (uEmail && targetEmail && uEmail.toLowerCase().trim() === targetEmail.toLowerCase().trim()) return true;
+          if (uPhone && targetPhone) {
+            const clean1 = String(uPhone).replace(/\D/g, '');
+            const clean2 = String(targetPhone).replace(/\D/g, '');
+            if (clean1 && clean2 && (clean1 === clean2 || clean1.endsWith(clean2) || clean2.endsWith(clean1))) return true;
+          }
+          return false;
         };
 
-        // 1. Process Product Views
-        const pvLogs = userLogs.filter(act => {
-          const action = (act.action || '').toUpperCase();
-          return action === 'PRODUCT_VIEW' || action === 'PRODUCTVIEW' || action === 'PRODUCT';
-        });
+        // Filter user logs from recent activities and live analytics activity stream
+        const userLogs = [
+          ...activities.filter(act => isTargetUser(act.user || act)),
+          ...stream.filter(act => isTargetUser(act.user || act))
+        ];
+
+        // Filter user orders
+        const userOrders = allOrders.filter(o => isTargetUser(o.user || o.customer || o));
+
+        // Helper to match user in pre-aggregated viewers arrays
+        const findUserViewer = (viewers) => {
+          if (!Array.isArray(viewers)) return null;
+          return viewers.find(v => isTargetUser(v.user || v));
+        };
+
+        // 1. Process Product Views & Interactions
         const productViewsMap = {};
-        pvLogs.forEach(log => {
-          const productId = log.details?.productId;
+
+        // A. From activity logs (views, cart adds, updates, removals)
+        userLogs.forEach(log => {
+          const action = (log.action || log.eventType || '').toUpperCase();
+          const isProdAction = action.includes('PRODUCT') || action.includes('CART') || action.includes('VIEW');
+          if (!isProdAction) return;
+
+          const productId = log.details?.productId || log.productId || (typeof log.product === 'object' ? log.product?._id : log.product);
           if (!productId) return;
-          const prod = productsList.find(p => p._id === productId);
+
+          const prod = productsList.find(p => String(p._id) === String(productId));
+          const prodBrandId = typeof prod?.brand === 'object' ? prod.brand?._id : prod?.brand;
+          const brandObj = brandsList.find(b => String(b._id) === String(prodBrandId));
+
+          const eventTime = log.timestamp || log.createdAt || log.updatedAt;
+
           if (!productViewsMap[productId]) {
             productViewsMap[productId] = {
               id: productId,
-              name: prod?.name || productId || 'a product',
+              name: log.details?.productName || prod?.name || 'Product',
               image: prod?.images?.[0] || '',
-              brand: prod?.brand?.name || (prod?.brand ? (brandsList.find(b => b._id === prod.brand)?.name) : '') || 'N/A',
+              brand: prod?.brand?.name || brandObj?.name || 'N/A',
               count: 0,
-              latestView: log.createdAt
+              latestView: eventTime
             };
           }
           productViewsMap[productId].count += 1;
-          if (new Date(log.createdAt) > new Date(productViewsMap[productId].latestView)) {
-            productViewsMap[productId].latestView = log.createdAt;
+          if (eventTime && (!productViewsMap[productId].latestView || new Date(eventTime) > new Date(productViewsMap[productId].latestView))) {
+            productViewsMap[productId].latestView = eventTime;
           }
         });
 
-        // Merge with mostViewedProducts
+        // B. From pre-aggregated mostViewedProducts
         const mostViewedProducts = actRes.data?.mostViewedProducts || [];
         mostViewedProducts.forEach(item => {
-          const prodId = item.product?._id;
+          const prodId = item.product?._id || item.productId || item._id;
           if (!prodId) return;
           const viewer = findUserViewer(item.viewers);
           if (viewer) {
-            const prod = productsList.find(p => p._id === prodId);
+            const prod = productsList.find(p => String(p._id) === String(prodId));
+            const prodBrandId = typeof prod?.brand === 'object' ? prod.brand?._id : prod?.brand;
+            const brandObj = brandsList.find(b => String(b._id) === String(prodBrandId));
+            const viewerTime = viewer.lastViewedAt || viewer.lastViewed || viewer.updatedAt || viewer.createdAt;
+
             if (!productViewsMap[prodId]) {
               productViewsMap[prodId] = {
                 id: prodId,
-                name: item.product?.name || prod?.name || prodId || 'a product',
+                name: item.product?.name || prod?.name || 'Product',
                 image: item.product?.images?.[0] || prod?.images?.[0] || '',
-                brand: prod?.brand?.name || (prod?.brand ? (brandsList.find(b => b._id === prod.brand)?.name) : '') || 'N/A',
-                count: viewer.count || 0,
-                latestView: user.lastActive || null
+                brand: prod?.brand?.name || brandObj?.name || 'N/A',
+                count: viewer.count || 1,
+                latestView: viewerTime || user?.lastActive || null
               };
             } else {
-              productViewsMap[prodId].count = Math.max(productViewsMap[prodId].count, viewer.count || 0);
+              productViewsMap[prodId].count = Math.max(productViewsMap[prodId].count, viewer.count || 1);
+              if (viewerTime && (!productViewsMap[prodId].latestView || new Date(viewerTime) > new Date(productViewsMap[prodId].latestView))) {
+                productViewsMap[prodId].latestView = viewerTime;
+              }
             }
           }
         });
 
-        // 2. Process Brand Views
-        const bvLogs = userLogs.filter(act => {
-          const action = (act.action || '').toUpperCase();
-          return action === 'BRAND_VIEW' || action === 'BRAND';
+        // C. From orders placed by this customer
+        userOrders.forEach(o => {
+          const items = o.items || o.orderItems || o.products || [];
+          const oTime = o.createdAt || o.orderDate;
+          items.forEach(it => {
+            const prodId = it.product?._id || it.product || it.productId;
+            if (!prodId) return;
+            const prod = productsList.find(p => String(p._id) === String(prodId));
+            const prodBrandId = typeof prod?.brand === 'object' ? prod.brand?._id : prod?.brand;
+            const brandObj = brandsList.find(b => String(b._id) === String(prodBrandId));
+
+            if (!productViewsMap[prodId]) {
+              productViewsMap[prodId] = {
+                id: prodId,
+                name: it.product?.name || it.name || prod?.name || 'Product',
+                image: it.image || it.variant?.images?.[0] || prod?.images?.[0] || '',
+                brand: prod?.brand?.name || brandObj?.name || 'N/A',
+                count: 1,
+                latestView: oTime
+              };
+            } else {
+              if (oTime && (!productViewsMap[prodId].latestView || new Date(oTime) > new Date(productViewsMap[prodId].latestView))) {
+                productViewsMap[prodId].latestView = oTime;
+              }
+            }
+          });
         });
+
+        // 2. Process Brand Views
         const brandViewsMap = {};
-        bvLogs.forEach(log => {
-          const brandId = log.details?.brandId || log.details?.id;
+
+        // A. From activity logs
+        userLogs.forEach(log => {
+          const action = (log.action || log.eventType || '').toUpperCase();
+          const isBrandAction = action.includes('BRAND');
+          let brandId = log.details?.brandId || log.details?.id || log.brandId;
+          
+          if (!brandId && log.details?.productId) {
+            const prod = productsList.find(p => String(p._id) === String(log.details.productId));
+            brandId = typeof prod?.brand === 'object' ? prod.brand?._id : prod?.brand;
+          }
+
           if (!brandId) return;
-          const brand = brandsList.find(b => b._id === brandId);
+          const brand = brandsList.find(b => String(b._id) === String(brandId));
+          const eventTime = log.timestamp || log.createdAt || log.updatedAt;
+
           if (!brandViewsMap[brandId]) {
             brandViewsMap[brandId] = {
               id: brandId,
-              name: brand?.name || brandId || 'a brand',
+              name: brand?.name || 'Brand',
               logo: brand?.logo || '',
               count: 0,
-              latestView: log.createdAt
+              latestView: eventTime
             };
           }
           brandViewsMap[brandId].count += 1;
-          if (new Date(log.createdAt) > new Date(brandViewsMap[brandId].latestView)) {
-            brandViewsMap[brandId].latestView = log.createdAt;
+          if (eventTime && (!brandViewsMap[brandId].latestView || new Date(eventTime) > new Date(brandViewsMap[brandId].latestView))) {
+            brandViewsMap[brandId].latestView = eventTime;
           }
         });
 
-        // Merge with mostSearchedBrands
+        // B. From pre-aggregated mostSearchedBrands
         const mostSearchedBrands = actRes.data?.mostSearchedBrands || [];
         mostSearchedBrands.forEach(item => {
-          const brandId = item.brand?._id;
+          const brandId = item.brand?._id || item.brandId || item._id;
           if (!brandId) return;
           const viewer = findUserViewer(item.viewers);
           if (viewer) {
-            const brand = brandsList.find(b => b._id === brandId);
+            const brand = brandsList.find(b => String(b._id) === String(brandId));
+            const viewerTime = viewer.lastViewedAt || viewer.lastViewed || viewer.updatedAt || viewer.createdAt;
+
             if (!brandViewsMap[brandId]) {
               brandViewsMap[brandId] = {
                 id: brandId,
-                name: item.brand?.name || brand?.name || brandId || 'a brand',
+                name: item.brand?.name || brand?.name || 'Brand',
                 logo: item.brand?.logo || brand?.logo || '',
-                count: viewer.count || 0,
-                latestView: user.lastActive || null
+                count: viewer.count || 1,
+                latestView: viewerTime || user?.lastActive || null
               };
             } else {
-              brandViewsMap[brandId].count = Math.max(brandViewsMap[brandId].count, viewer.count || 0);
+              brandViewsMap[brandId].count = Math.max(brandViewsMap[brandId].count, viewer.count || 1);
+              if (viewerTime && (!brandViewsMap[brandId].latestView || new Date(viewerTime) > new Date(brandViewsMap[brandId].latestView))) {
+                brandViewsMap[brandId].latestView = viewerTime;
+              }
             }
           }
         });
 
         // 3. Process Category Views
-        const cvLogs = userLogs.filter(act => {
-          const action = (act.action || '').toUpperCase();
-          return action === 'CATEGORY_VIEW' || action === 'CATEGORY';
-        });
         const categoryViewsMap = {};
-        cvLogs.forEach(log => {
-          const categoryId = log.details?.categoryId || log.details?.id;
+
+        // A. From activity logs
+        userLogs.forEach(log => {
+          const action = (log.action || log.eventType || '').toUpperCase();
+          let categoryId = log.details?.categoryId || log.details?.id || log.categoryId;
+          
+          if (!categoryId && log.details?.productId) {
+            const prod = productsList.find(p => String(p._id) === String(log.details.productId));
+            categoryId = typeof prod?.category === 'object' ? prod.category?._id : prod?.category;
+          }
+
           if (!categoryId) return;
-          const cat = categoriesList.find(c => c._id === categoryId);
+          const cat = categoriesList.find(c => String(c._id) === String(categoryId));
+          const eventTime = log.timestamp || log.createdAt || log.updatedAt;
+
           if (!categoryViewsMap[categoryId]) {
             categoryViewsMap[categoryId] = {
               id: categoryId,
-              name: cat?.name || categoryId || 'a category',
+              name: cat?.name || 'Category',
               count: 0,
-              latestView: log.createdAt
+              latestView: eventTime
             };
           }
           categoryViewsMap[categoryId].count += 1;
-          if (new Date(log.createdAt) > new Date(categoryViewsMap[categoryId].latestView)) {
-            categoryViewsMap[categoryId].latestView = log.createdAt;
+          if (eventTime && (!categoryViewsMap[categoryId].latestView || new Date(eventTime) > new Date(categoryViewsMap[categoryId].latestView))) {
+            categoryViewsMap[categoryId].latestView = eventTime;
           }
         });
 
-        // Merge with mostSearchedCategories
+        // B. From pre-aggregated mostSearchedCategories
         const mostSearchedCategories = actRes.data?.mostSearchedCategories || [];
         mostSearchedCategories.forEach(item => {
-          const categoryId = item.category?._id;
+          const categoryId = item.category?._id || item.categoryId || item._id;
           if (!categoryId) return;
           const viewer = findUserViewer(item.viewers);
           if (viewer) {
-            const cat = categoriesList.find(c => c._id === categoryId);
+            const cat = categoriesList.find(c => String(c._id) === String(categoryId));
+            const viewerTime = viewer.lastViewedAt || viewer.lastViewed || viewer.updatedAt || viewer.createdAt;
+
             if (!categoryViewsMap[categoryId]) {
               categoryViewsMap[categoryId] = {
                 id: categoryId,
-                name: item.category?.name || cat?.name || categoryId || 'a category',
-                count: viewer.count || 0,
-                latestView: user.lastActive || null
+                name: item.category?.name || cat?.name || 'Category',
+                count: viewer.count || 1,
+                latestView: viewerTime || user?.lastActive || null
               };
             } else {
-              categoryViewsMap[categoryId].count = Math.max(categoryViewsMap[categoryId].count, viewer.count || 0);
+              categoryViewsMap[categoryId].count = Math.max(categoryViewsMap[categoryId].count, viewer.count || 1);
+              if (viewerTime && (!categoryViewsMap[categoryId].latestView || new Date(viewerTime) > new Date(categoryViewsMap[categoryId].latestView))) {
+                categoryViewsMap[categoryId].latestView = viewerTime;
+              }
             }
           }
         });
 
         // 4. Process Searches
-        const searchLogs = userLogs.filter(act => {
-          const action = (act.action || '').toUpperCase();
-          return action === 'SEARCH' || action === 'SEARCH_QUERY';
-        });
         const searchesMap = {};
-        searchLogs.forEach(log => {
-          const query = log.details?.query || log.details?.searchQuery;
-          if (!query) return;
-          const cleanQuery = String(query).trim();
-          if (!searchesMap[cleanQuery]) {
-            searchesMap[cleanQuery] = {
-              query: cleanQuery,
-              count: 0,
-              latestSearch: log.createdAt
-            };
-          }
-          searchesMap[cleanQuery].count += 1;
-          if (new Date(log.createdAt) > new Date(searchesMap[cleanQuery].latestSearch)) {
-            searchesMap[cleanQuery].latestSearch = log.createdAt;
+
+        // A. From activity logs
+        userLogs.forEach(log => {
+          const action = (log.action || log.eventType || '').toUpperCase();
+          if (action === 'SEARCH' || action === 'SEARCH_QUERY') {
+            const query = log.details?.query || log.details?.searchQuery || log.query;
+            if (!query) return;
+            const cleanQuery = String(query).trim();
+            const eventTime = log.timestamp || log.createdAt || log.updatedAt;
+
+            if (!searchesMap[cleanQuery]) {
+              searchesMap[cleanQuery] = {
+                query: cleanQuery,
+                count: 0,
+                latestSearch: eventTime
+              };
+            }
+            searchesMap[cleanQuery].count += 1;
+            if (eventTime && (!searchesMap[cleanQuery].latestSearch || new Date(eventTime) > new Date(searchesMap[cleanQuery].latestSearch))) {
+              searchesMap[cleanQuery].latestSearch = eventTime;
+            }
           }
         });
 
-        // Merge with mostSearched
+        // B. From pre-aggregated mostSearched
         const mostSearched = actRes.data?.mostSearched || [];
         mostSearched.forEach(item => {
           const viewer = findUserViewer(item.viewers);
@@ -338,14 +429,19 @@ const UserDetails = () => {
             const query = item.query;
             if (!query) return;
             const cleanQuery = String(query).trim();
+            const viewerTime = viewer.lastViewedAt || viewer.lastViewed || viewer.updatedAt || viewer.createdAt;
+
             if (!searchesMap[cleanQuery]) {
               searchesMap[cleanQuery] = {
                 query: cleanQuery,
-                count: viewer.count || 0,
-                latestSearch: user.lastActive || null
+                count: viewer.count || 1,
+                latestSearch: viewerTime || user?.lastActive || null
               };
             } else {
-              searchesMap[cleanQuery].count = Math.max(searchesMap[cleanQuery].count, viewer.count || 0);
+              searchesMap[cleanQuery].count = Math.max(searchesMap[cleanQuery].count, viewer.count || 1);
+              if (viewerTime && (!searchesMap[cleanQuery].latestSearch || new Date(viewerTime) > new Date(searchesMap[cleanQuery].latestSearch))) {
+                searchesMap[cleanQuery].latestSearch = viewerTime;
+              }
             }
           }
         });
@@ -799,7 +895,7 @@ const UserDetails = () => {
                   <FiClock className="text-indigo-400" /> Connection & Session Timeline
                 </h4>
 
-                <div className="flex-column justify-evenly gap-4">
+                <div className="flex flex-wrap justify-evenly gap-4">
                   {/* Last Active Connection */}
                   <div className="p-4 bg-slate-950/30 border border-white/5 rounded-2xl flex items-center justify-between gap-4">
                     <div className="space-y-1">

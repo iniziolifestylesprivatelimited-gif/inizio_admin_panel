@@ -5,7 +5,8 @@ import { useAuth } from '../Context/AuthContext';
 import {
   FiLogOut, FiMenu, FiX, FiUser,
   FiBell, FiChevronDown, FiChevronRight,
-  FiMessageSquare, FiPackage, FiUserPlus, FiClock, FiAlertTriangle, FiFileText
+  FiMessageSquare, FiPackage, FiUserPlus, FiClock, FiAlertTriangle, FiFileText,
+  FiCheckCircle, FiVolume2, FiShield
 } from 'react-icons/fi';
 import { getAccessibleMenus } from '../config/menus';
 import HeaderSearch from './HeaderSearch';
@@ -13,6 +14,13 @@ import logoImg from '../assets/logos.png';
 import appIconImg from '../assets/app-icon-png.png';
 import { api, BASE_URL } from '../api/axios';
 import { isRouteAllowed } from '../utils/rbac';
+import {
+  isBrowserNotificationSupported,
+  getNotificationPermission,
+  requestBrowserNotificationPermission,
+  showBrowserNotification,
+  playNotificationSound
+} from '../utils/browserNotifications';
 
 const Layout = () => {
   const { user, logout, userPermissions } = useAuth();
@@ -42,6 +50,7 @@ const Layout = () => {
   const [quotesUnreadCount, setQuotesUnreadCount] = useState(0);
   const [brokenImagesUnreadCount, setBrokenImagesUnreadCount] = useState(0);
   const [showPermissionBanner, setShowPermissionBanner] = useState(false);
+  const [browserPermission, setBrowserPermission] = useState(() => getNotificationPermission());
   const navigation = useNavigate();
   const prevContactsRef = useRef([]);
   const isInitialLoad = useRef(true);
@@ -54,99 +63,65 @@ const Layout = () => {
   const isInitialDataLoad = useRef(true);
   const [toasts, setToasts] = useState([]);
   const [failedImageProductNames, setFailedImageProductNames] = useState([]);
-  const [notificationPermission, setNotificationPermission] = useState(() => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      return Notification.permission;
-    }
-    return 'default';
-  });
 
-  const playNotificationSoundAndVibrate = () => {
-    try {
-      if (navigator.vibrate) navigator.vibrate([150, 80, 150]);
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (AudioCtx) {
-        const ctx = new AudioCtx();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
-        gain.gain.setValueAtTime(0.08, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.35);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.35);
-      }
-    } catch (err) {
-      // Audio autoplay policy fallback
-    }
-  };
-
-  const triggerNativeNotification = (title, message, path, tag = '') => {
-    try {
-      const notification = new Notification(title, {
-        body: message,
-        icon: logoImg,
-        tag: tag || `notif-${Date.now()}`
-      });
-      notification.onclick = () => {
-        window.focus();
-        if (path) navigation(path);
-        notification.close();
-      };
-    } catch (err) {
-      console.log('Native notification error:', err);
-    }
-  };
-
-  const sendChromeNotification = (title, message, path, tag = '') => {
-    playNotificationSoundAndVibrate();
-
-    if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted') {
-      return;
-    }
-
-    try {
-      if (navigator.serviceWorker && navigator.serviceWorker.ready) {
-        navigator.serviceWorker.ready.then(registration => {
-          registration.showNotification(title, {
-            body: message,
-            icon: logoImg,
-            badge: logoImg,
-            vibrate: [200, 100, 200],
-            tag: tag || `notif-${Date.now()}`,
-            data: { path }
-          });
-        }).catch(() => {
-          triggerNativeNotification(title, message, path, tag);
-        });
-      } else {
-        triggerNativeNotification(title, message, path, tag);
-      }
-    } catch (e) {
-      triggerNativeNotification(title, message, path, tag);
-    }
-  };
-
-  const addToast = (title, message, path, IconComponent = FiBell, tag = '') => {
+  const addToast = (title, message, path, IconComponent = FiBell) => {
     const id = Date.now() + Math.random().toString(36).substring(2, 9);
     setToasts(prev => [...prev, { id, title, message, path, IconComponent }]);
+    
+    // Trigger native desktop/browser notification and audible chime
+    showBrowserNotification({
+      title,
+      body: message,
+      path,
+      navigate: navigation
+    });
+
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
     }, 6000);
+  };
 
-    // Trigger Chrome / Desktop system notification for all notifying messages
-    sendChromeNotification(title, message, path, tag || `notif-${id}`);
+  const handleRequestBrowserPermission = async () => {
+    const res = await requestBrowserNotificationPermission();
+    setBrowserPermission(res);
+    setShowPermissionBanner(false);
+  };
+
+  const handleTestBrowserNotification = () => {
+    showBrowserNotification({
+      title: 'Inizio Admin Test Alert',
+      body: 'Browser notifications are working perfectly! You will be alerted when new orders or requests arrive.',
+      path: '/orders/all',
+      navigate: navigation
+    });
   };
 
   const handleNotificationClick = (path, id) => {
     setIsNotificationsDropdownOpen(false);
-    if (id === 'image-errors') {
-      setFailedImageProductNames([]);
-    }
+    dismissNotification(id);
     navigation(path);
+  };
+
+  const dismissNotification = (id) => {
+    if (id === 'chat') setChatUnreadCount(0);
+    if (id === 'orders') setOrdersUnreadCount(0);
+    if (id === 'verify') setUsersVerifyUnreadCount(0);
+    if (id === 'deletion') setUsersDeletionUnreadCount(0);
+    if (id === 'users') setUsersUnreadCount(0);
+    if (id === 'quotes') setQuotesUnreadCount(0);
+    if (id === 'broken-images') setBrokenImagesUnreadCount(0);
+    if (id === 'image-errors') setFailedImageProductNames([]);
+  };
+
+  const clearAllNotifications = () => {
+    setChatUnreadCount(0);
+    setOrdersUnreadCount(0);
+    setUsersVerifyUnreadCount(0);
+    setUsersDeletionUnreadCount(0);
+    setUsersUnreadCount(0);
+    setQuotesUnreadCount(0);
+    setBrokenImagesUnreadCount(0);
+    setFailedImageProductNames([]);
   };
 
   const toggleSubMenu = (menuName) => {
@@ -296,16 +271,20 @@ const Layout = () => {
   }, []);
 
   const requestNotificationPermission = () => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
+    if ('Notification' in window) {
       Notification.requestPermission().then(permission => {
-        setNotificationPermission(permission);
         if (permission === 'granted') {
           console.log('Notification permission granted.');
-          sendChromeNotification(
-            'Inizio Notifications Enabled',
-            'You will now receive Chrome notifications for new orders, customer chats, quote requests, and verifications.',
-            '/'
-          );
+          // Show test notification via service worker
+          if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+            navigator.serviceWorker.ready.then(registration => {
+              registration.showNotification('Inizio Notifications', {
+                body: 'Mobile alerts are now active!',
+                icon: logoImg,
+                vibrate: [100, 50, 100]
+              });
+            });
+          }
         }
         setShowPermissionBanner(false);
       });
@@ -330,17 +309,74 @@ const Layout = () => {
           const currentUnread = Number(contact.unreadCount) || 0;
 
           if (!isInitialLoad.current && currentUnread > prevUnread) {
+            // 1. Vibrate & Play Sound (Supported across most mobile browsers)
+            try {
+              if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+              const AudioContext = window.AudioContext || window.webkitAudioContext;
+              if (AudioContext) {
+                const ctx = new AudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.5);
+                osc.stop(ctx.currentTime + 0.5);
+              }
+            } catch (err) {
+              console.log('Audio/Vibration failed', err);
+            }
+
             const isNotOnChatPage = !window.location.pathname.includes('/chat');
 
-            // Trigger In-App Toast & Chrome Desktop Notification
+            // 2. In-App Toast
             if (isNotOnChatPage) {
               addToast(
                 `New Message`,
                 `From ${contact.name || 'Customer'}: ${contact.lastMessage || 'You received a new message.'}`,
                 '/chat',
-                FiMessageSquare,
-                `chat-${contact.userId}`
+                FiMessageSquare
               );
+            }
+
+            // 3. System Push Notification (Desktop / Mobile ServiceWorker)
+            if ('Notification' in window && Notification.permission === 'granted' && (document.hidden || isNotOnChatPage)) {
+              try {
+                if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+                  navigator.serviceWorker.ready.then(registration => {
+                    registration.showNotification(`New message from ${contact.name || 'Customer'}`, {
+                      body: contact.lastMessage || 'You received a new message.',
+                      icon: logoImg,
+                      vibrate: [200, 100, 200],
+                      tag: `chat-${contact.userId}`
+                    });
+                  }).catch(() => {
+                    // Fallback to standard constructor
+                    const notification = new Notification(`New message from ${contact.name || 'Customer'}`, {
+                      body: contact.lastMessage || 'You received a new message.',
+                      icon: logoImg
+                    });
+                    notification.onclick = () => {
+                      window.focus();
+                      navigation('/chat');
+                    };
+                  });
+                } else {
+                  const notification = new Notification(`New message from ${contact.name || 'Customer'}`, {
+                    body: contact.lastMessage || 'You received a new message.',
+                    icon: logoImg
+                  });
+                  notification.onclick = () => {
+                    window.focus();
+                    navigation('/chat');
+                  };
+                }
+              } catch (e) {
+                console.log('System notification failed:', e);
+              }
             }
           }
         });
@@ -359,7 +395,6 @@ const Layout = () => {
     const intervalId = setInterval(fetchUnreadCount, 30000);
     return () => clearInterval(intervalId);
   }, [user]);
-
 
   // Clear counts when visiting the page
   useEffect(() => {
@@ -434,33 +469,16 @@ const Layout = () => {
           pendingBrokenLogs = brokenData.brokenImages.filter(i => (i.status || 'PENDING').toUpperCase() === 'PENDING');
         }
 
-        const pendingOrders = orders.filter(o => (o.orderStatus || o.status || '').toLowerCase() === 'pending');
-        const pendingQuotes = quotes.filter(q => (q.status || '').toLowerCase() === 'pending' || !q.status);
-
-        // Update active pending counts if not currently on those pages
-        if (!window.location.pathname.startsWith('/orders')) {
-          setOrdersUnreadCount(pendingOrders.length);
-        }
-        if (!window.location.pathname.startsWith('/quotes')) {
-          setQuotesUnreadCount(pendingQuotes.length);
-        }
-        if (!window.location.pathname.includes('/products/broken-images')) {
+        if (location.pathname !== '/products/broken-images') {
           setBrokenImagesUnreadCount(pendingBrokenLogs.length);
-        }
-        const isAtPendingTab = window.location.pathname.includes('/users/list') && window.location.search.includes('tab=pending');
-        if (!isAtPendingTab) {
-          setUsersVerifyUnreadCount(pendingUsers.length);
-        }
-        const isAtDeletionTab = window.location.pathname.includes('/users/list') && window.location.search.includes('tab=deleted');
-        if (!isAtDeletionTab) {
-          setUsersDeletionUnreadCount(deletionUsers.length);
         }
 
         if (!isInitialDataLoad.current) {
           const prevOrdersCount = prevOrdersRef.current?.length || 0;
           const currentOrdersCount = orders.length;
-          if (currentOrdersCount > prevOrdersCount && !window.location.pathname.startsWith('/orders')) {
+          if (currentOrdersCount > prevOrdersCount && !location.pathname.startsWith('/orders')) {
             const countDiff = currentOrdersCount - prevOrdersCount;
+            setOrdersUnreadCount(prev => prev + countDiff);
             addToast(
               `New Order Received`,
               `You have received ${countDiff} new order${countDiff > 1 ? 's' : ''} to process.`,
@@ -471,7 +489,7 @@ const Layout = () => {
 
           const prevUsersCount = prevUsersRef.current?.length || 0;
           const currentUsersCount = users.length;
-          if (currentUsersCount > prevUsersCount && !window.location.pathname.includes('/users/list')) {
+          if (currentUsersCount > prevUsersCount && location.pathname !== '/users/list') {
             const countDiff = currentUsersCount - prevUsersCount;
             setUsersUnreadCount(prev => prev + countDiff);
             addToast(
@@ -484,8 +502,10 @@ const Layout = () => {
 
           const prevPendingCount = prevPendingRef.current?.length || 0;
           const currentPendingCount = pendingUsers.length;
+          const isAtPendingTab = location.pathname === '/users/list' && new URLSearchParams(location.search).get('tab') === 'pending';
           if (currentPendingCount > prevPendingCount && !isAtPendingTab) {
             const countDiff = currentPendingCount - prevPendingCount;
+            setUsersVerifyUnreadCount(prev => prev + countDiff);
             addToast(
               `Pending Verification`,
               `${countDiff} user${countDiff > 1 ? 's' : ''} pending verification.`,
@@ -496,8 +516,10 @@ const Layout = () => {
 
           const prevDeletionCount = prevDeletionRef.current?.length || 0;
           const currentDeletionCount = deletionUsers.length;
+          const isAtDeletionTab = location.pathname === '/users/list' && new URLSearchParams(location.search).get('tab') === 'deleted';
           if (currentDeletionCount > prevDeletionCount && !isAtDeletionTab) {
             const countDiff = currentDeletionCount - prevDeletionCount;
+            setUsersDeletionUnreadCount(prev => prev + countDiff);
             addToast(
               `Account Deletion Request`,
               `${countDiff} account deletion request${countDiff > 1 ? 's' : ''} pending.`,
@@ -508,8 +530,9 @@ const Layout = () => {
 
           const prevQuotesCount = prevQuotesRef.current?.length || 0;
           const currentQuotesCount = quotes.length;
-          if (currentQuotesCount > prevQuotesCount && !window.location.pathname.startsWith('/quotes')) {
+          if (currentQuotesCount > prevQuotesCount && location.pathname !== '/quotes') {
             const countDiff = currentQuotesCount - prevQuotesCount;
+            setQuotesUnreadCount(prev => prev + countDiff);
             addToast(
               `New Quote Request`,
               `You have received ${countDiff} new quote request${countDiff > 1 ? 's' : ''} to review.`,
@@ -520,7 +543,7 @@ const Layout = () => {
 
           const prevBrokenCount = prevBrokenImagesRef.current?.length || 0;
           const currentBrokenCount = pendingBrokenLogs.length;
-          if (currentBrokenCount > prevBrokenCount && !window.location.pathname.includes('/products/broken-images')) {
+          if (currentBrokenCount > prevBrokenCount && location.pathname !== '/products/broken-images') {
             const countDiff = currentBrokenCount - prevBrokenCount;
             addToast(
               `Broken Image Alert`,
@@ -547,7 +570,7 @@ const Layout = () => {
     fetchOrdersAndUsers();
     const intervalId = setInterval(fetchOrdersAndUsers, 30000);
     return () => clearInterval(intervalId);
-  }, [user]);
+  }, [user, location.pathname]);
 
   // Update browser tab title with total unread notification counts
   useEffect(() => {
@@ -863,26 +886,60 @@ const Layout = () => {
 
             {isNotificationsDropdownOpen && (
               <div className="absolute right-0 mt-3 w-72 bg-slate-900/90 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl shadow-black/50 py-2 z-50 animate-in fade-in slide-in-from-top-2">
-                <div className="px-4 py-2 border-b border-white/10 flex justify-between items-center mb-1">
-                  <span className="text-[10px] font-bold text-white uppercase tracking-wider">System Notifications</span>
-                  {totalUnreadCount > 0 && (
-                    <span className="text-[9px] bg-blue-500/20 text-blue-400 font-bold px-2 py-0.5 rounded-full border border-blue-500/20">
-                      {totalUnreadCount}
-                    </span>
-                  )}
+                <div className="px-3.5 py-2 border-b border-white/10 flex justify-between items-center mb-1">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="text-[10px] font-bold text-white uppercase tracking-wider">System Notifications</span>
+                    {totalUnreadCount > 0 && (
+                      <span className="text-[9px] bg-blue-500/20 text-blue-400 font-bold px-1.5 py-0.2 rounded-full border border-blue-500/20 shrink-0">
+                        {totalUnreadCount}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {totalUnreadCount > 0 && (
+                      <button
+                        onClick={clearAllNotifications}
+                        className="text-[9px] text-slate-400 hover:text-rose-400 font-bold px-1.5 py-0.5 rounded transition-colors cursor-pointer"
+                        title="Clear all notifications"
+                      >
+                        Clear
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setIsNotificationsDropdownOpen(false)}
+                      className="p-1 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+                      title="Close"
+                    >
+                      <FiX size={14} />
+                    </button>
+                  </div>
                 </div>
 
-                {notificationPermission !== 'granted' && (
-                  <div className="mx-2 mb-2 p-2 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <FiBell className="text-blue-400 text-xs shrink-0" />
-                      <span className="text-[10px] text-slate-300 font-medium truncate">Enable Chrome alerts</span>
+                {/* Browser Notification Status Bar */}
+                {browserPermission !== 'granted' ? (
+                  <div className="mx-3 my-2 p-2.5 bg-gradient-to-r from-blue-600/20 to-indigo-600/20 border border-blue-500/30 rounded-xl flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <FiBell className="text-blue-400 shrink-0" size={13} />
+                      <span className="text-[10px] font-bold text-white leading-tight">Desktop Alerts</span>
                     </div>
                     <button
-                      onClick={requestNotificationPermission}
-                      className="px-2 py-0.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-[9px] font-bold transition-all shadow-xs cursor-pointer shrink-0"
+                      onClick={handleRequestBrowserPermission}
+                      className="px-2 py-1 text-[9px] font-extrabold uppercase tracking-wider bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all cursor-pointer shadow-sm shrink-0"
                     >
-                      Allow
+                      Enable
+                    </button>
+                  </div>
+                ) : (
+                  <div className="mx-3 my-2 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center justify-between text-[9px]">
+                    <span className="text-emerald-400 font-bold flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      Browser Alerts Active
+                    </span>
+                    <button
+                      onClick={handleTestBrowserNotification}
+                      className="text-slate-400 hover:text-white font-bold underline transition-colors cursor-pointer"
+                    >
+                      Test
                     </button>
                   </div>
                 )}
@@ -899,12 +956,12 @@ const Layout = () => {
                       <div
                         key={notif.id}
                         onClick={() => handleNotificationClick(notif.path, notif.id)}
-                        className="flex items-start gap-2.5 p-2.5 hover:bg-white/5 transition-all cursor-pointer group"
+                        className="flex items-start gap-2.5 p-2.5 hover:bg-white/5 transition-all cursor-pointer group relative"
                       >
                         <div className={`p-1.5 rounded-lg text-sm shrink-0 ${notif.color}`}>
                           {notif.icon}
                         </div>
-                        <div className="flex-1 min-w-0 space-y-0.5">
+                        <div className="flex-1 min-w-0 space-y-0.5 pr-5">
                           <p className="text-[11px] font-bold text-white group-hover:text-blue-400 transition-colors">
                             {notif.title}
                           </p>
@@ -912,6 +969,18 @@ const Layout = () => {
                             {notif.description}
                           </p>
                         </div>
+                        {/* Dismiss X Button per Item */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            dismissNotification(notif.id);
+                          }}
+                          className="absolute right-2 top-2 p-1 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-md transition-all cursor-pointer"
+                          title="Dismiss notification"
+                        >
+                          <FiX size={12} />
+                        </button>
                       </div>
                     ))
                   )}
@@ -1185,25 +1254,64 @@ const Layout = () => {
               {isNotificationsDropdownOpen && (
                 <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-slate-900/90 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl shadow-black/50 py-2 z-50 animate-in fade-in slide-in-from-top-2">
                   <div className="px-4 py-2.5 border-b border-white/10 flex justify-between items-center mb-1">
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">System Notifications</span>
-                    {totalUnreadCount > 0 && (
-                      <span className="text-[10px] bg-blue-500/20 text-blue-400 font-bold px-2 py-0.5 rounded-full border border-blue-500/20">
-                        {totalUnreadCount} New
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-white uppercase tracking-wider">System Notifications</span>
+                      {totalUnreadCount > 0 && (
+                        <span className="text-[10px] bg-blue-500/20 text-blue-400 font-bold px-2 py-0.5 rounded-full border border-blue-500/20">
+                          {totalUnreadCount} New
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {totalUnreadCount > 0 && (
+                        <button
+                          onClick={clearAllNotifications}
+                          className="text-[10px] text-slate-400 hover:text-rose-400 font-bold px-2 py-0.5 rounded-lg transition-colors cursor-pointer hover:bg-white/5"
+                          title="Clear all notifications"
+                        >
+                          Clear All
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setIsNotificationsDropdownOpen(false)}
+                        className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                        title="Close popup"
+                      >
+                        <FiX size={16} />
+                      </button>
+                    </div>
                   </div>
 
-                  {notificationPermission !== 'granted' && (
-                    <div className="mx-3 my-2 p-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <FiBell className="text-blue-400 text-sm shrink-0" />
-                        <span className="text-xs text-slate-300 font-medium">Enable Chrome notifications</span>
+                  {/* Desktop Browser Notification Status Bar */}
+                  {browserPermission !== 'granted' ? (
+                    <div className="mx-3 my-2 p-3 bg-gradient-to-r from-blue-600/20 via-indigo-600/20 to-blue-600/20 border border-blue-500/30 rounded-2xl flex items-center justify-between gap-3 shadow-inner">
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-2 rounded-xl bg-blue-500/20 text-blue-400">
+                          <FiBell size={16} />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-white leading-tight">Desktop Push Alerts</p>
+                          <p className="text-[10px] text-slate-400">Get notified for orders & quotes even when tab is in background.</p>
+                        </div>
                       </div>
                       <button
-                        onClick={requestNotificationPermission}
-                        className="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer shrink-0"
+                        onClick={handleRequestBrowserPermission}
+                        className="px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-all cursor-pointer shadow-md shrink-0 active:scale-95"
                       >
-                        Enable
+                        Enable Alerts
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="mx-3 my-2 px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center justify-between text-xs">
+                      <span className="text-emerald-400 font-bold flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        Browser Desktop Alerts Active
+                      </span>
+                      <button
+                        onClick={handleTestBrowserNotification}
+                        className="text-xs text-slate-400 hover:text-white font-bold underline transition-colors cursor-pointer"
+                      >
+                        Test Notification
                       </button>
                     </div>
                   )}
@@ -1220,12 +1328,12 @@ const Layout = () => {
                         <div
                           key={notif.id}
                           onClick={() => handleNotificationClick(notif.path, notif.id)}
-                          className="flex items-start gap-3 p-3 hover:bg-white/5 transition-all cursor-pointer group"
+                          className="flex items-start gap-3 p-3 hover:bg-white/5 transition-all cursor-pointer group relative"
                         >
                           <div className={`p-2 rounded-xl text-base shrink-0 ${notif.color}`}>
                             {notif.icon}
                           </div>
-                          <div className="flex-1 min-w-0 space-y-0.5">
+                          <div className="flex-1 min-w-0 space-y-0.5 pr-6">
                             <p className="text-xs font-bold text-white group-hover:text-blue-400 transition-colors">
                               {notif.title}
                             </p>
@@ -1233,6 +1341,18 @@ const Layout = () => {
                               {notif.description}
                             </p>
                           </div>
+                          {/* Dismiss X Button per Item */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              dismissNotification(notif.id);
+                            }}
+                            className="absolute right-2.5 top-3 p-1 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-md transition-all cursor-pointer opacity-80 hover:opacity-100"
+                            title="Dismiss notification"
+                          >
+                            <FiX size={14} />
+                          </button>
                         </div>
                       ))
                     )}
@@ -1283,6 +1403,35 @@ const Layout = () => {
             </div>
           </div>
         </header>
+
+        {/* Browser Notification Permission Top Banner */}
+        {showPermissionBanner && browserPermission === 'default' && (
+          <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 text-white px-4 py-2.5 flex items-center justify-between shadow-lg z-20 backdrop-blur-md animate-in slide-in-from-top-2 border-b border-white/20">
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 rounded-lg bg-white/20">
+                <FiBell size={16} />
+              </div>
+              <p className="text-xs font-semibold">
+                <span className="font-extrabold">Stay updated in real-time:</span> Enable desktop browser notifications to receive instant alerts for new orders, quotes, registrations, and messages.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={handleRequestBrowserPermission}
+                className="px-3 py-1 bg-white text-blue-600 hover:bg-white/90 text-xs font-extrabold rounded-lg shadow-sm transition-all cursor-pointer"
+              >
+                Enable Notifications
+              </button>
+              <button
+                onClick={() => setShowPermissionBanner(false)}
+                className="p-1 text-white/70 hover:text-white transition-colors cursor-pointer"
+                title="Dismiss"
+              >
+                <FiX size={16} />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* DYNAMIC PAGE CONTENT */}
         <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
