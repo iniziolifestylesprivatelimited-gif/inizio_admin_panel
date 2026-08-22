@@ -1077,7 +1077,7 @@ const UserDetails = () => {
           )}
 
           {activeSectionTab === 'activity' && (
-            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 relative overflow-hidden space-y-6">
+            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-4 sm:p-6 relative overflow-hidden space-y-6">
               <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
 
               <div className="border-b border-white/10 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -1086,23 +1086,22 @@ const UserDetails = () => {
                 </h4>
               </div>
 
-              {/* Tabs styled exactly like ActiveUsers.jsx */}
-              <div className="flex border-b border-white/10 gap-6">
+              {/* Tabs with smooth horizontal scroll on mobile & no redundant icon dots */}
+              <div className="flex border-b border-white/10 gap-4 sm:gap-6 overflow-x-auto scrollbar-none pb-px">
                 {[
-                  { id: 'products', name: 'Viewed Products', icon: <FiEye /> },
-                  { id: 'brands', name: 'Viewed Brands', icon: <FiTag /> },
-                  { id: 'categories', name: 'Viewed Categories', icon: <FiLayers /> },
-                  { id: 'searches', name: 'Search Queries', icon: <FiSearch /> }
+                  { id: 'products', name: 'Viewed Products' },
+                  { id: 'brands', name: 'Viewed Brands' },
+                  { id: 'categories', name: 'Viewed Categories' },
+                  { id: 'searches', name: 'Search Queries' }
                 ].map(tab => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveActivityTab(tab.id)}
-                    className={`pb-3 font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 ${activeActivityTab === tab.id
+                    className={`pb-3 font-bold text-xs sm:text-sm transition-all cursor-pointer whitespace-nowrap shrink-0 ${activeActivityTab === tab.id
                       ? 'text-blue-400 border-b-2 border-blue-400 font-extrabold'
                       : 'text-slate-400 hover:text-slate-200'
                       }`}
                   >
-                    {tab.icon}
                     {tab.name}
                   </button>
                 ))}
@@ -1292,18 +1291,18 @@ const UserDetails = () => {
           )}
 
           {/* Profile Deletion Danger Zone */}
-          <div className="bg-red-500/5 border border-red-500/25 shadow-2xl rounded-3xl p-6 relative overflow-hidden">
+          <div className="bg-red-500/5 border border-red-500/25 shadow-2xl rounded-3xl p-4 sm:p-6 relative overflow-hidden">
             <h4 className="text-sm font-bold text-red-400 mb-2 uppercase tracking-wider">Danger Zone</h4>
             <p className="text-slate-400 text-xs mb-4">Manage security and account status for this user.</p>
 
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
               {/* Force Logout Button */}
               <button
                 onClick={handleForceLogout}
                 disabled={isActionLoading}
-                className="flex items-center justify-center px-4 py-2.5 text-white font-bold rounded-xl transition-all cursor-pointer text-sm shrink-0 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600"
+                className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 text-white font-bold rounded-xl transition-all cursor-pointer text-sm bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 shadow-md hover:shadow-amber-500/20 active:scale-[0.99]"
               >
-                <FiRefreshCcw className="mr-2 text-base" /> Force Logout User
+                <FiRefreshCcw className="mr-2 text-base shrink-0" /> Force Logout User
               </button>
 
               {/* Delete / Reactivate Account Button */}
@@ -1311,17 +1310,17 @@ const UserDetails = () => {
                 <button
                   onClick={handleReactivate}
                   disabled={isActionLoading}
-                  className="flex items-center justify-center px-4 py-2.5 text-white font-bold rounded-xl transition-all cursor-pointer text-sm shrink-0 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
+                  className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 text-white font-bold rounded-xl transition-all cursor-pointer text-sm bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 shadow-md hover:shadow-emerald-500/20 active:scale-[0.99]"
                 >
-                  <FiRefreshCcw className="mr-2 text-base" /> Reactivate User Account
+                  <FiRefreshCcw className="mr-2 text-base shrink-0" /> Reactivate User Account
                 </button>
               ) : (
                 <button
                   onClick={() => setDeleteConfirmOpen(true)}
                   disabled={isActionLoading}
-                  className="flex items-center justify-center px-4 py-2.5 text-white font-bold rounded-xl transition-all cursor-pointer text-sm shrink-0 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700"
+                  className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 text-white font-bold rounded-xl transition-all cursor-pointer text-sm bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 shadow-md hover:shadow-rose-500/20 active:scale-[0.99]"
                 >
-                  <FiTrash2 className="mr-2 text-base" /> Delete User Account
+                  <FiTrash2 className="mr-2 text-base shrink-0" /> Delete User Account
                 </button>
               )}
             </div>

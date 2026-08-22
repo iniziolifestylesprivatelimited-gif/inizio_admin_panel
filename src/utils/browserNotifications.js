@@ -1,4 +1,4 @@
-import logoImg from '../assets/logos.png';
+import appIconImg from '../assets/app-icon-png.png';
 
 /**
  * Utility for handling native browser notifications, permissions, and audio feedback
@@ -79,13 +79,16 @@ export const playNotificationSound = (type = 'chime') => {
   }
 };
 
+// In-memory deduplication cache to prevent duplicate alerts within short intervals (1.5s)
+const recentNotifications = new Map();
+
 /**
- * Show a native Desktop / Mobile Browser Notification
+ * Show a native Desktop / Mobile Browser Notification with automatic deduplication
  */
 export const showBrowserNotification = ({
   title,
   body,
-  icon = logoImg,
+  icon = appIconImg,
   path = '/',
   tag,
   navigate
@@ -93,40 +96,36 @@ export const showBrowserNotification = ({
   if (!isBrowserNotificationSupported()) return false;
   if (Notification.permission !== 'granted') return false;
 
+  // Deduplication guard: ignore exact identical notifications within 1.5 seconds
+  const deterministicTag = tag || `inizio-${title.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+  const notifKey = `${deterministicTag}::${body || ''}`;
+  const now = Date.now();
+
+  // Allow test alerts or non-identical calls through; debounce rapid duplicate bursts
+  if (!tag?.includes('test') && recentNotifications.has(notifKey) && (now - recentNotifications.get(notifKey)) < 1500) {
+    return false; // Suppress rapid duplicate burst
+  }
+  recentNotifications.set(notifKey, now);
+
+  // Clean old entries from cache
+  for (const [key, timestamp] of recentNotifications.entries()) {
+    if (now - timestamp > 20000) recentNotifications.delete(key);
+  }
+
   playNotificationSound();
 
   const options = {
     body: body || 'New alert from Inizio Admin Panel',
-    icon: icon || logoImg,
-    badge: logoImg,
-    tag: tag || `inizio-${Date.now()}`,
+    icon: icon || appIconImg,
+    badge: appIconImg,
+    tag: deterministicTag,
     renotify: true,
     silent: false,
     requireInteraction: false
   };
 
   try {
-    // If ServiceWorker is active, use showNotification for mobile/PWA push support
-    if (navigator.serviceWorker && navigator.serviceWorker.ready) {
-      navigator.serviceWorker.ready
-        .then(reg => {
-          reg.showNotification(title, options);
-        })
-        .catch(() => {
-          createStandardNotification(title, options, path, navigate);
-        });
-    } else {
-      createStandardNotification(title, options, path, navigate);
-    }
-    return true;
-  } catch (e) {
-    console.error('Failed to trigger native notification:', e);
-    return false;
-  }
-};
-
-const createStandardNotification = (title, options, path, navigate) => {
-  try {
+    // 1. Try native desktop Notification constructor first (immediate on Desktop Chrome, Windows, Mac)
     const notification = new Notification(title, options);
     notification.onclick = () => {
       window.focus();
@@ -137,7 +136,20 @@ const createStandardNotification = (title, options, path, navigate) => {
       }
       notification.close();
     };
+    return true;
   } catch (err) {
-    console.warn('Native notification constructor failed:', err);
+    // 2. Fallback to ServiceWorker showNotification (required for Android Chrome / Mobile PWAs)
+    if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+      navigator.serviceWorker.ready
+        .then(reg => {
+          reg.showNotification(title, options);
+        })
+        .catch(e => {
+          console.error('ServiceWorker showNotification failed:', e);
+        });
+      return true;
+    }
+    console.error('Failed to trigger native notification:', err);
+    return false;
   }
 };

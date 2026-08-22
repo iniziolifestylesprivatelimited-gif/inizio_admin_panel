@@ -607,7 +607,7 @@ const UsersList = () => {
       </div>
 
       {/* Metrics & Quick Device Filter Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-semibold text-slate-400 px-1 py-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-semibold text-slate-400 px-1 py-1">
         <div className="flex flex-wrap items-center gap-2">
           <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
             Total Users: <strong className="text-white">{baseUsers.length}</strong>
@@ -620,10 +620,10 @@ const UsersList = () => {
         </div>
 
         {/* Device Quick Filter */}
-        <div className="flex items-center gap-1 bg-black/20 p-1 rounded-xl border border-white/10">
+        <div className="grid grid-cols-3 sm:flex items-center gap-1 bg-black/20 p-1 rounded-xl border border-white/10 w-full sm:w-auto">
           <button
             onClick={() => handleFilterChange('device', '')}
-            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`px-3 py-1.5 sm:py-1 rounded-lg text-xs font-bold transition-all cursor-pointer text-center justify-center flex items-center ${
               !selectedDevice
                 ? 'bg-blue-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
@@ -633,41 +633,43 @@ const UsersList = () => {
           </button>
           <button
             onClick={() => handleFilterChange('device', 'android')}
-            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+            className={`px-3 py-1.5 sm:py-1 rounded-lg text-xs font-bold transition-all cursor-pointer text-center justify-center flex items-center gap-1 ${
               selectedDevice === 'android'
                 ? 'bg-green-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-green-400'
             }`}
           >
-            <DiAndroid className="text-sm" /> Android
+            <DiAndroid className="text-sm shrink-0" /> Android
           </button>
           <button
             onClick={() => handleFilterChange('device', 'ios')}
-            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+            className={`px-3 py-1.5 sm:py-1 rounded-lg text-xs font-bold transition-all cursor-pointer text-center justify-center flex items-center gap-1 ${
               selectedDevice === 'ios'
                 ? 'bg-white text-black shadow-sm'
                 : 'text-slate-400 hover:text-indigo-400'
             }`}
           >
-            <DiApple className="text-sm" /> IOS
+            <DiApple className="text-sm shrink-0" /> IOS
           </button>
         </div>
       </div>
 
       {/* Approved vs Rejected User Section Switcher */}
-      <div className="relative z-30 flex flex-col xl:flex-row xl:items-center justify-between gap-4 p-3 bg-black/20 border border-white/10 rounded-2xl backdrop-blur-xl">
-        <div className="flex flex-wrap items-center gap-3">
+      <div className="relative z-30 flex flex-col xl:flex-row xl:items-center justify-between gap-3 sm:gap-4 p-2.5 sm:p-3 bg-black/20 border border-white/10 rounded-2xl backdrop-blur-xl">
+        <div className="grid grid-cols-2 sm:grid-cols-4 xl:flex xl:flex-wrap items-center gap-2 sm:gap-3 w-full xl:w-auto">
           <button
             onClick={() => handleTabChange('approved')}
-            className={`px-4.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
+            className={`w-full xl:w-auto px-3 sm:px-4.5 py-2.5 sm:py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-between sm:justify-center xl:justify-start gap-2 ${
               userTab === 'approved'
                 ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
-                : 'text-slate-400 hover:text-white hover:bg-white/5'
+                : 'text-slate-400 hover:text-white hover:bg-white/5 bg-white/5 sm:bg-transparent'
             }`}
           >
-            <FiCheck className="text-sm" />
-            Approved Users
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold ${
+            <div className="flex items-center gap-1.5 min-w-0">
+              <FiCheck className="text-sm shrink-0" />
+              <span className="truncate">Approved</span>
+            </div>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold shrink-0 ${
               userTab === 'approved' ? 'bg-white/20 text-white' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
             }`}>
               {approvedUsers.length}
@@ -676,15 +678,17 @@ const UsersList = () => {
 
           <button
             onClick={() => handleTabChange('rejected')}
-            className={`px-4.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
+            className={`w-full xl:w-auto px-3 sm:px-4.5 py-2.5 sm:py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-between sm:justify-center xl:justify-start gap-2 ${
               userTab === 'rejected'
                 ? 'bg-rose-500 text-white shadow-lg shadow-rose-600/30'
-                : 'text-slate-400 hover:text-white hover:bg-white/5'
+                : 'text-slate-400 hover:text-white hover:bg-white/5 bg-white/5 sm:bg-transparent'
             }`}
           >
-            <FiX className="text-sm" />
-            Rejected Users
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold ${
+            <div className="flex items-center gap-1.5 min-w-0">
+              <FiX className="text-sm shrink-0" />
+              <span className="truncate">Rejected</span>
+            </div>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold shrink-0 ${
               userTab === 'rejected' ? 'bg-white/20 text-white' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
             }`}>
               {rejectedUsers.length}
@@ -693,15 +697,17 @@ const UsersList = () => {
           
           <button
             onClick={() => handleTabChange('pending')}
-            className={`px-4.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
+            className={`w-full xl:w-auto px-3 sm:px-4.5 py-2.5 sm:py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-between sm:justify-center xl:justify-start gap-2 ${
               userTab === 'pending'
                 ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/30'
-                : 'text-slate-400 hover:text-white hover:bg-white/5'
+                : 'text-slate-400 hover:text-white hover:bg-white/5 bg-white/5 sm:bg-transparent'
             }`}
           >
-            <FiUserCheck className="text-sm" />
-            Pending KYC
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold ${
+            <div className="flex items-center gap-1.5 min-w-0">
+              <FiUserCheck className="text-sm shrink-0" />
+              <span className="truncate">Pending KYC</span>
+            </div>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold shrink-0 ${
               userTab === 'pending' ? 'bg-white/20 text-white' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
             }`}>
               {pendingCount}
@@ -710,15 +716,17 @@ const UsersList = () => {
 
           <button
             onClick={() => handleTabChange('deleted')}
-            className={`px-4.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
+            className={`w-full xl:w-auto px-3 sm:px-4.5 py-2.5 sm:py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-between sm:justify-center xl:justify-start gap-2 ${
               userTab === 'deleted'
                 ? 'bg-red-600 text-white shadow-lg shadow-red-600/30'
-                : 'text-slate-400 hover:text-white hover:bg-white/5'
+                : 'text-slate-400 hover:text-white hover:bg-white/5 bg-white/5 sm:bg-transparent'
             }`}
           >
-            <FiTrash2 className="text-sm" />
-            Deleted Users
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold ${
+            <div className="flex items-center gap-1.5 min-w-0">
+              <FiTrash2 className="text-sm shrink-0" />
+              <span className="truncate">Deleted</span>
+            </div>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold shrink-0 ${
               userTab === 'deleted' ? 'bg-white/20 text-white' : 'bg-red-500/10 text-red-400 border border-red-500/20'
             }`}>
               {deletedUsers.length}
@@ -727,10 +735,10 @@ const UsersList = () => {
         </div>
 
         {/* Security Actions Dropdown */}
-        <div className="relative z-50">
+        <div className="relative z-50 w-full xl:w-auto">
           <button
             onClick={() => setIsSecurityDropdownOpen(!isSecurityDropdownOpen)}
-            className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 transition-all cursor-pointer flex items-center gap-2 shadow-md hover:scale-[1.02] active:scale-[0.98]"
+            className="w-full xl:w-auto px-4 py-2.5 sm:py-2 rounded-xl text-xs font-bold bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 transition-all cursor-pointer flex items-center justify-center gap-2 shadow-md hover:scale-[1.02] active:scale-[0.98]"
           >
             <FiShield className="text-amber-400 text-sm" />
             <span>Security Actions</span>
@@ -743,7 +751,7 @@ const UsersList = () => {
                 className="fixed inset-0 z-[9998]" 
                 onClick={() => setIsSecurityDropdownOpen(false)}
               />
-              <div className="absolute right-0 mt-2 w-56 bg-slate-900/95 border border-white/10 shadow-2xl rounded-2xl p-1.5 z-[9999] backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-150 space-y-1">
+              <div className="absolute right-0 mt-2 w-full sm:w-56 bg-slate-900/95 border border-white/10 shadow-2xl rounded-2xl p-1.5 z-[9999] backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-150 space-y-1">
                 <button
                   onClick={() => {
                     setIsSecurityDropdownOpen(false);

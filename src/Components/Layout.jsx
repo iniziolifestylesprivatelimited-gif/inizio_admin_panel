@@ -64,17 +64,23 @@ const Layout = () => {
   const [toasts, setToasts] = useState([]);
   const [failedImageProductNames, setFailedImageProductNames] = useState([]);
 
-  const addToast = (title, message, path, IconComponent = FiBell) => {
+  const addToast = (title, message, path, IconComponent = FiBell, tag) => {
     const id = Date.now() + Math.random().toString(36).substring(2, 9);
     setToasts(prev => [...prev, { id, title, message, path, IconComponent }]);
     
-    // Trigger native desktop/browser notification and audible chime
-    showBrowserNotification({
-      title,
-      body: message,
-      path,
-      navigate: navigation
-    });
+    // If the window/tab is in the background or hidden, trigger native Chrome/OS notification.
+    // If the user is actively viewing the tab, show the in-app toast + play sound without duplicate OS banners.
+    if (document.hidden || !document.hasFocus()) {
+      showBrowserNotification({
+        title,
+        body: message,
+        path,
+        tag: tag || `inizio-${title.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+        navigate: navigation
+      });
+    } else {
+      playNotificationSound();
+    }
 
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
@@ -280,7 +286,7 @@ const Layout = () => {
             navigator.serviceWorker.ready.then(registration => {
               registration.showNotification('Inizio Notifications', {
                 body: 'Mobile alerts are now active!',
-                icon: logoImg,
+                icon: appIconImg,
                 vibrate: [100, 50, 100]
               });
             });
@@ -332,51 +338,15 @@ const Layout = () => {
 
             const isNotOnChatPage = !window.location.pathname.includes('/chat');
 
-            // 2. In-App Toast
-            if (isNotOnChatPage) {
+            // Trigger In-App Toast (when in view) or Browser Notification (when tab is hidden/backgrounded)
+            if (isNotOnChatPage || document.hidden) {
               addToast(
                 `New Message`,
                 `From ${contact.name || 'Customer'}: ${contact.lastMessage || 'You received a new message.'}`,
                 '/chat',
-                FiMessageSquare
+                FiMessageSquare,
+                `chat-${contact.userId}`
               );
-            }
-
-            // 3. System Push Notification (Desktop / Mobile ServiceWorker)
-            if ('Notification' in window && Notification.permission === 'granted' && (document.hidden || isNotOnChatPage)) {
-              try {
-                if (navigator.serviceWorker && navigator.serviceWorker.ready) {
-                  navigator.serviceWorker.ready.then(registration => {
-                    registration.showNotification(`New message from ${contact.name || 'Customer'}`, {
-                      body: contact.lastMessage || 'You received a new message.',
-                      icon: logoImg,
-                      vibrate: [200, 100, 200],
-                      tag: `chat-${contact.userId}`
-                    });
-                  }).catch(() => {
-                    // Fallback to standard constructor
-                    const notification = new Notification(`New message from ${contact.name || 'Customer'}`, {
-                      body: contact.lastMessage || 'You received a new message.',
-                      icon: logoImg
-                    });
-                    notification.onclick = () => {
-                      window.focus();
-                      navigation('/chat');
-                    };
-                  });
-                } else {
-                  const notification = new Notification(`New message from ${contact.name || 'Customer'}`, {
-                    body: contact.lastMessage || 'You received a new message.',
-                    icon: logoImg
-                  });
-                  notification.onclick = () => {
-                    window.focus();
-                    navigation('/chat');
-                  };
-                }
-              } catch (e) {
-                console.log('System notification failed:', e);
-              }
             }
           }
         });
@@ -593,7 +563,7 @@ const Layout = () => {
       addToast(
         "Image Load Failed",
         `Failed to load product image for: ${productName}. Please check WordPress library access.`,
-        "/products/broken-images",
+        "/products/list",
         FiAlertTriangle
       );
     };
@@ -739,7 +709,7 @@ const Layout = () => {
               addToast(
                 "Image Load Alert",
                 `Failed to load ${totalFailed} product image(s) (${namesPreview}${totalFailed > 2 ? '...' : ''}). Check your WordPress library access.`,
-                "/products/broken-images",
+                "/products/list",
                 FiAlertTriangle
               );
             }

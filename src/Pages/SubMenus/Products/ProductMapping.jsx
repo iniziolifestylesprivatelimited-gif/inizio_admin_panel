@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../../../api/axios';
 import { FiArrowLeft, FiUpload, FiRefreshCcw, FiLoader, FiCheckCircle, FiAlertTriangle, FiFilter, FiX, FiDatabase } from 'react-icons/fi';
 import * as XLSX from 'xlsx';
+import CustomDropdown from '../../../Components/CustomDropdown';
 
 const ProductMapping = () => {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ const ProductMapping = () => {
   const [error, setError] = useState('');
   
   const [products, setProducts] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [mappedData, setMappedData] = useState([]);
   const [syncingStates, setSyncingStates] = useState({});
   const [syncStatus, setSyncStatus] = useState({});
@@ -31,6 +33,12 @@ const ProductMapping = () => {
   const [stockSyncResult, setStockSyncResult] = useState(null);
   const [tallyFilter, setTallyFilter] = useState('all'); // 'all' | 'unmatched' | 'missing'
   const [stockFilter, setStockFilter] = useState('all'); // 'all' | 'diff' | 'unmatched' | 'missing'
+
+  // Missing Products Filters
+  const [missingStockBrandFilter, setMissingStockBrandFilter] = useState('all');
+  const [missingStockSearch, setMissingStockSearch] = useState('');
+  const [missingTallyBrandFilter, setMissingTallyBrandFilter] = useState('all');
+  const [missingTallySearch, setMissingTallySearch] = useState('');
   
   // Bulk sync status modal states
   const [showStatusModal, setShowStatusModal] = useState(false);
@@ -38,6 +46,19 @@ const ProductMapping = () => {
   const [isSyncingInProgress, setIsSyncingInProgress] = useState(false);
   const [syncProgress, setSyncProgress] = useState({ current: 0, total: 0 });
   const [syncLogs, setSyncLogs] = useState([]);
+
+  const getProductBrandName = (product) => {
+    if (!product) return 'Unassigned';
+    if (typeof product.brand === 'object' && product.brand?.name) {
+      return product.brand.name;
+    }
+    if (product.brand) {
+      const found = brands.find(b => b._id === product.brand || b.name === product.brand);
+      if (found) return found.name;
+      return String(product.brand);
+    }
+    return 'Unassigned';
+  };
 
   const getMissingTallyItems = () => {
     const missing = [];
@@ -88,15 +109,21 @@ const ProductMapping = () => {
   };
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
-        const response = await api.get('/products/');
-        setProducts(response.data);
+        const [productsRes, brandsRes] = await Promise.all([
+          api.get('/products/'),
+          api.get('/brands/').catch(() => ({ data: [] }))
+        ]);
+        setProducts(productsRes.data || []);
+        if (brandsRes.data && Array.isArray(brandsRes.data)) {
+          setBrands(brandsRes.data);
+        }
       } catch (err) {
-        console.error('Failed to fetch products', err);
+        console.error('Failed to fetch initial data', err);
       }
     };
-    fetchProducts();
+    fetchData();
   }, []);
 
   const handleFileChange = (e) => {
@@ -109,6 +136,8 @@ const ProductMapping = () => {
     setSyncStatus({});
     setSyncedProducts([]);
     setTallyFilter('all');
+    setMissingTallyBrandFilter('all');
+    setMissingTallySearch('');
   };
 
   const handleStockFileChange = (e) => {
@@ -120,6 +149,8 @@ const ProductMapping = () => {
     setStockSyncResult(null);
     setError('');
     setStockFilter('all');
+    setMissingStockBrandFilter('all');
+    setMissingStockSearch('');
   };
 
   const findProductAndVariant = (excelName, productsList) => {
@@ -1041,59 +1072,136 @@ const ProductMapping = () => {
                     </div>
 
                     {/* Section 2: Missing System Products */}
-                    <div className="space-y-2">
-                      <h4 className="text-sm font-bold text-rose-400 uppercase tracking-wider flex items-center gap-2">
-                        <FiDatabase /> System Products Missing from Excel ({getMissingTallyItems().length})
-                      </h4>
-                      <div className="overflow-y-auto custom-scrollbar bg-slate-900/50 rounded-xl border border-white/10 max-h-60">
-                        <table className="w-full text-left border-collapse whitespace-nowrap">
-                          <thead className="bg-slate-800/80 border-b border-white/10 text-slate-300 text-xs uppercase tracking-wider sticky top-0 z-10 backdrop-blur-sm">
-                            <tr>
-                              <th className="px-4 py-3 font-medium w-12 text-center">S.No</th>
-                              <th className="px-4 py-3 font-medium">System Product</th>
-                              <th className="px-4 py-3 font-medium">Variant</th>
-                              <th className="px-4 py-3 font-medium">EAN / SKU</th>
-                              <th className="px-4 py-3 font-medium text-center">System Qty</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-white/5">
-                            {getMissingTallyItems().length === 0 ? (
-                              <tr>
-                                <td colSpan="5" className="px-4 py-6 text-center text-slate-500 italic">No missing system products. All are matched!</td>
-                              </tr>
-                            ) : (
-                              getMissingTallyItems().map((item, index) => {
-                                const brandStr = typeof item.product.brand === 'object' ? item.product.brand?.name : item.product.brand;
-                                return (
-                                  <tr key={index} className="hover:bg-white/5 transition-colors">
-                                    <td className="px-4 py-3 text-sm text-slate-400 text-center font-medium">{index + 1}</td>
-                                    <td className="px-4 py-3 text-sm text-slate-300">
-                                      <div>
-                                        <span className="font-semibold text-white">{item.product.name}</span>
-                                        {brandStr && <span className="ml-2 text-xs text-slate-400">({brandStr})</span>}
-                                      </div>
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-slate-400">
-                                      {item.variant ? (
-                                        <span className="text-blue-400 font-medium">{item.variant.name}</span>
-                                      ) : (
-                                        <span className="text-slate-500 font-normal">-</span>
-                                      )}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-slate-400 font-mono">
-                                      {item.variant ? item.variant.sku : item.product.eanNumber || '-'}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm font-bold text-amber-500 text-center">
-                                      {item.variant ? item.variant.quantity : item.product.totalQuantity}
+                    {(() => {
+                      const missingTallyItems = getMissingTallyItems();
+                      const tallyBrandCounts = missingTallyItems.reduce((acc, item) => {
+                        const bName = getProductBrandName(item.product);
+                        acc[bName] = (acc[bName] || 0) + 1;
+                        return acc;
+                      }, {});
+                      const tallyUniqueBrands = Object.keys(tallyBrandCounts).sort((a, b) => a.localeCompare(b));
+
+                      const filteredMissingTallyItems = missingTallyItems.filter(item => {
+                        const bName = getProductBrandName(item.product);
+                        const matchesBrand = missingTallyBrandFilter === 'all' || bName === missingTallyBrandFilter;
+                        const matchesSearch = !missingTallySearch.trim() || 
+                          (item.product.name && item.product.name.toLowerCase().includes(missingTallySearch.toLowerCase())) ||
+                          (item.variant?.name && item.variant.name.toLowerCase().includes(missingTallySearch.toLowerCase())) ||
+                          (item.variant?.sku && item.variant.sku.toLowerCase().includes(missingTallySearch.toLowerCase())) ||
+                          (item.product.eanNumber && item.product.eanNumber.toLowerCase().includes(missingTallySearch.toLowerCase()));
+                        return matchesBrand && matchesSearch;
+                      });
+
+                      return (
+                        <div className="space-y-2">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1">
+                            <h4 className="text-sm font-bold text-rose-400 uppercase tracking-wider flex items-center gap-2">
+                              <FiDatabase /> System Products Missing from Excel ({filteredMissingTallyItems.length}
+                              {(missingTallyBrandFilter !== 'all' || missingTallySearch) ? ` of ${missingTallyItems.length}` : ''})
+                            </h4>
+                            
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {/* Search Box */}
+                              <div className="relative">
+                                <input
+                                  type="text"
+                                  value={missingTallySearch}
+                                  onChange={(e) => setMissingTallySearch(e.target.value)}
+                                  placeholder="Search missing..."
+                                  className="w-36 sm:w-44 bg-slate-950/70 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                                />
+                                {missingTallySearch && (
+                                  <button
+                                    onClick={() => setMissingTallySearch('')}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                                  >
+                                    <FiX className="text-xs" />
+                                  </button>
+                                )}
+                              </div>
+
+                              {/* Brand Filter Dropdown */}
+                              <div className="w-48 sm:w-56">
+                                <CustomDropdown
+                                  value={missingTallyBrandFilter}
+                                  onChange={(val) => setMissingTallyBrandFilter(val)}
+                                  options={[
+                                    { value: 'all', label: `All Brands (${missingTallyItems.length})` },
+                                    ...tallyUniqueBrands.map((bName) => ({
+                                      value: bName,
+                                      label: `${bName} (${tallyBrandCounts[bName]})`
+                                    }))
+                                  ]}
+                                  statusColor="bg-slate-950/80 border-white/10 text-slate-200 text-xs py-1.5 px-3 rounded-lg hover:border-white/20"
+                                />
+                              </div>
+
+                              {missingTallyBrandFilter !== 'all' && (
+                                <button
+                                  onClick={() => setMissingTallyBrandFilter('all')}
+                                  className="px-2 py-1 text-xs bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded-lg hover:bg-rose-500/30 transition-colors flex items-center gap-1 font-semibold cursor-pointer"
+                                >
+                                  Clear Brand <FiX className="text-xs" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="overflow-y-auto custom-scrollbar bg-slate-900/50 rounded-xl border border-white/10 max-h-60">
+                            <table className="w-full text-left border-collapse whitespace-nowrap">
+                              <thead className="bg-slate-800/80 border-b border-white/10 text-slate-300 text-xs uppercase tracking-wider sticky top-0 z-10 backdrop-blur-sm">
+                                <tr>
+                                  <th className="px-4 py-3 font-medium w-12 text-center">S.No</th>
+                                  <th className="px-4 py-3 font-medium">System Product</th>
+                                  <th className="px-4 py-3 font-medium">Variant</th>
+                                  <th className="px-4 py-3 font-medium">EAN / SKU</th>
+                                  <th className="px-4 py-3 font-medium text-center">System Qty</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-white/5">
+                                {filteredMissingTallyItems.length === 0 ? (
+                                  <tr>
+                                    <td colSpan="5" className="px-4 py-6 text-center text-slate-500 italic">
+                                      {missingTallyItems.length === 0 
+                                        ? 'No missing system products. All are matched!'
+                                        : 'No missing products found for the selected filter.'}
                                     </td>
                                   </tr>
-                                );
-                              })
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
+                                ) : (
+                                  filteredMissingTallyItems.map((item, index) => {
+                                    const brandStr = getProductBrandName(item.product);
+                                    return (
+                                      <tr key={index} className="hover:bg-white/5 transition-colors">
+                                        <td className="px-4 py-3 text-sm text-slate-400 text-center font-medium">{index + 1}</td>
+                                        <td className="px-4 py-3 text-sm text-slate-300">
+                                          <div>
+                                            <span className="font-semibold text-white">{item.product.name}</span>
+                                            {brandStr && <span className="ml-2 text-xs text-slate-400">({brandStr})</span>}
+                                          </div>
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-slate-400">
+                                          {item.variant ? (
+                                            <span className="text-blue-400 font-medium">{item.variant.name}</span>
+                                          ) : (
+                                            <span className="text-slate-500 font-normal">-</span>
+                                          )}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-slate-400 font-mono">
+                                          {item.variant ? item.variant.sku : item.product.eanNumber || '-'}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm font-bold text-amber-500 text-center">
+                                          {item.variant ? item.variant.quantity : item.product.totalQuantity}
+                                        </td>
+                                      </tr>
+                                    );
+                                  })
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 ) : (
                   <div className="overflow-y-auto custom-scrollbar bg-slate-900/50 rounded-xl border border-white/10 max-h-96">
@@ -1349,59 +1457,136 @@ const ProductMapping = () => {
                     </div>
 
                     {/* Section 2: Missing System Products */}
-                    <div className="space-y-2">
-                      <h4 className="text-sm font-bold text-rose-400 uppercase tracking-wider flex items-center gap-2">
-                        <FiDatabase /> System Products Missing from Excel ({getMissingStockItems().length})
-                      </h4>
-                      <div className="overflow-y-auto custom-scrollbar bg-slate-900/50 rounded-xl border border-white/10 max-h-60">
-                        <table className="w-full text-left border-collapse whitespace-nowrap">
-                          <thead className="bg-slate-800/80 border-b border-white/10 text-slate-300 text-xs uppercase tracking-wider sticky top-0 z-10 backdrop-blur-sm">
-                            <tr>
-                              <th className="px-4 py-3 font-medium w-12 text-center">S.No</th>
-                              <th className="px-4 py-3 font-medium">System Product</th>
-                              <th className="px-4 py-3 font-medium">Variant</th>
-                              <th className="px-4 py-3 font-medium">EAN / SKU</th>
-                              <th className="px-4 py-3 font-medium text-center font-medium">System Qty</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-white/5">
-                            {getMissingStockItems().length === 0 ? (
-                              <tr>
-                                <td colSpan="5" className="px-4 py-6 text-center text-slate-500 italic">No missing system products. All are matched!</td>
-                              </tr>
-                            ) : (
-                              getMissingStockItems().map((item, index) => {
-                                const brandStr = typeof item.product.brand === 'object' ? item.product.brand?.name : item.product.brand;
-                                return (
-                                  <tr key={index} className="hover:bg-white/5 transition-colors">
-                                    <td className="px-4 py-3 text-sm text-slate-400 text-center font-medium">{index + 1}</td>
-                                    <td className="px-4 py-3 text-sm text-slate-300">
-                                      <div>
-                                        <span className="font-semibold text-white">{item.product.name}</span>
-                                        {brandStr && <span className="ml-2 text-xs text-slate-400">({brandStr})</span>}
-                                      </div>
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-slate-400">
-                                      {item.variant ? (
-                                        <span className="text-blue-400 font-medium">{item.variant.name}</span>
-                                      ) : (
-                                        <span className="text-slate-500 font-normal">-</span>
-                                      )}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-slate-400 font-mono">
-                                      {item.variant ? item.variant.sku : item.product.eanNumber || '-'}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm font-bold text-amber-500 text-center">
-                                      {item.variant ? item.variant.quantity : item.product.totalQuantity}
+                    {(() => {
+                      const missingStockItems = getMissingStockItems();
+                      const stockBrandCounts = missingStockItems.reduce((acc, item) => {
+                        const bName = getProductBrandName(item.product);
+                        acc[bName] = (acc[bName] || 0) + 1;
+                        return acc;
+                      }, {});
+                      const stockUniqueBrands = Object.keys(stockBrandCounts).sort((a, b) => a.localeCompare(b));
+
+                      const filteredMissingStockItems = missingStockItems.filter(item => {
+                        const bName = getProductBrandName(item.product);
+                        const matchesBrand = missingStockBrandFilter === 'all' || bName === missingStockBrandFilter;
+                        const matchesSearch = !missingStockSearch.trim() || 
+                          (item.product.name && item.product.name.toLowerCase().includes(missingStockSearch.toLowerCase())) ||
+                          (item.variant?.name && item.variant.name.toLowerCase().includes(missingStockSearch.toLowerCase())) ||
+                          (item.variant?.sku && item.variant.sku.toLowerCase().includes(missingStockSearch.toLowerCase())) ||
+                          (item.product.eanNumber && item.product.eanNumber.toLowerCase().includes(missingStockSearch.toLowerCase()));
+                        return matchesBrand && matchesSearch;
+                      });
+
+                      return (
+                        <div className="space-y-2">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1">
+                            <h4 className="text-sm font-bold text-rose-400 uppercase tracking-wider flex items-center gap-2">
+                              <FiDatabase /> System Products Missing from Excel ({filteredMissingStockItems.length}
+                              {(missingStockBrandFilter !== 'all' || missingStockSearch) ? ` of ${missingStockItems.length}` : ''})
+                            </h4>
+
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {/* Search Box */}
+                              <div className="relative">
+                                <input
+                                  type="text"
+                                  value={missingStockSearch}
+                                  onChange={(e) => setMissingStockSearch(e.target.value)}
+                                  placeholder="Search missing..."
+                                  className="w-36 sm:w-44 bg-slate-950/70 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                                />
+                                {missingStockSearch && (
+                                  <button
+                                    onClick={() => setMissingStockSearch('')}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                                  >
+                                    <FiX className="text-xs" />
+                                  </button>
+                                )}
+                              </div>
+
+                              {/* Brand Filter Dropdown */}
+                              <div className="w-48 sm:w-56">
+                                <CustomDropdown
+                                  value={missingStockBrandFilter}
+                                  onChange={(val) => setMissingStockBrandFilter(val)}
+                                  options={[
+                                    { value: 'all', label: `All Brands (${missingStockItems.length})` },
+                                    ...stockUniqueBrands.map((bName) => ({
+                                      value: bName,
+                                      label: `${bName} (${stockBrandCounts[bName]})`
+                                    }))
+                                  ]}
+                                  statusColor="bg-slate-950/80 border-white/10 text-slate-200 text-xs py-1.5 px-3 rounded-lg hover:border-white/20"
+                                />
+                              </div>
+
+                              {missingStockBrandFilter !== 'all' && (
+                                <button
+                                  onClick={() => setMissingStockBrandFilter('all')}
+                                  className="px-2 py-1 text-xs bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded-lg hover:bg-rose-500/30 transition-colors flex items-center gap-1 font-semibold cursor-pointer"
+                                >
+                                  Clear Brand <FiX className="text-xs" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="overflow-y-auto custom-scrollbar bg-slate-900/50 rounded-xl border border-white/10 max-h-60">
+                            <table className="w-full text-left border-collapse whitespace-nowrap">
+                              <thead className="bg-slate-800/80 border-b border-white/10 text-slate-300 text-xs uppercase tracking-wider sticky top-0 z-10 backdrop-blur-sm">
+                                <tr>
+                                  <th className="px-4 py-3 font-medium w-12 text-center">S.No</th>
+                                  <th className="px-4 py-3 font-medium">System Product</th>
+                                  <th className="px-4 py-3 font-medium">Variant</th>
+                                  <th className="px-4 py-3 font-medium">EAN / SKU</th>
+                                  <th className="px-4 py-3 font-medium text-center font-medium">System Qty</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-white/5">
+                                {filteredMissingStockItems.length === 0 ? (
+                                  <tr>
+                                    <td colSpan="5" className="px-4 py-6 text-center text-slate-500 italic">
+                                      {missingStockItems.length === 0
+                                        ? 'No missing system products. All are matched!'
+                                        : 'No missing products found for the selected filter.'}
                                     </td>
                                   </tr>
-                                );
-                              })
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
+                                ) : (
+                                  filteredMissingStockItems.map((item, index) => {
+                                    const brandStr = getProductBrandName(item.product);
+                                    return (
+                                      <tr key={index} className="hover:bg-white/5 transition-colors">
+                                        <td className="px-4 py-3 text-sm text-slate-400 text-center font-medium">{index + 1}</td>
+                                        <td className="px-4 py-3 text-sm text-slate-300">
+                                          <div>
+                                            <span className="font-semibold text-white">{item.product.name}</span>
+                                            {brandStr && <span className="ml-2 text-xs text-slate-400">({brandStr})</span>}
+                                          </div>
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-slate-400">
+                                          {item.variant ? (
+                                            <span className="text-blue-400 font-medium">{item.variant.name}</span>
+                                          ) : (
+                                            <span className="text-slate-500 font-normal">-</span>
+                                          )}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-slate-400 font-mono">
+                                          {item.variant ? item.variant.sku : item.product.eanNumber || '-'}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm font-bold text-amber-500 text-center">
+                                          {item.variant ? item.variant.quantity : item.product.totalQuantity}
+                                        </td>
+                                      </tr>
+                                    );
+                                  })
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 ) : (
                   <div className="overflow-y-auto custom-scrollbar bg-slate-900/50 rounded-xl border border-white/10 max-h-96">

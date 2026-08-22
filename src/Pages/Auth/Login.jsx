@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { FiMail, FiLock, FiArrowRight, FiHexagon, FiAlertCircle, FiLoader } from 'react-icons/fi';
-import darkThemeImg from '../../assets/login_image_2.png';
+import darkThemeImg from '../../assets/login_image_2.webp';
 import logoImg from '../../assets/logos.png';
 
 const Login = () => {
@@ -49,7 +49,9 @@ const Login = () => {
           src={darkThemeImg}
           alt="Dashboard Preview" 
           className="absolute scale-95 object-cover bg-white/0 drop-shadow-[0_0_30px_rgba(37,99,235,0.3)] z-10"
-          fetchPriority='high'
+          fetchPriority="high"
+          loading="eager"
+          decoding="async"
         />
       </div>
 
