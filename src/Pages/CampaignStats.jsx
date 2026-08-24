@@ -11,7 +11,9 @@ import {
   FiSend,
   FiUsers,
   FiSmartphone,
-  FiChevronDown
+  FiChevronDown,
+  FiX,
+  FiFilter
 } from 'react-icons/fi';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -19,6 +21,7 @@ import { api, BASE_URL } from '../api/axios';
 import { formatDateTimeDDMMYYYY } from '../utils/dateUtils';
 import Card from '../Components/Card';
 import PageHeader from '../Components/PageHeader';
+import CustomDropdown from '../Components/CustomDropdown';
 import { KPISkeleton, TableRowSkeleton } from '../Components/Skeleton';
 
 const CampaignStats = () => {
@@ -36,12 +39,54 @@ const CampaignStats = () => {
 
   // Filter & Pagination state
   const [searchQuery, setSearchQuery] = useState('');
+  const [metricFilter, setMetricFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'sent' | 'received' | 'clicked'
+  const [sortBy, setSortBy] = useState('createdAt'); // 'createdAt' | 'sent' | 'received' | 'clicked' | 'deliveryRate' | 'clickRate'
+  const [sortOrder, setSortOrder] = useState('desc'); // 'desc' | 'asc'
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedGroups, setExpandedGroups] = useState({});
   const itemsPerPage = 10;
 
   // Navigation Hook
   const navigate = useNavigate();
+
+  const metricOptions = [
+    { value: 'all', label: 'All (Sent / Recv / Clicked)' },
+    { value: 'sent', label: 'Sent Only (> 0)' },
+    { value: 'received', label: 'Received Only (> 0)' },
+    { value: 'clicked', label: 'Clicked Only (> 0)' },
+    { value: 'most_sent', label: 'Sort: Most Sent' },
+    { value: 'most_received', label: 'Sort: Most Received' },
+    { value: 'most_clicked', label: 'Sort: Most Clicked' }
+  ];
+
+  const handleMetricFilterChange = (val) => {
+    setMetricFilter(val);
+    if (val === 'most_sent') {
+      setStatusFilter('all');
+      setSortBy('sent');
+      setSortOrder('desc');
+    } else if (val === 'most_received') {
+      setStatusFilter('all');
+      setSortBy('received');
+      setSortOrder('desc');
+    } else if (val === 'most_clicked') {
+      setStatusFilter('all');
+      setSortBy('clicked');
+      setSortOrder('desc');
+    } else {
+      setStatusFilter(val); // 'all', 'sent', 'received', 'clicked'
+    }
+  };
+
+  const handleSortChange = (key) => {
+    if (sortBy === key) {
+      setSortOrder(prev => (prev === 'desc' ? 'asc' : 'desc'));
+    } else {
+      setSortBy(key);
+      setSortOrder('desc');
+    }
+  };
 
   // Fetch campaign statistics and resolve helper data
   const fetchData = async () => {
@@ -76,10 +121,10 @@ const CampaignStats = () => {
   }, []);
 
 
-  // Reset page when searching
+  // Reset page when search or filter options change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [searchQuery, statusFilter, sortBy, sortOrder]);
 
   const getActionTargetName = (clickAction, actionId) => {
     if (clickAction === 'homepage' || clickAction === 'home') return 'Home Page';
@@ -167,7 +212,7 @@ const CampaignStats = () => {
   const avgDeliveryRate = totalSent > 0 ? ((totalReceived / totalSent) * 100).toFixed(1) + '%' : '0%';
   const avgClickRate = totalSent > 0 ? ((totalClicked / totalSent) * 100).toFixed(1) + '%' : '0%';
 
-  // Filter campaigns
+  // Filter campaigns by search query
   const filteredCampaigns = campaigns.filter((item) => {
     const query = searchQuery.toLowerCase();
     const titleMatch = (item.title || '').toLowerCase().includes(query);
@@ -181,11 +226,57 @@ const CampaignStats = () => {
   // Group after filtering
   const groupedCampaigns = groupCampaigns(filteredCampaigns);
 
+  // Quick Filter Counts
+  const countAll = groupedCampaigns.length;
+  const countSent = groupedCampaigns.filter(g => g.totalSent > 0).length;
+  const countReceived = groupedCampaigns.filter(g => g.totalReceived > 0).length;
+  const countClicked = groupedCampaigns.filter(g => g.totalClicked > 0).length;
+
+  // Filter by metric / status (sent, received, clicked)
+  const statusFilteredGroups = groupedCampaigns.filter((group) => {
+    if (statusFilter === 'sent') return group.totalSent > 0;
+    if (statusFilter === 'received') return group.totalReceived > 0;
+    if (statusFilter === 'clicked') return group.totalClicked > 0;
+    return true;
+  });
+
+  // Sort groups
+  const sortedGroups = [...statusFilteredGroups].sort((a, b) => {
+    let aVal = 0;
+    let bVal = 0;
+    if (sortBy === 'sent') {
+      aVal = a.totalSent || 0;
+      bVal = b.totalSent || 0;
+    } else if (sortBy === 'received') {
+      aVal = a.totalReceived || 0;
+      bVal = b.totalReceived || 0;
+    } else if (sortBy === 'clicked') {
+      aVal = a.totalClicked || 0;
+      bVal = b.totalClicked || 0;
+    } else if (sortBy === 'deliveryRate') {
+      aVal = parseFloat(a.deliveryRate) || 0;
+      bVal = parseFloat(b.deliveryRate) || 0;
+    } else if (sortBy === 'clickRate') {
+      aVal = parseFloat(a.clickRate) || 0;
+      bVal = parseFloat(b.clickRate) || 0;
+    } else {
+      // Default: createdAt
+      aVal = a.representative?.createdAt ? new Date(a.representative.createdAt).getTime() : 0;
+      bVal = b.representative?.createdAt ? new Date(b.representative.createdAt).getTime() : 0;
+    }
+
+    if (sortOrder === 'asc') {
+      return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+    } else {
+      return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+    }
+  });
+
   // Paginate groups
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentGroups = groupedCampaigns.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(groupedCampaigns.length / itemsPerPage);
+  const currentGroups = sortedGroups.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(sortedGroups.length / itemsPerPage);
 
   const toggleGroupExpand = (groupKey) => {
     setExpandedGroups(prev => ({ ...prev, [groupKey]: !prev[groupKey] }));
@@ -336,12 +427,49 @@ const CampaignStats = () => {
   return (
     <div className="relative space-y-6 min-h-full z-0 w-full pb-8">
       {/* Header Section */}
-      <PageHeader
-        title="Campaign Statistics"
-        icon={MdHistory}
-        description="Review notification histories, check delivery status, and analyze click-through rates."
-      />
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-black text-white tracking-tight flex items-center gap-3">
+            <MdHistory className="text-blue-400 shrink-0" />
+            <span>Campaign Statistics</span>
+          </h1>
+          <p className="text-xs md:text-sm text-slate-400 mt-1.5 font-medium leading-relaxed">
+            Review notification histories, check delivery status, and analyze click-through rates.
+          </p>
+        </div>
 
+        {/* Search & Refresh Actions */}
+        <div className="flex items-center gap-3 w-full md:w-auto shrink-0">
+          <div className="relative w-full sm:w-72 md:w-80">
+            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
+            <input
+              type="text"
+              placeholder="Search campaigns by title, message, ID..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-10 py-2.5 bg-black/20 border border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner text-white placeholder-slate-400 text-sm font-medium transition-all backdrop-blur-md"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <FiX size={14} />
+              </button>
+            )}
+          </div>
+          <button 
+            onClick={fetchData} 
+            disabled={loading}
+            title="Refresh Stats"
+            className="flex items-center justify-center p-2.5 sm:px-4 sm:py-2.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 font-bold rounded-2xl border border-blue-500/30 transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 shrink-0 cursor-pointer h-[42px]"
+          >
+            <MdRefresh className={`text-xl ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
+      </div>
+        
       {/* KPI Cards Row */}
       {loading && campaigns.length === 0 ? (
         <KPISkeleton cards={4} />
@@ -393,28 +521,6 @@ const CampaignStats = () => {
         </div>
       )}
 
-      {/* Search Filter Bar */}
-      <Card className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 !p-4 !rounded-2xl">
-        <div className="relative flex-1">
-          <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
-          <input
-            type="text"
-            placeholder="Search campaigns by title, message, ID, or action..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner text-white placeholder-slate-500 text-sm font-medium transition-all"
-          />
-        </div>
-        <button 
-          onClick={fetchData} 
-          disabled={loading}
-          className="flex items-center justify-center px-4 py-2.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 font-bold rounded-xl border border-blue-500/30 transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 shrink-0 cursor-pointer"
-        >
-          <MdRefresh className={`mr-2 text-lg ${loading ? 'animate-spin' : ''}`} />
-          Refresh Stats
-        </button>
-      </Card>
-
       {error && (
         <div className="text-red-400 bg-red-900/20 p-4 rounded-xl border border-red-500/30 flex items-center">
           <FiAlertCircle className="mr-2 text-lg" /> {error}
@@ -425,10 +531,24 @@ const CampaignStats = () => {
         <Card className="p-6">
           <TableRowSkeleton columns={5} rows={5} />
         </Card>
-      ) : groupedCampaigns.length === 0 ? (
+      ) : sortedGroups.length === 0 ? (
         <div className="py-16 flex flex-col items-center justify-center bg-slate-900/40 backdrop-blur-xl rounded-3xl border border-dashed border-white/20">
           <MdHistory className="text-5xl text-slate-500 mb-4" />
-          <p className="text-slate-400 font-medium">No campaign statistics found.</p>
+          <p className="text-slate-400 font-medium">No campaign statistics found matching the current filters.</p>
+          {(metricFilter !== 'all' || statusFilter !== 'all' || searchQuery) && (
+            <button
+              onClick={() => {
+                setMetricFilter('all');
+                setStatusFilter('all');
+                setSortBy('createdAt');
+                setSortOrder('desc');
+                setSearchQuery('');
+              }}
+              className="mt-3 px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 font-bold rounded-xl border border-blue-500/30 text-xs transition-colors cursor-pointer"
+            >
+              Reset Filters
+            </button>
+          )}
         </div>
       ) : (
         <Card className="overflow-hidden flex flex-col h-full isolate will-change-transform !p-0">
@@ -438,10 +558,33 @@ const CampaignStats = () => {
                 <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-slate-400">
                   <th className="p-4 font-bold text-center">S.No</th>
                   <th className="p-4 font-bold">Campaign</th>
-                  <th className="p-4 font-bold">Message</th>
+                  <th 
+                    onClick={() => handleSortChange('createdAt')}
+                    className="p-4 font-bold cursor-pointer select-none hover:text-white transition-colors"
+                  >
+                    <div className="flex items-center gap-1">
+                      <span className={sortBy === 'createdAt' ? 'text-blue-400 font-extrabold' : ''}>Message & Date</span>
+                      {sortBy === 'createdAt' ? (
+                        sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                      ) : (
+                        <span className="text-slate-600">⇅</span>
+                      )}
+                    </div>
+                  </th>
                   <th className="p-4 font-bold text-center">Sent To</th>
-                  {/* <th className="p-4 font-bold text-center">Action Link</th> */}
-                  <th className="p-4 font-bold text-center">Sent / Received / Clicked</th>
+                  <th className="p-3 font-bold text-center min-w-[210px]" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-center">
+                      <CustomDropdown
+                        value={metricFilter}
+                        onChange={handleMetricFilterChange}
+                        options={metricOptions}
+                        defaultLabel="Sent / Received / Clicked"
+                        statusColor={`!border-none !bg-slate-900/90 !py-1.5 !px-3 text-xs select-none hover:text-white ${
+                          metricFilter !== 'all' ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'
+                        }`}
+                      />
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -581,11 +724,11 @@ const CampaignStats = () => {
 
                       {/* Expanded Sub-Rows for each member in a grouped campaign */}
                       {isGrouped && isExpanded && group.members.map((member, mIdx) => {
-                        const platform = member.platform || member.targetPlatform || 'all';
-                        const platformLabel = platform === 'android' ? 'Android' : platform === 'ios' ? 'iOS' : 'All Users';
-                        const platformColor = platform === 'android' ? 'text-green-400 bg-green-500/10 border-green-500/20'
-                                            : platform === 'ios' ? 'text-slate-300 bg-slate-500/10 border-slate-500/20'
-                                            : 'text-blue-400 bg-blue-500/10 border-blue-500/20';
+                        // const platform = member.platform || member.targetPlatform || 'all';
+                        // const platformLabel = platform === 'android' ? 'Android' : platform === 'ios' ? 'iOS' : 'All Users';
+                        // const platformColor = platform === 'android' ? 'text-green-400 bg-green-500/10 border-green-500/20'
+                        //                     : platform === 'ios' ? 'text-slate-300 bg-slate-500/10 border-slate-500/20'
+                        //                     : 'text-blue-400 bg-blue-500/10 border-blue-500/20';
                         return (
                           <tr 
                             key={member.campaignId}
@@ -600,9 +743,9 @@ const CampaignStats = () => {
                                 <div className="w-1 h-8 rounded-full bg-indigo-500/30 shrink-0" />
                                 <div>
                                   <span className="text-[10px] text-slate-500 font-mono block">ID: {member.campaignId}</span>
-                                  <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded border uppercase tracking-wide ${platformColor}`}>
+                                  {/* <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded border uppercase tracking-wide ${platformColor}`}>
                                     {platformLabel}
-                                  </span>
+                                  </span> */}
                                 </div>
                               </div>
                             </td>
@@ -645,7 +788,7 @@ const CampaignStats = () => {
           {totalPages > 1 && (
             <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-4 bg-transparent border-t border-white/10 p-4 rounded-b-3xl">
               <p className="text-xs text-slate-400">
-                Showing <span className="font-semibold text-white">{indexOfFirstItem + 1}</span> to <span className="font-semibold text-white">{Math.min(indexOfLastItem, groupedCampaigns.length)}</span> of <span className="font-semibold text-white">{groupedCampaigns.length}</span> campaigns
+                Showing <span className="font-semibold text-white">{indexOfFirstItem + 1}</span> to <span className="font-semibold text-white">{Math.min(indexOfLastItem, sortedGroups.length)}</span> of <span className="font-semibold text-white">{sortedGroups.length}</span> campaigns
               </p>
               <div className="flex items-center gap-2">
                 <button

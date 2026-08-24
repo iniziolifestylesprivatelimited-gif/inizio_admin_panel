@@ -22,7 +22,7 @@ const ProductMapping = () => {
   const [syncedProducts, setSyncedProducts] = useState([]);
 
   // Stock Update Section States
-  const [activeTab, setActiveTab] = useState('tally');
+  const [activeTab, setActiveTab] = useState('stock');
   const [stockFile, setStockFile] = useState(null);
   const [isUploadingStock, setIsUploadingStock] = useState(false);
   const [stockUploadSuccess, setStockUploadSuccess] = useState(false);
@@ -934,7 +934,7 @@ const ProductMapping = () => {
 
       {/* Tab Navigation */}
       <div className="flex border-b border-white/10 gap-6 mb-4">
-        <button
+        {/* <button
           onClick={() => {
             setActiveTab('tally');
             setError('');
@@ -946,7 +946,7 @@ const ProductMapping = () => {
           }`}
         >
           Tally Mapping (Standard)
-        </button>
+        </button> */}
         <button
           onClick={() => {
             setActiveTab('stock');
@@ -963,7 +963,10 @@ const ProductMapping = () => {
       </div>
 
       <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-2xl md:rounded-3xl p-6 space-y-6">
-        {activeTab === 'tally' ? (
+        {/* =========================================================================
+            TALLY MAPPING SECTION (COMMENTED OUT)
+            ========================================================================= */}
+        {false && (
           <>
             <div className="space-y-4">
               <div>
@@ -1320,10 +1323,14 @@ const ProductMapping = () => {
               </div>
             )}
           </>
-        ) : (
-          <>
-            {/* New Stock Update UI */}
-            <div className="space-y-4">
+        )}
+
+        {/* =========================================================================
+            STOCK UPDATE SECTION (ACTIVE)
+            ========================================================================= */}
+        <>
+          {/* New Stock Update UI */}
+          <div className="space-y-4">
               <div>
                 <label className="block text-sm font-bold text-slate-300 mb-2">Step 1: Upload Detailed Inventory File</label>
                 <div className="flex items-center gap-4">
@@ -1732,7 +1739,6 @@ const ProductMapping = () => {
               </div>
             )}
           </>
-        )}
 
         {error && (
           <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 flex items-center">
@@ -1745,7 +1751,7 @@ const ProductMapping = () => {
       {/* Progress & Log Modal */}
       {showStatusModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm transition-all">
-          <div className="w-full max-w-lg bg-slate-900 border border-white/15 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+          <div className="w-full max-w-lg bg-linear-to-br from-tranparent to-blue-950/65 border border-white/15 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
             <div className="p-5 border-b border-white/10 flex justify-between items-center bg-slate-950/40">
               <h3 className="font-bold text-white text-lg flex items-center gap-2">
                 <FiDatabase size={18} className={`text-blue-400 ${isSyncingInProgress ? 'animate-spin' : ''}`} />
@@ -1808,7 +1814,7 @@ const ProductMapping = () => {
               </div>
             </div>
 
-            <div className="p-5 border-t border-white/10 flex justify-end bg-slate-950/40">
+            <div className="p-5 border-t border-white/10 flex justify-end bg-slate-950/80">
               <button
                 disabled={isSyncingInProgress}
                 onClick={() => setShowStatusModal(false)}

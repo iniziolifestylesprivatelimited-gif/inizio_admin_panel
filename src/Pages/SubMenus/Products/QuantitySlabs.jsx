@@ -435,11 +435,11 @@ export default function QuantitySlabs() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         {/* Left Side: Configuration Builder (Col span 5) */}
-        <div className="lg:col-span-5 space-y-6">
+        <div className="lg:col-span-5 flex flex-col h-full">
           {/* Slab Settings Box */}
-          <div className="bg-slate-900/40 border border-white/10 backdrop-blur-2xl rounded-3xl p-5 md:p-6 space-y-5 shadow-xl">
+          <div className="bg-slate-900/40 border border-white/10 backdrop-blur-2xl rounded-3xl p-5 md:p-6 shadow-xl flex flex-col justify-between h-full space-y-5">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
               <span className="w-1.5 h-5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"></span>
               Slab Pricing Rules
@@ -612,9 +612,9 @@ export default function QuantitySlabs() {
         </div>
 
         {/* Right Side: Product Selection & Preview Grid (Col span 7) */}
-        <div className="lg:col-span-7 space-y-6">
+        <div className="lg:col-span-7 flex flex-col h-full">
           {/* Products & Filters Box */}
-          <div className="bg-slate-900/40 border border-white/10 backdrop-blur-2xl rounded-3xl p-5 md:p-6 space-y-5 shadow-xl">
+          <div className="bg-slate-900/40 border border-white/10 backdrop-blur-2xl rounded-3xl p-5 md:p-6 shadow-xl flex flex-col justify-between h-full space-y-5">
             <h2 className="text-lg font-bold text-white flex items-center justify-between">
               <span className="flex items-center gap-2">
                 <span className="w-1.5 h-5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"></span>
@@ -717,10 +717,10 @@ export default function QuantitySlabs() {
                 <div className="text-sm font-medium">No products match the selected criteria.</div>
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="overflow-x-auto rounded-2xl border border-white/5 bg-slate-950/40">
+              <div className="space-y-4 flex-1 flex flex-col justify-between">
+                <div className="overflow-auto custom-scrollbar max-h-[580px] rounded-2xl border border-white/5 bg-slate-950/40 flex-1">
                   <table className="w-full text-left text-xs border-collapse">
-                    <thead>
+                    <thead className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-md shadow-md">
                       <tr className="bg-slate-900/80 border-b border-white/5 text-slate-400 font-semibold">
                         <th className="p-3 w-10 text-center">
                           <input
@@ -928,8 +928,8 @@ export default function QuantitySlabs() {
       {/* Progress & Log Modal */}
       {showStatusModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm transition-all">
-          <div className="w-full max-w-lg bg-slate-900 border border-white/15 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
-            <div className="p-5 border-b border-white/10 flex justify-between items-center bg-slate-950/40">
+          <div className="w-full max-w-lg bg-linear-to-br from-transparent to-blue-950/65 border border-white/15 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="p-5 border-b border-white/10 flex justify-between items-center bg-slate-950/80">
               <h3 className="font-bold text-white text-lg flex items-center gap-2">
                 <FiSliders size={18} className="text-blue-400 animate-spin" />
                 Updating Pricing Slabs
@@ -989,7 +989,7 @@ export default function QuantitySlabs() {
               </div>
             </div>
 
-            <div className="p-5 border-t border-white/10 flex justify-end bg-slate-950/40">
+            <div className="p-5 border-t border-white/10 flex justify-end bg-slate-950/80">
               <button
                 disabled={isUpdating}
                 onClick={() => setShowStatusModal(false)}

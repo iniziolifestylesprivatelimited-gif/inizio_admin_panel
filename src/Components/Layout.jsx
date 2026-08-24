@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
@@ -6,7 +7,7 @@ import {
   FiLogOut, FiMenu, FiX, FiUser,
   FiBell, FiChevronDown, FiChevronRight,
   FiMessageSquare, FiPackage, FiUserPlus, FiClock, FiAlertTriangle, FiFileText,
-  FiCheckCircle, FiVolume2, FiShield
+  FiCheckCircle, FiVolume2, FiShield, FiArrowUp
 } from 'react-icons/fi';
 import { getAccessibleMenus } from '../config/menus';
 import HeaderSearch from './HeaderSearch';
@@ -27,11 +28,73 @@ const Layout = () => {
   const location = useLocation();
   const mainRef = useRef(null);
 
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  const checkScrollState = () => {
+    const mainTop = mainRef.current ? mainRef.current.scrollTop : 0;
+    const winTop = window.pageYOffset || document.documentElement?.scrollTop || document.body?.scrollTop || 0;
+    let anyContainerTop = 0;
+    const scrollables = document.querySelectorAll('.overflow-y-auto, main');
+    scrollables.forEach(el => {
+      if (el && el.scrollTop > anyContainerTop) {
+        anyContainerTop = el.scrollTop;
+      }
+    });
+    const currentScroll = Math.max(mainTop, winTop, anyContainerTop);
+    setShowScrollTop(currentScroll > 40);
+  };
+
   useEffect(() => {
     if (mainRef.current) {
       mainRef.current.scrollTop = 0;
     }
+    setShowScrollTop(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    const handleEvents = () => checkScrollState();
+
+    window.addEventListener('scroll', handleEvents, { capture: true, passive: true });
+    window.addEventListener('wheel', handleEvents, { capture: true, passive: true });
+    window.addEventListener('touchmove', handleEvents, { capture: true, passive: true });
+
+    const mainEl = mainRef.current;
+    if (mainEl) {
+      mainEl.addEventListener('scroll', handleEvents, { passive: true });
+    }
+
+    // Safety polling every 300ms to guarantee detection in all browser environments
+    const intervalId = setInterval(checkScrollState, 300);
+
+    return () => {
+      window.removeEventListener('scroll', handleEvents, { capture: true });
+      window.removeEventListener('wheel', handleEvents, { capture: true });
+      window.removeEventListener('touchmove', handleEvents, { capture: true });
+      if (mainEl) {
+        mainEl.removeEventListener('scroll', handleEvents);
+      }
+      clearInterval(intervalId);
+    };
+  }, [location.pathname]);
+
+  const scrollToTop = () => {
+    if (mainRef.current) {
+      mainRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (document.documentElement) {
+      document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    if (document.body) {
+      document.body.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    const scrollables = document.querySelectorAll('.overflow-y-auto, .custom-scrollbar, main');
+    scrollables.forEach(el => {
+      if (el && el.scrollTop > 0) {
+        el.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  };
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -1404,8 +1467,8 @@ const Layout = () => {
         )}
 
         {/* DYNAMIC PAGE CONTENT */}
-        <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
-          <div className="w-full mx-auto p-4 sm:p-6 lg:p-8 min-h-full">
+        <main ref={mainRef} onScroll={checkScrollState} className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
+          <div className="w-full mx-auto p-1 sm:p-2 lg:p-4 min-h-full">
             <Outlet context={{ setChatUnreadCount, setOrdersUnreadCount, setUsersUnreadCount, setUsersVerifyUnreadCount, setUsersDeletionUnreadCount, setQuotesUnreadCount }} />
           </div>
         </main>
@@ -1425,6 +1488,30 @@ const Layout = () => {
         </footer>
 
       </div>
+
+      {/* Scroll to Top Floating Button (Rendered directly into document.body to avoid parent CSS clipping) */}
+      {typeof document !== 'undefined' && createPortal(
+        <button
+          type="button"
+          onClick={scrollToTop}
+          aria-label="Scroll to top"
+          title="Scroll to top"
+          style={{
+            position: 'fixed',
+            bottom: '64px',
+            right: '24px',
+            zIndex: 999999,
+            opacity: showScrollTop ? 1 : 0,
+            transform: showScrollTop ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.8)',
+            pointerEvents: showScrollTop ? 'auto' : 'none',
+            transition: 'opacity 0.25s ease, transform 0.25s ease',
+          }}
+          className="p-3.5 rounded-2xl bg-gradient-to-br from-slate-900/95 to-blue-950/95 backdrop-blur-xl border border-blue-500/40 text-blue-400 hover:text-white hover:from-blue-600 hover:to-indigo-600 hover:border-blue-400 shadow-[0_8px_25px_rgba(0,0,0,0.8),0_0_25px_rgba(37,99,235,0.4)] hover:shadow-[0_8px_35px_rgba(37,99,235,0.7)] cursor-pointer group active:scale-90 flex items-center justify-center"
+        >
+          <FiArrowUp className="w-5 h-5 transition-transform duration-300 group-hover:-translate-y-1" />
+        </button>,
+        document.body
+      )}
     </div>
   );
 };

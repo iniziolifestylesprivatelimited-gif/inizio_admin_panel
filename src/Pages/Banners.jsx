@@ -298,9 +298,9 @@ const Banners = () => {
 
       {/* Grid of Banners */}
       {!loading && !error && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="flex flex-wrap gap-6">
           {banners.map((banner) => (
-            <div key={banner._id} className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden group flex flex-col">
+            <div key={banner._id} className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-xl overflow-hidden group flex flex-col">
               
               {/* Image Header */}
               <div className="relative h-48 bg-slate-800 flex items-center justify-center overflow-hidden border-b border-white/10">
@@ -379,7 +379,7 @@ const Banners = () => {
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeModal}></div>
           
-          <div className="relative bg-linear-to-br from-slate-950 to-blue-950/65 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-2xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative bg-linear-to-br from-slate-950 to-blue-950/65 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-2xl overflow-hidden flex flex-col h-auto animate-in fade-in zoom-in-95 duration-200">
             
             <div className="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-slate-950/30">
               <h3 className="font-bold text-white text-lg">
