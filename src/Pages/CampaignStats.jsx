@@ -501,7 +501,7 @@ const CampaignStats = () => {
           <Card hoverable className="p-5 flex items-center justify-between">
             <div>
               <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Avg. Delivery Rate</p>
-              <p className="text-2xl font-black text-emerald-400 mt-1.5">{avgDeliveryRate}</p>
+              <p className="text-2xl font-black text-white mt-1.5">{avgDeliveryRate}</p>
             </div>
             <div className="p-3 bg-emerald-500/10 rounded-2xl text-emerald-400">
               <FiCheckCircle className="text-xl" />
@@ -512,7 +512,7 @@ const CampaignStats = () => {
           <Card hoverable className="p-5 flex items-center justify-between">
             <div>
               <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Avg. Click-Through Rate</p>
-              <p className="text-2xl font-black text-violet-400 mt-1.5">{avgClickRate}</p>
+              <p className="text-2xl font-black text-white mt-1.5">{avgClickRate}</p>
             </div>
             <div className="p-3 bg-violet-500/10 rounded-2xl text-violet-400">
               <FiActivity className="text-xl" />

@@ -5,7 +5,7 @@ import {
   FiSmile, FiInfo, FiArrowLeft, FiCheck, FiCornerUpLeft, FiEdit2,
   FiTrash2, FiX, FiFileText, FiDownload, FiLoader, FiAlertCircle,
   FiShoppingCart, FiSmartphone, FiUser, FiShoppingBag, FiActivity, FiEye,
-  FiPackage, FiAtSign
+  FiPackage, FiAtSign, FiMessageSquare
 } from 'react-icons/fi';
 import { RiCheckDoubleFill } from "react-icons/ri";
 import { api, BASE_URL } from '../api/axios';
@@ -761,10 +761,21 @@ const Chat = () => {
   const activeContactDetails = contacts.find(c => c.userId === activeContact);
 
   return (
-    <div className="relative flex h-[calc(100dvh-12rem)] md:h-[calc(85dvh-6rem)] z-0 w-full">
+    <div className="relative space-y-4 min-h-full z-0 w-full flex flex-col h-[calc(100dvh+6rem)] min-h-[960px]">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 shrink-0">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+            <FiMessageSquare className="text-blue-400" />
+            Chat & Support
+          </h1>
+          <p className="text-slate-400 text-sm font-medium mt-0.5">
+            Real-time customer messaging, support conversations, and order inquiries.
+          </p>
+        </div>
+      </div>
 
-
-      <div className="flex w-full h-full bg-transparent backdrop-blur-2xl border border-white/10 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl shadow-black/50 min-w-0">
+      <div className="flex flex-1 w-full bg-transparent backdrop-blur-2xl border border-white/10 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl shadow-black/50 min-w-0 min-h-0">
         {/* Sidebar - Contacts */}
         <div className={`${activeContact ? 'hidden md:flex' : 'flex'} w-full md:w-80 lg:w-96 border-r border-white/10 flex-col bg-black/20`}>
           <div className="p-4 border-b border-white/10">

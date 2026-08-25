@@ -274,7 +274,7 @@ const CampaignDetail = () => {
             <Card hoverable className="p-5 flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Delivered</p>
-                <p className="text-2xl font-black text-emerald-400 mt-1">
+                <p className="text-2xl font-black text-white mt-1">
                   {campaignDetail.totalReceived ?? campaignDetail.stats?.totalReceived ?? 0}
                   <span className="text-[10px] font-bold text-slate-500 block mt-0.5">
                     ({campaignDetail.deliveryRate ?? campaignDetail.stats?.deliveryRate ?? '0%'})
@@ -290,7 +290,7 @@ const CampaignDetail = () => {
             <Card hoverable className="p-5 flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Clicked</p>
-                <p className="text-2xl font-black text-blue-400 mt-1">
+                <p className="text-2xl font-black text-white mt-1">
                   {campaignDetail.totalClicked ?? campaignDetail.stats?.totalClicked ?? 0}
                   <span className="text-[10px] font-bold text-slate-500 block mt-0.5">
                     ({campaignDetail.clickRate ?? campaignDetail.stats?.clickRate ?? '0%'})

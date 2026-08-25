@@ -2045,7 +2045,7 @@ const ProductList = () => {
                   </th>
                 )}
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs">S.No</th>
-                <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs min-w-[140px]">
+                <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs min-w-auto">
                   <CustomDropdown
                     value={selectedBrand}
                     onChange={(val) => handleFilterChange('brand', val)}
@@ -2057,7 +2057,7 @@ const ProductList = () => {
                     statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedBrand ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'}`}
                   />
                 </th>
-                <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs min-w-[140px]">
+                <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs min-w-auto">
                   <CustomDropdown
                     value={selectedCategory}
                     onChange={(val) => handleFilterChange('category', val)}
@@ -2071,7 +2071,7 @@ const ProductList = () => {
                 </th>
                 <th
                   onClick={() => handleSortChange('name')}
-                  className="px-4 py-3 font-medium uppercase tracking-wider text-xs cursor-pointer select-none hover:text-white transition-colors"
+                  className="px-4 py-2 mt-2 flex items-end justify-center font-medium uppercase tracking-wider text-xs cursor-pointer select-none hover:text-white transition-colors"
                 >
                   <div className="flex items-center gap-1">
                     <span className={sortKey === 'name' ? 'text-blue-400 font-extrabold' : ''}>Product Name</span>
@@ -2206,7 +2206,23 @@ const ProductList = () => {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-400 font-bold">{product.basePrice ?? '-'}</td>
-                      <td className="px-4 py-3 text-sm text-emerald-400 font-bold">{product.offerPrice ?? '-'}
+                      <td className="px-4 py-3 text-sm text-emerald-400 font-bold">
+                        <div className="flex items-end gap-1.5 flex-wrap">
+                          <span>{product.offerPrice ?? '-'}</span>
+                          {(() => {
+                            const base = Number(product.basePrice);
+                            const offer = Number(product.offerPrice);
+                            if (base > 0 && offer > 0 && base > offer) {
+                              const off = Math.round(((base - offer) / base) * 100);
+                              return (
+                                <span className="text-[8px] font-extrabold px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 whitespace-nowrap">
+                                  {off}% off
+                                </span>
+                              );
+                            }
+                            return null;
+                          })()}
+                        </div>
                         <div className="flex flex-wrap gap-1 mt-1">
                           {product.isActive === false ? (
                             <span className="inline-block text-[9px] font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-1.5 py-0.5 rounded">
@@ -2471,7 +2487,22 @@ const ProductList = () => {
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Offer Price</p>
-                    <p className="text-emerald-400 font-bold">₹{currentProductForView.offerPrice || '0'}</p>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <p className="text-emerald-400 font-bold">₹{currentProductForView.offerPrice || '0'}</p>
+                      {(() => {
+                        const base = Number(currentProductForView.basePrice);
+                        const offer = Number(currentProductForView.offerPrice);
+                        if (base > 0 && offer > 0 && base > offer) {
+                          const off = Math.round(((base - offer) / base) * 100);
+                          return (
+                            <span className="text-[8px] font-extrabold px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 whitespace-nowrap">
+                              {off}% off
+                            </span>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </div>
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">L1 Price</p>
@@ -2595,7 +2626,22 @@ const ProductList = () => {
                             </div>
                             <div>
                               <p className="text-xs text-slate-500 uppercase tracking-wider mb-1 font-bold">Offer Price</p>
-                              <p className="text-sm text-emerald-400 font-bold">₹{variant.offerPrice || '0'}</p>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <p className="text-sm text-emerald-400 font-bold">₹{variant.offerPrice || '0'}</p>
+                                {(() => {
+                                  const base = Number(variant.price || variant.basePrice);
+                                  const offer = Number(variant.offerPrice);
+                                  if (base > 0 && offer > 0 && base > offer) {
+                                    const off = Math.round(((base - offer) / base) * 100);
+                                    return (
+                                      <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 whitespace-nowrap">
+                                        {off}% off
+                                      </span>
+                                    );
+                                  }
+                                  return null;
+                                })()}
+                              </div>
                             </div>
                           </div>
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 pt-3 border-t border-white/5">

@@ -410,7 +410,7 @@ export default function QuantitySlabs() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 md:p-6 space-y-6">
+    <div className="min-h-screen bg-transparent text-slate-100 p-2 space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-5">
         <div>
@@ -439,7 +439,7 @@ export default function QuantitySlabs() {
         {/* Left Side: Configuration Builder (Col span 5) */}
         <div className="lg:col-span-5 flex flex-col h-full">
           {/* Slab Settings Box */}
-          <div className="bg-slate-900/40 border border-white/10 backdrop-blur-2xl rounded-3xl p-5 md:p-6 shadow-xl flex flex-col justify-between h-full space-y-5">
+          <div className="bg-slate-950/50 border border-white/10 backdrop-blur-2xl rounded-3xl p-5 md:p-6 shadow-xl flex flex-col justify-between h-full space-y-5">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
               <span className="w-1.5 h-5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"></span>
               Slab Pricing Rules
@@ -614,7 +614,7 @@ export default function QuantitySlabs() {
         {/* Right Side: Product Selection & Preview Grid (Col span 7) */}
         <div className="lg:col-span-7 flex flex-col h-full">
           {/* Products & Filters Box */}
-          <div className="bg-slate-900/40 border border-white/10 backdrop-blur-2xl rounded-3xl p-5 md:p-6 shadow-xl flex flex-col justify-between h-full space-y-5">
+          <div className="bg-slate-950/50 border border-white/10 backdrop-blur-2xl rounded-3xl p-5 md:p-6 shadow-xl flex flex-col justify-between h-full space-y-5">
             <h2 className="text-lg font-bold text-white flex items-center justify-between">
               <span className="flex items-center gap-2">
                 <span className="w-1.5 h-5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"></span>

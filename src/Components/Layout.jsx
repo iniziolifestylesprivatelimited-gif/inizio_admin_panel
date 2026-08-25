@@ -28,18 +28,29 @@ const Layout = () => {
   const location = useLocation();
   const mainRef = useRef(null);
 
+  const isChatRoute = location.pathname.startsWith('/chat');
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   const checkScrollState = () => {
+    if (isChatRoute) {
+      if (showScrollTop) setShowScrollTop(false);
+      return;
+    }
+
     const mainTop = mainRef.current ? mainRef.current.scrollTop : 0;
     const winTop = window.pageYOffset || document.documentElement?.scrollTop || document.body?.scrollTop || 0;
     let anyContainerTop = 0;
-    const scrollables = document.querySelectorAll('.overflow-y-auto, main');
-    scrollables.forEach(el => {
-      if (el && el.scrollTop > anyContainerTop) {
-        anyContainerTop = el.scrollTop;
-      }
-    });
+    
+    // Only inspect scrollable containers within the main content area (excluding the sidebar menu)
+    if (mainRef.current) {
+      const scrollables = mainRef.current.querySelectorAll('.overflow-y-auto, .overflow-auto, .custom-scrollbar');
+      scrollables.forEach(el => {
+        if (el && el.scrollTop > anyContainerTop) {
+          anyContainerTop = el.scrollTop;
+        }
+      });
+    }
+    
     const currentScroll = Math.max(mainTop, winTop, anyContainerTop);
     setShowScrollTop(currentScroll > 40);
   };
@@ -52,7 +63,13 @@ const Layout = () => {
   }, [location.pathname]);
 
   useEffect(() => {
-    const handleEvents = () => checkScrollState();
+    const handleEvents = (e) => {
+      // Ignore scroll/wheel/touch events originating inside the sidebar menu
+      if (e && e.target && e.target.closest && e.target.closest('aside')) {
+        return;
+      }
+      checkScrollState();
+    };
 
     window.addEventListener('scroll', handleEvents, { capture: true, passive: true });
     window.addEventListener('wheel', handleEvents, { capture: true, passive: true });
@@ -80,6 +97,12 @@ const Layout = () => {
   const scrollToTop = () => {
     if (mainRef.current) {
       mainRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+      const scrollables = mainRef.current.querySelectorAll('.overflow-y-auto, .overflow-auto, .custom-scrollbar');
+      scrollables.forEach(el => {
+        if (el && el.scrollTop > 0) {
+          el.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (document.documentElement) {
@@ -88,12 +111,6 @@ const Layout = () => {
     if (document.body) {
       document.body.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    const scrollables = document.querySelectorAll('.overflow-y-auto, .custom-scrollbar, main');
-    scrollables.forEach(el => {
-      if (el && el.scrollTop > 0) {
-        el.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    });
   };
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -126,10 +143,25 @@ const Layout = () => {
   const isInitialDataLoad = useRef(true);
   const [toasts, setToasts] = useState([]);
   const [failedImageProductNames, setFailedImageProductNames] = useState([]);
+  const prevFailedImagesRef = useRef(new Set());
+  const recentToastsRef = useRef(new Map());
 
   const addToast = (title, message, path, IconComponent = FiBell, tag) => {
-    const id = Date.now() + Math.random().toString(36).substring(2, 9);
-    setToasts(prev => [...prev, { id, title, message, path, IconComponent }]);
+    const key = `${title}:${message}`;
+    const now = Date.now();
+    // Prevent identical toast from being triggered within 4 seconds
+    if (recentToastsRef.current.has(key) && (now - recentToastsRef.current.get(key) < 4000)) {
+      return;
+    }
+    recentToastsRef.current.set(key, now);
+
+    const id = now + Math.random().toString(36).substring(2, 9);
+    setToasts(prev => {
+      if (prev.some(t => t.title === title && t.message === message)) {
+        return prev;
+      }
+      return [...prev, { id, title, message, path, IconComponent }];
+    });
     
     // If the window/tab is in the background or hidden, trigger native Chrome/OS notification.
     // If the user is actively viewing the tab, show the in-app toast + play sound without duplicate OS banners.
@@ -761,24 +793,23 @@ const Layout = () => {
 
         if (isMounted) {
           const uniqueFailed = Array.from(new Set(failedProducts));
-          setFailedImageProductNames(prev => {
-            const prevSet = new Set(prev);
-            const newlyAdded = uniqueFailed.filter(name => !prevSet.has(name));
+          const prevSet = prevFailedImagesRef.current;
+          const newlyAdded = uniqueFailed.filter(name => !prevSet.has(name));
 
-            // Only trigger toast if there are newly discovered broken images
-            if (newlyAdded.length > 0) {
-              const namesPreview = newlyAdded.slice(0, 2).join(', ');
-              const totalFailed = newlyAdded.length;
-              addToast(
-                "Image Load Alert",
-                `Failed to load ${totalFailed} product image(s) (${namesPreview}${totalFailed > 2 ? '...' : ''}). Check your WordPress library access.`,
-                "/products/list",
-                FiAlertTriangle
-              );
-            }
+          // Only trigger toast if there are newly discovered broken images
+          if (newlyAdded.length > 0) {
+            newlyAdded.forEach(name => prevSet.add(name));
+            const namesPreview = newlyAdded.slice(0, 2).join(', ');
+            const totalFailed = newlyAdded.length;
+            addToast(
+              "Image Load Alert",
+              `Failed to load ${totalFailed} product image(s) (${namesPreview}${totalFailed > 2 ? '...' : ''}). Check your WordPress library access.`,
+              "/products/list",
+              FiAlertTriangle
+            );
+          }
 
-            return uniqueFailed;
-          });
+          setFailedImageProductNames(uniqueFailed);
         }
       } catch (error) {
         console.error("Failed to poll product images status", error);
@@ -1490,7 +1521,7 @@ const Layout = () => {
       </div>
 
       {/* Scroll to Top Floating Button (Rendered directly into document.body to avoid parent CSS clipping) */}
-      {typeof document !== 'undefined' && createPortal(
+      {!isChatRoute && typeof document !== 'undefined' && createPortal(
         <button
           type="button"
           onClick={scrollToTop}

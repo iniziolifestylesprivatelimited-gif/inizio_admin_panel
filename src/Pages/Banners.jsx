@@ -300,7 +300,7 @@ const Banners = () => {
       {!loading && !error && (
         <div className="flex flex-wrap gap-6">
           {banners.map((banner) => (
-            <div key={banner._id} className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-xl overflow-hidden group flex flex-col">
+            <div key={banner._id} className="bg-linear-to-br from-transparent to-blue-950/65 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-xl overflow-hidden group flex flex-col">
               
               {/* Image Header */}
               <div className="relative h-48 bg-slate-800 flex items-center justify-center overflow-hidden border-b border-white/10">
@@ -308,7 +308,7 @@ const Banners = () => {
                   <img 
                     src={getImageUrl(banner.image)} 
                     alt={banner.title} 
-                    className="w-full h-full object-contain bg-white p-2 group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-contain bg-white group-hover:scale-105 transition-transform duration-500"
                   />
                 ) : (
                   <FiImage className="text-4xl text-slate-500" />

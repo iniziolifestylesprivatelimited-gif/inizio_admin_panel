@@ -31,10 +31,10 @@ const CustomDropdown = ({ value, onChange, options, statusColor, defaultLabel })
       {/* Trigger Button */}
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full bg-transparent outline-none pr-8 pl-3 py-2.5 rounded-lg border cursor-pointer transition-all flex justify-between items-center select-none ${statusColor}`}
+        className={`w-full bg-transparent outline-none px-3 py-2.5 rounded-lg border cursor-pointer transition-all flex justify-between items-center select-none gap-2 ${statusColor}`}
       >
-        {(!value && defaultLabel) ? defaultLabel : selectedOption.label}
-        <FiChevronDown className={`absolute right-2.5 top-1/2 -translate-y-1/2 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''} text-current opacity-70`} />
+        <span className="truncate">{(!value && defaultLabel) ? defaultLabel : selectedOption.label}</span>
+        <FiChevronDown className={`shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''} text-current opacity-70`} />
       </div>
 
       {/* Options List */}

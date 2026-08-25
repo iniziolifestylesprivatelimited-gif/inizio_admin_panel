@@ -260,7 +260,22 @@ const ProductDetailsModal = ({
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Offer Price</p>
-                    <p className="text-emerald-400 font-bold">₹{product.offerPrice || '0'}</p>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <p className="text-emerald-400 font-bold">₹{product.offerPrice || '0'}</p>
+                      {(() => {
+                        const base = Number(product.basePrice);
+                        const offer = Number(product.offerPrice);
+                        if (base > 0 && offer > 0 && base > offer) {
+                          const off = Math.round(((base - offer) / base) * 100);
+                          return (
+                            <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 whitespace-nowrap">
+                              {off}% off
+                            </span>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </div>
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">L1 Price</p>
@@ -383,7 +398,22 @@ const ProductDetailsModal = ({
                             </div>
                             <div>
                               <p className="text-xs text-slate-500 uppercase tracking-wider mb-1 font-bold">Offer Price</p>
-                              <p className="text-sm text-emerald-400 font-bold">₹{variant.offerPrice || '0'}</p>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <p className="text-sm text-emerald-400 font-bold">₹{variant.offerPrice || '0'}</p>
+                                {(() => {
+                                  const base = Number(variant.price || variant.basePrice);
+                                  const offer = Number(variant.offerPrice);
+                                  if (base > 0 && offer > 0 && base > offer) {
+                                    const off = Math.round(((base - offer) / base) * 100);
+                                    return (
+                                      <span className="text-[8px] font-extrabold px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 whitespace-nowrap">
+                                        {off}% off
+                                      </span>
+                                    );
+                                  }
+                                  return null;
+                                })()}
+                              </div>
                             </div>
                           </div>
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 pt-3 border-t border-white/5">
