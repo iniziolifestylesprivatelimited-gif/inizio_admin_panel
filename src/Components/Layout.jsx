@@ -40,7 +40,7 @@ const Layout = () => {
     const mainTop = mainRef.current ? mainRef.current.scrollTop : 0;
     const winTop = window.pageYOffset || document.documentElement?.scrollTop || document.body?.scrollTop || 0;
     let anyContainerTop = 0;
-    
+
     // Only inspect scrollable containers within the main content area (excluding the sidebar menu)
     if (mainRef.current) {
       const scrollables = mainRef.current.querySelectorAll('.overflow-y-auto, .overflow-auto, .custom-scrollbar');
@@ -50,7 +50,7 @@ const Layout = () => {
         }
       });
     }
-    
+
     const currentScroll = Math.max(mainTop, winTop, anyContainerTop);
     setShowScrollTop(currentScroll > 40);
   };
@@ -162,7 +162,7 @@ const Layout = () => {
       }
       return [...prev, { id, title, message, path, IconComponent }];
     });
-    
+
     // If the window/tab is in the background or hidden, trigger native Chrome/OS notification.
     // If the user is actively viewing the tab, show the in-app toast + play sound without duplicate OS banners.
     if (document.hidden || !document.hasFocus()) {
@@ -861,25 +861,23 @@ const Layout = () => {
               navigation(t.path);
               setToasts(prev => prev.filter(item => item.id !== t.id));
             }}
-            className={`flex items-start justify-between gap-4.5 p-4 bg-slate-900 border border-white/10 border-l-4 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.8)] cursor-pointer hover:bg-slate-800 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 animate-in slide-in-from-right-full fade-in text-left group pointer-events-auto select-none ${
-              t.path.startsWith('/chat') ? 'border-l-blue-500 shadow-blue-500/10' :
-              t.path.startsWith('/orders') ? 'border-l-emerald-500 shadow-emerald-500/10' :
-              (t.path === '/users/list' || t.path.includes('tab=approved')) ? 'border-l-indigo-500 shadow-indigo-500/10' :
-              t.path.includes('tab=pending') ? 'border-l-amber-500 shadow-amber-500/10' :
-              t.path.includes('tab=deleted') ? 'border-l-rose-500 shadow-rose-500/10' :
-              t.path === '/quotes' ? 'border-l-cyan-500 shadow-cyan-500/10' :
-              'border-l-blue-500 shadow-blue-500/10'
-            }`}
+            className={`flex items-start justify-between gap-4.5 p-4 bg-slate-900 border border-white/10 border-l-4 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.8)] cursor-pointer hover:bg-slate-800 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 animate-in slide-in-from-right-full fade-in text-left group pointer-events-auto select-none ${t.path.startsWith('/chat') ? 'border-l-blue-500 shadow-blue-500/10' :
+                t.path.startsWith('/orders') ? 'border-l-emerald-500 shadow-emerald-500/10' :
+                  (t.path === '/users/list' || t.path.includes('tab=approved')) ? 'border-l-indigo-500 shadow-indigo-500/10' :
+                    t.path.includes('tab=pending') ? 'border-l-amber-500 shadow-amber-500/10' :
+                      t.path.includes('tab=deleted') ? 'border-l-rose-500 shadow-rose-500/10' :
+                        t.path === '/quotes' ? 'border-l-cyan-500 shadow-cyan-500/10' :
+                          'border-l-blue-500 shadow-blue-500/10'
+              }`}
           >
-            <div className={`p-1 bg-white/5 rounded-xl shrink-0 group-hover:scale-110 transition-transform ${
-              t.path.startsWith('/chat') ? 'text-blue-400' :
-              t.path.startsWith('/orders') ? 'text-emerald-400' :
-              (t.path === '/users/list' || t.path.includes('tab=approved')) ? 'text-indigo-400' :
-              t.path.includes('tab=pending') ? 'text-amber-400' :
-              t.path.includes('tab=deleted') ? 'text-rose-400' :
-              t.path === '/quotes' ? 'text-cyan-400' :
-              'text-blue-400'
-            }`}>
+            <div className={`p-1 bg-white/5 rounded-xl shrink-0 group-hover:scale-110 transition-transform ${t.path.startsWith('/chat') ? 'text-blue-400' :
+                t.path.startsWith('/orders') ? 'text-emerald-400' :
+                  (t.path === '/users/list' || t.path.includes('tab=approved')) ? 'text-indigo-400' :
+                    t.path.includes('tab=pending') ? 'text-amber-400' :
+                      t.path.includes('tab=deleted') ? 'text-rose-400' :
+                        t.path === '/quotes' ? 'text-cyan-400' :
+                          'text-blue-400'
+              }`}>
               <t.IconComponent size={20} />
             </div>
             <div className="flex-1 min-w-0">
@@ -1142,10 +1140,8 @@ const Layout = () => {
         </div>
 
         <nav className="flex-1 px-4 py-3 overflow-y-auto no-scrollbar space-y-2">
-          <p className={`px-2 text-xs font-bold text-slate-500 uppercase tracking-wider transition-all duration-300 ${
-            isExpanded ? 'opacity-100 mb-4 max-h-8 mt-2' : 'lg:opacity-0 lg:max-h-6 lg:mb-2 lg:mt-1 overflow-hidden'
-          }`}>
-            MAIN MENU
+          <p className={`px-2 text-xs font-bold text-slate-600 uppercase tracking-wider transition-all duration-300 opacity-100 mb-4 max-h-8 mt-2`}>
+            {isExpanded ? 'MAIN MENU' : 'MENU'}
           </p>
 
           {userMenus.map((menu) => {
@@ -1167,21 +1163,21 @@ const Layout = () => {
                     onClick={() => toggleSubMenu(menu.name)}
                     title={!isExpanded ? menu.name : undefined}
                     className={`
-                      w-full h-12 flex items-center justify-between px-4 transition-all duration-300 group
+                      w-full h-12 flex items-center justify-between px-3.5 transition-all duration-200 group rounded-xl relative cursor-pointer
                       ${isChildActive
-                        ? 'bg-blue-600/20 text-blue-500 border border-blue-600/50 shadow-sm rounded-xl cursor-pointer'
+                        ? 'bg-gradient-to-r from-blue-600/25 to-blue-500/15 text-white font-semibold border border-blue-500/40 shadow-sm shadow-blue-500/10'
                         : isExpanded
-                          ? 'text-slate-300 hover:bg-blue-600/20 hover:text-blue-500 border border-transparent cursor-pointer rounded-xl'
-                          : 'bg-white/[0.03] backdrop-blur-md border border-white/5 text-slate-300 hover:bg-blue-600/20 hover:text-blue-500 cursor-pointer shadow-xs rounded-xl'
+                          ? 'text-slate-300 border border-transparent hover:bg-white/[0.02] hover:text-white hover:border-white/10 hover:translate-x-0.5'
+                          : 'bg-white/[0.02] border border-white/5 text-slate-300 hover:bg-white/[0.02] hover:text-white hover:border-white/15 hover:scale-[1.03]'
                       }
                     `}
                   >
                     <div className="flex items-center min-w-0">
                       {Icon && (
-                        <Icon 
-                          className={`shrink-0 transition-all duration-300 
-                            ${isChildActive ? 'text-blue-500 scale-105' : 'text-slate-300 group-hover:text-white group-hover:scale-105'} 
-                            ${isExpanded ? 'text-lg' : 'text-base lg:mr-0'}`} 
+                        <Icon
+                          className={`shrink-0 transition-all duration-200 
+                            ${isChildActive ? 'text-blue-400 scale-110' : 'text-slate-400 group-hover:text-blue-400 group-hover:scale-110'} 
+                            ${isExpanded ? 'text-lg' : 'text-base lg:mr-0'}`}
                         />
                       )}
                       <span className={`font-medium text-sm whitespace-nowrap transition-all duration-300 ease-in-out ${isExpanded ? 'opacity-100 max-w-[150px] ml-3' : 'opacity-0 max-w-0 overflow-hidden ml-0'
@@ -1191,11 +1187,11 @@ const Layout = () => {
                     <div className={`flex items-center shrink-0 transition-all duration-300 ease-in-out ${isExpanded ? 'opacity-100 max-w-[50px] ml-2' : 'opacity-0 max-w-0 overflow-hidden ml-0'
                       }`}>
                       {!isOpen && parentBadgeCount > 0 && (
-                        <span className="mr-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shrink-0">
+                        <span className="mr-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shrink-0 shadow-sm">
                           {parentBadgeCount > 9 ? '9+' : parentBadgeCount}
                         </span>
                       )}
-                      <FiChevronRight className={`transition-transform duration-300 ${isOpen ? 'rotate-90' : ''} ${isOpen || isChildActive ? 'text-blue-500' : 'text-white'}`} />
+                      <FiChevronRight className={`transition-transform duration-200 ${isOpen ? 'rotate-90 text-blue-400' : isChildActive ? 'text-blue-400' : 'text-slate-400 group-hover:text-white'}`} />
                     </div>
                   </button>
 
@@ -1206,7 +1202,7 @@ const Layout = () => {
                         }`}
                     >
                       <div className="overflow-hidden">
-                        <div className="pl-11 pr-2 py-1 space-y-1">
+                        <div className="pl-10 pr-2 py-1 space-y-1">
                           {menu.subMenus.map((sub) => {
                             const isSubActive = location.pathname === sub.path;
                             const SubIcon = sub.icon;
@@ -1217,19 +1213,21 @@ const Layout = () => {
                                 to={sub.path}
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className={`
-                                flex items-center justify-between px-4 py-2 rounded-lg text-sm font-medium transition-colors
+                                flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-200
                                 ${isSubActive
-                                    ? 'bg-blue-600/20 text-white shadow-md shadow-blue-600/20'
-                                    : 'text-slate-400 hover:bg-white/10 hover:text-white'
+                                    ? 'bg-blue-600/25 text-white font-bold border border-blue-500/40 shadow-sm shadow-blue-500/10'
+                                    : 'text-slate-400 hover:bg-white/[0.02] border border-transparent hover:border-white/15 hover:text-slate-100 hover:translate-x-1'
                                   }
                               `}
                               >
-                                <div className="flex items-center">
-                                  {SubIcon && <SubIcon className="text-base mr-3" />}
-                                  <span className="transition-all duration-300 opacity-100">{sub.name}</span>
+                                <div className="flex items-center min-w-0">
+                                  {SubIcon && (
+                                    <SubIcon className={`text-[15px] mr-2.5 shrink-0 transition-colors ${isSubActive ? 'text-blue-400' : 'text-slate-500 group-hover:text-slate-300'}`} />
+                                  )}
+                                  <span className="truncate">{sub.name}</span>
                                 </div>
                                 {badgeCount > 0 && (
-                                  <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shrink-0 transition-opacity duration-300 opacity-100">
+                                  <span className="ml-2 flex h-4.5 min-w-4.5 px-1 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white shrink-0 shadow-xs">
                                     {badgeCount > 9 ? '9+' : badgeCount}
                                   </span>
                                 )}
@@ -1258,28 +1256,28 @@ const Layout = () => {
                 }}
                 title={!isExpanded ? menu.name : undefined}
                 className={`
-                  w-full h-12 flex items-center justify-between px-4 transition-all duration-300 group
+                  w-full h-12 flex items-center justify-between px-3.5 transition-all duration-200 group rounded-xl relative cursor-pointer
                   ${isActive
-                    ? 'bg-blue-600/20 text-blue-500 shadow-sm border border-blue-600/50 rounded-xl'
+                    ? 'bg-gradient-to-r from-blue-600/25 to-blue-500/15 text-white font-semibold border border-blue-500/40 shadow-sm shadow-blue-500/10'
                     : isExpanded
-                      ? 'text-slate-300 hover:bg-blue-600/20 hover:text-blue-500 border border-transparent rounded-xl'
-                      : 'bg-white/[0.03] backdrop-blur-md border border-white/5 text-slate-300 hover:bg-white/10 hover:border-white/10 shadow-xs rounded-xl'
+                      ? 'text-slate-300 border border-transparent hover:bg-white/[0.02] hover:text-white hover:border-white/10 hover:translate-x-0.5'
+                      : 'bg-white/[0.02] border border-white/5 text-slate-300 hover:bg-white/[0.02] hover:text-white hover:border-white/15 hover:scale-[1.03]'
                   }
                 `}
               >
                 <div className="flex items-center min-w-0">
                   {Icon && (
-                    <Icon 
-                      className={`shrink-0 transition-all duration-300 
-                        ${isActive ? 'scale-105 text-blue-500' : 'group-hover:scale-105 text-slate-300 group-hover:text-white'} 
-                        ${isExpanded ? 'text-lg' : 'text-base lg:mr-0'}`} 
+                    <Icon
+                      className={`shrink-0 transition-all duration-200 
+                        ${isActive ? 'scale-110 text-blue-400' : 'group-hover:scale-110 text-slate-400 group-hover:text-blue-400'} 
+                        ${isExpanded ? 'text-lg' : 'text-base lg:mr-0'}`}
                     />
                   )}
                   <span className={`font-medium text-sm whitespace-nowrap transition-all duration-300 ease-in-out ${isExpanded ? 'opacity-100 max-w-[150px] ml-3' : 'opacity-0 max-w-0 overflow-hidden ml-0'
                     }`}>{menu.name}</span>
                 </div>
                 {badgeCount > 0 && (
-                  <span className={`ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shrink-0 transition-all duration-300 ease-in-out ${isExpanded ? 'opacity-100 max-w-[50px] ml-2' : 'opacity-0 max-w-0 overflow-hidden ml-0'
+                  <span className={`ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shrink-0 shadow-sm transition-all duration-300 ease-in-out ${isExpanded ? 'opacity-100 max-w-[50px] ml-2' : 'opacity-0 max-w-0 overflow-hidden ml-0'
                     }`}>
                     {badgeCount > 9 ? '9+' : badgeCount}
                   </span>

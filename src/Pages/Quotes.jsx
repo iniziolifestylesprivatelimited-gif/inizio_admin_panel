@@ -5,8 +5,9 @@ import {
   FiFileText, FiTrash2, FiSearch, FiEdit2, FiCheckCircle,
   FiXCircle, FiClock, FiAlertCircle, FiLoader, FiUser,
   FiPhone, FiMail, FiCheck, FiX, FiActivity, FiTag,
-  FiCalendar, FiMessageSquare, FiGrid, FiList
+  FiCalendar, FiMessageSquare, FiGrid, FiList, FiPhoneCall
 } from 'react-icons/fi';
+import Card from '../Components/Card';
 import CustomDropdown from '../Components/CustomDropdown';
 import ProductDetailsModal from '../Components/ProductDetailsModal';
 import { formatDateDDMMYYYY } from '../utils/dateUtils';
@@ -224,24 +225,77 @@ const Quotes = () => {
       </div>
 
       {/* Stats Counter Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {[
-          { label: 'Total Quotes', val: stats.total, color: 'text-blue-400', bg: 'bg-blue-500/10' },
-          { label: 'Pending', val: stats.pending, color: 'text-amber-400', bg: 'bg-amber-500/10' },
-          { label: 'Contacted', val: stats.contacted, color: 'text-sky-400', bg: 'bg-sky-500/10' },
-          { label: 'Resolved', val: stats.resolved, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-          { label: 'Rejected', val: stats.rejected, color: 'text-rose-400', bg: 'bg-rose-500/10' }
-        ].map((s, idx) => (
-          <div key={idx} className="bg-slate-950/30 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 flex flex-col justify-between overflow-hidden relative shadow-lg">
-            <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-2 block">{s.label}</span>
-            <div className="flex items-baseline justify-between mt-1">
-              <span className="text-3xl font-black text-white">{s.val}</span>
-              <span className={`p-1.5 rounded-lg shrink-0 ${s.bg} ${s.color}`}>
-                <FiActivity size={12} />
-              </span>
+          {
+            title: 'Total Quotes',
+            value: stats.total,
+            icon: FiFileText,
+            color: 'text-blue-400',
+            bg: 'bg-blue-500/20',
+            fromColor: 'from-blue-500/25',
+            hoverBorder: 'hover:border-blue-500/30'
+          },
+          {
+            title: 'Pending',
+            value: stats.pending,
+            icon: FiClock,
+            color: 'text-amber-400',
+            bg: 'bg-amber-500/20',
+            fromColor: 'from-amber-500/25',
+            hoverBorder: 'hover:border-amber-500/30'
+          },
+          {
+            title: 'Contacted',
+            value: stats.contacted,
+            icon: FiPhoneCall,
+            color: 'text-sky-400',
+            bg: 'bg-sky-500/20',
+            fromColor: 'from-sky-500/25',
+            hoverBorder: 'hover:border-sky-500/30'
+          },
+          {
+            title: 'Resolved',
+            value: stats.resolved,
+            icon: FiCheckCircle,
+            color: 'text-emerald-400',
+            bg: 'bg-emerald-500/20',
+            fromColor: 'from-emerald-500/25',
+            hoverBorder: 'hover:border-emerald-500/30'
+          },
+          {
+            title: 'Rejected',
+            value: stats.rejected,
+            icon: FiXCircle,
+            color: 'text-rose-400',
+            bg: 'bg-rose-500/20',
+            fromColor: 'from-rose-500/25',
+            hoverBorder: 'hover:border-rose-500/30'
+          }
+        ].map((metric, index) => (
+          <Card
+            key={index}
+            hoverable
+            className={`p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group ${metric.hoverBorder}`}
+          >
+            <div className={`absolute inset-0 bg-linear-to-b ${metric.fromColor} to-transparent pointer-events-none`}></div>
+            <div className="relative flex items-center justify-between gap-3 z-10">
+              <div className="min-w-0 flex-1">
+                <h3 className={`${metric.color} text-xs sm:text-sm font-bold tracking-wide truncate`}>
+                  {metric.title}
+                </h3>
+                <p
+                  className="text-xl sm:text-2xl xl:text-3xl font-extrabold text-white mt-1 tracking-tight truncate"
+                  title={metric.value.toString()}
+                >
+                  {metric.value}
+                </p>
+              </div>
+              <div className={`p-3 sm:p-3.5 rounded-xl ${metric.bg} shrink-0`}>
+                <metric.icon className={`text-lg sm:text-xl ${metric.color}`} />
+              </div>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
       

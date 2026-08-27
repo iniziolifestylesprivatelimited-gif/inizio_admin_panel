@@ -256,51 +256,67 @@ const CampaignDetail = () => {
         <div className="lg:col-span-2 space-y-6">
           
           {/* General Stats Performance Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {/* KPI 1: Sent */}
-            <Card hoverable className="p-5 flex items-center justify-between">
-              <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Sent</p>
-                <p className="text-2xl font-black text-white mt-1">
-                  {campaignDetail.totalSent ?? campaignDetail.stats?.totalSent ?? 0}
-                </p>
-              </div>
-              <div className="p-3 bg-indigo-500/10 rounded-2xl text-indigo-400">
-                <FiSend className="text-xl" />
-              </div>
-            </Card>
-
-            {/* KPI 2: Delivered */}
-            <Card hoverable className="p-5 flex items-center justify-between">
-              <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Delivered</p>
-                <p className="text-2xl font-black text-white mt-1">
-                  {campaignDetail.totalReceived ?? campaignDetail.stats?.totalReceived ?? 0}
-                  <span className="text-[10px] font-bold text-slate-500 block mt-0.5">
-                    ({campaignDetail.deliveryRate ?? campaignDetail.stats?.deliveryRate ?? '0%'})
-                  </span>
-                </p>
-              </div>
-              <div className="p-3 bg-emerald-500/10 rounded-2xl text-emerald-400">
-                <FiCheckCircle className="text-xl" />
-              </div>
-            </Card>
-
-            {/* KPI 3: Clicked */}
-            <Card hoverable className="p-5 flex items-center justify-between">
-              <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Clicked</p>
-                <p className="text-2xl font-black text-white mt-1">
-                  {campaignDetail.totalClicked ?? campaignDetail.stats?.totalClicked ?? 0}
-                  <span className="text-[10px] font-bold text-slate-500 block mt-0.5">
-                    ({campaignDetail.clickRate ?? campaignDetail.stats?.clickRate ?? '0%'})
-                  </span>
-                </p>
-              </div>
-              <div className="p-3 bg-blue-500/10 rounded-2xl text-blue-400">
-                <FiActivity className="text-xl" />
-              </div>
-            </Card>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              {
+                title: "Total Sent",
+                value: campaignDetail.totalSent ?? campaignDetail.stats?.totalSent ?? 0,
+                icon: FiSend,
+                color: "text-indigo-400",
+                bg: "bg-indigo-500/20",
+                fromColor: "from-indigo-500/25",
+                hoverBorder: "hover:border-indigo-500/30"
+              },
+              {
+                title: "Total Delivered",
+                value: campaignDetail.totalReceived ?? campaignDetail.stats?.totalReceived ?? 0,
+                subText: campaignDetail.deliveryRate ?? campaignDetail.stats?.deliveryRate ?? '0%',
+                icon: FiCheckCircle,
+                color: "text-emerald-400",
+                bg: "bg-emerald-500/20",
+                fromColor: "from-emerald-500/25",
+                hoverBorder: "hover:border-emerald-500/30"
+              },
+              {
+                title: "Total Clicked",
+                value: campaignDetail.totalClicked ?? campaignDetail.stats?.totalClicked ?? 0,
+                subText: campaignDetail.clickRate ?? campaignDetail.stats?.clickRate ?? '0%',
+                icon: FiActivity,
+                color: "text-blue-400",
+                bg: "bg-blue-500/20",
+                fromColor: "from-blue-500/25",
+                hoverBorder: "hover:border-blue-500/30"
+              }
+            ].map((metric, index) => (
+              <Card
+                key={index}
+                hoverable
+                className={`p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group ${metric.hoverBorder}`}
+              >
+                <div className={`absolute inset-0 bg-linear-to-b ${metric.fromColor} to-transparent pointer-events-none`}></div>
+                <div className="relative flex items-center justify-between gap-3 z-10">
+                  <div className="min-w-0 flex-1">
+                    <h3 className={`${metric.color} text-xs sm:text-sm font-bold tracking-wide truncate`}>
+                      {metric.title}
+                    </h3>
+                    <p
+                      className="text-xl sm:text-2xl xl:text-3xl font-extrabold text-white mt-1 tracking-tight truncate"
+                      title={metric.value ? metric.value.toString() : ''}
+                    >
+                      {metric.value}
+                    </p>
+                    {metric.subText && (
+                      <span className="text-[11px] font-bold text-slate-400 block mt-0.5">
+                        ({metric.subText})
+                      </span>
+                    )}
+                  </div>
+                  <div className={`p-3 sm:p-3.5 rounded-xl ${metric.bg} shrink-0`}>
+                    <metric.icon className={`text-lg sm:text-xl ${metric.color}`} />
+                  </div>
+                </div>
+              </Card>
+            ))}
           </div>
 
           {/* Recipient Activity Table Card */}

@@ -10,11 +10,52 @@ import CopyButton from '../../../Components/CopyButton';
 import * as XLSX from 'xlsx';
 import { formatDateTimeDDMMYYYY } from '../../../utils/dateUtils';
 
-const getImageUrl = (path) => {
+const getImageUrl = (path, options = {}) => {
   if (!path) return '';
-  if (path.startsWith('http') || path.startsWith('blob:')) return path;
-  const cleanPath = path.replace(/\\/g, '/');
-  return `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
+  const { quality, width } = options;
+  let fullUrl = '';
+  if (path.startsWith('http') || path.startsWith('blob:')) {
+    fullUrl = path;
+  } else {
+    const cleanPath = path.replace(/\\/g, '/');
+    fullUrl = `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
+  }
+
+  // If using Cloudinary/ImageKit or a CDN that supports URL-based transformations:
+  if (width || quality) {
+    if (fullUrl.includes('cloudinary.com') && fullUrl.includes('/upload/')) {
+      const transforms = [width ? `w_${width}` : '', quality ? `q_${quality}` : ''].filter(Boolean).join(',');
+      return fullUrl.replace('/upload/', `/upload/${transforms}/`);
+    }
+  }
+
+  return fullUrl;
+};
+
+// Reusable optimized image component for thumbnails & cards with lazy loading and low-quality placeholder
+const ProgressiveImage = ({ src, alt = '', className = '', fallback = 'https://placehold.co/150x150?text=No+Image', onError, lowQuality = false }) => {
+  const [loaded, setLoaded] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setLoaded(false);
+    setImgError(false);
+  }, [src]);
+
+  return (
+    <img
+      src={imgError ? fallback : src}
+      alt={alt}
+      loading="lazy"
+      decoding="async"
+      onLoad={() => setLoaded(true)}
+      onError={(e) => {
+        setImgError(true);
+        if (onError) onError(e);
+      }}
+      className={`${className} transition-opacity duration-300 ${!loaded ? 'opacity-40 blur-[1px]' : 'opacity-100 blur-none'} ${lowQuality ? 'image-rendering-pixelated' : ''}`}
+    />
+  );
 };
 
 const QuantityFilterDropdown = ({ qtyOp, qtyVal, onApply, onClear }) => {
@@ -665,6 +706,10 @@ const ProductList = () => {
 
   const handleToggleActive = async (newVal) => {
     if (isTogglingActive) return;
+    const actionName = newVal ? 'activate' : 'deactivate';
+    const isConfirmed = await confirm(`Are you sure you want to ${actionName} this product ("${currentProductForView.name}")?`);
+    if (!isConfirmed) return;
+
     setIsTogglingActive(true);
     try {
       const token = sessionStorage.getItem('accessToken');
@@ -738,6 +783,12 @@ const ProductList = () => {
 
   const handleToggleVariantActive = async (variantId, currentActiveState) => {
     if (togglingVariantId) return;
+    const targetVariant = currentProductForView?.variants?.find(v => v._id === variantId);
+    const variantName = targetVariant?.name || 'this variant';
+    const actionName = currentActiveState ? 'deactivate' : 'activate';
+    const isConfirmed = await confirm(`Are you sure you want to ${actionName} variant "${variantName}"?`);
+    if (!isConfirmed) return;
+
     setTogglingVariantId(variantId);
     try {
       const token = sessionStorage.getItem('accessToken');
@@ -1385,6 +1436,9 @@ const ProductList = () => {
   };
 
   const handleDownloadSampleExcel = async () => {
+    const isConfirmed = await confirm('Do you want to download the sample Excel product template?');
+    if (!isConfirmed) return;
+
     setLoading(true);
     try {
       const token = sessionStorage.getItem('accessToken');
@@ -1408,6 +1462,9 @@ const ProductList = () => {
   };
 
   const handleExportToExcel = async () => {
+    const isConfirmed = await confirm('Do you want to export all products to Excel?');
+    if (!isConfirmed) return;
+
     setLoading(true);
     try {
       const token = sessionStorage.getItem('accessToken');
@@ -1430,7 +1487,7 @@ const ProductList = () => {
     }
   };
 
-  const handleExportCustomDetails = () => {
+  const handleExportCustomDetails = async () => {
     const productsToExport = selectedProducts.length > 0
       ? products.filter(p => selectedProducts.includes(p._id))
       : products;
@@ -1439,6 +1496,13 @@ const ProductList = () => {
       alert('No products to export.');
       return;
     }
+
+    const isConfirmed = await confirm(
+      selectedProducts.length > 0
+        ? `Do you want to export details for the ${selectedProducts.length} selected product(s)?`
+        : `Do you want to export details for all ${products.length} product(s)?`
+    );
+    if (!isConfirmed) return;
 
     const formatQuantityPricing = (qpList) => {
       if (!qpList || !Array.isArray(qpList)) return '';
@@ -1516,6 +1580,9 @@ const ProductList = () => {
     if (!file) return;
 
     e.target.value = ''; // Reset select state
+
+    const isConfirmed = await confirm(`Are you sure you want to bulk upload products from file "${file.name}"?`);
+    if (!isConfirmed) return;
 
     const formData = new FormData();
     formData.append('file', file);
@@ -2172,14 +2239,10 @@ const ProductList = () => {
                               className="w-12 h-12 bg-white rounded-lg overflow-hidden border border-white/10 cursor-pointer hover:border-blue-500 transition-colors relative group/img shrink-0 animate-in fade-in zoom-in-95 duration-200"
                               title="Click to view images"
                             >
-                              <img
-                                src={getImageUrl(product.images[0])}
+                              <ProgressiveImage
+                                src={getImageUrl(product.images[0], { width: 120, quality: 50 })}
                                 alt={product.name}
                                 className="w-full h-full object-cover"
-                                onError={(e) => {
-                                  e.target.src = 'https://placehold.co/150x150?text=No+Image';
-                                  handleImageError(product.name);
-                                }}
                               />
                               {product.images.length > 1 && (
                                 <span className="absolute bottom-0 right-0 bg-slate-950/80 border-t border-l border-white/10 text-[9px] font-black text-white px-1 py-0.25 rounded-tl-md">
@@ -2455,11 +2518,11 @@ const ProductList = () => {
                         const firstImage = (currentProductForView.images && currentProductForView.images.length > 0 && currentProductForView.images[0]) ||
                           (currentProductForView.variants && currentProductForView.variants.length > 0 && currentProductForView.variants[0]?.images && currentProductForView.variants[0]?.images[0]);
                         return firstImage ? (
-                          <img
-                            src={getImageUrl(firstImage)}
+                          <ProgressiveImage
+                            src={getImageUrl(firstImage, { width: 400, quality: 70 })}
                             alt={currentProductForView.name || 'Product Image'}
                             className="max-w-full max-h-full object-contain rounded-xl bg-white"
-                            onError={(e) => { e.target.src = 'https://placehold.co/200x200?text=No+Image'; }}
+                            fallback="https://placehold.co/200x200?text=No+Image"
                           />
                         ) : (
                           <div className="flex flex-col items-center justify-center text-slate-500 gap-2">

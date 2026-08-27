@@ -13,6 +13,7 @@ import {
   FiMapPin, FiPackage, FiShoppingBag, FiTag, FiSliders, FiExternalLink, FiPercent, FiBarChart2, FiArrowUpRight
 } from 'react-icons/fi';
 import ProductDetailsModal from '../Components/ProductDetailsModal';
+import Card from '../Components/Card';
 import { BiRupee } from 'react-icons/bi';
 import { DiAndroid, DiApple } from 'react-icons/di';
 
@@ -2750,65 +2751,102 @@ const ActivityDetails = () => {
 
       {['product-views', 'most-viewed-products', 'brand-views', 'most-searched-brands', 'category-views', 'most-searched-categories', 'search-queries', 'most-searched'].includes(type) && (
         <div className="flex gap-4 z-10 relative">
-          <div className="bg-transparent backdrop-blur-2xl border border-white/10 p-4.5 rounded-2xl flex items-center gap-4 shadow-lg">
-            <div className={`p-3 rounded-xl ${type === 'search-queries' || type === 'most-searched' ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' : 'bg-blue-500/15 border-blue-500/30 text-blue-400'} shrink-0`}>
-              {type === 'search-queries' || type === 'most-searched' ? <FiSearch size={22} /> : <FiEye size={22} />}
+          <Card
+            hoverable
+            className={`p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group ${
+              type === 'search-queries' || type === 'most-searched' ? 'hover:border-amber-500/30' : 'hover:border-blue-500/30'
+            }`}
+          >
+            <div className={`absolute inset-0 bg-linear-to-b ${type === 'search-queries' || type === 'most-searched' ? 'from-amber-500/25' : 'from-blue-500/25'} to-transparent pointer-events-none`}></div>
+            <div className="relative flex items-center justify-between gap-4 z-10">
+              <div className="min-w-0 flex-1">
+                <h3 className={`${type === 'search-queries' || type === 'most-searched' ? 'text-amber-400' : 'text-blue-400'} text-xs sm:text-sm font-bold tracking-wide truncate`}>
+                  {type === 'search-queries' || type === 'most-searched' ? 'Total Accumulated Searches' : 'Total Accumulated Views'}
+                </h3>
+                <p className="text-xl sm:text-2xl xl:text-3xl font-extrabold text-white mt-1 tracking-tight truncate">
+                  {data.reduce((sum, item) => sum + (item.views || item.searches || item.count || (type === 'search-queries' ? 1 : 0)), 0).toLocaleString()}{' '}
+                  <span className="text-sm font-semibold text-slate-400">
+                    {type === 'search-queries' || type === 'most-searched' ? 'Searches' : 'Views'}
+                  </span>
+                </p>
+              </div>
+              <div className={`p-3 sm:p-3.5 rounded-xl ${type === 'search-queries' || type === 'most-searched' ? 'bg-amber-500/20' : 'bg-blue-500/20'} shrink-0`}>
+                {type === 'search-queries' || type === 'most-searched' ? (
+                  <FiSearch className="text-lg sm:text-xl text-amber-400" />
+                ) : (
+                  <FiEye className="text-lg sm:text-xl text-blue-400" />
+                )}
+              </div>
             </div>
-            <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                {type === 'search-queries' || type === 'most-searched' ? 'TOTAL ACCUMULATED SEARCHES' : 'TOTAL ACCUMULATED VIEWS'}
-              </span>
-              <span className="text-2xl font-black text-white mt-0.5 block">
-                {data.reduce((sum, item) => sum + (item.views || item.searches || item.count || (type === 'search-queries' ? 1 : 0)), 0).toLocaleString()}{' '}
-                {type === 'search-queries' || type === 'most-searched' ? 'Total Searches' : 'Total Views'}
-              </span>
-            </div>
-          </div>
+          </Card>
         </div>
       )}
 
       {/* Summary Cards Grid for Users Status */}
       {(type === 'users' || type === 'users-status') && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 z-10 relative">
-          <div className="bg-transparent backdrop-blur-2xl border border-white/10 p-4 rounded-2xl flex items-center gap-3.5 shadow-lg">
-            <div className="p-3 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-400 shrink-0">
-              <FiUsers size={20} />
-            </div>
-            <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Registered Users</span>
-              <span className="text-xl font-black text-white font-mono mt-0.5 block">{data.length}</span>
-            </div>
-          </div>
-
-          <div className="bg-transparent backdrop-blur-2xl border border-white/10 p-4 rounded-2xl flex items-center gap-3.5 shadow-lg">
-            <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 shrink-0">
-              <FiActivity size={20} />
-            </div>
-            <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Online Now</span>
-              <span className="text-xl font-black text-emerald-400 font-mono mt-0.5 block">{data.filter(u => u.isOnline).length} Active</span>
-            </div>
-          </div>
-
-          <div className="bg-transparent backdrop-blur-2xl border border-white/10 p-4 rounded-2xl flex items-center gap-3.5 shadow-lg">
-            <div className="p-3 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-400 shrink-0">
-              <FiBell size={20} />
-            </div>
-            <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Notifications Enabled</span>
-              <span className="text-xl font-black text-purple-300 font-mono mt-0.5 block">{data.filter(u => u.notificationsEnabled).length} Users</span>
-            </div>
-          </div>
-
-          <div className="bg-transparent backdrop-blur-2xl border border-white/10 p-4 rounded-2xl flex items-center gap-3.5 shadow-lg">
-            <div className="p-3 rounded-xl bg-teal-500/15 border border-teal-500/30 text-teal-400 shrink-0">
-              <FiShield size={20} />
-            </div>
-            <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">App Lock Secured</span>
-              <span className="text-xl font-black text-teal-300 font-mono mt-0.5 block">{data.filter(u => u.isAppLockEnabled).length} Users</span>
-            </div>
-          </div>
+          {[
+            {
+              title: "Total Registered Users",
+              value: data.length,
+              icon: FiUsers,
+              color: "text-blue-400",
+              bg: "bg-blue-500/20",
+              fromColor: "from-blue-500/25",
+              hoverBorder: "hover:border-blue-500/30"
+            },
+            {
+              title: "Online Now",
+              value: `${data.filter(u => u.isOnline).length} Active`,
+              icon: FiActivity,
+              color: "text-emerald-400",
+              bg: "bg-emerald-500/20",
+              fromColor: "from-emerald-500/25",
+              hoverBorder: "hover:border-emerald-500/30"
+            },
+            {
+              title: "Notifications Enabled",
+              value: `${data.filter(u => u.notificationsEnabled).length} Users`,
+              icon: FiBell,
+              color: "text-purple-400",
+              bg: "bg-purple-500/20",
+              fromColor: "from-purple-500/25",
+              hoverBorder: "hover:border-purple-500/30"
+            },
+            {
+              title: "App Lock Secured",
+              value: `${data.filter(u => u.isAppLockEnabled).length} Users`,
+              icon: FiShield,
+              color: "text-teal-400",
+              bg: "bg-teal-500/20",
+              fromColor: "from-teal-500/25",
+              hoverBorder: "hover:border-teal-500/30"
+            }
+          ].map((metric, index) => (
+            <Card
+              key={index}
+              hoverable
+              className={`p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group ${metric.hoverBorder}`}
+            >
+              <div className={`absolute inset-0 bg-linear-to-b ${metric.fromColor} to-transparent pointer-events-none`}></div>
+              <div className="relative flex items-center justify-between gap-3 z-10">
+                <div className="min-w-0 flex-1">
+                  <h3 className={`${metric.color} text-xs sm:text-sm font-bold tracking-wide truncate`}>
+                    {metric.title}
+                  </h3>
+                  <p
+                    className="text-xl sm:text-2xl xl:text-3xl font-extrabold text-white mt-1 tracking-tight truncate"
+                    title={metric.value ? metric.value.toString() : ''}
+                  >
+                    {metric.value}
+                  </p>
+                </div>
+                <div className={`p-3 sm:p-3.5 rounded-xl ${metric.bg} shrink-0`}>
+                  <metric.icon className={`text-lg sm:text-xl ${metric.color}`} />
+                </div>
+              </div>
+            </Card>
+          ))}
         </div>
       )}
 
@@ -2816,89 +2854,95 @@ const ActivityDetails = () => {
         <div className="space-y-6 z-10 relative">
           {/* KPI Cards Row */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4">
-            {/* Active Carts */}
-            <div className="bg-white/[0.03] backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between relative overflow-hidden group hover:border-white/20 transition-all">
-              <div className="flex items-center justify-between text-slate-400">
-                <span className="text-[9px] font-black uppercase tracking-wider">Active Carts</span>
-                <FiShoppingBag size={12} className="text-amber-400" />
-              </div>
-              <div className="mt-2 flex items-baseline justify-between">
-                <span className="text-xl sm:text-2xl font-black text-white font-mono">{extraData.cartMetrics?.activeCartsCount || 0}</span>
-                <span className="text-[10px] text-slate-500 font-semibold">live carts</span>
-              </div>
-            </div>
-
-            {/* Total Items in Carts */}
-            <div className="bg-white/[0.03] backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between relative overflow-hidden group hover:border-white/20 transition-all">
-              <div className="flex items-center justify-between text-slate-400">
-                <span className="text-[9px] font-black uppercase tracking-wider">Cart Items</span>
-                <FiLayers size={12} className="text-blue-400" />
-              </div>
-              <div className="mt-2 flex items-baseline justify-between">
-                <span className="text-xl sm:text-2xl font-black text-white font-mono">{extraData.cartMetrics?.totalQuantitiesInCarts || 0}</span>
-                <span className="text-[10px] text-slate-500 font-semibold">units</span>
-              </div>
-            </div>
-
-            {/* Cart Adds */}
-            <div className="bg-white/[0.03] backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between relative overflow-hidden group hover:border-white/20 transition-all">
-              <div className="flex items-center justify-between text-slate-400">
-                <span className="text-[9px] font-black uppercase tracking-wider">Cart Adds</span>
-                <FiBox size={12} className="text-emerald-400" />
-              </div>
-              <div className="mt-2 flex items-baseline justify-between">
-                <span className="text-xl sm:text-2xl font-black text-emerald-400 font-mono">{extraData.funnel?.cartAdds || 0}</span>
-                <span className="text-[10px] text-slate-500 font-semibold">adds</span>
-              </div>
-            </div>
-
-            {/* Checkout Initiations */}
-            <div className="bg-white/[0.03] backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between relative overflow-hidden group hover:border-white/20 transition-all">
-              <div className="flex items-center justify-between text-slate-400">
-                <span className="text-[9px] font-black uppercase tracking-wider">Checkouts</span>
-                <FiTrendingUp size={12} className="text-indigo-400" />
-              </div>
-              <div className="mt-2 flex items-baseline justify-between">
-                <span className="text-xl sm:text-2xl font-black text-indigo-400 font-mono">{extraData.funnel?.checkoutInitiations || 0}</span>
-                <span className="text-[10px] text-slate-500 font-semibold">initiated</span>
-              </div>
-            </div>
-
-            {/* Purchases */}
-            <div className="bg-white/[0.03] backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between relative overflow-hidden group hover:border-white/20 transition-all">
-              <div className="flex items-center justify-between text-slate-400">
-                <span className="text-[9px] font-black uppercase tracking-wider">Purchases</span>
-                <FiCheck size={12} className="text-purple-400" />
-              </div>
-              <div className="mt-2 flex items-baseline justify-between">
-                <span className="text-xl sm:text-2xl font-black text-purple-400 font-mono">{extraData.funnel?.checkoutSuccesses || 0}</span>
-                <span className="text-[10px] text-slate-500 font-semibold">orders</span>
-              </div>
-            </div>
-
-            {/* Cart to Checkout Rate */}
-            <div className="bg-white/[0.03] backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between relative overflow-hidden group hover:border-white/20 transition-all">
-              <div className="flex items-center justify-between text-slate-400">
-                <span className="text-[9px] font-black uppercase tracking-wider">Cart → Checkout</span>
-                <FiPercent size={12} className="text-cyan-400" />
-              </div>
-              <div className="mt-2 flex items-baseline justify-between">
-                <span className="text-xl sm:text-2xl font-black text-cyan-400 font-mono">{extraData.funnel?.conversionRates?.cartToCheckout || '0.0%'}</span>
-                <span className="text-[10px] text-slate-500 font-semibold">conv.</span>
-              </div>
-            </div>
-
-            {/* Checkout to Purchase Rate */}
-            <div className="bg-white/[0.03] backdrop-blur-2xl border border-white/10 shadow-lg rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between relative overflow-hidden group hover:border-white/20 transition-all">
-              <div className="flex items-center justify-between text-slate-400">
-                <span className="text-[9px] font-black uppercase tracking-wider">Checkout → Buy</span>
-                <FiPercent size={12} className="text-emerald-400" />
-              </div>
-              <div className="mt-2 flex items-baseline justify-between">
-                <span className="text-xl sm:text-2xl font-black text-emerald-400 font-mono">{extraData.funnel?.conversionRates?.checkoutToPurchase || '0.0%'}</span>
-                <span className="text-[10px] text-slate-500 font-semibold">conv.</span>
-              </div>
-            </div>
+            {[
+              {
+                title: "Active Carts",
+                value: extraData.cartMetrics?.activeCartsCount || 0,
+                icon: FiShoppingBag,
+                color: "text-amber-400",
+                bg: "bg-amber-500/20",
+                fromColor: "from-amber-500/25",
+                hoverBorder: "hover:border-amber-500/30"
+              },
+              {
+                title: "Cart Items",
+                value: extraData.cartMetrics?.totalQuantitiesInCarts || 0,
+                icon: FiLayers,
+                color: "text-blue-400",
+                bg: "bg-blue-500/20",
+                fromColor: "from-blue-500/25",
+                hoverBorder: "hover:border-blue-500/30"
+              },
+              {
+                title: "Cart Adds",
+                value: extraData.funnel?.cartAdds || 0,
+                icon: FiBox,
+                color: "text-emerald-400",
+                bg: "bg-emerald-500/20",
+                fromColor: "from-emerald-500/25",
+                hoverBorder: "hover:border-emerald-500/30"
+              },
+              {
+                title: "Checkouts",
+                value: extraData.funnel?.checkoutInitiations || 0,
+                icon: FiTrendingUp,
+                color: "text-indigo-400",
+                bg: "bg-indigo-500/20",
+                fromColor: "from-indigo-500/25",
+                hoverBorder: "hover:border-indigo-500/30"
+              },
+              {
+                title: "Purchases",
+                value: extraData.funnel?.checkoutSuccesses || 0,
+                icon: FiCheck,
+                color: "text-purple-400",
+                bg: "bg-purple-500/20",
+                fromColor: "from-purple-500/25",
+                hoverBorder: "hover:border-purple-500/30"
+              },
+              {
+                title: "Cart → Checkout",
+                value: extraData.funnel?.conversionRates?.cartToCheckout || '0.0%',
+                icon: FiPercent,
+                color: "text-cyan-400",
+                bg: "bg-cyan-500/20",
+                fromColor: "from-cyan-500/25",
+                hoverBorder: "hover:border-cyan-500/30"
+              },
+              {
+                title: "Checkout → Buy",
+                value: extraData.funnel?.conversionRates?.checkoutToPurchase || '0.0%',
+                icon: FiPercent,
+                color: "text-emerald-400",
+                bg: "bg-emerald-500/20",
+                fromColor: "from-emerald-500/25",
+                hoverBorder: "hover:border-emerald-500/30"
+              }
+            ].map((metric, index) => (
+              <Card
+                key={index}
+                hoverable
+                className={`p-3.5 sm:p-4 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group ${metric.hoverBorder}`}
+              >
+                <div className={`absolute inset-0 bg-linear-to-b ${metric.fromColor} to-transparent pointer-events-none`}></div>
+                <div className="relative flex items-center justify-between gap-2 z-10">
+                  <div className="min-w-0 flex-1">
+                    <h3 className={`${metric.color} text-[11px] sm:text-xs font-bold tracking-wide truncate`}>
+                      {metric.title}
+                    </h3>
+                    <p
+                      className="text-lg sm:text-xl font-black text-white mt-1 tracking-tight truncate"
+                      title={metric.value ? metric.value.toString() : ''}
+                    >
+                      {metric.value}
+                    </p>
+                  </div>
+                  <div className={`p-2 rounded-xl ${metric.bg} shrink-0`}>
+                    <metric.icon className={`text-base ${metric.color}`} />
+                  </div>
+                </div>
+              </Card>
+            ))}
           </div>
 
           {/* Funnel Graph Section & Manager Performance */}

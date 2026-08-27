@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { api } from '../../../api/axios';
 import {
-  FiSearch, FiRefreshCcw, FiUsers, FiClock, FiActivity, FiKey, FiX, FiLoader, FiMail, FiCheck
+  FiSearch, FiRefreshCcw, FiUsers, FiClock, FiActivity, FiKey, FiX, FiLoader, FiMail, FiCheck, FiAlertCircle
 } from 'react-icons/fi';
+import Card from '../../../Components/Card';
+import CustomDropdown from '../../../Components/CustomDropdown';
 import { formatDateTimeDDMMYYYY } from '../../../utils/dateUtils';
 
 const checkAppStatus = (u) => {
@@ -25,6 +27,14 @@ const ActiveUsers = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [usersPerPage] = useState(10);
+
+  // Table header filters & sort states
+  const [selectedBusinessType, setSelectedBusinessType] = useState('');
+  const [selectedMethod, setSelectedMethod] = useState('');
+  const [selectedAppStatus, setSelectedAppStatus] = useState('');
+  const [selectedSetupStatus, setSelectedSetupStatus] = useState('');
+  const [sortKey, setSortKey] = useState('');
+  const [sortOrder, setSortOrder] = useState('asc');
 
   const fetchReportData = async (tab, showLoadingSpinner = true) => {
     if (showLoadingSpinner) {
@@ -56,9 +66,33 @@ const ActiveUsers = () => {
     }
   };
 
+  const handleClearHeaderFilters = () => {
+    setSelectedBusinessType('');
+    setSelectedMethod('');
+    setSelectedAppStatus('');
+    setSelectedSetupStatus('');
+    setSortKey('');
+    setSortOrder('asc');
+  };
+
+  const handleSortChange = (key) => {
+    if (sortKey === key) {
+      if (sortOrder === 'asc') {
+        setSortOrder('desc');
+      } else {
+        setSortKey('');
+        setSortOrder('asc');
+      }
+    } else {
+      setSortKey(key);
+      setSortOrder('asc');
+    }
+  };
+
   useEffect(() => {
     fetchReportData(activeTab, true);
     setCurrentPage(1);
+    handleClearHeaderFilters();
 
     const intervalId = setInterval(() => {
       fetchReportData(activeTab, false);
@@ -69,7 +103,7 @@ const ActiveUsers = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [searchQuery, selectedBusinessType, selectedMethod, selectedAppStatus, selectedSetupStatus, sortKey, sortOrder]);
 
   // Derived Stats
   // Login Tab Stats
@@ -84,30 +118,121 @@ const ActiveUsers = () => {
   const notSentCount = reportData.filter(u => u.passwordSetupStatus === 'not_sent').length;
   const sentOrCompletedCount = reportData.length - notSentCount;
 
-  // Filtering Logic
-  const filteredData = reportData.filter(item => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    const basicMatch = (
-      item.name?.toLowerCase().includes(query) ||
-      item.email?.toLowerCase().includes(query) ||
-      item.phone?.includes(query) ||
-      item.userId?.toLowerCase().includes(query) ||
-      item.businessType?.toLowerCase().includes(query)
-    );
+  // Distinct Filter Options
+  const businessTypeOptions = useMemo(() => {
+    const types = Array.from(new Set(reportData.map(u => u.businessType).filter(Boolean))).sort();
+    return [
+      { value: '', label: 'Business' },
+      ...types.map(t => ({ value: t, label: t }))
+    ];
+  }, [reportData]);
 
-    if (activeTab === 'login') {
-      return basicMatch || item.lastLoginMethod?.toLowerCase().includes(query);
-    } else {
-      return basicMatch || item.passwordSetupStatus?.toLowerCase().includes(query);
-    }
-  });
+  const methodOptions = useMemo(() => {
+    const methods = Array.from(new Set(reportData.map(u => u.lastLoginMethod).filter(Boolean))).sort();
+    return [
+      { value: '', label: 'Method' },
+      ...methods.map(m => ({ value: m, label: m.toUpperCase() }))
+    ];
+  }, [reportData]);
+
+  const appStatusOptions = [
+    { value: '', label: 'Name' },
+    { value: 'installed', label: 'App Installed' },
+    { value: 'uninstalled', label: 'App Uninstalled' }
+  ];
+
+  const setupStatusOptions = [
+    { value: '', label: 'Setup Status' },
+    { value: 'not_sent', label: 'Not Sent' },
+    { value: 'sent', label: 'Link Sent' },
+    { value: 'completed', label: 'Completed' }
+  ];
+
+  const hasActiveFilters = Boolean(
+    selectedBusinessType || selectedMethod || selectedAppStatus || selectedSetupStatus || sortKey || searchQuery
+  );
+
+  // Filtering Logic
+  const filteredData = useMemo(() => {
+    return reportData.filter(item => {
+      // Search query filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const basicMatch = (
+          item.name?.toLowerCase().includes(query) ||
+          item.email?.toLowerCase().includes(query) ||
+          item.phone?.includes(query) ||
+          item.userId?.toLowerCase().includes(query) ||
+          item.businessType?.toLowerCase().includes(query)
+        );
+
+        if (activeTab === 'login') {
+          if (!basicMatch && !item.lastLoginMethod?.toLowerCase().includes(query)) return false;
+        } else {
+          if (!basicMatch && !item.passwordSetupStatus?.toLowerCase().includes(query)) return false;
+        }
+      }
+
+      // Business Type header filter
+      if (selectedBusinessType && item.businessType !== selectedBusinessType) {
+        return false;
+      }
+
+      // App Installed / Uninstalled Status filter on Name header
+      if (selectedAppStatus && checkAppStatus(item) !== selectedAppStatus) {
+        return false;
+      }
+
+      // Tab-specific filters
+      if (activeTab === 'login') {
+        if (selectedMethod && (item.lastLoginMethod || 'password').toLowerCase() !== selectedMethod.toLowerCase()) {
+          return false;
+        }
+      } else {
+        if (selectedSetupStatus) {
+          const itemStatus = (item.passwordSetupStatus || 'completed').toLowerCase();
+          if (selectedSetupStatus === 'completed') {
+            if (itemStatus === 'not_sent' || itemStatus === 'sent') return false;
+          } else {
+            if (itemStatus !== selectedSetupStatus) return false;
+          }
+        }
+      }
+
+      return true;
+    });
+  }, [reportData, searchQuery, selectedBusinessType, selectedMethod, selectedAppStatus, selectedSetupStatus, activeTab]);
+
+  // Sorting Logic
+  const sortedData = useMemo(() => {
+    if (!sortKey) return filteredData;
+    const list = [...filteredData];
+    list.sort((a, b) => {
+      let aVal = a[sortKey];
+      let bVal = b[sortKey];
+
+      if (sortKey === 'lastLoginAt') {
+        aVal = aVal ? new Date(aVal).getTime() : 0;
+        bVal = bVal ? new Date(bVal).getTime() : 0;
+      } else if (sortKey === 'loginCount') {
+        aVal = Number(aVal) || 0;
+        bVal = Number(bVal) || 0;
+      } else if (typeof aVal === 'string' && typeof bVal === 'string') {
+        return sortOrder === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+      }
+
+      if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return list;
+  }, [filteredData, sortKey, sortOrder]);
 
   // Pagination Logic
   const indexOfLastItem = currentPage * usersPerPage;
   const indexOfFirstItem = indexOfLastItem - usersPerPage;
-  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredData.length / usersPerPage);
+  const currentItems = sortedData.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(sortedData.length / usersPerPage);
 
   const formatDateTime = (dateStr) => formatDateTimeDDMMYYYY(dateStr);
 
@@ -182,83 +307,122 @@ const ActiveUsers = () => {
 
       {/* Stats Cards Section */}
       {activeTab === 'login' ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {/* Total Active Users Card */}
-          <div className="bg-slate-800/40 border border-white/10 backdrop-blur-xl rounded-2xl p-5 flex items-center justify-between shadow-xl">
-            <div className="space-y-1">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Active Users</p>
-              <p className="text-3xl font-bold text-white tracking-tight">{totalActiveUsers}</p>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center text-xl shadow-inner">
-              <FiUsers />
-            </div>
-          </div>
-
-          {/* Total Logins Card */}
-          <div className="bg-slate-800/40 border border-white/10 backdrop-blur-xl rounded-2xl p-5 flex items-center justify-between shadow-xl">
-            <div className="space-y-1">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Login Activity</p>
-              <p className="text-3xl font-bold text-white tracking-tight">{totalLogins}</p>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl shadow-inner">
-              <FiKey />
-            </div>
-          </div>
-
-          {/* Most Engaged User Card */}
-          <div className="bg-slate-800/40 border border-white/10 backdrop-blur-xl rounded-2xl p-5 flex items-center justify-between shadow-xl">
-            <div className="space-y-1">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Most Active User</p>
-              <p className="text-lg font-bold text-white truncate max-w-50">
-                {mostActiveUser ? mostActiveUser.name : 'N/A'}
-              </p>
-              {mostActiveUser && (
-                <p className="text-xs font-medium text-slate-400">
-                  Logins: <span className="text-blue-400 font-bold">{mostActiveUser.loginCount}</span>
-                </p>
-              )}
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center text-xl shadow-inner">
-              <FiClock />
-            </div>
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 xl:gap-5">
+          {[
+            {
+              title: "Total Active Users",
+              value: totalActiveUsers,
+              icon: FiUsers,
+              color: "text-blue-400",
+              bg: "bg-blue-500/20",
+              fromColor: "from-blue-500/25",
+              hoverBorder: "hover:border-blue-500/30"
+            },
+            {
+              title: "Total Login Activity",
+              value: totalLogins,
+              icon: FiKey,
+              color: "text-emerald-400",
+              bg: "bg-emerald-500/20",
+              fromColor: "from-emerald-500/25",
+              hoverBorder: "hover:border-emerald-500/30"
+            },
+            {
+              title: "Most Active User",
+              value: mostActiveUser ? mostActiveUser.name : 'N/A',
+              subText: mostActiveUser ? `Logins: ${mostActiveUser.loginCount}` : null,
+              icon: FiClock,
+              color: "text-amber-400",
+              bg: "bg-amber-500/20",
+              fromColor: "from-amber-500/25",
+              hoverBorder: "hover:border-amber-500/30"
+            }
+          ].map((metric, index) => (
+            <Card
+              key={index}
+              hoverable
+              className={`p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group ${metric.hoverBorder}`}
+            >
+              <div className={`absolute inset-0 bg-linear-to-b ${metric.fromColor} to-transparent pointer-events-none`}></div>
+              <div className="relative flex items-center justify-between gap-3 z-10">
+                <div className="min-w-0 flex-1">
+                  <h3 className={`${metric.color} text-xs sm:text-sm font-bold tracking-wide truncate`}>
+                    {metric.title}
+                  </h3>
+                  <p
+                    className="text-xl sm:text-2xl xl:text-3xl font-extrabold text-white mt-1 tracking-tight truncate"
+                    title={metric.value ? metric.value.toString() : ''}
+                  >
+                    {metric.value}
+                  </p>
+                  {metric.subText && (
+                    <p className="text-xs font-semibold text-slate-400 mt-1 truncate">
+                      {metric.subText}
+                    </p>
+                  )}
+                </div>
+                <div className={`p-3 sm:p-3.5 rounded-xl ${metric.bg} shrink-0`}>
+                  <metric.icon className={`text-lg sm:text-xl ${metric.color}`} />
+                </div>
+              </div>
+            </Card>
+          ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {/* Total Checked Users Card */}
-          <div className="bg-slate-800/40 border border-white/10 backdrop-blur-xl rounded-2xl p-5 flex items-center justify-between shadow-xl">
-            <div className="space-y-1">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Accounts Checked</p>
-              <p className="text-3xl font-bold text-white tracking-tight">{totalChecked}</p>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center text-xl shadow-inner">
-              <FiUsers />
-            </div>
-          </div>
-
-          {/* Total Pending Setup Links Card */}
-          <div className="bg-slate-800/40 border border-white/10 backdrop-blur-xl rounded-2xl p-5 flex items-center justify-between shadow-xl">
-            <div className="space-y-1">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Setup Not Sent</p>
-              <p className="text-3xl font-bold text-red-400 tracking-tight">{notSentCount}</p>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center text-xl shadow-inner">
-              <FiMail />
-            </div>
-          </div>
-
-          {/* Setup Links Sent Card */}
-          <div className="bg-slate-800/40 border border-white/10 backdrop-blur-xl rounded-2xl p-5 flex items-center justify-between shadow-xl">
-            <div className="space-y-1">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Completed / Link Sent</p>
-              <p className="text-3xl font-bold text-emerald-400 tracking-tight">
-                {reportData.filter(u => u.passwordSetupStatus !== 'not_sent' && u.passwordSetupStatus !== 'sent').length} / {sentOrCompletedCount}
-              </p>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl shadow-inner">
-              <FiCheck />
-            </div>
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 xl:gap-5">
+          {[
+            {
+              title: "Total Accounts Checked",
+              value: totalChecked,
+              icon: FiUsers,
+              color: "text-blue-400",
+              bg: "bg-blue-500/20",
+              fromColor: "from-blue-500/25",
+              hoverBorder: "hover:border-blue-500/30"
+            },
+            {
+              title: "Setup Not Sent",
+              value: notSentCount,
+              icon: FiMail,
+              color: "text-rose-400",
+              bg: "bg-rose-500/20",
+              fromColor: "from-rose-500/25",
+              hoverBorder: "hover:border-rose-500/30"
+            },
+            {
+              title: "Completed / Link Sent",
+              value: `${reportData.filter(u => u.passwordSetupStatus !== 'not_sent' && u.passwordSetupStatus !== 'sent').length} / ${sentOrCompletedCount}`,
+              icon: FiCheck,
+              color: "text-emerald-400",
+              bg: "bg-emerald-500/20",
+              fromColor: "from-emerald-500/25",
+              hoverBorder: "hover:border-emerald-500/30"
+            }
+          ].map((metric, index) => (
+            <Card
+              key={index}
+              hoverable
+              className={`p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group ${metric.hoverBorder}`}
+            >
+              <div className={`absolute inset-0 bg-linear-to-b ${metric.fromColor} to-transparent pointer-events-none`}></div>
+              <div className="relative flex items-center justify-between gap-3 z-10">
+                <div className="min-w-0 flex-1">
+                  <h3 className={`${metric.color} text-xs sm:text-sm font-bold tracking-wide truncate`}>
+                    {metric.title}
+                  </h3>
+                  <p
+                    className="text-xl sm:text-2xl xl:text-3xl font-extrabold text-white mt-1 tracking-tight truncate"
+                    title={metric.value ? metric.value.toString() : ''}
+                  >
+                    {metric.value}
+                  </p>
+                </div>
+                <div className={`p-3 sm:p-3.5 rounded-xl ${metric.bg} shrink-0`}>
+                  <metric.icon className={`text-lg sm:text-xl ${metric.color}`} />
+                </div>
+              </div>
+            </Card>
+          ))}
         </div>
       )}
 
@@ -276,28 +440,194 @@ const ActiveUsers = () => {
         <div className="relative z-10 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full isolate will-change-transform">
           <div className="overflow-auto custom-scrollbar max-h-[70vh]">
             <table className="w-full text-left border-collapse whitespace-nowrap min-w-200">
-              <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md shadow-md">
+              <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md shadow-md border-b border-white/10">
                 {activeTab === 'login' ? (
-                  <tr className="border-b border-white/10 text-xs text-center uppercase tracking-wider text-slate-400">
-                    <th className="p-4 font-bold text-center">S.No</th>
-                    <th className="p-4 font-bold">User ID</th>
-                    <th className="p-4 font-bold">Name</th>
-                    <th className="p-4 font-bold">Email</th>
-                    <th className="p-4 font-bold">Phone</th>
-                    <th className="p-4 font-bold">Business</th>
-                    <th className="p-4 font-bold">Last Login At</th>
-                    <th className="p-4 font-bold">Method</th>
-                    <th className="p-4 font-bold text-center">Logins</th>
+                  <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-slate-400">
+                    <th className="p-2 font-bold text-center bg-slate-900/95">
+                      <div className="flex items-center justify-center gap-1">
+                        <span>S.No</span>
+                        {hasActiveFilters && (
+                          <button
+                            onClick={handleClearHeaderFilters}
+                            className="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold rounded border border-white/10 transition-all cursor-pointer hover:text-white"
+                            title="Reset Table Filters"
+                          >
+                            Reset
+                          </button>
+                        )}
+                      </div>
+                    </th>
+                    <th
+                      onClick={() => handleSortChange('userId')}
+                      className="p-4 font-bold text-center cursor-pointer select-none hover:text-white transition-colors"
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        <span className={sortKey === 'userId' ? 'text-blue-400 font-extrabold' : ''}>User ID</span>
+                        {sortKey === 'userId' ? (
+                          sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                        ) : (
+                          <span className="text-slate-500">⇅</span>
+                        )}
+                      </div>
+                    </th>
+                    <th className="p-4 font-bold text-left min-w-[140px]">
+                      <div className="flex items-center gap-2">
+                        <div
+                          onClick={() => handleSortChange('name')}
+                          className="cursor-pointer select-none hover:text-white transition-colors shrink-0"
+                          title="Sort by Name"
+                        >
+                          {sortKey === 'name' ? (
+                            sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                          ) : (
+                            <span className="text-slate-500">⇅</span>
+                          )}
+                        </div>
+                        <CustomDropdown
+                          value={selectedAppStatus}
+                          onChange={(val) => setSelectedAppStatus(val)}
+                          options={appStatusOptions}
+                          statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedAppStatus || sortKey === 'name' ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'}`}
+                        />
+                      </div>
+                    </th>
+                    <th
+                      onClick={() => handleSortChange('email')}
+                      className="p-4 font-bold text-left cursor-pointer select-none hover:text-white transition-colors"
+                    >
+                      <div className="flex items-center gap-1">
+                        <span className={sortKey === 'email' ? 'text-blue-400 font-extrabold' : ''}>Email</span>
+                        {sortKey === 'email' ? (
+                          sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                        ) : (
+                          <span className="text-slate-500">⇅</span>
+                        )}
+                      </div>
+                    </th>
+                    <th className="p-4 font-bold text-center">Phone</th>
+                    <th className="p-4 font-bold text-left min-w-[140px]">
+                      <CustomDropdown
+                        value={selectedBusinessType}
+                        onChange={(val) => setSelectedBusinessType(val)}
+                        options={businessTypeOptions}
+                        statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedBusinessType ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'}`}
+                      />
+                    </th>
+                    <th
+                      onClick={() => handleSortChange('lastLoginAt')}
+                      className="p-4 font-bold text-center cursor-pointer select-none hover:text-white transition-colors"
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        <span className={sortKey === 'lastLoginAt' ? 'text-blue-400 font-extrabold' : ''}>Last Login At</span>
+                        {sortKey === 'lastLoginAt' ? (
+                          sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                        ) : (
+                          <span className="text-slate-500">⇅</span>
+                        )}
+                      </div>
+                    </th>
+                    <th className="p-4 font-bold text-center min-w-[130px]">
+                      <CustomDropdown
+                        value={selectedMethod}
+                        onChange={(val) => setSelectedMethod(val)}
+                        options={methodOptions}
+                        statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedMethod ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'}`}
+                      />
+                    </th>
+                    <th
+                      onClick={() => handleSortChange('loginCount')}
+                      className="p-4 font-bold text-center cursor-pointer select-none hover:text-white transition-colors"
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        <span className={sortKey === 'loginCount' ? 'text-blue-400 font-extrabold' : ''}>Logins</span>
+                        {sortKey === 'loginCount' ? (
+                          sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                        ) : (
+                          <span className="text-slate-500">⇅</span>
+                        )}
+                      </div>
+                    </th>
                   </tr>
                 ) : (
-                  <tr className="border-b border-white/10 text-xs text-center uppercase tracking-wider text-slate-400">
-                    <th className="p-4 font-bold text-center">S.No</th>
-                    <th className="p-4 font-bold">User ID</th>
-                    <th className="p-4 font-bold">Name</th>
-                    <th className="p-4 font-bold">Email</th>
-                    <th className="p-4 font-bold">Phone</th>
-                    <th className="p-4 font-bold">Business</th>
-                    <th className="p-4 font-bold text-center">Setup Status</th>
+                  <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-slate-400">
+                    <th className="p-2 font-bold text-center bg-slate-900/95">
+                      <div className="flex items-center justify-center gap-1">
+                        <span>S.No</span>
+                        {hasActiveFilters && (
+                          <button
+                            onClick={handleClearHeaderFilters}
+                            className="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold rounded border border-white/10 transition-all cursor-pointer hover:text-white"
+                            title="Reset Table Filters"
+                          >
+                            Reset
+                          </button>
+                        )}
+                      </div>
+                    </th>
+                    <th
+                      onClick={() => handleSortChange('userId')}
+                      className="p-4 font-bold text-center cursor-pointer select-none hover:text-white transition-colors"
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        <span className={sortKey === 'userId' ? 'text-blue-400 font-extrabold' : ''}>User ID</span>
+                        {sortKey === 'userId' ? (
+                          sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                        ) : (
+                          <span className="text-slate-500">⇅</span>
+                        )}
+                      </div>
+                    </th>
+                    <th className="p-4 font-bold text-left min-w-[140px]">
+                      <div className="flex items-center gap-2">
+                        <div
+                          onClick={() => handleSortChange('name')}
+                          className="cursor-pointer select-none hover:text-white transition-colors shrink-0"
+                          title="Sort by Name"
+                        >
+                          {sortKey === 'name' ? (
+                            sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                          ) : (
+                            <span className="text-slate-500">⇅</span>
+                          )}
+                        </div>
+                        <CustomDropdown
+                          value={selectedAppStatus}
+                          onChange={(val) => setSelectedAppStatus(val)}
+                          options={appStatusOptions}
+                          statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedAppStatus || sortKey === 'name' ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'}`}
+                        />
+                      </div>
+                    </th>
+                    <th
+                      onClick={() => handleSortChange('email')}
+                      className="p-4 font-bold text-left cursor-pointer select-none hover:text-white transition-colors"
+                    >
+                      <div className="flex items-center gap-1">
+                        <span className={sortKey === 'email' ? 'text-blue-400 font-extrabold' : ''}>Email</span>
+                        {sortKey === 'email' ? (
+                          sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                        ) : (
+                          <span className="text-slate-500">⇅</span>
+                        )}
+                      </div>
+                    </th>
+                    <th className="p-4 font-bold text-center">Phone</th>
+                    <th className="p-4 font-bold text-left min-w-[140px]">
+                      <CustomDropdown
+                        value={selectedBusinessType}
+                        onChange={(val) => setSelectedBusinessType(val)}
+                        options={businessTypeOptions}
+                        statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedBusinessType ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'}`}
+                      />
+                    </th>
+                    <th className="p-4 font-bold text-center min-w-[150px]">
+                      <CustomDropdown
+                        value={selectedSetupStatus}
+                        onChange={(val) => setSelectedSetupStatus(val)}
+                        options={setupStatusOptions}
+                        statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedSetupStatus ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'}`}
+                      />
+                    </th>
                   </tr>
                 )}
               </thead>
@@ -374,8 +704,8 @@ const ActiveUsers = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={activeTab === 'login' ? 9 : 7} className="p-12 text-center text-slate-400 italic">
-                      {searchQuery ? 'No matching reports found.' : 'No reports found.'}
+                    <td colSpan={activeTab === 'login' ? 9 : 6} className="p-12 text-center text-slate-400 italic">
+                      {hasActiveFilters ? 'No matching reports found for the selected filters.' : 'No reports found.'}
                     </td>
                   </tr>
                 )}

@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { formatDateDDMMYYYY } from '../utils/dateUtils';
 import { api, BASE_URL } from '../api/axios';
 import { useConfirm } from '../Context/ConfirmationContext';
 import { 
   FiUpload, FiTrash2, FiFileText, FiLoader, 
-  FiAlertCircle, FiX, FiDownloadCloud, FiEye, FiDownload
+  FiAlertCircle, FiX, FiDownloadCloud, FiEye, FiDownload,
+  FiSearch, FiUser, FiMail
 } from 'react-icons/fi';
 
 const getFileUrl = (path) => {
@@ -24,6 +25,7 @@ export const Ledgers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Modal and Form State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -154,14 +156,40 @@ export const Ledgers = () => {
     }
   };
 
-  const getUserName = (userField) => {
-    if (!userField) return 'Unknown User';
-    if (typeof userField === 'object' && userField.name) return userField.name;
-    const user = users.find(u => u._id === userField);
-    return user ? user.name : 'Unknown User';
+  const getUserDetails = (userField) => {
+    if (!userField) {
+      return { name: 'Customer Removed', email: null, isUnlinked: true };
+    }
+    if (typeof userField === 'object') {
+      return {
+        name: userField.name || 'Unknown User',
+        email: userField.email || null,
+        isUnlinked: false
+      };
+    }
+    const matchedUser = users.find(u => u._id === userField);
+    if (matchedUser) {
+      return {
+        name: matchedUser.name || 'Unknown User',
+        email: matchedUser.email || null,
+        isUnlinked: false
+      };
+    }
+    return { name: 'Customer Removed', email: null, isUnlinked: true };
   };
 
-  // console.log(ledgers)
+  const filteredLedgers = useMemo(() => {
+    if (!searchQuery.trim()) return ledgers;
+    const q = searchQuery.toLowerCase().trim();
+    return ledgers.filter(ledger => {
+      const titleMatch = (ledger.title || '').toLowerCase().includes(q);
+      const user = getUserDetails(ledger.user);
+      const nameMatch = user.name.toLowerCase().includes(q);
+      const emailMatch = (user.email || '').toLowerCase().includes(q);
+      return titleMatch || nameMatch || emailMatch;
+    });
+  }, [ledgers, searchQuery, users]);
+
   return (
     <div className="relative space-y-4 min-h-full z-0 isolate w-full">
       {/* Header */}
@@ -171,14 +199,38 @@ export const Ledgers = () => {
             <FiFileText className="text-blue-400" />
             Ledgers
           </h1>
-          <p className="text-slate-400 font-medium mt-1">Manage customer ledgers.</p>
+          <p className="text-slate-400 font-medium mt-1">Manage customer account statements and uploaded ledgers.</p>
         </div>
-        <button 
-          onClick={openModal}
-          className="flex items-center px-4 py-2.5 text-white font-bold rounded-xl transition-colors bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-        >
-          <FiUpload className="mr-2" /> Upload Ledger
-        </button>
+
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          {/* Search Box */}
+          <div className="relative w-full sm:w-64">
+            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
+            <input
+              type="text"
+              placeholder="Search by title, customer..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-9 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 text-xs font-medium transition-all"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+              >
+                <FiX size={13} />
+              </button>
+            )}
+          </div>
+
+          <button 
+            onClick={openModal}
+            className="flex items-center px-4 py-2.5 text-white font-bold rounded-xl transition-colors bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shrink-0 cursor-pointer shadow-lg shadow-blue-500/10 text-sm"
+          >
+            <FiUpload className="mr-2" /> Upload Ledger
+          </button>
+        </div>
       </div>
 
       {/* Content Area */}
@@ -197,7 +249,7 @@ export const Ledgers = () => {
             <table className="w-full text-left border-collapse whitespace-nowrap min-w-150">
               <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md shadow-md">
                 <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-slate-400">
-                  <th className="p-5 font-bold">S.No</th>
+                  <th className="p-5 font-bold w-16">S.No</th>
                   <th className="p-5 font-bold">Title</th>
                   <th className="p-5 font-bold">Customer</th>
                   <th className="p-5 font-bold">Uploaded Date</th>
@@ -205,47 +257,78 @@ export const Ledgers = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {ledgers.length > 0 ? (
-                  ledgers.map((ledger, index) => (
-                    <tr key={ledger._id} className="hover:bg-transparent transition-colors">
-                      <td className="p-5 text-sm text-slate-400 font-medium">{index + 1}</td>
-                      <td className="p-5 text-sm text-white font-medium">{ledger.title}</td>
-                      <td className="p-5 text-sm text-slate-300">{getUserName(ledger.user)}</td>
-                      <td className="p-5 text-sm text-slate-300">
-                        {formatDateDDMMYYYY(ledger.createdAt)}
-                      </td>
-                      <td className="p-5 flex items-center justify-center gap-2">
-                        <button 
-                          type="button"
-                          onClick={() => setPreviewPdfUrl(getFileUrl(ledger.fileUrl))} 
-                          className="p-2.5 text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all cursor-pointer" 
-                          title="Preview Ledger"
-                        >
-                          <FiEye />
-                        </button>
-                        <a 
-                          href={getFileUrl(ledger.fileUrl)} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="p-2.5 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg transition-all cursor-pointer" 
-                          title="Download Ledger"
-                        >
-                          <FiDownloadCloud />
-                        </a>
-                        <button 
-                          onClick={() => handleDelete(ledger._id)} 
-                          className="p-2.5 text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all cursor-pointer" 
-                          title="Delete Ledger"
-                        >
-                          <FiTrash2 />
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+                {filteredLedgers.length > 0 ? (
+                  filteredLedgers.map((ledger, index) => {
+                    const user = getUserDetails(ledger.user);
+                    return (
+                      <tr key={ledger._id} className="hover:bg-white/[0.02] transition-colors">
+                        <td className="p-5 text-sm text-slate-400 font-medium font-mono">{index + 1}</td>
+                        <td className="p-5">
+                          <div className="flex items-center gap-2.5">
+                            <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 shrink-0">
+                              <FiFileText size={16} />
+                            </div>
+                            <span className="text-sm text-white font-bold">{ledger.title}</span>
+                          </div>
+                        </td>
+                        <td className="p-5">
+                          {user.isUnlinked ? (
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800/80 text-slate-400 border border-white/5 italic">
+                              User Removed
+                            </span>
+                          ) : (
+                            <div>
+                              <div className="text-sm font-semibold text-slate-200 flex items-center gap-1.5">
+                                <FiUser size={13} className="text-blue-400 shrink-0" />
+                                <span>{user.name}</span>
+                              </div>
+                              {user.email && (
+                                <span className="text-xs text-slate-500 flex items-center gap-1 mt-0.5 font-mono">
+                                  <FiMail size={11} className="text-slate-600 shrink-0" />
+                                  {user.email}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                        <td className="p-5 text-sm text-slate-300 font-mono">
+                          {formatDateDDMMYYYY(ledger.createdAt)}
+                        </td>
+                        <td className="p-5">
+                          <div className="flex items-center justify-center gap-2">
+                            <button 
+                              type="button"
+                              onClick={() => setPreviewPdfUrl(getFileUrl(ledger.fileUrl))} 
+                              className="p-2.5 text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all cursor-pointer hover:scale-105" 
+                              title="Preview Ledger"
+                            >
+                              <FiEye size={15} />
+                            </button>
+                            <a 
+                              href={getFileUrl(ledger.fileUrl)} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="p-2.5 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg transition-all cursor-pointer hover:scale-105" 
+                              title="Download Ledger"
+                            >
+                              <FiDownloadCloud size={15} />
+                            </a>
+                            <button 
+                              onClick={() => handleDelete(ledger._id)} 
+                              className="p-2.5 text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg transition-all cursor-pointer hover:scale-105" 
+                              title="Delete Ledger"
+                            >
+                              <FiTrash2 size={15} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 ) : (
                   <tr>
                     <td colSpan={5} className="p-12 text-center text-slate-400 italic">
-                      No ledgers found.
+                      {searchQuery ? 'No ledgers found matching your search.' : 'No ledgers found.'}
                     </td>
                   </tr>
                 )}

@@ -1812,7 +1812,7 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="relative z-10">
-              <h3 className={`text-slate-400 text-sm font-bold tracking-wide ${metric.groupHover}`}>{metric.title}</h3>
+              <h3 className={`text-slate-400 text-sm font-bold tracking-wide transition-all duration-300 group-hover:-translate-y-0.5 ${metric.groupHover}`}>{metric.title}</h3>
               <p
                 className="text-2xl xl:text-xl 2xl:text-3xl font-extrabold text-white mt-1 tracking-tight truncate"
                 title={metric.value.toString()}
@@ -1930,7 +1930,7 @@ const Dashboard = () => {
                   >
                     <div className={`absolute inset-0 bg-linear-to-b ${card.fromColor} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none`}></div>
                     <div className="relative flex justify-between items-center mb-3 z-10">
-                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider group-hover:text-white transition-colors">{card.title}</span>
+                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider transition-all duration-300 group-hover:text-white group-hover:-translate-y-0.5">{card.title}</span>
                       <div className={`p-2 rounded-xl ${card.bg}`}>
                         <card.icon className={`${card.color} text-lg`} />
                       </div>

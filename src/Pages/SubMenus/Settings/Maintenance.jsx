@@ -461,7 +461,7 @@ const Maintenance = () => {
             <button
               type="button"
               onClick={() => setActiveTab('ios')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === 'ios' ? 'bg-blue-500 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === 'ios' ? 'bg-white text-black shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
             >
               <FaApple size={14} /> iOS
             </button>

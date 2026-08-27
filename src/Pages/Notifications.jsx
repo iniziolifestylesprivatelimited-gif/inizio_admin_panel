@@ -878,7 +878,7 @@ const Notifications = () => {
                   <p className="text-[11px] text-slate-300 leading-snug break-words">{description || 'Notification message preview content...'}</p>
                 </div>
                 {imageUrl && (
-                  <div className="mt-2 w-full h-24 rounded-lg overflow-hidden border border-white/5 bg-black/25 flex items-center justify-center">
+                  <div className="mt-2 w-full h-auto rounded-lg overflow-hidden border border-white/5 bg-black/25 flex items-center justify-center">
                     <img src={imageUrl} alt="Notification preview" className="w-full h-full object-cover" onError={(e) => e.target.src = 'https://placehold.co/300x150?text=Invalid+Image+URL'} />
                   </div>
                 )}
