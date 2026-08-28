@@ -8,11 +8,34 @@ import {
 import CustomDropdown from '../../../Components/CustomDropdown';
 
 // Helper to construct image URL
-const getImageUrl = (path) => {
+const getImageUrl = (path, options = {}) => {
   if (!path) return '';
-  if (path.startsWith('http') || path.startsWith('blob:')) return path;
-  const cleanPath = path.replace(/\\/g, '/');
-  return `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
+  const { quality = 60, width = 120, isOriginal = false } = options;
+  let fullUrl = '';
+  if (path.startsWith('http') || path.startsWith('blob:')) {
+    fullUrl = path;
+  } else {
+    const cleanPath = path.replace(/\\/g, '/');
+    fullUrl = `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
+  }
+
+  if (isOriginal) return fullUrl;
+
+  if (fullUrl.includes('cloudinary.com') && fullUrl.includes('/upload/')) {
+    const transforms = [width ? `w_${width}` : '', quality ? `q_${quality}` : ''].filter(Boolean).join(',');
+    return fullUrl.replace('/upload/', `/upload/${transforms}/`);
+  }
+
+  if (fullUrl.includes('/wp-content/uploads/')) {
+    const cleanHostPath = fullUrl.replace(/^https?:\/\//i, '');
+    const params = [];
+    if (width) params.push(`w=${width}`);
+    if (quality) params.push(`quality=${quality}`);
+    const query = params.length > 0 ? `?${params.join('&')}` : '';
+    return `https://i0.wp.com/${cleanHostPath}${query}`;
+  }
+
+  return fullUrl;
 };
 
 export default function QuantitySlabs() {
@@ -450,17 +473,18 @@ export default function QuantitySlabs() {
               <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
                 Discount Calculation Base Price
               </label>
-              <select
+              <CustomDropdown
                 value={basePriceField}
-                onChange={(e) => setBasePriceField(e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-950 border border-white/10 text-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium"
-              >
-                <option value="offerPrice">Offer Price (Default)</option>
-                <option value="basePrice">Base Price</option>
-                <option value="l1Price">L1 Price</option>
-                <option value="l2Price">L2 Price</option>
-                <option value="l3Price">L3 Price</option>
-              </select>
+                onChange={(val) => setBasePriceField(val)}
+                options={[
+                  { value: 'offerPrice', label: 'Offer Price (Default)' },
+                  { value: 'basePrice', label: 'Base Price' },
+                  { value: 'l1Price', label: 'L1 Price' },
+                  { value: 'l2Price', label: 'L2 Price' },
+                  { value: 'l3Price', label: 'L3 Price' }
+                ]}
+                statusColor="bg-slate-900 border-white/10 text-slate-200 hover:bg-slate-800 text-xs font-semibold py-2.5 rounded-xl"
+              />
             </div>
 
             {/* Slabs configuration block */}
@@ -493,14 +517,15 @@ export default function QuantitySlabs() {
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-slate-500 uppercase">Apply Condition</label>
-                          <select
+                          <CustomDropdown
                             value={rule.applyCondition}
-                            onChange={(e) => updateRuleField(rule.id, 'applyCondition', e.target.value)}
-                            className="w-full px-2 py-1.5 bg-slate-900 border border-white/5 text-slate-300 rounded-lg text-xs"
-                          >
-                            <option value="stock_ge">If Stock &ge;</option>
-                            <option value="always">Always Apply</option>
-                          </select>
+                            onChange={(val) => updateRuleField(rule.id, 'applyCondition', val)}
+                            options={[
+                              { value: 'stock_ge', label: 'If Stock ≥' },
+                              { value: 'always', label: 'Always Apply' }
+                            ]}
+                            statusColor="bg-slate-900 border-white/10 text-slate-300 hover:bg-slate-800 text-xs py-1.5 px-2 rounded-lg"
+                          />
                         </div>
                         {rule.applyCondition === 'stock_ge' && (
                           <div className="space-y-1">
@@ -510,7 +535,7 @@ export default function QuantitySlabs() {
                               value={rule.minStock}
                               onChange={(e) => updateRuleField(rule.id, 'minStock', Number(e.target.value))}
                               placeholder="100"
-                              className="w-full px-2 py-1 bg-slate-900 border border-white/5 text-slate-200 rounded-lg text-xs"
+                              className="w-full px-2 py-1.5 bg-slate-900 border border-white/10 text-slate-200 rounded-lg text-xs"
                             />
                           </div>
                         )}
@@ -525,19 +550,20 @@ export default function QuantitySlabs() {
                             value={rule.minQty}
                             onChange={(e) => updateRuleField(rule.id, 'minQty', Number(e.target.value))}
                             placeholder="100"
-                            className="w-full px-2 py-1 bg-slate-900 border border-white/5 text-slate-200 rounded-lg text-xs"
+                            className="w-full px-2 py-1.5 bg-slate-900 border border-white/10 text-slate-200 rounded-lg text-xs"
                           />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-slate-500 uppercase">Discount Type</label>
-                          <select
+                          <CustomDropdown
                             value={rule.discountType}
-                            onChange={(e) => updateRuleField(rule.id, 'discountType', e.target.value)}
-                            className="w-full px-2 py-1.5 bg-slate-900 border border-white/5 text-slate-300 rounded-lg text-xs"
-                          >
-                            <option value="percentage">Percentage (%)</option>
-                            <option value="flat">Flat (₹)</option>
-                          </select>
+                            onChange={(val) => updateRuleField(rule.id, 'discountType', val)}
+                            options={[
+                              { value: 'percentage', label: 'Percentage (%)' },
+                              { value: 'flat', label: 'Flat (₹)' }
+                            ]}
+                            statusColor="bg-slate-900 border-white/10 text-slate-300 hover:bg-slate-800 text-xs py-1.5 px-2 rounded-lg"
+                          />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-slate-500 uppercase">Value</label>
@@ -546,7 +572,7 @@ export default function QuantitySlabs() {
                             value={rule.discountValue}
                             onChange={(e) => updateRuleField(rule.id, 'discountValue', Number(e.target.value))}
                             placeholder="1"
-                            className="w-full px-2 py-1 bg-slate-900 border border-white/5 text-slate-200 rounded-lg text-xs"
+                            className="w-full px-2 py-1.5 bg-slate-900 border border-white/10 text-slate-200 rounded-lg text-xs"
                           />
                         </div>
                       </div>
@@ -554,16 +580,17 @@ export default function QuantitySlabs() {
                       {/* Rounding Mode */}
                       <div className="space-y-1 pt-1">
                         <label className="text-[10px] font-bold text-slate-500 uppercase">Rounding Mode</label>
-                        <select
+                        <CustomDropdown
                           value={rule.roundMode}
-                          onChange={(e) => updateRuleField(rule.id, 'roundMode', e.target.value)}
-                          className="w-full px-2 py-1.5 bg-slate-900 border border-white/5 text-slate-300 rounded-lg text-xs"
-                        >
-                          <option value="round">Round (&ge; 0.5 up, &lt; 0.5 floor) (Recommended)</option>
-                          <option value="ceiling">Ceiling / Always Round Up</option>
-                          <option value="floor">Floor / Always Round Down</option>
-                          <option value="none">No Rounding</option>
-                        </select>
+                          onChange={(val) => updateRuleField(rule.id, 'roundMode', val)}
+                          options={[
+                            { value: 'round', label: 'Round (≥ 0.5 up, < 0.5 floor) (Recommended)' },
+                            { value: 'ceiling', label: 'Ceiling / Always Round Up' },
+                            { value: 'floor', label: 'Floor / Always Round Down' },
+                            { value: 'none', label: 'No Rounding' }
+                          ]}
+                          statusColor="bg-slate-900 border-white/10 text-slate-300 hover:bg-slate-800 text-xs py-1.5 px-2 rounded-lg"
+                        />
                       </div>
                     </div>
                   ))}
@@ -644,64 +671,62 @@ export default function QuantitySlabs() {
               {/* Brand Filter */}
               <div>
                 <CustomDropdown
-                  value={selectedBrand ? (brands.find(b => b._id === selectedBrand)?.name || 'All Brands') : 'All Brands'}
-                  options={['All Brands', ...brands.map(b => b.name)]}
-                  onChange={(option) => {
+                  value={selectedBrand}
+                  options={[
+                    { value: '', label: 'All Brands' },
+                    ...brands.map(b => ({ value: b._id, label: b.name }))
+                  ]}
+                  onChange={(val) => {
                     setCurrentPage(1);
-                    if (option === 'All Brands') {
-                      setSelectedBrand('');
-                    } else {
-                      const found = brands.find(b => b.name === option);
-                      if (found) setSelectedBrand(found._id);
-                    }
+                    setSelectedBrand(val);
                   }}
-                  statusColor="bg-slate-900/60 text-slate-300 border-white/10 hover:bg-slate-800/60 hover:text-white"
+                  statusColor="bg-slate-900/60 text-slate-300 border-white/10 hover:bg-slate-800/60 hover:text-white text-xs py-2 rounded-xl"
                 />
               </div>
 
               {/* Category Filter */}
               <div>
                 <CustomDropdown
-                  value={selectedCategory ? (categories.find(c => c._id === selectedCategory)?.name || 'All Categories') : 'All Categories'}
-                  options={['All Categories', ...categories.map(c => c.name)]}
-                  onChange={(option) => {
+                  value={selectedCategory}
+                  options={[
+                    { value: '', label: 'All Categories' },
+                    ...categories.map(c => ({ value: c._id, label: c.name }))
+                  ]}
+                  onChange={(val) => {
                     setCurrentPage(1);
-                    if (option === 'All Categories') {
-                      setSelectedCategory('');
-                    } else {
-                      const found = categories.find(c => c.name === option);
-                      if (found) setSelectedCategory(found._id);
-                    }
+                    setSelectedCategory(val);
                   }}
-                  statusColor="bg-slate-900/60 text-slate-300 border-white/10 hover:bg-slate-800/60 hover:text-white"
+                  statusColor="bg-slate-900/60 text-slate-300 border-white/10 hover:bg-slate-800/60 hover:text-white text-xs py-2 rounded-xl"
                 />
               </div>
 
               {/* Variants Filter */}
               <div className="sm:col-span-1">
-                <select
+                <CustomDropdown
                   value={variantFilter}
-                  onChange={(e) => { setVariantFilter(e.target.value); setCurrentPage(1); }}
-                  className="w-full px-3 py-2 bg-slate-900 border border-white/10 text-slate-300 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-blue-500/50"
-                >
-                  <option value="all">All Product Types</option>
-                  <option value="has_variants">Has Variants Only</option>
-                  <option value="no_variants">No Variants Only</option>
-                </select>
+                  onChange={(val) => { setVariantFilter(val); setCurrentPage(1); }}
+                  options={[
+                    { value: 'all', label: 'All Product Types' },
+                    { value: 'has_variants', label: 'Has Variants Only' },
+                    { value: 'no_variants', label: 'No Variants Only' }
+                  ]}
+                  statusColor="bg-slate-900/60 text-slate-300 border-white/10 hover:bg-slate-800/60 hover:text-white text-xs py-2 rounded-xl"
+                />
               </div>
 
               {/* Stock Filter */}
               <div className="sm:col-span-1">
-                <select
+                <CustomDropdown
                   value={stockFilter}
-                  onChange={(e) => { setStockFilter(e.target.value); setCurrentPage(1); }}
-                  className="w-full px-3 py-2 bg-slate-900 border border-white/10 text-slate-300 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-blue-500/50"
-                >
-                  <option value="all">All Stock Levels</option>
-                  <option value="in_stock">In Stock (&gt; 0)</option>
-                  <option value="low_stock">Low Stock (&lt; 100)</option>
-                  <option value="out_of_stock">Out of Stock (= 0)</option>
-                </select>
+                  onChange={(val) => { setStockFilter(val); setCurrentPage(1); }}
+                  options={[
+                    { value: 'all', label: 'All Stock Levels' },
+                    { value: 'in_stock', label: 'In Stock (> 0)' },
+                    { value: 'low_stock', label: 'Low Stock (< 100)' },
+                    { value: 'out_of_stock', label: 'Out of Stock (= 0)' }
+                  ]}
+                  statusColor="bg-slate-900/60 text-slate-300 border-white/10 hover:bg-slate-800/60 hover:text-white text-xs py-2 rounded-xl"
+                />
               </div>
             </div>
 

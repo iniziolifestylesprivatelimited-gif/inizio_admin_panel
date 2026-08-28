@@ -5,11 +5,36 @@ import { FiArrowUp, FiArrowDown, FiCopy, FiTrash2, FiSave, FiArrowLeft, FiPlus, 
 import { BASE_URL } from '../../../api/axios';
 import CustomDropdown from '../../../Components/CustomDropdown';
 
-const getImageUrl = (path) => {
+const getImageUrl = (path, options = {}) => {
   if (!path) return '';
-  if (path.startsWith('http') || path.startsWith('blob:')) return path;
-  const cleanPath = path.replace(/\\/g, '/');
-  return `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
+  const { quality = 60, width = 300, isOriginal = false } = options;
+  let fullUrl = '';
+  if (path.startsWith('http') || path.startsWith('blob:')) {
+    fullUrl = path;
+  } else {
+    const cleanPath = path.replace(/\\/g, '/');
+    fullUrl = `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
+  }
+
+  if (isOriginal) return fullUrl;
+
+  // 1. Cloudinary transformations
+  if (fullUrl.includes('cloudinary.com') && fullUrl.includes('/upload/')) {
+    const transforms = [width ? `w_${width}` : '', quality ? `q_${quality}` : ''].filter(Boolean).join(',');
+    return fullUrl.replace('/upload/', `/upload/${transforms}/`);
+  }
+
+  // 2. WordPress Media Library URLs -> WordPress Photon CDN (i0.wp.com)
+  if (fullUrl.includes('/wp-content/uploads/')) {
+    const cleanHostPath = fullUrl.replace(/^https?:\/\//i, '');
+    const params = [];
+    if (width) params.push(`w=${width}`);
+    if (quality) params.push(`quality=${quality}`);
+    const query = params.length > 0 ? `?${params.join('&')}` : '';
+    return `https://i0.wp.com/${cleanHostPath}${query}`;
+  }
+
+  return fullUrl;
 };
 
 const Variants = () => {
@@ -638,7 +663,7 @@ const Variants = () => {
                       <div className="flex flex-wrap gap-3 mt-3">
                         {variant.image_urls.split(',').map((url, i) => url.trim() && (
                           <div key={i} className="w-16 h-16 border border-white/10 rounded-lg overflow-hidden bg-slate-800 shadow-sm shrink-0 flex items-center justify-center">
-                          <img src={getImageUrl(url.trim())} alt={`Preview ${i}`} className="max-w-full max-h-full object-contain bg-white p-1" onError={(e) => e.target.src='https://placehold.co/150x150?text=Error'} />
+                          <img src={getImageUrl(url.trim(), { width: 150, quality: 60 })} alt={`Preview ${i}`} className="max-w-full max-h-full object-contain bg-white p-1" onError={(e) => e.target.src='https://placehold.co/150x150?text=Error'} />
                           </div>
                         ))}
                       </div>

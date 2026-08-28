@@ -28,6 +28,7 @@ const UsersList = lazy(() => import('./Pages/SubMenus/Users/UsersList'));
 const UserDetails = lazy(() => import('./Pages/SubMenus/Users/UserDetails'));
 const ActiveUsers = lazy(() => import('./Pages/SubMenus/Users/ActiveUsers'));
 const RolesPermissions = lazy(() => import('./Pages/SubMenus/Users/RolesPermissions'));
+const NotificationSettings = lazy(() => import('./Pages/SubMenus/Settings/NotificationSettings'));
 const Faqs = lazy(() => import('./Pages/SubMenus/Settings/Faqs'));
 const PrivacyP = lazy(() => import('./Pages/SubMenus/Settings/PrivacyP'));
 const TermsAndCo = lazy(() => import('./Pages/SubMenus/Settings/TC'));
@@ -88,6 +89,7 @@ function App() {
                   <Route path='/users/active' element={<ActiveUsers/>}/>
                   <Route path='/users/roles-permissions' element={<RolesPermissions/>}/>
                   <Route path='/users/create' element={<RolesPermissions/>}/>
+                  <Route path="/settings/notifications" element={<NotificationSettings />} />
                   <Route path="/settings/maintenance" element={<Maintenance />} />
                   <Route path="/settings/faqs" element={<Faqs/>} />
                   <Route path="/settings/privacy-policy" element={<PrivacyP/>} />

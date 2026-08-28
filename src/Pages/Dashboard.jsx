@@ -1446,7 +1446,7 @@ const Dashboard = () => {
       hoverGlow: "hover:shadow-[0_0_20px_rgba(139,92,246,0.2)]"
     },
     {
-      title: "Total Products (with Variants)",
+      title: "Total Variants",
       value: products.reduce((sum, p) => sum + (Array.isArray(p.variants) && p.variants.length > 1 ? p.variants.length : 1), 0),
       icon: FiLayers,
       groupHover: "group-hover:text-rose-400",
@@ -1780,23 +1780,20 @@ const Dashboard = () => {
             hoverable
             glowing
             style={{
-              '--glow-color': metric.title === "Total Revenue" ? '#10b981' :
-                              metric.title === "No of Brands" ? '#3b82f6' :
-                              metric.title === "No of Products" ? '#8b5cf6' :
-                              metric.title === "Total Products (with Variants)" ? '#f43f5e' :
-                              metric.title === "Total Users" ? '#f59e0b' : '#3b82f6',
-              '--glow-color-alt': metric.title === "Total Revenue" ? '#34d399' :
-                                  metric.title === "No of Brands" ? '#60a5fa' :
-                                  metric.title === "No of Products" ? '#a78bfa' :
-                                  metric.title === "Total Products (with Variants)" ? '#fb7185' :
-                                  metric.title === "Total Users" ? '#fbbf24' : '#60a5fa',
-              '--glow-shadow': metric.title === "Total Revenue" ? 'rgba(16, 185, 129, 0.4)' :
-                               metric.title === "No of Brands" ? 'rgba(59, 130, 246, 0.4)' :
-                               metric.title === "No of Products" ? 'rgba(139, 92, 246, 0.4)' :
-                               metric.title === "Total Products (with Variants)" ? 'rgba(244, 63, 94, 0.4)' :
-                               metric.title === "Total Users" ? 'rgba(245, 158, 11, 0.4)' : 'rgba(59, 130, 246, 0.4)'
+              '--glow-color': index === 0 ? '#10b981' :
+                              index === 1 ? '#3b82f6' :
+                              index === 2 ? '#8b5cf6' :
+                              index === 3 ? '#f43f5e' : '#f59e0b',
+              '--glow-color-alt': index === 0 ? '#34d399' :
+                                  index === 1 ? '#60a5fa' :
+                                  index === 2 ? '#a78bfa' :
+                                  index === 3 ? '#fb7185' : '#fbbf24',
+              '--glow-shadow': index === 0 ? 'rgba(16, 185, 129, 0.4)' :
+                               index === 1 ? 'rgba(59, 130, 246, 0.4)' :
+                               index === 2 ? 'rgba(139, 92, 246, 0.4)' :
+                               index === 3 ? 'rgba(244, 63, 94, 0.4)' : 'rgba(245, 158, 11, 0.4)'
             }}
-            className={`p-4 sm:p-5 xl:p-6 transition-all duration-300 hover:-translate-y-1 cursor-pointer relative overflow-hidden group ${metric.hoverBorder}`}
+            className={`p-4 sm:p-5 xl:p-6 transition-all duration-300 hover:-translate-y-1 cursor-pointer relative overflow-hidden group flex flex-col justify-between ${metric.hoverBorder}`}
             onClick={() => {
               if (metric.path) {
                 navigate(`${metric.path}${getFilterQueryParams()}`);
@@ -1806,15 +1803,17 @@ const Dashboard = () => {
             }}
           >
             <div className={`absolute inset-0 bg-linear-to-b ${metric.fromColor} to-transparent pointer-events-none`}></div>
-            <div className="relative flex items-center justify-between mb-4 z-10">
+            <div className="relative flex items-center justify-between mb-3 z-10">
               <div className={`p-3.5 rounded-xl ${metric.bg}`}>
                 <metric.icon className={`text-xl ${metric.color}`} />
               </div>
             </div>
             <div className="relative z-10">
-              <h3 className={`text-slate-400 text-sm font-bold tracking-wide transition-all duration-300 group-hover:-translate-y-0.5 ${metric.groupHover}`}>{metric.title}</h3>
+              <h3 className={`text-slate-400 text-xs sm:text-sm font-bold tracking-wide transition-all duration-300 group-hover:-translate-y-0.5 whitespace-nowrap truncate ${metric.groupHover}`} title={metric.title}>
+                {metric.title}
+              </h3>
               <p
-                className="text-2xl xl:text-xl 2xl:text-3xl font-extrabold text-white mt-1 tracking-tight truncate"
+                className="text-xl sm:text-2xl xl:text-3xl font-extrabold text-white mt-1 tracking-tight truncate"
                 title={metric.value.toString()}
               >
                 {metric.value}

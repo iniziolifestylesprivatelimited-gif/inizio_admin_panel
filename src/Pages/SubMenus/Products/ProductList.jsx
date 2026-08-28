@@ -12,7 +12,7 @@ import { formatDateTimeDDMMYYYY } from '../../../utils/dateUtils';
 
 const getImageUrl = (path, options = {}) => {
   if (!path) return '';
-  const { quality, width } = options;
+  const { quality = 60, width = 300, isOriginal = false } = options;
   let fullUrl = '';
   if (path.startsWith('http') || path.startsWith('blob:')) {
     fullUrl = path;
@@ -21,12 +21,22 @@ const getImageUrl = (path, options = {}) => {
     fullUrl = `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
   }
 
-  // If using Cloudinary/ImageKit or a CDN that supports URL-based transformations:
-  if (width || quality) {
-    if (fullUrl.includes('cloudinary.com') && fullUrl.includes('/upload/')) {
-      const transforms = [width ? `w_${width}` : '', quality ? `q_${quality}` : ''].filter(Boolean).join(',');
-      return fullUrl.replace('/upload/', `/upload/${transforms}/`);
-    }
+  if (isOriginal) return fullUrl;
+
+  // 1. Cloudinary transformations
+  if (fullUrl.includes('cloudinary.com') && fullUrl.includes('/upload/')) {
+    const transforms = [width ? `w_${width}` : '', quality ? `q_${quality}` : ''].filter(Boolean).join(',');
+    return fullUrl.replace('/upload/', `/upload/${transforms}/`);
+  }
+
+  // 2. WordPress Media Library URLs -> WordPress Photon CDN (i0.wp.com) for real-time resizing & compression
+  if (fullUrl.includes('/wp-content/uploads/')) {
+    const cleanHostPath = fullUrl.replace(/^https?:\/\//i, '');
+    const params = [];
+    if (width) params.push(`w=${width}`);
+    if (quality) params.push(`quality=${quality}`);
+    const query = params.length > 0 ? `?${params.join('&')}` : '';
+    return `https://i0.wp.com/${cleanHostPath}${query}`;
   }
 
   return fullUrl;
@@ -35,24 +45,36 @@ const getImageUrl = (path, options = {}) => {
 // Reusable optimized image component for thumbnails & cards with lazy loading and low-quality placeholder
 const ProgressiveImage = ({ src, alt = '', className = '', fallback = 'https://placehold.co/150x150?text=No+Image', onError, lowQuality = false }) => {
   const [loaded, setLoaded] = useState(false);
-  const [imgError, setImgError] = useState(false);
+  const [currentSrc, setCurrentSrc] = useState(src);
+  const [hasTriedFallback, setHasTriedFallback] = useState(false);
 
   useEffect(() => {
     setLoaded(false);
-    setImgError(false);
+    setCurrentSrc(src);
+    setHasTriedFallback(false);
   }, [src]);
+
+  const handleError = (e) => {
+    // If the image was served via i0.wp.com proxy and failed, fall back to the direct WordPress URL first
+    if (!hasTriedFallback && typeof currentSrc === 'string' && currentSrc.includes('i0.wp.com/')) {
+      setHasTriedFallback(true);
+      const originalDirectUrl = 'https://' + currentSrc.split('i0.wp.com/')[1].split('?')[0];
+      setCurrentSrc(originalDirectUrl);
+      return;
+    }
+
+    setCurrentSrc(fallback);
+    if (onError) onError(e);
+  };
 
   return (
     <img
-      src={imgError ? fallback : src}
+      src={currentSrc || fallback}
       alt={alt}
       loading="lazy"
       decoding="async"
       onLoad={() => setLoaded(true)}
-      onError={(e) => {
-        setImgError(true);
-        if (onError) onError(e);
-      }}
+      onError={handleError}
       className={`${className} transition-opacity duration-300 ${!loaded ? 'opacity-40 blur-[1px]' : 'opacity-100 blur-none'} ${lowQuality ? 'image-rendering-pixelated' : ''}`}
     />
   );
@@ -2233,32 +2255,54 @@ const ProductList = () => {
                       <td className="px-4 py-3 text-sm text-slate-300 font-medium">{getCategoryName(product.category)}</td>
                       <td className="px-4 py-3 text-sm text-white font-bold">
                         <div className="flex items-center gap-3">
-                          {product.images && product.images.length > 0 ? (
-                            <div
-                              onClick={(e) => { e.stopPropagation(); openImageView(product); }}
-                              className="w-12 h-12 bg-white rounded-lg overflow-hidden border border-white/10 cursor-pointer hover:border-blue-500 transition-colors relative group/img shrink-0 animate-in fade-in zoom-in-95 duration-200"
-                              title="Click to view images"
-                            >
-                              <ProgressiveImage
-                                src={getImageUrl(product.images[0], { width: 120, quality: 50 })}
-                                alt={product.name}
-                                className="w-full h-full object-cover"
-                              />
-                              {product.images.length > 1 && (
-                                <span className="absolute bottom-0 right-0 bg-slate-950/80 border-t border-l border-white/10 text-[9px] font-black text-white px-1 py-0.25 rounded-tl-md">
-                                  +{product.images.length - 1}
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <div
-                              onClick={(e) => { e.stopPropagation(); openImageView(product); }}
-                              className="w-12 h-12 bg-slate-800 text-slate-500 hover:bg-slate-700 hover:text-white rounded-lg border border-white/10 flex flex-col items-center justify-center transition-colors cursor-pointer shrink-0"
-                              title="No Images"
-                            >
-                              <FiImage className="text-lg" />
-                            </div>
-                          )}
+                          {(() => {
+                            let thumb = (product.images && product.images.length > 0 && product.images[0]) || '';
+                            let totalImgs = product.images?.length || 0;
+                            if (!thumb && product.variants && Array.isArray(product.variants)) {
+                              const vWithImg = product.variants.find(v => (Array.isArray(v.images) && v.images.length > 0) || (typeof v.images === 'string' && v.images) || v.image_urls || v.image);
+                              if (vWithImg) {
+                                if (Array.isArray(vWithImg.images) && vWithImg.images[0]) thumb = vWithImg.images[0];
+                                else if (typeof vWithImg.images === 'string') thumb = vWithImg.images.split(',')[0].trim();
+                                else if (typeof vWithImg.image_urls === 'string') thumb = vWithImg.image_urls.split(',')[0].trim();
+                                else if (vWithImg.image) thumb = vWithImg.image;
+                              }
+                            }
+                            if (product.variants && Array.isArray(product.variants)) {
+                              product.variants.forEach(v => {
+                                if (Array.isArray(v.images)) totalImgs += v.images.length;
+                                else if (typeof v.images === 'string') totalImgs += v.images.split(',').filter(Boolean).length;
+                                else if (typeof v.image_urls === 'string') totalImgs += v.image_urls.split(',').filter(Boolean).length;
+                                else if (v.image) totalImgs += 1;
+                              });
+                            }
+
+                            return thumb ? (
+                              <div
+                                onClick={(e) => { e.stopPropagation(); openImageView(product); }}
+                                className="w-12 h-12 bg-white rounded-lg overflow-hidden border border-white/10 cursor-pointer hover:border-blue-500 transition-colors relative group/img shrink-0 animate-in fade-in zoom-in-95 duration-200"
+                                title="Click to view images"
+                              >
+                                <ProgressiveImage
+                                  src={getImageUrl(thumb, { width: 120, quality: 50 })}
+                                  alt={product.name}
+                                  className="w-full h-full object-cover"
+                                />
+                                {totalImgs > 1 && (
+                                  <span className="absolute bottom-0 right-0 bg-slate-950/80 border-t border-l border-white/10 text-[9px] font-black text-white px-1 py-0.25 rounded-tl-md">
+                                    +{totalImgs - 1}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <div
+                                onClick={(e) => { e.stopPropagation(); openImageView(product); }}
+                                className="w-12 h-12 bg-slate-800 text-slate-500 hover:bg-slate-700 hover:text-white rounded-lg border border-white/10 flex flex-col items-center justify-center transition-colors cursor-pointer shrink-0"
+                                title="No Images"
+                              >
+                                <FiImage className="text-lg" />
+                              </div>
+                            );
+                          })()}
                           <div>
                             <div>{product.name || '-'}</div>
                             <div className="flex items-center gap-1 mt-0.5">
@@ -2622,7 +2666,11 @@ const ProductList = () => {
                   <div className="flex flex-wrap gap-4">
                     {currentProductForView.images.map((url, i) => (
                       <div key={i} className="relative w-24 h-24 border border-white/10 rounded-xl overflow-hidden bg-slate-800 flex items-center justify-center">
-                        <img src={getImageUrl(url)} alt={`Image ${i + 1}`} className="max-w-full max-h-full object-contain bg-white p-2" onError={(e) => e.target.src = 'https://placehold.co/150x150?text=Error'} />
+                        <ProgressiveImage
+                          src={getImageUrl(url, { width: 250, quality: 60 })}
+                          alt={`Image ${i + 1}`}
+                          className="max-w-full max-h-full object-contain bg-white p-2"
+                        />
                       </div>
                     ))}
                   </div>
@@ -2767,11 +2815,10 @@ const ProductList = () => {
                                           key={imgIdx}
                                           className="relative w-16 h-16 sm:w-20 sm:h-20 border border-white/10 rounded-xl overflow-hidden bg-slate-800 flex items-center justify-center group/img shrink-0 shadow-sm hover:border-blue-500/40 transition-colors"
                                         >
-                                          <img
-                                            src={getImageUrl(url)}
+                                          <ProgressiveImage
+                                            src={getImageUrl(url, { width: 200, quality: 60 })}
                                             alt={`${variant.name || 'Variant'} image ${imgIdx + 1}`}
                                             className="max-w-full max-h-full object-contain bg-white p-1.5 transition-transform duration-200 group-hover/img:scale-105"
-                                            onError={(e) => { e.target.src = 'https://placehold.co/150x150?text=Error'; }}
                                           />
                                         </div>
                                       ))}
@@ -2964,7 +3011,11 @@ const ProductList = () => {
                         <div className="flex flex-wrap gap-3 mt-3">
                           {addFormData.image_urls.split(',').map((url, i) => url.trim() && (
                             <div key={i} className="relative w-16 h-16 border border-white/10 rounded-lg overflow-hidden bg-slate-800 shadow-sm shrink-0 flex items-center justify-center">
-                              <img src={getImageUrl(url.trim())} alt={`Preview ${i}`} className="max-w-full max-h-full object-contain bg-white p-1" onError={(e) => e.target.src = 'https://placehold.co/150x150?text=Error'} />
+                              <ProgressiveImage
+                                src={getImageUrl(url.trim(), { width: 150, quality: 60 })}
+                                alt={`Preview ${i}`}
+                                className="max-w-full max-h-full object-contain bg-white p-1"
+                              />
                             </div>
                           ))}
                         </div>
@@ -3121,7 +3172,11 @@ const ProductList = () => {
                                   <div className="flex flex-wrap gap-3 mt-3">
                                     {variant.image_urls.split(',').map((url, i) => url.trim() && (
                                       <div key={i} className="w-16 h-16 border border-white/10 rounded-lg overflow-hidden bg-slate-800 shadow-sm shrink-0 flex items-center justify-center">
-                                        <img src={getImageUrl(url.trim())} alt={`Preview ${i}`} className="max-w-full max-h-full object-contain bg-white p-1" onError={(e) => e.target.src = 'https://placehold.co/150x150?text=Error'} />
+                                        <ProgressiveImage
+                                          src={getImageUrl(url.trim(), { width: 150, quality: 60 })}
+                                          alt={`Preview ${i}`}
+                                          className="max-w-full max-h-full object-contain bg-white p-1"
+                                        />
                                       </div>
                                     ))}
                                   </div>
@@ -3537,7 +3592,11 @@ const ProductList = () => {
                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                             {mainImages.map((url, i) => (
                               <div key={`main-${i}`} className="relative aspect-square border border-white/10 rounded-xl overflow-hidden bg-slate-800 flex items-center justify-center">
-                                <img src={getImageUrl(url)} alt={`Product Main ${i + 1}`} className="max-w-full max-h-full object-contain bg-white p-2" onError={(e) => e.target.src = 'https://placehold.co/150x150?text=Error'} />
+                                <ProgressiveImage
+                                  src={getImageUrl(url, { width: 350, quality: 60 })}
+                                  alt={`Product Main ${i + 1}`}
+                                  className="max-w-full max-h-full object-contain bg-white p-2"
+                                />
                               </div>
                             ))}
                           </div>
@@ -3556,7 +3615,11 @@ const ProductList = () => {
                               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                                 {group.images.map((url, i) => (
                                   <div key={`${groupIdx}-${i}`} className="relative aspect-square border border-white/10 rounded-xl overflow-hidden bg-slate-800 flex items-center justify-center">
-                                    <img src={getImageUrl(url)} alt={`${group.name} ${i + 1}`} className="max-w-full max-h-full object-contain bg-white p-2" onError={(e) => e.target.src = 'https://placehold.co/150x150?text=Error'} />
+                                    <ProgressiveImage
+                                      src={getImageUrl(url, { width: 350, quality: 60 })}
+                                      alt={`${group.name} ${i + 1}`}
+                                      className="max-w-full max-h-full object-contain bg-white p-2"
+                                    />
                                   </div>
                                 ))}
                               </div>

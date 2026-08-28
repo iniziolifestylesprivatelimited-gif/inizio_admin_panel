@@ -5,9 +5,9 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
 import {
   FiLogOut, FiMenu, FiX, FiUser,
-  FiBell, FiChevronDown, FiChevronRight,
+  FiBell, FiBellOff, FiChevronDown, FiChevronRight,
   FiMessageSquare, FiPackage, FiUserPlus, FiClock, FiAlertTriangle, FiFileText,
-  FiCheckCircle, FiVolume2, FiShield, FiArrowUp
+  FiCheckCircle, FiVolume2, FiShield, FiArrowUp, FiSettings
 } from 'react-icons/fi';
 import { getAccessibleMenus } from '../config/menus';
 import HeaderSearch from './HeaderSearch';
@@ -20,7 +20,11 @@ import {
   getNotificationPermission,
   requestBrowserNotificationPermission,
   showBrowserNotification,
-  playNotificationSound
+  playNotificationSound,
+  getNotificationSettings,
+  saveNotificationSettings,
+  isBrowserAlertsEnabled,
+  isToastAlertsEnabled
 } from '../utils/browserNotifications';
 
 const Layout = () => {
@@ -131,7 +135,55 @@ const Layout = () => {
   const [brokenImagesUnreadCount, setBrokenImagesUnreadCount] = useState(0);
   const [showPermissionBanner, setShowPermissionBanner] = useState(false);
   const [browserPermission, setBrowserPermission] = useState(() => getNotificationPermission());
+  const [browserAlertsEnabled, setBrowserAlertsEnabled] = useState(() => isBrowserAlertsEnabled());
   const navigation = useNavigate();
+
+  // Listen for native browser permission changes, window focus, and in-app settings changes
+  useEffect(() => {
+    const updatePerm = () => {
+      setBrowserPermission(getNotificationPermission());
+      setBrowserAlertsEnabled(isBrowserAlertsEnabled());
+    };
+
+    updatePerm();
+    window.addEventListener('focus', updatePerm);
+
+    const onSettingsChange = (e) => {
+      if (e?.detail) {
+        setBrowserAlertsEnabled(e.detail.browserAlertsEnabled !== false);
+      } else {
+        setBrowserAlertsEnabled(isBrowserAlertsEnabled());
+      }
+    };
+    window.addEventListener('inizio:notification-settings-changed', onSettingsChange);
+
+    let permStatus = null;
+    if (typeof navigator !== 'undefined' && navigator.permissions && navigator.permissions.query) {
+      navigator.permissions.query({ name: 'notifications' })
+        .then(status => {
+          permStatus = status;
+          status.onchange = () => {
+            setBrowserPermission(status.state || getNotificationPermission());
+          };
+        })
+        .catch(() => {});
+    }
+
+    return () => {
+      window.removeEventListener('focus', updatePerm);
+      window.removeEventListener('inizio:notification-settings-changed', onSettingsChange);
+      if (permStatus) permStatus.onchange = null;
+    };
+  }, []);
+
+  // Also sync permission whenever the notifications dropdown is opened
+  useEffect(() => {
+    if (isNotificationsDropdownOpen) {
+      setBrowserPermission(getNotificationPermission());
+      setBrowserAlertsEnabled(isBrowserAlertsEnabled());
+    }
+  }, [isNotificationsDropdownOpen]);
+
   const prevContactsRef = useRef([]);
   const isInitialLoad = useRef(true);
   const prevOrdersRef = useRef(null);
@@ -146,7 +198,10 @@ const Layout = () => {
   const prevFailedImagesRef = useRef(new Set());
   const recentToastsRef = useRef(new Map());
 
-  const addToast = (title, message, path, IconComponent = FiBell, tag) => {
+  const addToast = (title, message, path, IconComponent = FiBell, tag, category) => {
+    if (!isToastAlertsEnabled(category)) {
+      return;
+    }
     const key = `${title}:${message}`;
     const now = Date.now();
     // Prevent identical toast from being triggered within 4 seconds
@@ -164,28 +219,48 @@ const Layout = () => {
     });
 
     // If the window/tab is in the background or hidden, trigger native Chrome/OS notification.
-    // If the user is actively viewing the tab, show the in-app toast + play sound without duplicate OS banners.
     if (document.hidden || !document.hasFocus()) {
       showBrowserNotification({
         title,
         body: message,
         path,
         tag: tag || `inizio-${title.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+        category,
         navigate: navigation
       });
     } else {
       playNotificationSound();
     }
 
+    const duration = getNotificationSettings().toastDuration || 6000;
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
-    }, 6000);
+    }, duration);
   };
 
   const handleRequestBrowserPermission = async () => {
-    const res = await requestBrowserNotificationPermission();
-    setBrowserPermission(res);
-    setShowPermissionBanner(false);
+    try {
+      const res = await requestBrowserNotificationPermission();
+      const current = getNotificationPermission();
+      const finalPerm = (res === 'granted' || current === 'granted') ? 'granted' : (res || current);
+      setBrowserPermission(finalPerm);
+      setShowPermissionBanner(false);
+
+      if (finalPerm === 'granted') {
+        saveNotificationSettings({ browserAlertsEnabled: true });
+        setBrowserAlertsEnabled(true);
+        handleTestBrowserNotification();
+      }
+    } catch (err) {
+      console.error('Error requesting browser notification permission:', err);
+      setBrowserPermission(getNotificationPermission());
+    }
+  };
+
+  const handleTurnOffBrowserAlerts = (e) => {
+    e?.stopPropagation?.();
+    saveNotificationSettings({ browserAlertsEnabled: false });
+    setBrowserAlertsEnabled(false);
   };
 
   const handleTestBrowserNotification = () => {
@@ -193,6 +268,7 @@ const Layout = () => {
       title: 'Inizio Admin Test Alert',
       body: 'Browser notifications are working perfectly! You will be alerted when new orders or requests arrive.',
       path: '/orders/all',
+      tag: `test-alert-${Date.now()}`,
       navigate: navigation
     });
   };
@@ -440,7 +516,8 @@ const Layout = () => {
                 `From ${contact.name || 'Customer'}: ${contact.lastMessage || 'You received a new message.'}`,
                 '/chat',
                 FiMessageSquare,
-                `chat-${contact.userId}`
+                `chat-${contact.userId}`,
+                'chat'
               );
             }
           }
@@ -548,7 +625,9 @@ const Layout = () => {
               `New Order Received`,
               `You have received ${countDiff} new order${countDiff > 1 ? 's' : ''} to process.`,
               '/orders/all',
-              FiPackage
+              FiPackage,
+              'orders',
+              'orders'
             );
           }
 
@@ -561,7 +640,9 @@ const Layout = () => {
               `New Registration`,
               `${countDiff} new user${countDiff > 1 ? 's' : ''} registered recently.`,
               '/users/list',
-              FiUserPlus
+              FiUserPlus,
+              'users',
+              'users'
             );
           }
 
@@ -575,7 +656,9 @@ const Layout = () => {
               `Pending Verification`,
               `${countDiff} user${countDiff > 1 ? 's' : ''} pending verification.`,
               '/users/list?tab=pending',
-              FiClock
+              FiClock,
+              'verify',
+              'users'
             );
           }
 
@@ -589,7 +672,9 @@ const Layout = () => {
               `Account Deletion Request`,
               `${countDiff} account deletion request${countDiff > 1 ? 's' : ''} pending.`,
               '/users/list?tab=deleted',
-              FiAlertTriangle
+              FiAlertTriangle,
+              'deletion',
+              'users'
             );
           }
 
@@ -602,7 +687,9 @@ const Layout = () => {
               `New Quote Request`,
               `You have received ${countDiff} new quote request${countDiff > 1 ? 's' : ''} to review.`,
               '/quotes',
-              FiFileText
+              FiFileText,
+              'quotes',
+              'quotes'
             );
           }
 
@@ -613,8 +700,10 @@ const Layout = () => {
             addToast(
               `Broken Image Alert`,
               `${countDiff} new broken image${countDiff > 1 ? 's' : ''} reported by the app.`,
-              '/products/broken-images',
-              FiAlertTriangle
+              '/products/list',
+              FiAlertTriangle,
+              'broken-images',
+              'brokenImages'
             );
           }
         }
@@ -1345,7 +1434,52 @@ const Layout = () => {
                   </div>
 
                   {/* Desktop Browser Notification Status Bar */}
-                  {browserPermission !== 'granted' ? (
+                  {browserPermission === 'granted' && browserAlertsEnabled ? (
+                    <div className="mx-3 my-2 px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center justify-between text-xs">
+                      <span className="text-emerald-400 font-bold flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        Browser Desktop Alerts Active
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={handleTestBrowserNotification}
+                          className="text-xs text-slate-400 hover:text-white font-bold underline transition-colors cursor-pointer"
+                          title="Send a test notification"
+                        >
+                          Test
+                        </button>
+                        <span className="text-slate-600">|</span>
+                        <button
+                          type="button"
+                          onClick={handleTurnOffBrowserAlerts}
+                          className="text-xs text-rose-400 hover:text-rose-300 font-bold hover:underline transition-colors cursor-pointer"
+                          title="Turn off desktop alerts"
+                        >
+                          Turn Off
+                        </button>
+                      </div>
+                    </div>
+                  ) : browserPermission === 'denied' ? (
+                    <div className="mx-3 my-2 p-3 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center justify-between gap-3 shadow-inner">
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-2 rounded-xl bg-rose-500/20 text-rose-400 shrink-0">
+                          <FiBellOff size={16} />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-rose-300 leading-tight">Notifications Blocked</p>
+                          <p className="text-[10px] text-slate-400">Please enable notifications in your browser address bar settings.</p>
+                        </div>
+                      </div>
+                      <Link
+                        to="/settings/notifications"
+                        onClick={() => setIsNotificationsDropdownOpen(false)}
+                        className="px-2.5 py-1 text-[10px] font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 rounded-xl transition-all cursor-pointer shrink-0"
+                      >
+                        Settings
+                      </Link>
+                    </div>
+                  ) : (
                     <div className="mx-3 my-2 p-3 bg-gradient-to-r from-blue-600/20 via-indigo-600/20 to-blue-600/20 border border-blue-500/30 rounded-2xl flex items-center justify-between gap-3 shadow-inner">
                       <div className="flex items-center gap-2.5">
                         <div className="p-2 rounded-xl bg-blue-500/20 text-blue-400">
@@ -1357,23 +1491,11 @@ const Layout = () => {
                         </div>
                       </div>
                       <button
+                        type="button"
                         onClick={handleRequestBrowserPermission}
                         className="px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-all cursor-pointer shadow-md shrink-0 active:scale-95"
                       >
                         Enable Alerts
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="mx-3 my-2 px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center justify-between text-xs">
-                      <span className="text-emerald-400 font-bold flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                        Browser Desktop Alerts Active
-                      </span>
-                      <button
-                        onClick={handleTestBrowserNotification}
-                        className="text-xs text-slate-400 hover:text-white font-bold underline transition-colors cursor-pointer"
-                      >
-                        Test Notification
                       </button>
                     </div>
                   )}
@@ -1418,6 +1540,18 @@ const Layout = () => {
                         </div>
                       ))
                     )}
+                  </div>
+
+                  {/* Dropdown footer link to notification settings */}
+                  <div className="px-3.5 py-2 border-t border-white/5 bg-slate-950/40 flex items-center justify-between text-[10px] text-slate-400">
+                    <span>Alert preferences</span>
+                    <Link
+                      to="/settings/notifications"
+                      onClick={() => setIsNotificationsDropdownOpen(false)}
+                      className="text-blue-400 hover:text-blue-300 font-bold flex items-center gap-1 hover:underline transition-colors"
+                    >
+                      <FiSettings size={11} /> Settings
+                    </Link>
                   </div>
                 </div>
               )}

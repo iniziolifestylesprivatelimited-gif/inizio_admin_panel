@@ -8,7 +8,7 @@ import {
 import {
   FiAlertCircle, FiCopy, FiGlobe, FiUsers, FiUser,
   FiUserCheck, FiLayers, FiBox, FiTrendingUp, FiLink, FiCheck, FiX, FiSearch,
-  FiChevronLeft, FiChevronRight
+  FiChevronLeft, FiChevronRight, FiBarChart2
 } from 'react-icons/fi';
 import { DiAndroid, DiApple } from "react-icons/di";
 import axios from 'axios';
@@ -16,7 +16,7 @@ import { api, BASE_URL } from '../api/axios';
 import CustomDropdown from '../Components/CustomDropdown';
 import Card from '../Components/Card';
 import PageHeader from '../Components/PageHeader';
-import { formatDateDDMMYYYY } from '../utils/dateUtils';
+import { formatDateDDMMYYYY, formatDateTimeDDMMYYYY } from '../utils/dateUtils';
 import { TableRowSkeleton } from '../Components/Skeleton';
 import { useConfirm } from '../Context/ConfirmationContext';
 import appIconImg from '../assets/app_icon.png';
@@ -69,7 +69,7 @@ const Notifications = () => {
   const [historySearchQuery, setHistorySearchQuery] = useState('');
   const [currentHistoryPage, setCurrentHistoryPage] = useState(1);
   const [recipientsMap, setRecipientsMap] = useState({});
-  const historyItemsPerPage = 5;
+  const historyItemsPerPage = 10;
 
   // Fetch history of campaigns
   const fetchCampaignHistory = async () => {
@@ -914,131 +914,206 @@ const Notifications = () => {
         </Card>
 
         {/* Bottom Section: Notification History */}
-        <Card className="xl:col-span-12 sm:p-8 flex flex-col max-h-[105vh] min-h-[70vh]">
-          <div className="flex justify-between items-center mb-6 shrink-0">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <MdHistory className="text-blue-400" /> Notification History
-            </h2>
-            <button
-              onClick={fetchCampaignHistory}
-              disabled={loadingHistory}
-              className="p-2 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-all disabled:opacity-50 cursor-pointer"
-              title="Refresh History"
-            >
-              <MdRefresh size={20} className={loadingHistory ? "animate-spin" : ""} />
-            </button>
-          </div>
+        <Card className="xl:col-span-12 !p-0 overflow-hidden flex flex-col">
+          {/* Table Header & Controls */}
+          <div className="p-5 sm:p-6 pb-4 border-b border-white/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
+                <MdHistory size={22} />
+              </div>
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight flex items-center gap-2">
+                  Notification History
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  View and manage previously sent push notification campaigns
+                </p>
+              </div>
+            </div>
 
-          {/* Search History Bar */}
-          <div className="relative mb-5 shrink-0">
-            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
-            <input
-              type="text"
-              placeholder="Search history by title, description or ID..."
-              value={historySearchQuery}
-              onChange={(e) => setHistorySearchQuery(e.target.value)}
-              className="w-full pl-11 pr-11 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 text-sm font-medium transition-all"
-            />
-            {historySearchQuery && (
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              {/* Search History Bar */}
+              <div className="relative flex-1 sm:w-72">
+                <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
+                <input
+                  type="text"
+                  placeholder="Search by title, message or ID..."
+                  value={historySearchQuery}
+                  onChange={(e) => setHistorySearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-9 py-2 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 text-xs font-medium transition-all"
+                />
+                {historySearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setHistorySearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  >
+                    <FiX size={14} />
+                  </button>
+                )}
+              </div>
+
               <button
-                type="button"
-                onClick={() => setHistorySearchQuery('')}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                onClick={fetchCampaignHistory}
+                disabled={loadingHistory}
+                className="p-2 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-all disabled:opacity-50 cursor-pointer shrink-0"
+                title="Refresh History"
               >
-                <FiX className="w-4 h-4" />
+                <MdRefresh size={18} className={loadingHistory ? "animate-spin" : ""} />
               </button>
-            )}
+            </div>
           </div>
 
           {errorHistory && (
-            <div className="text-red-400 bg-red-900/20 p-4 rounded-xl border border-red-500/30 flex items-center mb-4 shrink-0">
-              <FiAlertCircle className="mr-2 text-lg" /> {errorHistory}
+            <div className="m-4 text-red-400 bg-red-900/20 p-4 rounded-xl border border-red-500/30 flex items-center">
+              <FiAlertCircle className="mr-2 text-lg shrink-0" /> {errorHistory}
             </div>
           )}
 
-          <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar flex-1">
-            {loadingHistory && campaigns.length === 0 ? (
-              <div className="space-y-4">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="p-5 border border-white/10 rounded-2xl bg-white/[0.01] animate-pulse flex gap-4">
-                    <div className="w-24 h-16 bg-white/5 rounded-xl shrink-0" />
-                    <div className="flex-1 space-y-3">
-                      <div className="h-4 bg-white/5 rounded-lg w-1/3" />
-                      <div className="h-3 bg-white/5 rounded-lg w-3/4" />
-                      <div className="h-3 bg-white/5 rounded-lg w-1/2" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : campaigns.length === 0 ? (
-              <p className="text-slate-400 italic text-center py-12">No notification history found.</p>
-            ) : filteredCampaigns.length === 0 ? (
-              <p className="text-slate-400 italic text-center py-12">No matching notifications found.</p>
-            ) : (
-              currentHistoryCampaigns.map((item) => (
-                <div
-                  key={item.campaignId}
-                  onClick={() => navigate(`/campaign-stats/${item.campaignId}`, { state: { from: '/notifications' } })}
-                  className="p-5 border border-white/10 rounded-2xl bg-slate-800/10 hover:bg-white/5 transition-all flex flex-col sm:flex-row gap-4 relative group cursor-pointer"
-                >
-                  {item.imageUrl && (
-                    <div className="w-full sm:w-24 h-16 shrink-0 rounded-xl overflow-hidden border border-white/10 bg-slate-800/50 flex items-center justify-center">
-                      <img src={item.imageUrl} alt="Notification media" className="max-w-full max-h-full object-contain" onError={(e) => e.target.src = 'https://placehold.co/100x100?text=Error'} />
-                    </div>
-                  )}
-
-                  <div className="flex-1 min-w-0 flex flex-col justify-between">
-                    <div>
-                      <div className="flex justify-between items-start gap-4 mb-1">
-                        <h3 className="font-bold text-white tracking-tight text-sm leading-snug truncate">{item.title}</h3>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleReuse(item);
-                            }}
-                            className="p-1.5 bg-blue-600/15 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg border border-blue-500/20 transition-all text-xs font-bold cursor-pointer flex items-center gap-1"
-                            title="Reuse Notification Content"
-                          >
-                            <FiCopy size={12} /> Reuse
-                          </button>
-                          <span className="text-[9px] text-slate-400 font-semibold bg-white/5 px-2 py-0.5 rounded border border-white/10">
-                            {item.createdAt ? formatDateDDMMYYYY(item.createdAt) : ''}
-                          </span>
-                        </div>
+          {/* Table Container */}
+          <div className="overflow-x-auto custom-scrollbar flex-1">
+            <table className="w-full text-left border-collapse whitespace-nowrap min-w-[900px]">
+              <thead className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-md shadow-sm border-b border-white/10 text-[11px] uppercase tracking-wider text-slate-400">
+                <tr>
+                  <th className="p-4 font-bold text-center w-14">S.No</th>
+                  <th className="p-4 font-bold">Campaign</th>
+                  <th className="p-4 font-bold">Message & Date</th>
+                  {/* <th className="p-4 font-bold text-center">Platform</th> */}
+                  <th className="p-4 font-bold">Sent To</th>
+                  {/* <th className="p-4 font-bold">Click Action</th> */}
+                  <th className="p-4 font-bold text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5 text-sm">
+                {loadingHistory && campaigns.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="p-6">
+                      <TableRowSkeleton columns={7} rows={5} />
+                    </td>
+                  </tr>
+                ) : campaigns.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-16 text-center">
+                      <div className="flex flex-col items-center justify-center text-slate-400">
+                        <MdHistory className="text-4xl text-slate-500 mb-2" />
+                        <p className="font-medium text-sm">No notification history found.</p>
                       </div>
+                    </td>
+                  </tr>
+                ) : filteredCampaigns.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-16 text-center">
+                      <div className="flex flex-col items-center justify-center text-slate-400">
+                        <FiSearch className="text-4xl text-slate-500 mb-2" />
+                        <p className="font-medium text-sm">No matching notifications found.</p>
+                        <button
+                          onClick={() => setHistorySearchQuery('')}
+                          className="mt-3 px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 font-bold rounded-lg border border-blue-500/30 text-xs transition-colors cursor-pointer"
+                        >
+                          Clear Search
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  currentHistoryCampaigns.map((item, index) => {
+                    const rowNumber = indexOfFirstHistoryItem + index + 1;
+                    const plat = (item.platform || 'all').toLowerCase();
 
-                      <p className="text-xs text-slate-300 leading-relaxed line-clamp-2" title={item.message}>{item.message}</p>
-                    </div>
+                    return (
+                      <tr
+                        key={item.campaignId || index}
+                        onClick={() => navigate(`/campaign-stats/${item.campaignId}`, { state: { from: '/notifications' } })}
+                        className="hover:bg-white/[0.03] cursor-pointer transition-colors group"
+                      >
+                        {/* S.No */}
+                        <td className="p-4 text-xs text-slate-400 text-center font-medium">
+                          {rowNumber}
+                        </td>
 
-                    <div className="mt-2 pt-2 border-t border-white/5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-400">
-                      {item.campaignId && (
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-bold text-slate-500 uppercase tracking-wider text-[9px]">Sent To:</span>
+                        {/* Campaign (Thumbnail + Title + ID) */}
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            {item.imageUrl ? (
+                              <img
+                                src={item.imageUrl}
+                                alt="Notification media"
+                                className="w-10 h-10 rounded-lg object-cover border border-white/10 shrink-0 bg-slate-800"
+                                onError={(e) => { e.target.src = 'https://placehold.co/40x40?text=Img'; }}
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center border border-blue-500/20 shrink-0">
+                                <MdImage className="text-lg" />
+                              </div>
+                            )}
+                            <div className="flex flex-col min-w-0 max-w-[220px]">
+                              <span className="font-bold text-white text-xs sm:text-sm truncate group-hover:text-blue-400 transition-colors" title={item.title}>
+                                {item.title}
+                              </span>
+                              <span className="text-[10px] text-slate-500 font-mono tracking-wider truncate mt-0.5" title={item.campaignId}>
+                                ID: {item.campaignId}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Message & Date */}
+                        <td className="p-4 max-w-[280px]">
+                          <p className="text-xs text-slate-300 truncate whitespace-normal line-clamp-2 leading-relaxed" title={item.message}>
+                            {item.message}
+                          </p>
+                          <div className="text-[10px] text-slate-500 font-semibold mt-1">
+                            {item.createdAt ? formatDateTimeDDMMYYYY(item.createdAt) : '-'}
+                          </div>
+                        </td>
+
+                        {/* Platform */}
+                        {/* <td className="p-4 text-center">
+                          {plat === 'android' ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-green-500/10 text-green-400 border border-green-500/20">
+                              <DiAndroid size={13} /> Android
+                            </span>
+                          ) : plat === 'ios' ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-slate-500/10 text-slate-300 border border-slate-500/20">
+                              <DiApple size={13} /> iOS
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                              <FiGlobe size={11} /> All Platforms
+                            </span>
+                          )}
+                        </td> */}
+
+                        {/* Sent To */}
+                        <td className="p-4">
                           {(() => {
                             const recipients = recipientsMap[item.campaignId];
                             if (recipients === undefined) {
                               return (
-                                <span className="inline-flex items-center gap-1 text-[10px] text-slate-500">
+                                <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-500">
                                   <span className="w-2.5 h-2.5 border border-slate-500 border-t-transparent rounded-full animate-spin"></span>
                                   Loading...
                                 </span>
                               );
                             }
                             if (recipients.length === 0) {
-                              return <span className="text-slate-400 font-semibold bg-white/5 px-2 py-0.5 rounded border border-white/5">All Users</span>;
+                              return (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-slate-300 font-semibold text-[11px]">
+                                  <FiUsers className="text-blue-400" size={12} /> All Users
+                                </span>
+                              );
                             }
                             const names = recipients.map(r => r.user?.name || r.user?.email || r.user?.phone || 'N/A');
-                            const limit = 5;
+                            const limit = 2;
                             const displayedNames = names.slice(0, limit);
                             const remaining = names.length - limit;
 
                             return (
-                              <div className="flex flex-wrap gap-1 items-center">
+                              <div className="flex flex-wrap gap-1 items-center max-w-[200px]">
                                 {displayedNames.map((name, idx) => (
                                   <span
                                     key={idx}
-                                    className="px-2 py-0.5 bg-blue-500/10 border border-blue-500/20 rounded text-blue-300 font-semibold text-[9px]"
+                                    className="px-2 py-0.5 bg-blue-500/10 border border-blue-500/20 rounded text-blue-300 font-medium text-[11px] truncate max-w-[110px]"
                                     title={name}
                                   >
                                     {name}
@@ -1046,38 +1121,67 @@ const Notifications = () => {
                                 ))}
                                 {remaining > 0 && (
                                   <span
-                                    className="px-2 py-0.5 bg-blue-500/20 border border-blue-500/30 rounded text-blue-400 font-bold text-[9px]"
+                                    className="px-1.5 py-0.5 bg-blue-500/20 border border-blue-500/30 rounded text-blue-400 font-bold text-[10px]"
                                     title={names.slice(limit).join(', ')}
                                   >
-                                    +{remaining} more
+                                    +{remaining}
                                   </span>
                                 )}
                               </div>
                             );
                           })()}
-                        </div>
-                      )}
-                      {item.clickAction && item.clickAction !== 'none' && (
-                        <div className="flex items-center ml-auto">
-                          <span className="w-1 h-1 rounded-full bg-blue-400 mr-1"></span>
-                          Action: <span className="font-semibold text-slate-200 capitalize">{item.clickAction}</span>
-                          {item.actionId && (
-                            <span className="ml-1 text-slate-400">
-                              ({getActionTargetName(item.clickAction, item.actionId)})
-                            </span>
+                        </td>
+
+                        {/* Click Action */}
+                        {/* <td className="p-4">
+                          {item.clickAction && item.clickAction !== 'none' ? (
+                            <div className="flex flex-col items-start gap-1">
+                              <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px] font-bold border border-blue-500/20 uppercase tracking-wide">
+                                {item.clickAction}
+                              </span>
+                              {item.actionId && (
+                                <span className="text-[10px] text-slate-400 font-medium truncate max-w-[140px]" title={getActionTargetName(item.clickAction, item.actionId)}>
+                                  {getActionTargetName(item.clickAction, item.actionId)}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-slate-500 text-xs font-medium">None</span>
                           )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
+                        </td> */}
+
+                        {/* Actions */}
+                        <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              onClick={() => handleReuse(item)}
+                              className="p-1.5 sm:px-2.5 sm:py-1.5 bg-blue-600/15 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg border border-blue-500/20 transition-all text-xs font-semibold cursor-pointer flex items-center gap-1.5 active:scale-95"
+                              title="Reuse Notification Content"
+                            >
+                              <FiCopy size={12} />
+                              <span className="hidden sm:inline">Reuse</span>
+                            </button>
+                            <button
+                              onClick={() => navigate(`/campaign-stats/${item.campaignId}`, { state: { from: '/notifications' } })}
+                              className="p-1.5 sm:px-2.5 sm:py-1.5 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-lg border border-white/10 transition-all text-xs font-semibold cursor-pointer flex items-center gap-1.5 active:scale-95"
+                              title="View Campaign Statistics"
+                            >
+                              <FiBarChart2 size={12} className="text-indigo-400" />
+                              <span className="hidden sm:inline">Stats</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
           </div>
 
           {/* Pagination Controls */}
           {totalHistoryPages > 1 && (
-            <div className="relative z-10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-transparent border-t border-white/10 pt-4 mt-4 shrink-0">
+            <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-900/40">
               <p className="text-xs text-slate-400">
                 Showing <span className="font-semibold text-white">{indexOfFirstHistoryItem + 1}</span> to <span className="font-semibold text-white">{Math.min(indexOfLastHistoryItem, filteredCampaigns.length)}</span> of <span className="font-semibold text-white">{filteredCampaigns.length}</span> entries
               </p>
@@ -1086,6 +1190,7 @@ const Notifications = () => {
                   onClick={() => setCurrentHistoryPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentHistoryPage === 1}
                   className="p-2 bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-white/5 text-slate-300 rounded-lg transition-colors cursor-pointer"
+                  title="Previous Page"
                 >
                   <FiChevronLeft className="text-sm" />
                 </button>
@@ -1116,6 +1221,7 @@ const Notifications = () => {
                   onClick={() => setCurrentHistoryPage(prev => Math.min(prev + 1, totalHistoryPages))}
                   disabled={currentHistoryPage === totalHistoryPages}
                   className="p-2 bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-white/5 text-slate-300 rounded-lg transition-colors cursor-pointer"
+                  title="Next Page"
                 >
                   <FiChevronRight className="text-sm" />
                 </button>
