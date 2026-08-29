@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { 
   FiBell, FiBellOff, FiVolume2, FiVolumeX, FiCheckCircle, 
   FiAlertTriangle, FiSliders, FiShoppingCart, FiFileText, 
-  FiUsers, FiMessageCircle, FiImage, FiSend, FiRefreshCw, FiExternalLink
+  FiUsers, FiMessageCircle, FiImage, FiSend, FiRefreshCw, FiExternalLink,
+  FiServer
 } from 'react-icons/fi';
 import PageHeader from '../../../Components/PageHeader';
 import Card from '../../../Components/Card';
@@ -21,6 +22,7 @@ const NotificationSettings = () => {
   const [browserPermission, setBrowserPermission] = useState(() => getNotificationPermission());
   const [savedMessage, setSavedMessage] = useState('');
   const isSupported = isBrowserNotificationSupported();
+  const isSecure = typeof window !== 'undefined' ? (window.isSecureContext ?? true) : true;
 
   useEffect(() => {
     const updatePerm = () => {
@@ -169,6 +171,15 @@ const NotificationSettings = () => {
                   ? 'Notifications are blocked in your browser site settings. Click the tune/padlock icon in the URL bar to allow notifications.'
                   : 'Click the button below to grant permission and activate background desktop notifications.'}
               </p>
+
+              {!isSecure && (
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex items-start gap-2.5">
+                  <FiAlertTriangle className="shrink-0 mt-0.5 text-amber-400" size={15} />
+                  <span>
+                    <strong>HTTP Insecure Context Detected:</strong> Chrome blocks native desktop notifications over non-HTTPS connections. Access this panel via <strong>HTTPS</strong> (e.g. <code>https://...</code>) or rely on the In-App Floating Toasts & Audio Chimes below.
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -426,6 +437,32 @@ const NotificationSettings = () => {
                 checked={settings.categories?.brokenImages} 
                 onChange={() => {}} 
                 className="w-4 h-4 rounded text-rose-600 bg-slate-800 border-white/20 focus:ring-rose-500 cursor-pointer" 
+              />
+            </div>
+
+            {/* API Requests */}
+            <div 
+              onClick={() => handleToggleCategory('apiRequests')}
+              className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+                settings.categories?.apiRequests
+                  ? 'bg-cyan-500/10 border-cyan-500/30'
+                  : 'bg-slate-950/40 border-white/5 opacity-60'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-cyan-500/20 text-cyan-400">
+                  <FiServer size={18} />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-white">API Requests</h4>
+                  <p className="text-[10px] text-slate-400">Incoming API calls & webhook activity</p>
+                </div>
+              </div>
+              <input 
+                type="checkbox" 
+                checked={settings.categories?.apiRequests} 
+                onChange={() => {}} 
+                className="w-4 h-4 rounded text-cyan-600 bg-slate-800 border-white/20 focus:ring-cyan-500 cursor-pointer" 
               />
             </div>
           </div>

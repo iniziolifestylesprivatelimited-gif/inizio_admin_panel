@@ -2817,10 +2817,10 @@ const ActivityDetails = () => {
               title: "App Lock Secured",
               value: `${data.filter(u => u.isAppLockEnabled).length} Users`,
               icon: FiShield,
-              color: "text-teal-400",
-              bg: "bg-teal-500/20",
-              fromColor: "from-teal-500/25",
-              hoverBorder: "hover:border-teal-500/30"
+              color: "text-rose-400",
+              bg: "bg-rose-500/20",
+              fromColor: "from-rose-500/25",
+              hoverBorder: "hover:border-rose-500/30"
             }
           ].map((metric, index) => (
             <Card
@@ -2853,7 +2853,7 @@ const ActivityDetails = () => {
       {type === 'analytics' && extraData.funnel && (
         <div className="space-y-6 z-10 relative">
           {/* KPI Cards Row */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
             {[
               {
                 title: "Active Carts",
@@ -2899,24 +2899,6 @@ const ActivityDetails = () => {
                 bg: "bg-purple-500/20",
                 fromColor: "from-purple-500/25",
                 hoverBorder: "hover:border-purple-500/30"
-              },
-              {
-                title: "Cart → Checkout",
-                value: extraData.funnel?.conversionRates?.cartToCheckout || '0.0%',
-                icon: FiPercent,
-                color: "text-cyan-400",
-                bg: "bg-cyan-500/20",
-                fromColor: "from-cyan-500/25",
-                hoverBorder: "hover:border-cyan-500/30"
-              },
-              {
-                title: "Checkout → Buy",
-                value: extraData.funnel?.conversionRates?.checkoutToPurchase || '0.0%',
-                icon: FiPercent,
-                color: "text-emerald-400",
-                bg: "bg-emerald-500/20",
-                fromColor: "from-emerald-500/25",
-                hoverBorder: "hover:border-emerald-500/30"
               }
             ].map((metric, index) => (
               <Card

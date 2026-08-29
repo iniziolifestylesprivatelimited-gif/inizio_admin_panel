@@ -16,7 +16,8 @@ export const DEFAULT_NOTIFICATION_SETTINGS = {
     quotes: true,
     users: true,
     chat: true,
-    brokenImages: true
+    brokenImages: true,
+    apiRequests: true
   }
 };
 

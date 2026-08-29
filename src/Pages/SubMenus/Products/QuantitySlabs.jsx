@@ -462,7 +462,7 @@ export default function QuantitySlabs() {
         {/* Left Side: Configuration Builder (Col span 5) */}
         <div className="lg:col-span-5 flex flex-col h-full">
           {/* Slab Settings Box */}
-          <div className="bg-slate-950/50 border border-white/10 backdrop-blur-2xl rounded-3xl p-5 md:p-6 shadow-xl flex flex-col justify-between h-full space-y-5">
+          <div className="bg-linear-to-br from-transparent to-blue-950/65 border border-white/10 backdrop-blur-2xl rounded-3xl p-5 md:p-6 shadow-xl flex flex-col justify-between h-full space-y-5">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
               <span className="w-1.5 h-5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"></span>
               Slab Pricing Rules
@@ -641,7 +641,7 @@ export default function QuantitySlabs() {
         {/* Right Side: Product Selection & Preview Grid (Col span 7) */}
         <div className="lg:col-span-7 flex flex-col h-full">
           {/* Products & Filters Box */}
-          <div className="bg-slate-950/50 border border-white/10 backdrop-blur-2xl rounded-3xl p-5 md:p-6 shadow-xl flex flex-col justify-between h-full space-y-5">
+          <div className="bg-linear-to-br from-transparent to-blue-950/65 border border-white/10 backdrop-blur-2xl rounded-3xl p-5 md:p-6 shadow-xl flex flex-col justify-between h-full space-y-5">
             <h2 className="text-lg font-bold text-white flex items-center justify-between">
               <span className="flex items-center gap-2">
                 <span className="w-1.5 h-5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"></span>
@@ -742,8 +742,8 @@ export default function QuantitySlabs() {
                 <div className="text-sm font-medium">No products match the selected criteria.</div>
               </div>
             ) : (
-              <div className="space-y-4 flex-1 flex flex-col justify-between">
-                <div className="overflow-auto custom-scrollbar max-h-[580px] rounded-2xl border border-white/5 bg-slate-950/40 flex-1">
+              <div className="space-y-4 flex-1 flex flex-wrap flex-col justify-between">
+                <div className="overflow-auto custom-scrollbar max-h-[700px] rounded-2xl border border-white/5 bg-slate-950/40 flex-1">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-md shadow-md">
                       <tr className="bg-slate-900/80 border-b border-white/5 text-slate-400 font-semibold">
@@ -804,7 +804,7 @@ export default function QuantitySlabs() {
                             {/* Name / Info */}
                             <td className="p-3 align-top max-w-[200px]">
                               <div className="flex gap-2">
-                                {product.images && product.images[0] ? (
+                                {/* {product.images && product.images[0] ? (
                                   <img
                                     src={getImageUrl(product.images[0])}
                                     alt=""
@@ -815,7 +815,7 @@ export default function QuantitySlabs() {
                                   <div className="w-8 h-8 rounded-lg bg-slate-800 shrink-0 flex items-center justify-center border border-white/10 text-slate-500">
                                     <FiPackage size={14} />
                                   </div>
-                                )}
+                                )} */}
                                 <div>
                                   <div className="font-semibold text-slate-100 line-clamp-2">{product.name}</div>
                                   <div className="flex gap-1.5 items-center mt-1">
@@ -828,7 +828,7 @@ export default function QuantitySlabs() {
                                         Standard
                                       </span>
                                     )}
-                                    <span className="text-[10px] text-slate-500">{product.eanNumber || 'No EAN'}</span>
+                                    {/* <span className="text-[10px] text-slate-500">{product.eanNumber || 'No EAN'}</span> */}
                                   </div>
                                 </div>
                               </div>
@@ -841,7 +841,7 @@ export default function QuantitySlabs() {
                                   {basePriceField}: <span className="text-emerald-400 font-bold">₹{pBasePriceVal}</span>
                                 </div>
                                 <div className="text-[10px] text-slate-500">
-                                  Base: ₹{product.basePrice || 0} | Offer: ₹{product.offerPrice || 0}
+                                  Base Price: ₹{product.basePrice || 0}
                                 </div>
                               </div>
                             </td>
