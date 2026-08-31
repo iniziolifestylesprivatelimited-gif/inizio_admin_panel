@@ -7,38 +7,8 @@ import { useNavigate } from 'react-router-dom';
 import { api, BASE_URL } from '../api/axios';
 import { formatDateTimeDDMMYYYY } from '../utils/dateUtils';
 import CopyButton from './CopyButton';
-
-const getImageUrl = (path, options = {}) => {
-  if (!path) return '';
-  const { quality = 60, width = 300, isOriginal = false } = options;
-  let fullUrl = '';
-  if (path.startsWith('http') || path.startsWith('blob:')) {
-    fullUrl = path;
-  } else {
-    const cleanPath = path.replace(/\\/g, '/');
-    fullUrl = `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
-  }
-
-  if (isOriginal) return fullUrl;
-
-  // 1. Cloudinary transformations
-  if (fullUrl.includes('cloudinary.com') && fullUrl.includes('/upload/')) {
-    const transforms = [width ? `w_${width}` : '', quality ? `q_${quality}` : ''].filter(Boolean).join(',');
-    return fullUrl.replace('/upload/', `/upload/${transforms}/`);
-  }
-
-  // 2. WordPress Media Library URLs -> WordPress Photon CDN (i0.wp.com)
-  if (fullUrl.includes('/wp-content/uploads/')) {
-    const cleanHostPath = fullUrl.replace(/^https?:\/\//i, '');
-    const params = [];
-    if (width) params.push(`w=${width}`);
-    if (quality) params.push(`quality=${quality}`);
-    const query = params.length > 0 ? `?${params.join('&')}` : '';
-    return `https://i0.wp.com/${cleanHostPath}${query}`;
-  }
-
-  return fullUrl;
-};
+import { getImageUrl } from '../utils/imageUtils';
+import OptimizedImage from './OptimizedImage';
 
 const ProductDetailsModal = ({
   isOpen,
@@ -251,11 +221,12 @@ const ProductDetailsModal = ({
                         const firstImage = (product.images && product.images.length > 0 && product.images[0]) ||
                           (product.variants && product.variants.length > 0 && product.variants[0]?.images && product.variants[0]?.images[0]);
                         return firstImage ? (
-                          <img
-                            src={getImageUrl(firstImage)}
+                          <OptimizedImage
+                            src={firstImage}
                             alt={product.name || 'Product Image'}
+                            width={400}
+                            quality={75}
                             className="max-w-full max-h-full object-contain rounded-xl bg-white"
-                            onError={(e) => { e.target.src = 'https://placehold.co/200x200?text=No+Image'; }}
                           />
                         ) : (
                           <div className="flex flex-col items-center justify-center text-slate-500 gap-2">
@@ -501,11 +472,12 @@ const ProductDetailsModal = ({
                                           key={imgIdx}
                                           className="relative w-16 h-16 sm:w-20 sm:h-20 border border-white/10 rounded-xl overflow-hidden bg-slate-800 flex items-center justify-center shrink-0 shadow-sm"
                                         >
-                                          <img
-                                            src={getImageUrl(url, { width: 180, quality: 60 })}
+                                          <OptimizedImage
+                                            src={url}
                                             alt={`${variant.name || 'Variant'} image ${imgIdx + 1}`}
+                                            width={160}
+                                            quality={60}
                                             className="max-w-full max-h-full object-contain bg-white p-1.5"
-                                            onError={(e) => { e.target.src = 'https://placehold.co/150x150?text=Error'; }}
                                           />
                                         </div>
                                       ))}

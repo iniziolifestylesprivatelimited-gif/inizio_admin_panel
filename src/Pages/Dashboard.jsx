@@ -6,6 +6,7 @@ import {
   FiPackage, FiShoppingBag, FiExternalLink, FiPercent, FiSliders, FiArrowUpRight, FiTag, FiBarChart2, FiClock, FiUser
 } from 'react-icons/fi';
 import { BiRupee } from 'react-icons/bi';
+import { DiAndroid, DiApple } from 'react-icons/di';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import {
@@ -23,6 +24,8 @@ import Card from '../Components/Card';
 import CustomDropdown from '../Components/CustomDropdown';
 import CustomDatePicker from '../Components/CustomDatePicker';
 import ProductDetailsModal from '../Components/ProductDetailsModal';
+import { getPollingInterval } from '../utils/browserNotifications';
+import OptimizedImage from '../Components/OptimizedImage';
 
 
 
@@ -52,544 +55,717 @@ const checkAppStatus = (u) => {
   return 'pending';
 };
 
-// --- Sub-components for Expanding Chart Cards ---
+// --- Sub-components for Chart Cards (Fixed Grid with Details Modal) ---
 
-const SalesRevenueCard = ({ salesData, chartLabels, totalRev, expandedChart, setExpandedChart }) => {
-  const peakIndex = salesData.reduce((maxIdx, val, idx, arr) => val > arr[maxIdx] ? idx : maxIdx, 0);
-  const peakMonth = chartLabels[peakIndex] || 'N/A';
-  const peakAmount = salesData[peakIndex] || 0;
-  const avgMonthlyRev = totalRev / 6;
-
-  const currentMonthRev = salesData[5] || 0;
-  const prevMonthRev = salesData[4] || 0;
-  const revDiff = currentMonthRev - prevMonthRev;
-  const revPercent = prevMonthRev > 0 ? ((revDiff / prevMonthRev) * 100).toFixed(1) : '0';
-
-  const cardClass = `transition-all duration-500 ease-in-out overflow-hidden flex flex-col relative group ${
-    expandedChart === 'revenue'
-      ? 'w-full min-h-[420px] h-auto cursor-default opacity-100 scale-100 !p-6 border-white/20'
-      : expandedChart === null
-      ? 'w-full h-[380px] cursor-pointer hover:border-white/20 hover:scale-[1.01] opacity-100 scale-100 !p-6'
-      : 'hidden w-0 h-0 !p-0 !border-0 opacity-0 scale-95 pointer-events-none'
-  }`;
-
+const SalesRevenueCard = ({ salesData, chartLabels, onOpenDetails }) => {
   return (
     <Card 
-      onClick={() => { if (!expandedChart) setExpandedChart('revenue'); }}
-      className={cardClass}
+      className="w-full h-[390px] flex flex-col relative group cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-6"
     >
       <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-      {expandedChart === 'revenue' && (
-        <button
-          onClick={(e) => { e.stopPropagation(); setExpandedChart(null); }}
-          className="absolute top-6 right-6 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-xl border border-white/10 hover:border-white/20 transition-all cursor-pointer z-20"
-        >
-          <FiX size={16} />
-        </button>
-      )}
-      <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex justify-between items-start">
+      <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
         <div>
           <h3 className="text-sm font-bold text-white uppercase tracking-wider">Sales Revenue</h3>
           <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Historical sales trends & revenue growth</p>
         </div>
+        <button
+          onClick={(e) => { e.stopPropagation(); onOpenDetails(); }}
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 hover:border-white/20 transition-all text-xs font-semibold cursor-pointer shadow-sm group/btn"
+        >
+          <span>Details</span>
+          <FiExternalLink size={12} className="text-slate-400 group-hover/btn:text-white transition-colors" />
+        </button>
       </div>
-
-      <div className={`flex flex-col ${expandedChart === 'revenue' ? 'lg:flex-row' : ''} gap-6 flex-1 w-full z-10`}>
-        <div className={`transition-all duration-500 ease-in-out relative w-full z-10 ${expandedChart === 'revenue' ? 'lg:w-[65%] h-[280px] lg:h-auto lg:flex-1' : 'flex-1'}`}>
-          <VisxAreaChart labels={chartLabels} data={salesData} color="#3b82f6" valuePrefix="₹" />
-        </div>
-
-        <div className={`transition-all duration-500 ease-in-out w-full border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col justify-between overflow-hidden ${
-          expandedChart === 'revenue'
-            ? 'lg:w-[35%] pt-6 lg:pt-0 lg:pl-6 opacity-100 max-h-[1000px]'
-            : 'w-0 h-0 max-h-0 opacity-0 !p-0 !border-0'
-        }`}>
-          <div>
-            <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Detailed Revenue Metrics</h4>
-            <div className="space-y-4">
-              <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl">
-                <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Total Revenue (6m)</span>
-                <span className="text-xl font-black text-emerald-400 mt-1 block">₹{totalRev.toLocaleString('en-IN')}</span>
-              </div>
-              <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl flex justify-between">
-                <div>
-                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Peak Month</span>
-                  <span className="text-sm font-bold text-white mt-1 block">{peakMonth} (₹{peakAmount.toLocaleString('en-IN')})</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Monthly Avg</span>
-                  <span className="text-sm font-bold text-blue-400 mt-1 block">₹{avgMonthlyRev.toLocaleString('en-IN')}</span>
-                </div>
-              </div>
-              <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl flex items-center justify-between">
-                <div>
-                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Current Month Growth</span>
-                  <span className="text-xs font-bold text-slate-300 mt-1 block">
-                    {revDiff >= 0 ? '+' : ''}₹{revDiff.toLocaleString('en-IN')} vs last month
-                  </span>
-                </div>
-                <span className={`text-xs font-black px-2 py-0.5 rounded-md ${
-                  revDiff >= 0 
-                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                    : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                }`}>
-                  {revDiff >= 0 ? '+' : ''}{revPercent}%
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="text-[10px] text-slate-500 font-medium mt-6 border-t border-white/5 pt-3">
-            * All figures are aggregated across valid customer invoices.
-          </div>
-        </div>
+      <div className="flex-1 w-full relative z-10">
+        <VisxAreaChart labels={chartLabels} data={salesData} color="#3b82f6" valuePrefix="₹" />
       </div>
     </Card>
   );
 };
 
-const OrderVolumeCard = ({ deliveredCountData, processingCountData, cancelledCountData, chartLabels, ordersChartConfig, expandedChart, setExpandedChart }) => {
-  const totalDelivered = deliveredCountData.reduce((a, b) => a + b, 0);
-  const totalProcessing = processingCountData.reduce((a, b) => a + b, 0);
-  const totalCancelled = cancelledCountData.reduce((a, b) => a + b, 0);
-  const totalOrders = totalDelivered + totalProcessing + totalCancelled;
-  const successRate = totalOrders > 0 ? ((totalDelivered / totalOrders) * 100).toFixed(1) : '0.0';
-
-  const cardClass = `transition-all duration-500 ease-in-out overflow-hidden flex flex-col relative group ${
-    expandedChart === 'volume'
-      ? 'w-full min-h-[420px] h-auto cursor-default opacity-100 scale-100 !p-6 border-white/20'
-      : expandedChart === null
-      ? 'w-full h-[380px] cursor-pointer hover:border-white/20 hover:scale-[1.01] opacity-100 scale-100 !p-6'
-      : 'hidden w-0 h-0 !p-0 !border-0 opacity-0 scale-95 pointer-events-none'
-  }`;
-
+const OrderVolumeCard = ({ deliveredCountData, processingCountData, cancelledCountData, chartLabels, ordersChartConfig, onOpenDetails }) => {
   return (
     <Card 
-      onClick={() => { if (!expandedChart) setExpandedChart('volume'); }}
-      className={cardClass}
+      className="w-full h-[390px] flex flex-col relative group cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-6"
     >
       <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-      {expandedChart === 'volume' && (
-        <button
-          onClick={(e) => { e.stopPropagation(); setExpandedChart(null); }}
-          className="absolute top-6 right-6 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-xl border border-white/10 hover:border-white/20 transition-all cursor-pointer z-20"
-        >
-          <FiX size={16} />
-        </button>
-      )}
-      <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex justify-between items-start">
+      <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
         <div>
           <h3 className="text-sm font-bold text-white uppercase tracking-wider">Order Volume</h3>
           <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Number of orders received over time</p>
         </div>
+        <button
+          onClick={(e) => { e.stopPropagation(); onOpenDetails(); }}
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 hover:border-white/20 transition-all text-xs font-semibold cursor-pointer shadow-sm group/btn"
+        >
+          <span>Details</span>
+          <FiExternalLink size={12} className="text-slate-400 group-hover/btn:text-white transition-colors" />
+        </button>
       </div>
-
-      <div className={`flex flex-col ${expandedChart === 'volume' ? 'lg:flex-row' : ''} gap-6 flex-1 w-full z-10`}>
-        <div className={`transition-all duration-500 ease-in-out relative w-full z-10 ${expandedChart === 'volume' ? 'lg:w-[65%] h-[280px] lg:h-auto lg:flex-1' : 'flex-1'}`}>
-          <VisxStackedBarChart labels={chartLabels} series={ordersChartConfig.series} />
-        </div>
-
-        <div className={`transition-all duration-500 ease-in-out w-full border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col justify-between overflow-hidden ${
-          expandedChart === 'volume'
-            ? 'lg:w-[35%] pt-6 lg:pt-0 lg:pl-6 opacity-100 max-h-[1000px]'
-            : 'w-0 h-0 max-h-0 opacity-0 !p-0 !border-0'
-        }`}>
-          <div>
-            <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Detailed Volume Metrics</h4>
-            <div className="space-y-4">
-              <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl flex justify-between items-center">
-                <div>
-                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Total Orders</span>
-                  <span className="text-xl font-black text-indigo-400 mt-1 block">{totalOrders}</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Delivery Success</span>
-                  <span className="text-xl font-black text-emerald-400 mt-1 block">{successRate}%</span>
-                </div>
-              </div>
-
-              <div className="space-y-2.5">
-                <div>
-                  <div className="flex justify-between text-[10px] font-bold mb-1">
-                    <span className="text-slate-400">Delivered</span>
-                    <span className="text-emerald-400">{totalDelivered} ({totalOrders > 0 ? Math.round((totalDelivered/totalOrders)*100) : 0}%)</span>
-                  </div>
-                  <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${totalOrders > 0 ? (totalDelivered/totalOrders)*100 : 0}%` }}></div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between text-[10px] font-bold mb-1">
-                    <span className="text-slate-400">Processing</span>
-                    <span className="text-blue-400">{totalProcessing} ({totalOrders > 0 ? Math.round((totalProcessing/totalOrders)*100) : 0}%)</span>
-                  </div>
-                  <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" style={{ width: `${totalOrders > 0 ? (totalProcessing/totalOrders)*100 : 0}%` }}></div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between text-[10px] font-bold mb-1">
-                    <span className="text-slate-400">Cancelled</span>
-                    <span className="text-rose-400">{totalCancelled} ({totalOrders > 0 ? Math.round((totalCancelled/totalOrders)*100) : 0}%)</span>
-                  </div>
-                  <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full bg-rose-500 rounded-full" style={{ width: `${totalOrders > 0 ? (totalCancelled/totalOrders)*100 : 0}%` }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="text-[10px] text-slate-500 font-medium mt-6 border-t border-white/5 pt-3">
-            * Includes all orders created within the select range.
-          </div>
-        </div>
+      <div className="flex-1 w-full relative z-10">
+        <VisxStackedBarChart labels={chartLabels} series={ordersChartConfig.series} />
       </div>
     </Card>
   );
 };
 
-const BrandShareCard = ({ brandShare, brandShareSorted, products, expandedChart, setExpandedChart }) => {
-  const cardClass = `transition-all duration-500 ease-in-out overflow-hidden flex flex-col relative group ${
-    expandedChart === 'brand'
-      ? 'w-full min-h-[420px] h-auto cursor-default opacity-100 scale-100 !p-6 border-white/20'
-      : expandedChart === null
-      ? 'w-full h-[380px] cursor-pointer hover:border-white/20 hover:scale-[1.01] opacity-100 scale-100 !p-6'
-      : 'hidden w-0 h-0 !p-0 !border-0 opacity-0 scale-95 pointer-events-none'
-  }`;
-
+const BrandShareCard = ({ brandShare, onOpenDetails }) => {
   return (
     <Card 
-      onClick={() => { if (!expandedChart) setExpandedChart('brand'); }}
-      className={cardClass}
+      className="w-full h-[390px] flex flex-col relative group cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-6"
     >
       <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-      {expandedChart === 'brand' && (
-        <button
-          onClick={(e) => { e.stopPropagation(); setExpandedChart(null); }}
-          className="absolute top-6 right-6 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-xl border border-white/10 hover:border-white/20 transition-all cursor-pointer z-20"
-        >
-          <FiX size={16} />
-        </button>
-      )}
-      <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex justify-between items-start">
+      <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
         <div>
           <h3 className="text-sm font-bold text-white uppercase tracking-wider">Brand Share</h3>
           <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Product distribution across brands</p>
         </div>
+        <button
+          onClick={(e) => { e.stopPropagation(); onOpenDetails(); }}
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 hover:border-white/20 transition-all text-xs font-semibold cursor-pointer shadow-sm group/btn"
+        >
+          <span>Details</span>
+          <FiExternalLink size={12} className="text-slate-400 group-hover/btn:text-white transition-colors" />
+        </button>
       </div>
-
-      <div className={`flex flex-col ${expandedChart === 'brand' ? 'lg:flex-row' : ''} gap-6 flex-1 w-full z-10`}>
-        <div className={`transition-all duration-500 ease-in-out relative w-full z-10 ${expandedChart === 'brand' ? 'lg:w-[60%] h-[280px] lg:h-auto lg:flex-1' : 'flex-1'} flex items-center justify-center`}>
-          <VisxDonutChart data={brandShare} centerLabel="Products" />
-        </div>
-
-        <div className={`transition-all duration-500 ease-in-out w-full border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col justify-between overflow-hidden ${
-          expandedChart === 'brand'
-            ? 'lg:w-[40%] pt-6 lg:pt-0 lg:pl-6 opacity-100 max-h-[1000px]'
-            : 'w-0 h-0 max-h-0 opacity-0 !p-0 !border-0'
-        }`}>
-          <div>
-            <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">All Brand Distribution</h4>
-            <div className="max-h-[240px] overflow-y-auto pr-1 space-y-2 custom-scrollbar">
-              {(brandShareSorted || []).map((b, idx) => {
-                const percentage = products.length > 0 ? ((b.value / products.length) * 100).toFixed(1) : '0';
-                return (
-                  <div key={b.name || idx} className="flex items-center justify-between p-2 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors">
-                    <span className="text-xs font-bold text-slate-300">{b.name}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-white">{b.value} items</span>
-                      <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/10">{percentage}%</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          <div className="text-[10px] text-slate-500 font-medium mt-6 border-t border-white/5 pt-3">
-            * Total Catalog Size: {products.length} Products.
-          </div>
-        </div>
+      <div className="flex-1 w-full relative z-10 flex items-center justify-center">
+        <VisxDonutChart data={brandShare} centerLabel="Products" />
       </div>
     </Card>
   );
 };
 
-const AppVersionCard = ({ activityStats, expandedSecondRowChart, setExpandedSecondRowChart }) => {
-  const versions = activityStats?.deviceMetrics?.appVersions || [];
-  const totalDevices = versions.reduce((sum, v) => sum + (v.count || 0), 0);
+const AppVersionCard = ({ activityStats, users = [], onOpenDetails }) => {
+  const versions = React.useMemo(() => {
+    const versionMap = {};
+    let foundUserData = false;
 
-  const cardClass = `transition-all duration-500 ease-in-out overflow-hidden flex flex-col relative group ${
-    expandedSecondRowChart === 'version'
-      ? 'w-full min-h-[460px] h-auto cursor-default opacity-100 scale-100 !p-6 border-white/20'
-      : expandedSecondRowChart === null
-      ? 'w-full h-[420px] cursor-pointer hover:border-white/20 hover:scale-[1.01] opacity-100 scale-100 !p-6'
-      : 'hidden w-0 h-0 !p-0 !border-0 opacity-0 scale-95 pointer-events-none'
-  }`;
+    (users || []).forEach(u => {
+      const userDevices = Array.isArray(u.devices) && u.devices.length > 0 ? u.devices : [];
+      if (userDevices.length > 0) {
+        userDevices.forEach(d => {
+          const rawVer = (d.appVersion || u.appVersion || '').trim();
+          if (!rawVer || rawVer.toLowerCase() === 'unknown' || rawVer === '0.0.0' || rawVer === 'v0.0.0') return;
+          foundUserData = true;
+          const cleanVer = rawVer.replace(/^[vV]/, '');
+          const plat = (d.devicePlatform || d.platform || '').toLowerCase();
+          const isIos = plat === 'ios' || plat.includes('apple') || plat.includes('iphone') || plat.includes('ipad');
+
+          if (!versionMap[cleanVer]) {
+            versionMap[cleanVer] = { version: cleanVer, androidCount: 0, iosCount: 0, count: 0 };
+          }
+          if (isIos) {
+            versionMap[cleanVer].iosCount += 1;
+          } else {
+            versionMap[cleanVer].androidCount += 1;
+          }
+          versionMap[cleanVer].count += 1;
+        });
+      } else if (u.appVersion) {
+        const rawVer = String(u.appVersion).trim();
+        if (rawVer && rawVer.toLowerCase() !== 'unknown' && rawVer !== '0.0.0' && rawVer !== 'v0.0.0') {
+          foundUserData = true;
+          const cleanVer = rawVer.replace(/^[vV]/, '');
+          const plat = (u.devicePlatform || u.platform || '').toLowerCase();
+          const isIos = plat === 'ios' || plat.includes('apple') || plat.includes('iphone') || plat.includes('ipad');
+
+          if (!versionMap[cleanVer]) {
+            versionMap[cleanVer] = { version: cleanVer, androidCount: 0, iosCount: 0, count: 0 };
+          }
+          if (isIos) {
+            versionMap[cleanVer].iosCount += 1;
+          } else {
+            versionMap[cleanVer].androidCount += 1;
+          }
+          versionMap[cleanVer].count += 1;
+        }
+      }
+    });
+
+    if (foundUserData && Object.keys(versionMap).length > 0) {
+      return Object.values(versionMap).sort((a, b) => b.count - a.count);
+    }
+
+    const rawVersions = activityStats?.deviceMetrics?.appVersions || [];
+    return rawVersions.map(v => {
+      const vStr = String(v.version || '').toLowerCase();
+      const isExplicitIos = v.platform?.toLowerCase() === 'ios' || vStr.includes('ios') || vStr.includes('apple');
+      const isExplicitAndroid = v.platform?.toLowerCase() === 'android' || vStr.includes('android');
+      
+      const rawVer = String(v.version || '').trim();
+      let cleanVer = rawVer;
+      if (!rawVer || /^unknown/i.test(rawVer) || /^legacy/i.test(rawVer)) {
+        cleanVer = 'Legacy';
+      } else {
+        cleanVer = cleanVer.replace(/^[vV]/, '');
+      }
+
+      const androidCount = v.androidCount !== undefined 
+        ? v.androidCount 
+        : (isExplicitIos ? 0 : (v.count || 0));
+      const iosCount = v.iosCount !== undefined 
+        ? v.iosCount 
+        : (isExplicitIos ? (v.count || 0) : (isExplicitAndroid ? 0 : 0));
+
+      return {
+        ...v,
+        version: cleanVer,
+        androidCount,
+        iosCount,
+        count: v.count || (androidCount + iosCount)
+      };
+    });
+  }, [users, activityStats]);
 
   return (
     <Card
-      onClick={() => { if (!expandedSecondRowChart) setExpandedSecondRowChart('version'); }}
-      className={cardClass}
+      className="w-full h-[390px] flex flex-col relative group cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-6"
     >
       <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-      {expandedSecondRowChart === 'version' && (
-        <button
-          onClick={(e) => { e.stopPropagation(); setExpandedSecondRowChart(null); }}
-          className="absolute top-6 right-6 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-xl border border-white/10 hover:border-white/20 transition-all cursor-pointer z-20"
-        >
-          <FiX size={16} />
-        </button>
-      )}
-      <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
+      <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
         <div>
           <h3 className="text-sm font-bold text-white uppercase tracking-wider">App Version Distribution</h3>
           <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Registered devices per application release version</p>
         </div>
+        <button
+          onClick={(e) => { e.stopPropagation(); onOpenDetails(); }}
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 hover:border-white/20 transition-all text-xs font-semibold cursor-pointer shadow-sm group/btn"
+        >
+          <span>Details</span>
+          <FiExternalLink size={12} className="text-slate-400 group-hover/btn:text-white transition-colors" />
+        </button>
       </div>
-      <div className={`flex flex-col ${expandedSecondRowChart === 'version' ? 'lg:flex-row' : ''} gap-6 flex-1 w-full z-10`}>
-        <div className={`transition-all duration-500 ease-in-out relative w-full z-10 ${expandedSecondRowChart === 'version' ? 'lg:w-[65%] h-[280px] lg:h-auto lg:flex-1' : 'flex-1'}`}>
-          <VisxAppVersionsChart data={versions} />
-        </div>
-
-        <div className={`transition-all duration-500 ease-in-out w-full border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col justify-between overflow-hidden ${
-          expandedSecondRowChart === 'version'
-            ? 'lg:w-[35%] pt-6 lg:pt-0 lg:pl-6 opacity-100 max-h-[1000px]'
-            : 'w-0 h-0 max-h-0 opacity-0 !p-0 !border-0'
-        }`}>
-          <div>
-            <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Version Analytics</h4>
-            <div className="space-y-4">
-              <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl flex justify-between items-center">
-                <div>
-                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Total Active Devices</span>
-                  <span className="text-xl font-black text-blue-400 mt-1 block">{totalDevices}</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Versions Tracked</span>
-                  <span className="text-xl font-black text-emerald-400 mt-1 block">{versions.length}</span>
-                </div>
-              </div>
-
-              <div className="max-h-[220px] overflow-y-auto pr-1 space-y-2 custom-scrollbar">
-                {versions.map((v, idx) => {
-                  const pct = totalDevices > 0 ? ((v.count / totalDevices) * 100).toFixed(1) : '0';
-                  return (
-                    <div key={v.version || idx} className="flex items-center justify-between p-2 rounded-xl bg-white/[0.02] border border-white/5">
-                      <span className="text-xs font-bold text-slate-300">v{v.version || 'unknown'}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-white">{v.count} devices</span>
-                        <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/10">{pct}%</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-          <div className="text-[10px] text-slate-500 font-medium mt-6 border-t border-white/5 pt-3">
-            * App versions are reported automatically from client-side handshakes.
-          </div>
-        </div>
+      <div className="flex-1 w-full relative z-10">
+        <VisxAppVersionsChart data={versions} />
       </div>
     </Card>
   );
 };
 
-const NotificationsCard = ({ notificationsMetrics, expandedSecondRowChart, setExpandedSecondRowChart, setSelectedNotificationsSegment, setIsNotificationsModalOpen }) => {
-  const totalUsers = notificationsMetrics.enabled + notificationsMetrics.disabled;
-  const enabledPct = totalUsers > 0 ? ((notificationsMetrics.enabled / totalUsers) * 100).toFixed(1) : '0';
-  const disabledPct = totalUsers > 0 ? ((notificationsMetrics.disabled / totalUsers) * 100).toFixed(1) : '0';
-
-  const cardClass = `transition-all duration-500 ease-in-out overflow-hidden flex flex-col relative group ${
-    expandedSecondRowChart === 'notifications'
-      ? 'w-full min-h-[460px] h-auto cursor-default opacity-100 scale-100 !p-6 border-white/20'
-      : expandedSecondRowChart === null
-      ? 'w-full h-[420px] cursor-pointer hover:border-white/20 hover:scale-[1.01] opacity-100 scale-100 !p-6'
-      : 'hidden w-0 h-0 !p-0 !border-0 opacity-0 scale-95 pointer-events-none'
-  }`;
-
+const NotificationsCard = ({ notificationsMetrics, onOpenDetails, setSelectedNotificationsSegment, setIsNotificationsModalOpen }) => {
   return (
     <Card
-      onClick={() => { if (!expandedSecondRowChart) setExpandedSecondRowChart('notifications'); }}
-      className={cardClass}
+      className="w-full h-[390px] flex flex-col relative group cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-6"
     >
       <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-      {expandedSecondRowChart === 'notifications' && (
-        <button
-          onClick={(e) => { e.stopPropagation(); setExpandedSecondRowChart(null); }}
-          className="absolute top-6 right-6 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-xl border border-white/10 hover:border-white/20 transition-all cursor-pointer z-20"
-        >
-          <FiX size={16} />
-        </button>
-      )}
-      <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
+      <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
         <div>
           <h3 className="text-sm font-bold text-white uppercase tracking-wider">Push Alerts Permission</h3>
           <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Notification permissions enabled vs disabled ratio</p>
         </div>
+        <button
+          onClick={(e) => { e.stopPropagation(); onOpenDetails(); }}
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 hover:border-white/20 transition-all text-xs font-semibold cursor-pointer shadow-sm group/btn"
+        >
+          <span>Details</span>
+          <FiExternalLink size={12} className="text-slate-400 group-hover/btn:text-white transition-colors" />
+        </button>
       </div>
-      <div className={`flex flex-col ${expandedSecondRowChart === 'notifications' ? 'lg:flex-row' : ''} gap-6 flex-1 w-full z-10`}>
-        <div className={`transition-all duration-500 ease-in-out relative w-full z-10 ${expandedSecondRowChart === 'notifications' ? 'lg:w-[60%] h-[280px] lg:h-auto lg:flex-1' : 'flex-1'} flex items-center justify-center`}>
-          <VisxNotificationsDonutChart
-            enabled={notificationsMetrics.enabled}
-            disabled={notificationsMetrics.disabled}
-            onClick={(type) => {
-              setSelectedNotificationsSegment(type);
-              setIsNotificationsModalOpen(true);
-            }}
-          />
-        </div>
-
-        <div className={`transition-all duration-500 ease-in-out w-full border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col justify-between overflow-hidden ${
-          expandedSecondRowChart === 'notifications'
-            ? 'lg:w-[40%] pt-6 lg:pt-0 lg:pl-6 opacity-100 max-h-[1000px]'
-            : 'w-0 h-0 max-h-0 opacity-0 !p-0 !border-0'
-        }`}>
-          <div>
-            <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Notification Engagement</h4>
-            <div className="space-y-4">
-              <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl flex justify-between items-center">
-                <div>
-                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Total User Base</span>
-                  <span className="text-xl font-black text-purple-400 mt-1 block">{totalUsers} Users</span>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                    <span className="text-xs font-bold text-slate-300">Enabled</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-xs font-bold text-white block">{notificationsMetrics.enabled} users</span>
-                    <span className="text-[10px] text-emerald-400 font-extrabold">{enabledPct}%</span>
-                  </div>
-                </div>
-
-                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
-                    <span className="text-xs font-bold text-slate-300">Disabled</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-xs font-bold text-white block">{notificationsMetrics.disabled} users</span>
-                    <span className="text-[10px] text-rose-400 font-extrabold">{disabledPct}%</span>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                onClick={() => {
-                  setSelectedNotificationsSegment('All');
-                  setIsNotificationsModalOpen(true);
-                }}
-                className="w-full mt-2 py-2 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 hover:text-indigo-300 border border-indigo-500/25 transition-all text-xs font-bold cursor-pointer"
-              >
-                View Registered Devices Details
-              </button>
-            </div>
-          </div>
-          <div className="text-[10px] text-slate-500 font-medium mt-6 border-t border-white/5 pt-3">
-            * Enabled users have granted OS-level permissions for initial notifications.
-          </div>
-        </div>
+      <div className="flex-1 w-full relative z-10 flex items-center justify-center">
+        <VisxNotificationsDonutChart
+          enabled={notificationsMetrics.enabled}
+          disabled={notificationsMetrics.disabled}
+          onClick={(type) => {
+            setSelectedNotificationsSegment(type);
+            setIsNotificationsModalOpen(true);
+          }}
+        />
       </div>
     </Card>
   );
 };
 
-const PriceTierCard = ({ priceTierEngagementData, expandedSecondRowChart, setExpandedSecondRowChart }) => {
-  const totalViews = priceTierEngagementData.views.reduce((a, b) => a + b, 0);
-  const totalCartAdds = priceTierEngagementData.cartAdds.reduce((a, b) => a + b, 0);
-
-  const cardClass = `transition-all duration-500 ease-in-out overflow-hidden flex flex-col relative group ${
-    expandedSecondRowChart === 'priceTier'
-      ? 'w-full min-h-[460px] h-auto cursor-default opacity-100 scale-100 !p-6 border-white/20'
-      : expandedSecondRowChart === null
-      ? 'w-full h-[420px] cursor-pointer hover:border-white/20 hover:scale-[1.01] opacity-100 scale-100 !p-6'
-      : 'hidden w-0 h-0 !p-0 !border-0 opacity-0 scale-95 pointer-events-none'
-  }`;
-
+const PriceTierCard = ({ priceTierEngagementData, onOpenDetails }) => {
   return (
     <Card
-      onClick={() => { if (!expandedSecondRowChart) setExpandedSecondRowChart('priceTier'); }}
-      className={cardClass}
+      className="w-full h-[390px] flex flex-col relative group cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-6"
     >
       <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-      {expandedSecondRowChart === 'priceTier' && (
-        <button
-          onClick={(e) => { e.stopPropagation(); setExpandedSecondRowChart(null); }}
-          className="absolute top-6 right-6 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-xl border border-white/10 hover:border-white/20 transition-all cursor-pointer z-20"
-        >
-          <FiX size={16} />
-        </button>
-      )}
       <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+          <h3 className="text-sm font-bold text-white uppercase tracking-wider">
             Product Price Tier Engagement
           </h3>
           <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Views vs cart additions by price tier</p>
         </div>
+        <button
+          onClick={(e) => { e.stopPropagation(); onOpenDetails(); }}
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 hover:border-white/20 transition-all text-xs font-semibold cursor-pointer shadow-sm group/btn"
+        >
+          <span>Details</span>
+          <FiExternalLink size={12} className="text-slate-400 group-hover/btn:text-white transition-colors" />
+        </button>
       </div>
-      <div className={`flex flex-col ${expandedSecondRowChart === 'priceTier' ? 'lg:flex-row' : ''} gap-6 flex-1 w-full z-10`}>
-        <div className={`transition-all duration-500 ease-in-out relative w-full z-10 ${expandedSecondRowChart === 'priceTier' ? 'lg:w-[65%] h-[280px] lg:h-auto lg:flex-1' : 'flex-1'}`}>
-          <VisxPriceTierGroupedBarChart
-            categories={priceTierEngagementData.categories}
-            views={priceTierEngagementData.views}
-            cartAdds={priceTierEngagementData.cartAdds}
-          />
-        </div>
-
-        <div className={`transition-all duration-500 ease-in-out w-full border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col justify-between overflow-hidden ${
-          expandedSecondRowChart === 'priceTier'
-            ? 'lg:w-[35%] pt-6 lg:pt-0 lg:pl-6 opacity-100 max-h-[1000px]'
-            : 'w-0 h-0 max-h-0 opacity-0 !p-0 !border-0'
-        }`}>
-          <div>
-            <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Conversion Analytics</h4>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl">
-                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Total Tier Views</span>
-                  <span className="text-xl font-black text-blue-400 mt-1 block">{totalViews}</span>
-                </div>
-                <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl">
-                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Cart Adds</span>
-                  <span className="text-xl font-black text-emerald-400 mt-1 block">{totalCartAdds}</span>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                {priceTierEngagementData.categories.map((cat, idx) => {
-                  const cViews = priceTierEngagementData.views[idx] || 0;
-                  const cAdds = priceTierEngagementData.cartAdds[idx] || 0;
-                  const conv = cViews > 0 ? ((cAdds / cViews) * 100).toFixed(1) : '0.0';
-
-                  return (
-                    <div key={cat || idx} className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
-                      <div className="flex justify-between text-xs font-bold text-slate-300 mb-1">
-                        <span>{cat}</span>
-                        <span className="text-emerald-400">{conv}% Conv.</span>
-                      </div>
-                      <div className="flex justify-between text-[10px] text-slate-500 font-mono">
-                        <span>Views: {cViews}</span>
-                        <span>Cart Adds: {cAdds}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-          <div className="text-[10px] text-slate-500 font-medium mt-6 border-t border-white/5 pt-3">
-            * Conversion calculated as Cart Additions divided by Page Views.
-          </div>
-        </div>
+      <div className="flex-1 w-full relative z-10">
+        <VisxPriceTierGroupedBarChart
+          categories={priceTierEngagementData.categories}
+          views={priceTierEngagementData.views}
+          cartAdds={priceTierEngagementData.cartAdds}
+        />
       </div>
     </Card>
+  );
+};
+
+// --- Chart Details Modal Popup Component ---
+const ChartDetailsModal = ({
+  activeChartModal,
+  onClose,
+  salesData,
+  chartLabels,
+  totalRev,
+  deliveredCountData,
+  processingCountData,
+  cancelledCountData,
+  ordersChartConfig,
+  brandShare,
+  brandShareSorted,
+  products,
+  activityStats,
+  users,
+  notificationsMetrics,
+  setSelectedNotificationsSegment,
+  setIsNotificationsModalOpen,
+  priceTierEngagementData
+}) => {
+  if (!activeChartModal) return null;
+
+  // 1. Sales Revenue Metrics
+  const peakIndex = salesData ? salesData.reduce((maxIdx, val, idx, arr) => val > arr[maxIdx] ? idx : maxIdx, 0) : 0;
+  const peakMonth = chartLabels ? chartLabels[peakIndex] || 'N/A' : 'N/A';
+  const peakAmount = salesData ? salesData[peakIndex] || 0 : 0;
+  const avgMonthlyRev = totalRev ? totalRev / 6 : 0;
+  const currentMonthRev = salesData ? salesData[5] || 0 : 0;
+  const prevMonthRev = salesData ? salesData[4] || 0 : 0;
+  const revDiff = currentMonthRev - prevMonthRev;
+  const revPercent = prevMonthRev > 0 ? ((revDiff / prevMonthRev) * 100).toFixed(1) : '0';
+
+  // 2. Order Volume Metrics
+  const totalDelivered = deliveredCountData ? deliveredCountData.reduce((a, b) => a + b, 0) : 0;
+  const totalProcessing = processingCountData ? processingCountData.reduce((a, b) => a + b, 0) : 0;
+  const totalCancelled = cancelledCountData ? cancelledCountData.reduce((a, b) => a + b, 0) : 0;
+  const totalOrders = totalDelivered + totalProcessing + totalCancelled;
+  const successRate = totalOrders > 0 ? ((totalDelivered / totalOrders) * 100).toFixed(1) : '0.0';
+
+  // 3. Versions Breakdown
+  const versions = (() => {
+    const versionMap = {};
+    let foundUserData = false;
+
+    (users || []).forEach(u => {
+      const userDevices = Array.isArray(u.devices) && u.devices.length > 0 ? u.devices : [];
+      if (userDevices.length > 0) {
+        userDevices.forEach(d => {
+          const rawVer = (d.appVersion || u.appVersion || '').trim();
+          if (!rawVer || rawVer.toLowerCase() === 'unknown' || rawVer === '0.0.0' || rawVer === 'v0.0.0') return;
+          foundUserData = true;
+          const cleanVer = rawVer.replace(/^[vV]/, '');
+          const plat = (d.devicePlatform || d.platform || '').toLowerCase();
+          const isIos = plat === 'ios' || plat.includes('apple') || plat.includes('iphone') || plat.includes('ipad');
+
+          if (!versionMap[cleanVer]) {
+            versionMap[cleanVer] = { version: cleanVer, androidCount: 0, iosCount: 0, count: 0 };
+          }
+          if (isIos) {
+            versionMap[cleanVer].iosCount += 1;
+          } else {
+            versionMap[cleanVer].androidCount += 1;
+          }
+          versionMap[cleanVer].count += 1;
+        });
+      } else if (u.appVersion) {
+        const rawVer = String(u.appVersion).trim();
+        if (rawVer && rawVer.toLowerCase() !== 'unknown' && rawVer !== '0.0.0' && rawVer !== 'v0.0.0') {
+          foundUserData = true;
+          const cleanVer = rawVer.replace(/^[vV]/, '');
+          const plat = (u.devicePlatform || u.platform || '').toLowerCase();
+          const isIos = plat === 'ios' || plat.includes('apple') || plat.includes('iphone') || plat.includes('ipad');
+
+          if (!versionMap[cleanVer]) {
+            versionMap[cleanVer] = { version: cleanVer, androidCount: 0, iosCount: 0, count: 0 };
+          }
+          if (isIos) {
+            versionMap[cleanVer].iosCount += 1;
+          } else {
+            versionMap[cleanVer].androidCount += 1;
+          }
+          versionMap[cleanVer].count += 1;
+        }
+      }
+    });
+
+    if (foundUserData && Object.keys(versionMap).length > 0) {
+      return Object.values(versionMap).sort((a, b) => b.count - a.count);
+    }
+
+    const rawVersions = activityStats?.deviceMetrics?.appVersions || [];
+    return rawVersions.map(v => {
+      const vStr = String(v.version || '').toLowerCase();
+      const isExplicitIos = v.platform?.toLowerCase() === 'ios' || vStr.includes('ios') || vStr.includes('apple');
+      const isExplicitAndroid = v.platform?.toLowerCase() === 'android' || vStr.includes('android');
+      
+      const rawVer = String(v.version || '').trim();
+      let cleanVer = rawVer;
+      if (!rawVer || /^unknown/i.test(rawVer) || /^legacy/i.test(rawVer)) {
+        cleanVer = 'Legacy';
+      } else {
+        cleanVer = cleanVer.replace(/^[vV]/, '');
+      }
+
+      const androidCount = v.androidCount !== undefined 
+        ? v.androidCount 
+        : (isExplicitIos ? 0 : (v.count || 0));
+      const iosCount = v.iosCount !== undefined 
+        ? v.iosCount 
+        : (isExplicitIos ? (v.count || 0) : (isExplicitAndroid ? 0 : 0));
+
+      return {
+        ...v,
+        version: cleanVer,
+        androidCount,
+        iosCount,
+        count: v.count || (androidCount + iosCount)
+      };
+    });
+  })();
+
+  const totalVersionDevices = versions.reduce((sum, v) => sum + (v.count || 0), 0);
+  const totalAndroid = versions.reduce((sum, v) => sum + (v.androidCount || 0), 0);
+  const totalIos = versions.reduce((sum, v) => sum + (v.iosCount || 0), 0);
+
+  // 4. Notifications Metrics
+  const totalNotifUsers = (notificationsMetrics?.enabled || 0) + (notificationsMetrics?.disabled || 0);
+  const enabledPct = totalNotifUsers > 0 ? (((notificationsMetrics?.enabled || 0) / totalNotifUsers) * 100).toFixed(1) : '0';
+  const disabledPct = totalNotifUsers > 0 ? (((notificationsMetrics?.disabled || 0) / totalNotifUsers) * 100).toFixed(1) : '0';
+
+  // 5. Price Tier Metrics
+  const totalTierViews = priceTierEngagementData ? priceTierEngagementData.views.reduce((a, b) => a + b, 0) : 0;
+  const totalTierCartAdds = priceTierEngagementData ? priceTierEngagementData.cartAdds.reduce((a, b) => a + b, 0) : 0;
+
+  const modalTitles = {
+    revenue: { title: 'Sales & Revenue Analytics', subtitle: 'Historical sales trends, peak revenue & growth metrics' },
+    volume: { title: 'Order Volume Analytics', subtitle: 'Detailed fulfillment status and order volume distribution' },
+    brand: { title: 'Brand Share Distribution', subtitle: 'Comprehensive product breakdown across all catalog brands' },
+    version: { title: 'App Version Distribution', subtitle: 'Registered devices by release version & operating system' },
+    notifications: { title: 'Push Alerts Permission', subtitle: 'Device notification permissions and user engagement' },
+    priceTier: { title: 'Product Price Tier Engagement', subtitle: 'Viewer behavior and cart conversion by pricing bracket' }
+  };
+
+  const currentMeta = modalTitles[activeChartModal] || { title: 'Analytics Details', subtitle: 'Detailed chart breakdown' };
+
+  return createPortal(
+    <div 
+      className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-[9999] p-3 sm:p-4 md:p-6 animate-in fade-in duration-200"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-slate-950/15 border border-white/15 rounded-3xl p-6 md:p-8 max-w-5xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Modal Header */}
+        <div className="flex items-start justify-between border-b border-white/10 pb-4 mb-6">
+          <div>
+            <h3 className="text-lg font-black text-white tracking-wide">{currentMeta.title}</h3>
+            <p className="text-xs text-slate-400 mt-1 font-medium">{currentMeta.subtitle}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 p-2.5 rounded-xl border border-white/10 hover:border-white/20 transition-all cursor-pointer"
+          >
+            <FiX size={18} />
+          </button>
+        </div>
+
+        {/* Modal Body */}
+        <div className="flex flex-col lg:flex-row gap-8 flex-1 overflow-y-auto custom-scrollbar pr-1">
+          {/* Left Chart Area */}
+          <div className="w-full lg:w-[60%] h-[320px] lg:h-[400px] relative bg-slate-950/30 border border-white/5 rounded-2xl p-4 flex items-center justify-center">
+            {activeChartModal === 'revenue' && (
+              <VisxAreaChart labels={chartLabels} data={salesData} color="#3b82f6" valuePrefix="₹" />
+            )}
+            {activeChartModal === 'volume' && (
+              <VisxStackedBarChart labels={chartLabels} series={ordersChartConfig.series} />
+            )}
+            {activeChartModal === 'brand' && (
+              <VisxDonutChart data={brandShare} centerLabel="Products" />
+            )}
+            {activeChartModal === 'version' && (
+              <VisxAppVersionsChart data={versions} />
+            )}
+            {activeChartModal === 'notifications' && (
+              <VisxNotificationsDonutChart
+                enabled={notificationsMetrics.enabled}
+                disabled={notificationsMetrics.disabled}
+                onClick={(type) => {
+                  setSelectedNotificationsSegment(type);
+                  setIsNotificationsModalOpen(true);
+                }}
+              />
+            )}
+            {activeChartModal === 'priceTier' && (
+              <VisxPriceTierGroupedBarChart
+                categories={priceTierEngagementData.categories}
+                views={priceTierEngagementData.views}
+                cartAdds={priceTierEngagementData.cartAdds}
+              />
+            )}
+          </div>
+
+          {/* Right Metrics / Analytics Area */}
+          <div className="w-full lg:w-[40%] flex flex-col justify-between space-y-6">
+            {activeChartModal === 'revenue' && (
+              <div className="space-y-4">
+                <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Revenue Breakdown</h4>
+                <div className="bg-white/[0.02] border border-white/5 p-3.5 rounded-2xl">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Total Revenue (6 Months)</span>
+                  <span className="text-2xl font-black text-emerald-400 mt-1 block font-mono">₹{totalRev.toLocaleString('en-IN')}</span>
+                </div>
+                <div className="bg-white/[0.02] border border-white/5 p-3.5 rounded-2xl flex justify-between items-center">
+                  <div>
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Peak Month</span>
+                    <span className="text-sm font-bold text-white mt-1 block">{peakMonth}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Peak Revenue</span>
+                    <span className="text-sm font-bold text-emerald-400 mt-1 block font-mono">₹{peakAmount.toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+                <div className="bg-white/[0.02] border border-white/5 p-3.5 rounded-2xl flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Monthly Average</span>
+                    <span className="text-sm font-bold text-blue-400 mt-1 block font-mono">₹{avgMonthlyRev.toLocaleString('en-IN')}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Month-over-Month</span>
+                    <span className={`text-xs font-black px-2 py-0.5 rounded-md mt-1 inline-block ${
+                      revDiff >= 0 
+                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                        : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                    }`}>
+                      {revDiff >= 0 ? '+' : ''}{revPercent}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeChartModal === 'volume' && (
+              <div className="space-y-4">
+                <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Fulfillment Metrics</h4>
+                <div className="bg-white/[0.02] border border-white/5 p-3.5 rounded-2xl flex justify-between items-center">
+                  <div>
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Total Orders</span>
+                    <span className="text-2xl font-black text-indigo-400 mt-1 block font-mono">{totalOrders}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Delivery Success</span>
+                    <span className="text-2xl font-black text-emerald-400 mt-1 block font-mono">{successRate}%</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                    <div className="flex justify-between text-xs font-bold mb-1.5">
+                      <span className="text-slate-400">Delivered</span>
+                      <span className="text-emerald-400 font-mono">{totalDelivered} ({totalOrders > 0 ? Math.round((totalDelivered/totalOrders)*100) : 0}%)</span>
+                    </div>
+                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${totalOrders > 0 ? (totalDelivered/totalOrders)*100 : 0}%` }}></div>
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                    <div className="flex justify-between text-xs font-bold mb-1.5">
+                      <span className="text-slate-400">Processing</span>
+                      <span className="text-blue-400 font-mono">{totalProcessing} ({totalOrders > 0 ? Math.round((totalProcessing/totalOrders)*100) : 0}%)</span>
+                    </div>
+                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full bg-linear-to-r from-blue-600 to-indigo-600" style={{ width: `${totalOrders > 0 ? (totalProcessing/totalOrders)*100 : 0}%` }}></div>
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                    <div className="flex justify-between text-xs font-bold mb-1.5">
+                      <span className="text-slate-400">Cancelled</span>
+                      <span className="text-rose-400 font-mono">{totalCancelled} ({totalOrders > 0 ? Math.round((totalCancelled/totalOrders)*100) : 0}%)</span>
+                    </div>
+                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full bg-rose-500 rounded-full" style={{ width: `${totalOrders > 0 ? (totalCancelled/totalOrders)*100 : 0}%` }}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeChartModal === 'brand' && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">All Brand Distribution</h4>
+                  <span className="text-xs font-bold text-slate-400">{products.length} Total Items</span>
+                </div>
+                <div className="max-h-[290px] overflow-y-auto pr-1 space-y-2 custom-scrollbar">
+                  {(brandShareSorted || []).map((b, idx) => {
+                    const percentage = products.length > 0 ? ((b.value / products.length) * 100).toFixed(1) : '0';
+                    return (
+                      <div key={b.name || idx} className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors">
+                        <span className="text-xs font-bold text-slate-200">{b.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-white font-mono">{b.value} items</span>
+                          <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/10 font-mono">{percentage}%</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {activeChartModal === 'version' && (
+              <div className="space-y-4">
+                <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Version Analytics</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-white/[0.02] border border-white/5 p-2.5 rounded-xl">
+                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Total Devices</span>
+                    <span className="text-lg font-black text-blue-400 mt-0.5 block font-mono">{totalVersionDevices}</span>
+                  </div>
+                  <div className="bg-white/[0.02] border border-white/5 p-2.5 rounded-xl">
+                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Releases</span>
+                    <span className="text-lg font-black text-purple-400 mt-0.5 block font-mono">{versions.length}</span>
+                  </div>
+                  <div className="bg-blue-500/5 border border-blue-500/15 p-2.5 rounded-xl">
+                    <span className="text-[9px] font-black text-blue-400 uppercase tracking-wider block flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-blue-500"></span> Android
+                    </span>
+                    <span className="text-lg font-black text-blue-400 mt-0.5 block font-mono">{totalAndroid}</span>
+                  </div>
+                  <div className="bg-emerald-500/5 border border-emerald-500/15 p-2.5 rounded-xl">
+                    <span className="text-[9px] font-black text-emerald-400 uppercase tracking-wider block flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500"></span> iOS
+                    </span>
+                    <span className="text-lg font-black text-emerald-400 mt-0.5 block font-mono">{totalIos}</span>
+                  </div>
+                </div>
+
+                <div className="max-h-[220px] overflow-y-auto pr-1 space-y-2 custom-scrollbar">
+                  {versions.map((v, idx) => {
+                    const pct = totalVersionDevices > 0 ? ((v.count / totalVersionDevices) * 100).toFixed(1) : '0';
+                    const displayVer = v.version === 'Legacy' ? 'Legacy / Other' : `v${v.version || 'unknown'}`;
+                    return (
+                      <div key={v.version || idx} className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5 space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-200">{displayVer}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-white font-mono">{v.count} devices</span>
+                            <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/10">{pct}%</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 text-[10px] font-bold">
+                          <span className="flex items-center gap-1 text-blue-400">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> {v.androidCount || 0} Android
+                          </span>
+                          <span className="flex items-center gap-1 text-emerald-400">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> {v.iosCount || 0} iOS
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {activeChartModal === 'notifications' && (
+              <div className="space-y-4">
+                <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Notification Engagement</h4>
+                <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl flex justify-between items-center">
+                  <div>
+                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Total Registered Users</span>
+                    <span className="text-xl font-black text-purple-400 mt-1 block font-mono">{totalNotifUsers} Users</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                      <span className="text-xs font-bold text-slate-300">Enabled</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs font-bold text-white block font-mono">{notificationsMetrics?.enabled || 0} users</span>
+                      <span className="text-[10px] text-emerald-400 font-extrabold">{enabledPct}%</span>
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                      <span className="text-xs font-bold text-slate-300">Disabled</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs font-bold text-white block font-mono">{notificationsMetrics?.disabled || 0} users</span>
+                      <span className="text-[10px] text-rose-400 font-extrabold">{disabledPct}%</span>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => {
+                    onClose();
+                    setSelectedNotificationsSegment('All');
+                    setIsNotificationsModalOpen(true);
+                  }}
+                  className="w-full py-2.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 hover:text-indigo-300 border border-indigo-500/25 transition-all text-xs font-bold cursor-pointer"
+                >
+                  View Registered Devices Details
+                </button>
+              </div>
+            )}
+
+            {activeChartModal === 'priceTier' && (
+              <div className="space-y-4">
+                <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Conversion Analytics</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl">
+                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Total Tier Views</span>
+                    <span className="text-xl font-black text-blue-400 mt-1 block font-mono">{totalTierViews}</span>
+                  </div>
+                  <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl">
+                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Total Cart Adds</span>
+                    <span className="text-xl font-black text-emerald-400 mt-1 block font-mono">{totalTierCartAdds}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2.5 max-h-[240px] overflow-y-auto pr-1 custom-scrollbar">
+                  {(priceTierEngagementData?.categories || []).map((cat, idx) => {
+                    const cViews = priceTierEngagementData.views[idx] || 0;
+                    const cAdds = priceTierEngagementData.cartAdds[idx] || 0;
+                    const conv = cViews > 0 ? ((cAdds / cViews) * 100).toFixed(1) : '0.0';
+
+                    return (
+                      <div key={cat || idx} className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                        <div className="flex justify-between text-xs font-bold text-slate-300 mb-1">
+                          <span>{cat}</span>
+                          <span className="text-emerald-400 font-mono">{conv}% Conv.</span>
+                        </div>
+                        <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+                          <span>Views: {cViews}</span>
+                          <span>Cart Adds: {cAdds}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            <div className="text-[10px] text-slate-500 font-medium border-t border-white/5 pt-3">
+              * Live analytical telemetry updated automatically.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
   );
 };
 
@@ -619,8 +795,7 @@ const Dashboard = () => {
   const [selectedNotificationsSegment, setSelectedNotificationsSegment] = useState('All'); // 'All', 'Enabled', 'Disabled'
   const [notificationsSearchQuery, setNotificationsSearchQuery] = useState('');
   const [trendsRange, setTrendsRange] = useState('1w'); // '1d', '1w', '1y'
-  const [expandedChart, setExpandedChart] = useState(null); // 'revenue' | 'volume' | 'brand' | null
-  const [expandedSecondRowChart, setExpandedSecondRowChart] = useState(null); // 'version' | 'notifications' | 'priceTier' | null
+  const [activeChartModal, setActiveChartModal] = useState(null); // 'revenue' | 'volume' | 'brand' | 'version' | 'notifications' | 'priceTier' | null
   const [viewModalProductId, setViewModalProductId] = useState(null);
   const navigate = useNavigate();
 
@@ -710,10 +885,11 @@ const Dashboard = () => {
     // Initial fetch
     fetchData(false);
 
-    // Setup polling every 30 seconds
+    // Setup polling according to configured apiRequests / telemetry interval
+    const apiInterval = getPollingInterval('apiRequests', 30);
     const intervalId = setInterval(() => {
       fetchData(true);
-    }, 10000);
+    }, apiInterval);
 
     return () => clearInterval(intervalId);
   }, [breakdownType, startDate, endDate]);
@@ -1925,7 +2101,7 @@ const Dashboard = () => {
                                        card.theme === "cyan" ? 'rgba(6, 182, 212, 0.4)' :
                                        card.theme === "pink" ? 'rgba(236, 72, 153, 0.4)' : 'rgba(59, 130, 246, 0.4)'
                     }}
-                    className={`relative overflow-hidden bg-slate-950/20 border border-white/5 ${card.hoverBorder} p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col justify-between min-h-[145px] group hover:bg-slate-950/45 hover:shadow-xl shadow-black/30`}
+                    className={`relative overflow-hidden bg-transparent backdrop-blur-[10px] ${card.hoverBorder} p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col justify-between min-h-[145px] group hover:shadow-xl shadow-black/30`}
                   >
                     <div className={`absolute inset-0 bg-linear-to-b ${card.fromColor} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none`}></div>
                     <div className="relative flex justify-between items-center mb-3 z-10">
@@ -2016,7 +2192,7 @@ const Dashboard = () => {
                             className="w-12 h-12 rounded-xl overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center shadow-inner p-0.5 hover:scale-110 hover:border-blue-500/50 transition-all duration-200 cursor-pointer"
                             title="View Product Details"
                           >
-                            <img src={imgUrl} alt={prod.name} className="w-full h-full object-contain" />
+                            <OptimizedImage src={firstImg} alt={prod.name} width={120} quality={65} className="w-full h-full object-contain" />
                           </div>
                         ) : (
                           <div 
@@ -2153,13 +2329,11 @@ const Dashboard = () => {
       )}
 
       {/* Main Content Area (Analytics Charts Grid) */}
-      <div className={`grid ${expandedChart ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3'} gap-6 mt-10 relative z-10 transition-all duration-500`}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-10 relative z-10">
         <SalesRevenueCard
           salesData={salesData}
           chartLabels={chartLabels}
-          totalRev={totalRev}
-          expandedChart={expandedChart}
-          setExpandedChart={setExpandedChart}
+          onOpenDetails={() => setActiveChartModal('revenue')}
         />
         <OrderVolumeCard
           deliveredCountData={deliveredCountData}
@@ -2167,43 +2341,59 @@ const Dashboard = () => {
           cancelledCountData={cancelledCountData}
           chartLabels={chartLabels}
           ordersChartConfig={ordersChartConfig}
-          expandedChart={expandedChart}
-          setExpandedChart={setExpandedChart}
+          onOpenDetails={() => setActiveChartModal('volume')}
         />
         <BrandShareCard
           brandShare={brandShare}
-          brandShareSorted={brandShareSorted}
-          products={products}
-          expandedChart={expandedChart}
-          setExpandedChart={setExpandedChart}
+          onOpenDetails={() => setActiveChartModal('brand')}
         />
       </div>
 
       {/* Device & Search Analytics Section */}
-      <div className={`grid ${expandedSecondRowChart ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3'} gap-6 mt-10 relative z-10 transition-all duration-500`}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-10 relative z-10">
         <AppVersionCard
           activityStats={activityStats}
-          expandedSecondRowChart={expandedSecondRowChart}
-          setExpandedSecondRowChart={setExpandedSecondRowChart}
+          users={users}
+          onOpenDetails={() => setActiveChartModal('version')}
         />
         <NotificationsCard
           notificationsMetrics={notificationsMetrics}
-          expandedSecondRowChart={expandedSecondRowChart}
-          setExpandedSecondRowChart={setExpandedSecondRowChart}
+          onOpenDetails={() => setActiveChartModal('notifications')}
           setSelectedNotificationsSegment={setSelectedNotificationsSegment}
           setIsNotificationsModalOpen={setIsNotificationsModalOpen}
         />
         <PriceTierCard
           priceTierEngagementData={priceTierEngagementData}
-          expandedSecondRowChart={expandedSecondRowChart}
-          setExpandedSecondRowChart={setExpandedSecondRowChart}
+          onOpenDetails={() => setActiveChartModal('priceTier')}
         />
       </div>
+
+      {/* Chart Details Popup Modal */}
+      <ChartDetailsModal
+        activeChartModal={activeChartModal}
+        onClose={() => setActiveChartModal(null)}
+        salesData={salesData}
+        chartLabels={chartLabels}
+        totalRev={totalRev}
+        deliveredCountData={deliveredCountData}
+        processingCountData={processingCountData}
+        cancelledCountData={cancelledCountData}
+        ordersChartConfig={ordersChartConfig}
+        brandShare={brandShare}
+        brandShareSorted={brandShareSorted}
+        products={products}
+        activityStats={activityStats}
+        users={users}
+        notificationsMetrics={notificationsMetrics}
+        setSelectedNotificationsSegment={setSelectedNotificationsSegment}
+        setIsNotificationsModalOpen={setIsNotificationsModalOpen}
+        priceTierEngagementData={priceTierEngagementData}
+      />
 
       {/* Product Views Details Modal (Expanded) */}
       {isProductModalOpen && selectedProductViews && createPortal(
         <div 
-          className="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center z-[9999] p-3 sm:p-4 md:p-6 animate-in fade-in duration-200"
+          className="fixed inset-0 bg-slate-950/50 backdrop-blur-lg flex items-center justify-center z-[9999] p-3 sm:p-4 md:p-6 animate-in fade-in duration-200"
           onClick={() => {
             setIsProductModalOpen(false);
             setSelectedProductViews(null);
@@ -2211,10 +2401,10 @@ const Dashboard = () => {
           }}
         >
           <div 
-            className="bg-linear-to-br from-slate-950 via-slate-900 to-slate-950 border border-white/10 shadow-2xl rounded-3xl p-5 sm:p-6 max-w-2xl w-full relative overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
+            className="bg-slate-950/25 border border-white/20 shadow-2xl rounded-3xl p-5 sm:p-6 max-w-2xl w-full relative overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 via-transparent to-transparent pointer-events-none"></div>
+            <div className="absolute inset-0 bg-transparent pointer-events-none"></div>
 
             {(() => {
               const prod = selectedProductViews.product || {};
@@ -2278,7 +2468,7 @@ const Dashboard = () => {
               return (
                 <div className="flex flex-col h-full min-h-0 relative z-10 space-y-4">
                   {/* Top Header: Product Info & 2x2 Compact Metric Grid */}
-                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 border-b border-white/10 pb-3.5 sm:pb-4 relative">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 border-b border-white/20 pb-3.5 sm:pb-4 relative">
                     {/* Close Button - positioned top-right */}
                     <button
                       onClick={() => {
@@ -2305,8 +2495,8 @@ const Dashboard = () => {
                         className="w-14 h-14 sm:w-18 sm:h-18 rounded-2xl overflow-hidden bg-white shrink-0 border border-white/15 p-1 flex items-center justify-center shadow-inner cursor-pointer hover:border-blue-500/50 hover:scale-105 transition-all duration-200 relative group"
                         title="Click to view product details modal"
                       >
-                        {imgUrl ? (
-                          <img src={imgUrl} alt={prod.name} className="w-full h-full object-contain" />
+                        {firstImg ? (
+                          <OptimizedImage src={firstImg} alt={prod.name} width={180} quality={70} className="w-full h-full object-contain" />
                         ) : (
                           <FiBox className="text-slate-500" size={24} />
                         )}

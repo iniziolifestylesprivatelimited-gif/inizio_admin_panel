@@ -10,6 +10,7 @@ import {
 import Card from '../Components/Card';
 import CustomDropdown from '../Components/CustomDropdown';
 import ProductDetailsModal from '../Components/ProductDetailsModal';
+import OptimizedImage from '../Components/OptimizedImage';
 import { formatDateDDMMYYYY } from '../utils/dateUtils';
 
 // Simple Copy ID helper
@@ -438,7 +439,7 @@ const Quotes = () => {
                       <td className="p-3.5">
                         <div className="flex items-center gap-2.5 max-w-[200px]">
                           {productImage ? (
-                            <img src={productImage} alt={productName} className="w-8 h-8 bg-white rounded-lg object-cover bg-slate-900 border border-white/10 shrink-0" />
+                            <OptimizedImage src={productImage} alt={productName} width={80} quality={60} className="w-8 h-8 rounded-lg object-contain bg-white border border-white/10 shrink-0 p-0.5" />
                           ) : (
                             <div className="w-8 h-8 rounded-lg bg-slate-800 text-slate-500 flex items-center justify-center shrink-0">
                               <FiTag size={14} />
@@ -617,10 +618,10 @@ const Quotes = () => {
                   {productImage ? (
                     <div
                       onClick={() => { if (prodId) setViewModalProductId(prodId); }}
-                      className={`w-10 h-10 bg-white rounded-lg overflow-hidden bg-slate-900 shrink-0 border border-white/10 ${prodId ? 'cursor-pointer hover:border-blue-500 hover:scale-105 transition-all' : ''}`}
+                      className={`w-10 h-10 bg-white rounded-lg overflow-hidden shrink-0 border border-white/10 p-0.5 ${prodId ? 'cursor-pointer hover:border-blue-500 hover:scale-105 transition-all' : ''}`}
                       title={prodId ? "View Product Details" : undefined}
                     >
-                      <img src={productImage} alt={productName} className="w-full h-full object-cover" />
+                      <OptimizedImage src={productImage} alt={productName} width={100} quality={65} className="w-full h-full object-contain" />
                     </div>
                   ) : (
                     <div

@@ -4,38 +4,7 @@ import axios from 'axios';
 import { FiArrowUp, FiArrowDown, FiCopy, FiTrash2, FiSave, FiArrowLeft, FiPlus, FiLoader, FiChevronDown, FiChevronUp, FiImage } from 'react-icons/fi';
 import { BASE_URL } from '../../../api/axios';
 import CustomDropdown from '../../../Components/CustomDropdown';
-
-const getImageUrl = (path, options = {}) => {
-  if (!path) return '';
-  const { quality = 60, width = 300, isOriginal = false } = options;
-  let fullUrl = '';
-  if (path.startsWith('http') || path.startsWith('blob:')) {
-    fullUrl = path;
-  } else {
-    const cleanPath = path.replace(/\\/g, '/');
-    fullUrl = `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
-  }
-
-  if (isOriginal) return fullUrl;
-
-  // 1. Cloudinary transformations
-  if (fullUrl.includes('cloudinary.com') && fullUrl.includes('/upload/')) {
-    const transforms = [width ? `w_${width}` : '', quality ? `q_${quality}` : ''].filter(Boolean).join(',');
-    return fullUrl.replace('/upload/', `/upload/${transforms}/`);
-  }
-
-  // 2. WordPress Media Library URLs -> WordPress Photon CDN (i0.wp.com)
-  if (fullUrl.includes('/wp-content/uploads/')) {
-    const cleanHostPath = fullUrl.replace(/^https?:\/\//i, '');
-    const params = [];
-    if (width) params.push(`w=${width}`);
-    if (quality) params.push(`quality=${quality}`);
-    const query = params.length > 0 ? `?${params.join('&')}` : '';
-    return `https://i0.wp.com/${cleanHostPath}${query}`;
-  }
-
-  return fullUrl;
-};
+import { getImageUrl } from '../../../utils/imageUtils';
 
 const Variants = () => {
   const { id: productId } = useParams();

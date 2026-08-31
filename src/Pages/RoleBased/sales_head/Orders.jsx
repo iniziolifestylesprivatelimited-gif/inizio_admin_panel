@@ -11,13 +11,8 @@ import {
 import CustomDropdown from '../../../Components/CustomDropdown';
 import { formatDateDDMMYYYY, formatDateTimeDDMMYYYY } from '../../../utils/dateUtils';
 import { useOutletContext } from 'react-router-dom';
-
-const getImageUrl = (path) => {
-  if (!path) return '';
-  if (path.startsWith('http') || path.startsWith('blob:')) return path;
-  const cleanPath = path.replace(/\\/g, '/');
-  return `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
-};
+import { getImageUrl } from '../../../utils/imageUtils';
+import OptimizedImage from '../../../Components/OptimizedImage';
 
 const Orders = ({ defaultStatus = 'all' }) => {
   const [orders, setOrders] = useState([]);
@@ -468,7 +463,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                           <div className="flex items-center gap-3">
                             {order.items && (order.items[0]?.image || order.items[0]?.variant?.images?.[0] || order.items[0]?.product?.images?.[0]) && (
                               <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/10 shrink-0 border border-white/5">
-                                <img src={order.items[0].image || order.items[0].variant?.images?.[0] || order.items[0].product?.images?.[0]} alt="Product" className="w-full h-full object-cover bg-white" />
+                                <OptimizedImage src={order.items[0].image || order.items[0].variant?.images?.[0] || order.items[0].product?.images?.[0]} alt="Product" width={90} quality={60} className="w-full h-full object-contain bg-white" />
                               </div>
                             )}
                             <div className="flex flex-col min-w-0">
@@ -891,7 +886,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                             return displayImages.length > 0 ? (
                               displayImages.map((img, imgIdx) => (
                                 <div key={imgIdx} className="w-14 h-14 rounded-lg overflow-hidden bg-white/10 shrink-0 border border-white/10 flex items-center justify-center">
-                                  <img src={img} alt={`Product ${imgIdx + 1}`} className="w-full h-full object-cover bg-white" />
+                                  <OptimizedImage src={img} alt={`Product ${imgIdx + 1}`} width={120} quality={65} className="w-full h-full object-contain bg-white" />
                                 </div>
                               ))
                             ) : (
@@ -1102,7 +1097,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                           <div className="flex gap-4 items-start flex-1 min-w-0">
                             {productImg ? (
                               <div className="w-16 h-16 rounded-xl overflow-hidden bg-white/10 border border-white/5 shrink-0">
-                                <img src={getImageUrl(productImg)} alt={productName} className="w-full h-full object-cover bg-white" />
+                                <OptimizedImage src={productImg} alt={productName} width={140} quality={65} className="w-full h-full object-contain bg-white" />
                               </div>
                             ) : (
                               <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-800 border border-white/5 shrink-0 flex items-center justify-center">

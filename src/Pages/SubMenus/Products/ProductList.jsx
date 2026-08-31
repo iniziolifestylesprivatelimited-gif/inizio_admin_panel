@@ -9,76 +9,8 @@ import CustomDropdown from '../../../Components/CustomDropdown';
 import CopyButton from '../../../Components/CopyButton';
 import * as XLSX from 'xlsx';
 import { formatDateTimeDDMMYYYY } from '../../../utils/dateUtils';
-
-const getImageUrl = (path, options = {}) => {
-  if (!path) return '';
-  const { quality = 60, width = 300, isOriginal = false } = options;
-  let fullUrl = '';
-  if (path.startsWith('http') || path.startsWith('blob:')) {
-    fullUrl = path;
-  } else {
-    const cleanPath = path.replace(/\\/g, '/');
-    fullUrl = `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
-  }
-
-  if (isOriginal) return fullUrl;
-
-  // 1. Cloudinary transformations
-  if (fullUrl.includes('cloudinary.com') && fullUrl.includes('/upload/')) {
-    const transforms = [width ? `w_${width}` : '', quality ? `q_${quality}` : ''].filter(Boolean).join(',');
-    return fullUrl.replace('/upload/', `/upload/${transforms}/`);
-  }
-
-  // 2. WordPress Media Library URLs -> WordPress Photon CDN (i0.wp.com) for real-time resizing & compression
-  if (fullUrl.includes('/wp-content/uploads/')) {
-    const cleanHostPath = fullUrl.replace(/^https?:\/\//i, '');
-    const params = [];
-    if (width) params.push(`w=${width}`);
-    if (quality) params.push(`quality=${quality}`);
-    const query = params.length > 0 ? `?${params.join('&')}` : '';
-    return `https://i0.wp.com/${cleanHostPath}${query}`;
-  }
-
-  return fullUrl;
-};
-
-// Reusable optimized image component for thumbnails & cards with lazy loading and low-quality placeholder
-const ProgressiveImage = ({ src, alt = '', className = '', fallback = 'https://placehold.co/150x150?text=No+Image', onError, lowQuality = false }) => {
-  const [loaded, setLoaded] = useState(false);
-  const [currentSrc, setCurrentSrc] = useState(src);
-  const [hasTriedFallback, setHasTriedFallback] = useState(false);
-
-  useEffect(() => {
-    setLoaded(false);
-    setCurrentSrc(src);
-    setHasTriedFallback(false);
-  }, [src]);
-
-  const handleError = (e) => {
-    // If the image was served via i0.wp.com proxy and failed, fall back to the direct WordPress URL first
-    if (!hasTriedFallback && typeof currentSrc === 'string' && currentSrc.includes('i0.wp.com/')) {
-      setHasTriedFallback(true);
-      const originalDirectUrl = 'https://' + currentSrc.split('i0.wp.com/')[1].split('?')[0];
-      setCurrentSrc(originalDirectUrl);
-      return;
-    }
-
-    setCurrentSrc(fallback);
-    if (onError) onError(e);
-  };
-
-  return (
-    <img
-      src={currentSrc || fallback}
-      alt={alt}
-      loading="lazy"
-      decoding="async"
-      onLoad={() => setLoaded(true)}
-      onError={handleError}
-      className={`${className} transition-opacity duration-300 ${!loaded ? 'opacity-40 blur-[1px]' : 'opacity-100 blur-none'} ${lowQuality ? 'image-rendering-pixelated' : ''}`}
-    />
-  );
-};
+import { getImageUrl } from '../../../utils/imageUtils';
+import { ProgressiveImage } from '../../../Components/OptimizedImage';
 
 const QuantityFilterDropdown = ({ qtyOp, qtyVal, onApply, onClear }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -2118,10 +2050,10 @@ const ProductList = () => {
       )}
 
       {/* Table Section */}
-      <div key="list-view-table-wrapper" className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-2xl md:rounded-3xl overflow-hidden flex flex-col h-full animate-in fade-in duration-200">
+      <div key="list-view-table-wrapper" className="border border-white/10 shadow-2xl shadow-black/50 rounded-2xl md:rounded-3xl overflow-hidden flex flex-col h-full animate-in fade-in duration-200">
         <div className="overflow-auto custom-scrollbar max-h-[70vh]">
           <table className="w-full text-left border-collapse whitespace-nowrap">
-            <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md border-b border-white/10 text-slate-300 text-sm shadow-md">
+            <thead className="sticky top-0 z-20 bg-white/[0.03] backdrop-blur-md border-b border-white/10 text-slate-300 text-sm shadow-md">
               <tr className="align-middle">
                 {isDeleteMode && (
                   <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs w-10 text-center animate-in fade-in slide-in-from-left-2 duration-200">
@@ -2479,7 +2411,7 @@ const ProductList = () => {
       {/* Product Details Modal */}
       {isDetailsModalOpen && currentProductForView && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={() => setIsDetailsModalOpen(false)}></div>
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={() => setIsDetailsModalOpen(false)}></div>
           <div className="relative bg-linear-to-br from-slate-950 to-blue-950/65 border border-white/10 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
 
             <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-950/30">

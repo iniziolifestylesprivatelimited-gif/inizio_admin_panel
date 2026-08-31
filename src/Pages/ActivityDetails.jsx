@@ -3389,14 +3389,14 @@ const ActivityDetails = () => {
       {/* User Analytics Activity Popup Modal */}
       {selectedUserAnalytics && createPortal(
         <div 
-          className="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center z-[9999] p-3 sm:p-4 md:p-6 animate-in fade-in duration-200"
+          className="fixed inset-0 bg-slate-950/50 backdrop-blur-lg flex items-center justify-center z-[9999] p-3 sm:p-4 md:p-6 animate-in fade-in duration-200"
           onClick={() => setSelectedUserAnalytics(null)}
         >
           <div 
-            className="bg-linear-to-br from-slate-950 via-slate-900 to-slate-950 border border-white/10 shadow-2xl rounded-3xl p-5 sm:p-6 max-w-2xl w-full relative overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
+            className="bg-slate-950/15 border border-white/20 shadow-2xl rounded-3xl p-5 sm:p-6 max-w-2xl w-full relative overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="absolute inset-0 bg-linear-to-b from-indigo-500/10 via-transparent to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-transparent pointer-events-none" />
 
             <div className="flex justify-between items-start mb-4 border-b border-white/10 pb-3.5 relative z-10">
               <div className="flex items-center gap-3">
@@ -3590,20 +3590,20 @@ const ActivityDetails = () => {
       {/* Viewers & Engagement Breakdown Modal (Expanded) */}
       {selectedViewerBreakdown && createPortal(
         <div 
-          className="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center z-[9999] p-3 sm:p-4 md:p-6 animate-in fade-in duration-200"
+          className="fixed inset-0 bg-slate-950/50 backdrop-blur-lg flex items-center justify-center z-[9999] p-3 sm:p-4 md:p-6 animate-in fade-in duration-200"
           onClick={() => {
             setSelectedViewerBreakdown(null);
             setViewerSearchQuery('');
           }}
         >
           <div 
-            className="bg-linear-to-br from-slate-950 via-slate-900 to-slate-950 border border-white/10 shadow-2xl rounded-3xl p-5 sm:p-6 max-w-2xl w-full relative overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
+            className="bg-slate-950/15 border border-white/20 shadow-2xl rounded-3xl p-5 sm:p-6 max-w-2xl w-full relative overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <div className={`absolute inset-0 pointer-events-none ${
-              selectedViewerBreakdown.type === 'Brand' ? 'bg-gradient-to-b from-indigo-500/10 via-transparent to-transparent' :
-              selectedViewerBreakdown.type === 'Category' ? 'bg-gradient-to-b from-purple-500/10 via-transparent to-transparent' :
-              'bg-gradient-to-b from-blue-500/10 via-transparent to-transparent'
+              selectedViewerBreakdown.type === 'Brand' ? 'bg-transparent' :
+              selectedViewerBreakdown.type === 'Category' ? 'bg-transparent' :
+              'bg-transparent'
             }`} />
 
             {(() => {

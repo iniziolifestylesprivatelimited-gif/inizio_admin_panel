@@ -13,13 +13,8 @@ import CopyButton from '../Components/CopyButton';
 import ProductDetailsModal from '../Components/ProductDetailsModal';
 import { useOutletContext, useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import { formatDateDDMMYYYY, formatDateTimeDDMMYYYY } from '../utils/dateUtils';
-
-const getImageUrl = (path) => {
-  if (!path) return '';
-  if (path.startsWith('http') || path.startsWith('blob:')) return path;
-  const cleanPath = path.replace(/\\/g, '/');
-  return `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
-};
+import { getImageUrl } from '../utils/imageUtils';
+import OptimizedImage from '../Components/OptimizedImage';
 
 const Orders = ({ defaultStatus = 'all' }) => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -675,7 +670,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                                   className={`w-10 h-10 rounded-lg overflow-hidden bg-white/10 shrink-0 border border-white/5 ${prodId ? 'cursor-pointer hover:border-blue-500/50 hover:scale-105 transition-all shadow-sm' : ''}`}
                                   title={prodId ? "View Product Details" : undefined}
                                 >
-                                  <img src={order.items[0].image || order.items[0].variant?.images?.[0] || order.items[0].product?.images?.[0]} alt="Product" className="w-full h-full object-cover bg-white" />
+                                  <OptimizedImage src={order.items[0].image || order.items[0].variant?.images?.[0] || order.items[0].product?.images?.[0]} alt="Product" width={90} quality={60} className="w-full h-full object-contain bg-white" />
                                 </div>
                               );
                             })()}
@@ -921,12 +916,12 @@ const Orders = ({ defaultStatus = 'all' }) => {
       {/* ORDER DETAILS MODAL */}
       {isModalOpen && selectedOrder && createPortal(
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeModal}></div>
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm" onClick={closeModal}></div>
           
-          <div className="relative bg-linear-to-br from-slate-950 to-blue-950/65 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-5xl h-[90vh] md:h-[85vh] max-h-[95vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative bg-slate-950/15 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-5xl h-[90vh] md:h-[85vh] max-h-[95vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             
             {/* Modal Header */}
-            <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-white/10 flex justify-between items-center bg-slate-950/30 shrink-0">
+            <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-white/20 flex justify-between items-center bg-white/[0.03] shrink-0">
               <div>
                 <h3 className="font-bold text-white text-xl flex items-center gap-2">
                   <FiBox className="text-blue-400" />
@@ -943,11 +938,11 @@ const Orders = ({ defaultStatus = 'all' }) => {
             </div>
 
             {/* Modal Body */}
-            <div className="overflow-y-auto w-full flex-1 custom-scrollbar p-4 sm:p-6 space-y-6 bg-black/20">
+            <div className="overflow-y-auto w-full flex-1 custom-scrollbar p-4 sm:p-6 space-y-6 bg-slate-950/25">
               
               {/* Quick Info Badges */}
               <div className="flex flex-wrap gap-3">
-                <div className="px-4 py-2 bg-slate-950/30 border border-white/15 rounded-xl flex items-center gap-2 text-sm">
+                <div className="px-4 py-2 bg-white/[0.03] border border-white/20 rounded-xl flex items-center gap-2 text-sm">
                   <FiCalendar className="text-slate-400" />
                   <span className="text-slate-200">Date:</span>
                   <span className="font-bold text-white">{formatDateTimeDDMMYYYY(selectedOrder.createdAt)}</span>
@@ -991,7 +986,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
 
               {/* Shipping Details Form Overlay */}
               {shippingInputOpen && (
-                <div className="p-5 bg-blue-950/20 border border-blue-500/20 rounded-2xl space-y-4 animate-in slide-in-from-bottom-2">
+                <div className="p-5 bg-white/[0.03] border border-white/20 rounded-2xl space-y-4 animate-in slide-in-from-bottom-2">
                   <h4 className="text-sm font-bold text-blue-400 uppercase tracking-wider flex items-center gap-2">
                     <FiBox /> Enter Shipping details for Shipped status
                   </h4>
@@ -1004,7 +999,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                         value={courierNameText}
                         onChange={(e) => setCourierNameText(e.target.value)}
                         placeholder="e.g. Blue Dart Surface"
-                        className="w-full px-4 py-2.5 bg-slate-900 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm font-medium placeholder-slate-500"
+                        className="w-full px-4 py-2.5 bg-slate-950 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm font-medium placeholder-slate-500"
                       />
                     </div>
                     <div>
@@ -1015,7 +1010,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                         value={awbNumberText}
                         onChange={(e) => setAwbNumberText(e.target.value)}
                         placeholder="e.g. 77030714471"
-                        className="w-full px-4 py-2.5 bg-slate-900 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm font-medium placeholder-slate-500"
+                        className="w-full px-4 py-2.5 bg-slate-950 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm font-medium placeholder-slate-500"
                       />
                     </div>
                   </div>
@@ -1036,7 +1031,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                     </button>
                     <button
                       onClick={() => { setShippingInputOpen(false); setAwbNumberText(''); setCourierNameText(''); }}
-                      className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                      className="px-5 py-2.5 bg-slate-900/60 hover:bg-slate-800 border border-white/10 text-slate-300 text-xs font-bold rounded-xl transition-colors cursor-pointer"
                     >
                       Cancel
                     </button>
@@ -1047,7 +1042,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
                 {/* Customer Details */}
-                <div className="bg-slate-950/30 p-4 rounded-2xl border border-white/5 space-y-4">
+                <div className="bg-white/[0.03] p-4 rounded-2xl border border-white/20 space-y-4">
                   <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                     <FiUser className="text-blue-400" /> Customer Information
                   </h4>
@@ -1070,7 +1065,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                 </div>
 
                 {/* Shipping Address */}
-                <div className="bg-slate-950/30 p-4 rounded-2xl border border-white/5 space-y-4 flex flex-col justify-between">
+                <div className="bg-white/[0.03] p-4 rounded-2xl border border-white/20 space-y-4 flex flex-col justify-between">
                   <div className="space-y-4">
                     <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                       <FiMapPin className="text-emerald-400" /> Shipping Address
@@ -1106,7 +1101,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
 
               {/* Shipment Tracking Timeline */}
               {selectedOrder.awbNumber && (
-                <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5 space-y-4">
+                <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/20 space-y-4">
                   <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                     <FiTruck className="text-blue-400" /> Shipment Tracking Details
                   </h4>
@@ -1123,7 +1118,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                   ) : trackingData ? (
                     <div className="space-y-4">
                       {/* Tracking Meta */}
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-black/25 p-4 rounded-xl border border-white/5 text-sm">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-950/45 p-4 rounded-xl border border-white/10 text-sm">
                         <div>
                           <span className="block text-xs text-slate-500 mb-0.5">Courier Status</span>
                           <span className="font-bold text-white capitalize">{trackingData.status || 'In Transit'}</span>
@@ -1174,13 +1169,13 @@ const Orders = ({ defaultStatus = 'all' }) => {
               )}
 
               {/* Order Items */}
-              <div className="bg-slate-950/30 p-4 rounded-2xl border border-white/5">
+              <div className="bg-white/[0.03] p-4 rounded-2xl border border-white/20">
                 <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
                   <FiBox className="text-purple-400" /> Purchased Items ({selectedOrder.items?.length || 0})
                 </h4>
                 <div className="space-y-4">
                   {selectedOrder.items?.map((item, idx) => (
-                    <div key={idx} className="flex flex-col sm:flex-row gap-4 justify-between p-4 bg-transparent rounded-xl border border-white/5">
+                    <div key={idx} className="flex flex-col sm:flex-row gap-4 justify-between p-4 bg-slate-950/45 rounded-xl border border-white/10">
                       <div className="flex flex-col gap-3 flex-1 min-w-0">
                         <div className="min-w-0">
                           <p className="font-bold text-white line-clamp-2">
@@ -1212,7 +1207,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                                   className={`w-14 h-14 rounded-lg overflow-hidden bg-white/10 shrink-0 border border-white/10 flex items-center justify-center ${prodId ? 'cursor-pointer hover:border-blue-500/50 hover:scale-105 transition-all shadow-sm' : ''}`}
                                   title={prodId ? "View Product Details" : undefined}
                                 >
-                                  <img src={img} alt={`Product ${imgIdx + 1}`} className="w-full h-full object-cover bg-white" />
+                                  <OptimizedImage src={img} alt={`Product ${imgIdx + 1}`} width={120} quality={65} className="w-full h-full object-contain bg-white" />
                                 </div>
                               ))
                             ) : (
@@ -1241,7 +1236,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
               </div>
 
               {/* Payment Summary */}
-              <div className="bg-slate-950/30 p-4 rounded-2xl border border-white/5 space-y-4">
+              <div className="bg-white/[0.03] p-4 rounded-2xl border border-white/20 space-y-4">
                 <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                   <FiCreditCard className="text-amber-400" /> Payment Summary
                 </h4>
@@ -1269,9 +1264,9 @@ const Orders = ({ defaultStatus = 'all' }) => {
                     )}
                   </div>
                   
-                  <div className="w-full h-px md:w-px md:h-auto bg-white/10 shrink-0"></div>
+                  <div className="w-full h-px md:w-px md:h-auto bg-white/20 shrink-0"></div>
                   
-                  <div className="flex-1 flex flex-col justify-center items-end bg-black/20 p-4 rounded-xl border border-white/5">
+                  <div className="flex-1 flex flex-col justify-center items-end bg-slate-950/45 p-4 rounded-xl border border-white/15">
                     <span className="text-sm text-slate-400 mb-1">Total Order Amount</span>
                     <span className="text-3xl font-black text-emerald-400">₹{(selectedOrder.totalAmount || 0).toLocaleString('en-IN')}</span>
                   </div>
@@ -1279,11 +1274,11 @@ const Orders = ({ defaultStatus = 'all' }) => {
               </div>
 
               {/* Invoice Section */}
-              <div className="bg-slate-950/30 p-4 rounded-2xl border border-white/5 space-y-4">
+              <div className="bg-white/[0.03] p-4 rounded-2xl border border-white/20 space-y-4">
                 <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                   <FiFileText className="text-blue-400" /> Invoice Management
                 </h4>
-                <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-black/20 p-4 rounded-xl border border-white/5">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-950/45 p-4 rounded-xl border border-white/15">
                   <div className="flex-1 space-y-1">
                     {selectedOrder.invoiceUrl ? (
                       <div>
@@ -1361,12 +1356,12 @@ const Orders = ({ defaultStatus = 'all' }) => {
       {/* RETURN DETAILS MODAL */}
       {isReturnModalOpen && selectedReturn && createPortal(
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeReturnModal}></div>
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm" onClick={closeReturnModal}></div>
           
-          <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-4xl h-[90vh] md:h-[80vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative bg-slate-950/15 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-4xl h-[90vh] md:h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             
             {/* Header */}
-            <div className="px-6 py-4 sm:py-5 border-b border-white/10 flex justify-between items-center bg-slate-950/30 shrink-0">
+            <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-white/20 flex justify-between items-center bg-white/[0.03] shrink-0">
               <div>
                 <h3 className="font-bold text-white text-xl flex items-center gap-2">
                   <FiRefreshCcw className="text-blue-400" />
@@ -1380,21 +1375,21 @@ const Orders = ({ defaultStatus = 'all' }) => {
             </div>
 
             {/* Body */}
-            <div className="overflow-y-auto w-full flex-1 custom-scrollbar p-6 space-y-6 bg-black/20">
+            <div className="overflow-y-auto w-full flex-1 custom-scrollbar p-4 sm:p-6 space-y-6 bg-slate-950/25">
               {/* Status Indicator */}
               <div className="flex flex-wrap gap-3">
-                <div className="px-4 py-2 bg-slate-800 border border-white/5 rounded-xl flex items-center gap-2 text-sm">
+                <div className="px-4 py-2 bg-white/[0.03] border border-white/20 rounded-xl flex items-center gap-2 text-sm">
                   <FiCalendar className="text-slate-400" />
                   <span className="text-slate-200">Request Date:</span>
                   <span className="font-bold text-white">{selectedReturn.createdAt ? new Date(selectedReturn.createdAt).toLocaleString() : 'N/A'}</span>
                 </div>
                 {selectedReturn.status && (
-                  <div className={`px-4 py-2 border rounded-xl flex items-center gap-2 text-sm font-bold ${getReturnStatusColor(selectedReturn.status)}`}>
+                  <div className={`px-4 py-2 border border-white/20 rounded-xl flex items-center gap-2 text-sm font-bold ${getReturnStatusColor(selectedReturn.status)}`}>
                     Status: {selectedReturn.status}
                   </div>
                 )}
                 {(selectedReturn.orderId || selectedReturn.order?._id) && (
-                  <div className="px-4 py-2 bg-slate-800 border border-white/5 rounded-xl flex items-center gap-2 text-sm">
+                  <div className="px-4 py-2 bg-white/[0.03] border border-white/20 rounded-xl flex items-center gap-2 text-sm">
                     <FiBox className="text-slate-400" />
                     <span className="text-slate-200">Order Ref:</span>
                     <span className="font-bold text-white font-mono">#{selectedReturn.order?._id || selectedReturn.orderId}</span>
@@ -1404,7 +1399,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Customer Info */}
-                <div className="bg-slate-950/30 p-4 rounded-2xl border border-white/5 space-y-3">
+                <div className="bg-white/[0.03] p-4 rounded-2xl border border-white/20 space-y-4">
                   <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                     <FiUser className="text-blue-400" /> Customer Contact
                   </h4>
@@ -1427,12 +1422,12 @@ const Orders = ({ defaultStatus = 'all' }) => {
                 </div>
 
                 {/* Reason Info */}
-                <div className="bg-slate-950/30 p-4 rounded-2xl border border-white/5 space-y-3 flex flex-col justify-between">
+                <div className="bg-white/[0.03] p-4 rounded-2xl border border-white/20 space-y-4 flex flex-col justify-between">
                   <div>
                     <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 mb-2">
                       <FiInfo className="text-amber-400" /> Reason for Return
                     </h4>
-                    <p className="text-sm text-slate-200 leading-relaxed italic bg-black/25 p-3 rounded-xl border border-white/5">
+                    <p className="text-sm text-slate-200 leading-relaxed italic bg-black/20 p-3 rounded-xl border border-white/15">
                       "{selectedReturn.items?.[0]?.reason || selectedReturn.reason || 'No description provided.'}"
                     </p>
                   </div>
@@ -1449,7 +1444,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
 
               {/* Items */}
               {selectedReturn.items && selectedReturn.items.length > 0 && (
-                <div className="bg-slate-950/30 p-4 rounded-2xl border border-white/5">
+                <div className="bg-white/[0.03] p-4 rounded-2xl border border-white/20">
                   <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
                     <FiBox className="text-purple-400" /> Return Items ({selectedReturn.items.length})
                   </h4>
@@ -1460,7 +1455,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                       const prodId = item.product?._id || item.product || item.productId;
                       
                       return (
-                        <div key={idx} className="flex flex-col sm:flex-row gap-4 justify-between p-4 bg-transparent rounded-xl border border-white/5">
+                        <div key={idx} className="flex flex-col sm:flex-row gap-4 justify-between p-4 bg-slate-950/45 rounded-xl border border-white/10">
                           <div className="flex gap-4 items-start flex-1 min-w-0">
                             {productImg ? (
                               <div
@@ -1472,7 +1467,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                                 className={`w-16 h-16 rounded-xl overflow-hidden bg-white/10 border border-white/5 shrink-0 ${prodId ? 'cursor-pointer hover:border-blue-500/50 hover:scale-105 transition-all shadow-sm' : ''}`}
                                 title={prodId ? "View Product Details" : undefined}
                               >
-                                <img src={getImageUrl(productImg)} alt={productName} className="w-full h-full object-cover bg-white" />
+                                <OptimizedImage src={productImg} alt={productName} width={140} quality={65} className="w-full h-full object-contain bg-white" />
                               </div>
                             ) : (
                               <div
@@ -1507,7 +1502,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
 
               {/* Rejection Form Overlay */}
               {rejectionInputOpen && (
-                <div className="p-4 bg-red-950/20 border border-red-500/20 rounded-2xl space-y-3 animate-in slide-in-from-bottom-2">
+                <div className="p-4 bg-white/[0.03] border border-red-500/30 rounded-2xl space-y-3 animate-in slide-in-from-bottom-2">
                   <label className="block text-xs font-bold text-red-400 uppercase tracking-wider">Provide Rejection Reason</label>
                   <textarea
                     required
@@ -1515,7 +1510,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                     value={rejectionReasonText}
                     onChange={(e) => setRejectionReasonText(e.target.value)}
                     placeholder="Provide details about why the return is rejected (e.g. Item shows signs of physical damage/usage)..."
-                    className="w-full px-3 py-2 bg-slate-900 border border-red-500/30 rounded-xl focus:outline-none focus:ring-1 focus:ring-red-500 text-white text-sm"
+                    className="w-full px-3 py-2 bg-slate-950 border border-white/10 rounded-xl focus:outline-none focus:ring-1 focus:ring-red-500 text-white text-sm"
                   ></textarea>
                   <div className="flex gap-2 justify-end">
                     <button
@@ -1527,7 +1522,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                     </button>
                     <button
                       onClick={() => { setRejectionInputOpen(false); setRejectionReasonText(''); }}
-                      className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-colors"
+                      className="px-4 py-2 bg-slate-900/60 hover:bg-slate-800 border border-white/10 text-slate-300 text-xs font-bold rounded-lg transition-colors"
                     >
                       Cancel
                     </button>
@@ -1537,10 +1532,10 @@ const Orders = ({ defaultStatus = 'all' }) => {
             </div>
 
             {/* Footer / Actions */}
-            <div className="px-6 py-4 border-t border-white/10 flex flex-wrap gap-2 justify-between bg-slate-800/30 shrink-0">
+            <div className="px-4 sm:px-6 py-4 border-t border-white/20 flex flex-wrap gap-2 justify-between bg-white/[0.03] shrink-0">
               <button 
                 onClick={closeReturnModal}
-                className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors text-sm"
+                className="px-6 py-2.5 bg-slate-900/60 hover:bg-slate-800 border border-white/10 text-slate-300 font-bold rounded-xl transition-colors text-sm"
               >
                 Close
               </button>
@@ -1581,16 +1576,16 @@ const Orders = ({ defaultStatus = 'all' }) => {
 
       {/* PDF Preview Modal */}
       {previewPdfUrl && createPortal(
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => {
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm animate-fade-in" onClick={() => {
             if (!isUploadingInvoice) {
               setPreviewPdfUrl(null);
               setPendingInvoiceFile(null);
               setIsPendingUpload(false);
             }
           }}></div>
-          <div className="relative bg-slate-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-950/30">
+          <div className="relative bg-slate-950/25 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center px-4 sm:px-6 py-4 sm:py-5 border-b border-white/20 bg-slate-950/30 shrink-0">
               <div className="flex items-center gap-3">
                 <FiFileText className="text-blue-400 text-xl" />
                 <h3 className="text-lg font-bold text-white">
@@ -1604,20 +1599,20 @@ const Orders = ({ defaultStatus = 'all' }) => {
                   setIsPendingUpload(false);
                 }} 
                 disabled={isUploadingInvoice}
-                className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors disabled:opacity-50"
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors disabled:opacity-50 cursor-pointer"
               >
                 <FiX className="text-xl" />
               </button>
             </div>
             
-            <div className="p-4 bg-slate-950 flex-1 flex flex-col min-h-0">
+            <div className="p-4 sm:p-6 bg-slate-950/25 flex-1 flex flex-col min-h-0 space-y-3">
               <iframe 
                 src={`${previewPdfUrl}#toolbar=0&navpanes=0&view=FitH`}
-                className="w-full h-[60vh] min-h-[450px] rounded-xl bg-slate-900 border border-white/5" 
+                className="w-full h-[60vh] min-h-[450px] rounded-2xl bg-slate-950/60 border border-white/10" 
                 title="Invoice PDF" 
               />
-              <div className="mt-3 text-center sm:text-left">
-                <p className="text-xs text-slate-500">
+              <div className="text-center sm:text-left">
+                <p className="text-xs text-slate-400">
                   {isPendingUpload 
                     ? 'Please review the invoice details. Click "Confirm & Upload" to save the file and notify the customer.'
                     : 'Note: If the PDF does not display, you can download it directly using the button below.'}
@@ -1625,7 +1620,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-white/10 bg-slate-950/30 flex justify-end gap-3">
+            <div className="px-4 sm:px-6 py-4 border-t border-white/20 bg-slate-950/30 flex justify-end gap-3 shrink-0">
               {isPendingUpload ? (
                 <>
                   <button
@@ -1636,7 +1631,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                       setIsPendingUpload(false);
                     }}
                     disabled={isUploadingInvoice}
-                    className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl transition-colors text-sm cursor-pointer disabled:opacity-50"
+                    className="px-5 py-2.5 bg-slate-900/60 hover:bg-slate-800 border border-white/10 text-white font-bold rounded-xl transition-colors text-sm cursor-pointer disabled:opacity-50"
                   >
                     Cancel
                   </button>
@@ -1670,7 +1665,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                   </a>
                   <button 
                     onClick={() => setPreviewPdfUrl(null)}
-                    className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl transition-colors text-sm cursor-pointer"
+                    className="px-5 py-2.5 bg-slate-900/60 hover:bg-slate-800 border border-white/10 text-white font-bold rounded-xl transition-colors text-sm cursor-pointer"
                   >
                     Close
                   </button>
@@ -1686,11 +1681,11 @@ const Orders = ({ defaultStatus = 'all' }) => {
       {statusConfirmOpen && statusConfirmData && createPortal(
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
           <div 
-            className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm animate-fade-in" 
+            className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm animate-fade-in" 
             onClick={() => setStatusConfirmOpen(false)}
           ></div>
-          <div className="relative bg-slate-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-950/30">
+          <div className="relative bg-slate-950/25 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-white/20 bg-slate-950/30">
               <div className="flex items-center gap-3">
                 <FiAlertCircle className="text-amber-400 text-xl" />
                 <h3 className="text-lg font-bold text-white">Confirm Status Change</h3>
@@ -1703,7 +1698,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
               </button>
             </div>
             
-            <div className="p-6 bg-slate-950/40 text-slate-300 space-y-4">
+            <div className="p-6 bg-slate-950/25 text-slate-300 space-y-4">
               <p className="text-sm leading-relaxed">
                 Are you sure you want to change the status of this order to{' '}
                 <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold border uppercase tracking-wider ${getStatusColor(statusConfirmData.newStatus)}`}>
@@ -1721,7 +1716,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
               )}
 
               {statusConfirmData.newStatus === 'Shipped' && statusConfirmData.shippingInfo && (
-                <div className="p-3 bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs rounded-xl space-y-1.5 font-medium">
+                <div className="p-3 bg-slate-950/40 border border-white/20 text-blue-300 text-xs rounded-xl space-y-1.5 font-medium">
                   <div className="font-bold text-white uppercase text-[10px] tracking-wider">Shipping Details:</div>
                   <div>Courier: {statusConfirmData.shippingInfo.courierName}</div>
                   <div>AWB Number: {statusConfirmData.shippingInfo.awbNumber}</div>
@@ -1729,11 +1724,11 @@ const Orders = ({ defaultStatus = 'all' }) => {
               )}
             </div>
 
-            <div className="px-6 py-4 border-t border-white/10 bg-slate-950/30 flex justify-end gap-3">
+            <div className="px-6 py-4 border-t border-white/20 bg-slate-950/30 flex justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setStatusConfirmOpen(false)}
-                className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                className="px-4 py-2.5 bg-slate-900/60 hover:bg-slate-800 border border-white/10 text-slate-300 text-xs font-bold rounded-xl transition-colors cursor-pointer"
               >
                 Cancel
               </button>

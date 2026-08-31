@@ -3,7 +3,7 @@ import {
   FiBell, FiBellOff, FiVolume2, FiVolumeX, FiCheckCircle, 
   FiAlertTriangle, FiSliders, FiShoppingCart, FiFileText, 
   FiUsers, FiMessageCircle, FiImage, FiSend, FiRefreshCw, FiExternalLink,
-  FiServer
+  FiServer, FiClock, FiZap
 } from 'react-icons/fi';
 import PageHeader from '../../../Components/PageHeader';
 import Card from '../../../Components/Card';
@@ -14,10 +14,11 @@ import {
   requestBrowserNotificationPermission, 
   showBrowserNotification, 
   playNotificationSound,
-  isBrowserNotificationSupported
+  isBrowserNotificationSupported,
+  DEFAULT_NOTIFICATION_SETTINGS
 } from '../../../utils/browserNotifications';
 
-const NotificationSettings = () => {
+const PanelSettings = () => {
   const [settings, setSettings] = useState(() => getNotificationSettings());
   const [browserPermission, setBrowserPermission] = useState(() => getNotificationPermission());
   const [savedMessage, setSavedMessage] = useState('');
@@ -65,6 +66,44 @@ const NotificationSettings = () => {
     handleUpdate({ categories: updatedCategories });
   };
 
+  const handleUpdatePolling = (categoryKey, seconds) => {
+    const updatedIntervals = {
+      ...settings.pollingIntervals,
+      [categoryKey]: Number(seconds)
+    };
+    handleUpdate({ pollingIntervals: updatedIntervals });
+  };
+
+  const handleApplyPreset = (presetType) => {
+    if (presetType === 'turbo') {
+      handleUpdate({
+        pollingIntervals: {
+          chat: 5,
+          orders: 10,
+          quotes: 10,
+          users: 15,
+          apiRequests: 15,
+          brokenImages: 60
+        }
+      });
+    } else if (presetType === 'standard') {
+      handleUpdate({
+        pollingIntervals: { ...DEFAULT_NOTIFICATION_SETTINGS.pollingIntervals }
+      });
+    } else if (presetType === 'eco') {
+      handleUpdate({
+        pollingIntervals: {
+          chat: 60,
+          orders: 120,
+          quotes: 120,
+          users: 120,
+          apiRequests: 120,
+          brokenImages: 600
+        }
+      });
+    }
+  };
+
   const handleToggleBrowserAlerts = async () => {
     const nextState = !settings.browserAlertsEnabled;
     if (nextState && browserPermission !== 'granted') {
@@ -97,12 +136,145 @@ const NotificationSettings = () => {
     playNotificationSound('chime');
   };
 
+  const categoryConfigs = [
+    {
+      key: 'orders',
+      title: 'Orders & Status',
+      desc: 'New incoming orders & order status changes',
+      icon: FiShoppingCart,
+      color: 'text-blue-400',
+      bg: 'bg-blue-500/20',
+      activeBorder: 'border-blue-500/30',
+      activeBg: 'bg-blue-500/10',
+      checkboxColor: 'text-blue-600 focus:ring-blue-500',
+      defaultInterval: 30,
+      options: [
+        { label: '5 Seconds (Realtime)', value: 5 },
+        { label: '10 Seconds (Fast)', value: 10 },
+        { label: '15 Seconds', value: 15 },
+        { label: '30 Seconds (Default)', value: 30 },
+        { label: '1 Minute (60s)', value: 60 },
+        { label: '2 Minutes (120s)', value: 120 },
+        { label: '5 Minutes (300s)', value: 300 }
+      ]
+    },
+    {
+      key: 'quotes',
+      title: 'Quotes Requests',
+      desc: 'Customer quotation inquiries & reviews',
+      icon: FiFileText,
+      color: 'text-amber-400',
+      bg: 'bg-amber-500/20',
+      activeBorder: 'border-amber-500/30',
+      activeBg: 'bg-amber-500/10',
+      checkboxColor: 'text-amber-600 focus:ring-amber-500',
+      defaultInterval: 30,
+      options: [
+        { label: '5 Seconds (Realtime)', value: 5 },
+        { label: '10 Seconds (Fast)', value: 10 },
+        { label: '15 Seconds', value: 15 },
+        { label: '30 Seconds (Default)', value: 30 },
+        { label: '1 Minute (60s)', value: 60 },
+        { label: '2 Minutes (120s)', value: 120 },
+        { label: '5 Minutes (300s)', value: 300 }
+      ]
+    },
+    {
+      key: 'users',
+      title: 'User Accounts',
+      desc: 'Signups, KYC verifications & deletions',
+      icon: FiUsers,
+      color: 'text-emerald-400',
+      bg: 'bg-emerald-500/20',
+      activeBorder: 'border-emerald-500/30',
+      activeBg: 'bg-emerald-500/10',
+      checkboxColor: 'text-emerald-600 focus:ring-emerald-500',
+      defaultInterval: 30,
+      options: [
+        { label: '5 Seconds (Realtime)', value: 5 },
+        { label: '10 Seconds (Fast)', value: 10 },
+        { label: '15 Seconds', value: 15 },
+        { label: '30 Seconds (Default)', value: 30 },
+        { label: '1 Minute (60s)', value: 60 },
+        { label: '2 Minutes (120s)', value: 120 },
+        { label: '5 Minutes (300s)', value: 300 }
+      ]
+    },
+    {
+      key: 'chat',
+      title: 'Live Chat Messages',
+      desc: 'Real-time customer chats & unread badge',
+      icon: FiMessageCircle,
+      color: 'text-indigo-400',
+      bg: 'bg-indigo-500/20',
+      activeBorder: 'border-indigo-500/30',
+      activeBg: 'bg-indigo-500/10',
+      checkboxColor: 'text-indigo-600 focus:ring-indigo-500',
+      defaultInterval: 15,
+      options: [
+        { label: '5 Seconds (Realtime)', value: 5 },
+        { label: '10 Seconds (Fast)', value: 10 },
+        { label: '15 Seconds (Default)', value: 15 },
+        { label: '30 Seconds', value: 30 },
+        { label: '1 Minute (60s)', value: 60 },
+        { label: '2 Minutes (120s)', value: 120 }
+      ]
+    },
+    {
+      key: 'brokenImages',
+      title: 'Broken Images & Health',
+      desc: 'Proactive catalog image audits & health',
+      icon: FiImage,
+      color: 'text-rose-400',
+      bg: 'bg-rose-500/20',
+      activeBorder: 'border-rose-500/30',
+      activeBg: 'bg-rose-500/10',
+      checkboxColor: 'text-rose-600 focus:ring-rose-500',
+      defaultInterval: 180,
+      options: [
+        { label: '30 Seconds (Fast Audit)', value: 30 },
+        { label: '1 Minute (60s)', value: 60 },
+        { label: '2 Minutes (120s)', value: 120 },
+        { label: '3 Minutes (Default)', value: 180 },
+        { label: '5 Minutes (300s)', value: 300 },
+        { label: '10 Minutes (600s)', value: 600 }
+      ]
+    },
+    {
+      key: 'apiRequests',
+      title: 'API & Dashboard Stats',
+      desc: 'Live dashboard metrics, carts & telemetry',
+      icon: FiServer,
+      color: 'text-cyan-400',
+      bg: 'bg-cyan-500/20',
+      activeBorder: 'border-cyan-500/30',
+      activeBg: 'bg-cyan-500/10',
+      checkboxColor: 'text-cyan-600 focus:ring-cyan-500',
+      defaultInterval: 30,
+      options: [
+        { label: '5 Seconds (Realtime)', value: 5 },
+        { label: '10 Seconds (Fast)', value: 10 },
+        { label: '15 Seconds', value: 15 },
+        { label: '30 Seconds (Default)', value: 30 },
+        { label: '1 Minute (60s)', value: 60 },
+        { label: '2 Minutes (120s)', value: 120 },
+        { label: '5 Minutes (300s)', value: 300 }
+      ]
+    }
+  ];
+
+  const formatIntervalDisplay = (seconds) => {
+    if (!seconds) return '30s';
+    if (seconds < 60) return `${seconds}s`;
+    return `${Math.round(seconds / 60)}m`;
+  };
+
   return (
     <div className="space-y-6 min-h-full pb-10">
       <PageHeader
-        title="Notification & Alert Settings"
-        icon={FiBell}
-        description="Configure desktop push alerts, floating in-app toast banners, sound chimes, and category filters."
+        title="Panel Settings"
+        icon={FiSliders}
+        description="Configure desktop push alerts, floating in-app toast banners, sound chimes, and background polling frequencies."
         action={
           savedMessage ? (
             <div className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 animate-in fade-in">
@@ -280,7 +452,7 @@ const NotificationSettings = () => {
               <select
                 value={settings.toastDuration || 6000}
                 onChange={(e) => handleUpdate({ toastDuration: Number(e.target.value) })}
-                className="bg-slate-900 border border-white/10 text-white text-xs rounded-xl px-3 py-1.5 outline-none focus:ring-1 focus:ring-purple-500"
+                className="bg-slate-900 border border-white/10 text-white text-xs rounded-xl px-3 py-1.5 outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer"
               >
                 <option value={4000}>4 Seconds</option>
                 <option value={6000}>6 Seconds (Default)</option>
@@ -302,169 +474,116 @@ const NotificationSettings = () => {
           </div>
         </Card>
 
-        {/* 3. Granular Category Subscriptions Card */}
-        <Card className="p-5 sm:p-6 space-y-4 bg-slate-900/60 border border-white/10 rounded-2xl lg:col-span-2">
-          <div className="pb-3 border-b border-white/10">
-            <h3 className="text-base font-bold text-white">Category Subscriptions</h3>
-            <p className="text-xs text-slate-400">Select which types of events trigger notification toasts and push alerts.</p>
+        {/* 3. Granular Category Subscriptions & Polling Control Card */}
+        <Card className="p-5 sm:p-6 space-y-5 bg-slate-900/60 border border-white/10 rounded-2xl lg:col-span-2">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-white/10">
+            <div>
+              <div className="flex items-center gap-2.5">
+                <h3 className="text-base font-bold text-white">Category Subscriptions & Polling Engine</h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center gap-1">
+                  <FiClock size={11} /> Live Auto-Sync
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">Toggle notification triggers and independently configure the background polling refresh frequency for each worker.</p>
+            </div>
+
+            {/* Quick Polling Presets */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Presets:</span>
+              <button
+                type="button"
+                onClick={() => handleApplyPreset('turbo')}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
+                title="Chat 5s, Orders 10s, Quotes 10s, Users 15s"
+              >
+                <FiZap size={13} className="text-amber-400" /> Turbo (Fast)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleApplyPreset('standard')}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-500/15 hover:bg-blue-500/25 text-blue-300 border border-blue-500/30 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
+                title="Chat 15s, Orders 30s, Quotes 30s, Users 30s"
+              >
+                <FiRefreshCw size={12} className="text-blue-400" /> Standard (30s)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleApplyPreset('eco')}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
+                title="Chat 60s, Orders 2m, Quotes 2m, Users 2m"
+              >
+                <FiClock size={12} className="text-emerald-400" /> Eco (Low Bandwidth)
+              </button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5 pt-1">
-            {/* Orders */}
-            <div 
-              onClick={() => handleToggleCategory('orders')}
-              className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
-                settings.categories?.orders
-                  ? 'bg-blue-500/10 border-blue-500/30'
-                  : 'bg-slate-950/40 border-white/5 opacity-60'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-blue-500/20 text-blue-400">
-                  <FiShoppingCart size={18} />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-white">Orders & Status</h4>
-                  <p className="text-[10px] text-slate-400">New orders & status changes</p>
-                </div>
-              </div>
-              <input 
-                type="checkbox" 
-                checked={settings.categories?.orders} 
-                onChange={() => {}} 
-                className="w-4 h-4 rounded text-blue-600 bg-slate-800 border-white/20 focus:ring-blue-500 cursor-pointer" 
-              />
-            </div>
+          {/* Grid of Category Cards with Controls */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 pt-1">
+            {categoryConfigs.map((cat) => {
+              const isEnabled = settings.categories?.[cat.key] !== false;
+              const currentInterval = settings.pollingIntervals?.[cat.key] || cat.defaultInterval;
+              const Icon = cat.icon;
 
-            {/* Quotes */}
-            <div 
-              onClick={() => handleToggleCategory('quotes')}
-              className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
-                settings.categories?.quotes
-                  ? 'bg-amber-500/10 border-amber-500/30'
-                  : 'bg-slate-950/40 border-white/5 opacity-60'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400">
-                  <FiFileText size={18} />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-white">Quotes Requests</h4>
-                  <p className="text-[10px] text-slate-400">Customer quotation inquiries</p>
-                </div>
-              </div>
-              <input 
-                type="checkbox" 
-                checked={settings.categories?.quotes} 
-                onChange={() => {}} 
-                className="w-4 h-4 rounded text-amber-600 bg-slate-800 border-white/20 focus:ring-amber-500 cursor-pointer" 
-              />
-            </div>
+              return (
+                <div 
+                  key={cat.key}
+                  className={`p-4 rounded-2xl border transition-all flex flex-col justify-between gap-3.5 ${
+                    isEnabled
+                      ? `${cat.activeBg} ${cat.activeBorder}`
+                      : 'bg-slate-950/40 border-white/5 opacity-65'
+                  }`}
+                >
+                  {/* Card Header & Toggle */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2.5 rounded-xl ${cat.bg} ${cat.color} shrink-0`}>
+                        <Icon size={18} />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-white leading-snug">{cat.title}</h4>
+                        <p className="text-[10px] text-slate-400 leading-tight mt-0.5">{cat.desc}</p>
+                      </div>
+                    </div>
 
-            {/* Users */}
-            <div 
-              onClick={() => handleToggleCategory('users')}
-              className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
-                settings.categories?.users
-                  ? 'bg-emerald-500/10 border-emerald-500/30'
-                  : 'bg-slate-950/40 border-white/5 opacity-60'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400">
-                  <FiUsers size={18} />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-white">User Accounts</h4>
-                  <p className="text-[10px] text-slate-400">Signups, verifications & deletions</p>
-                </div>
-              </div>
-              <input 
-                type="checkbox" 
-                checked={settings.categories?.users} 
-                onChange={() => {}} 
-                className="w-4 h-4 rounded text-emerald-600 bg-slate-800 border-white/20 focus:ring-emerald-500 cursor-pointer" 
-              />
-            </div>
+                    <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-0.5">
+                      <input 
+                        type="checkbox" 
+                        checked={isEnabled} 
+                        onChange={() => handleToggleCategory(cat.key)} 
+                        className="sr-only peer"
+                      />
+                      <div className="w-8 h-4.5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                  </div>
 
-            {/* Chat */}
-            <div 
-              onClick={() => handleToggleCategory('chat')}
-              className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
-                settings.categories?.chat
-                  ? 'bg-indigo-500/10 border-indigo-500/30'
-                  : 'bg-slate-950/40 border-white/5 opacity-60'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-indigo-500/20 text-indigo-400">
-                  <FiMessageCircle size={18} />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-white">Live Chat Messages</h4>
-                  <p className="text-[10px] text-slate-400">Real-time incoming customer chats</p>
-                </div>
-              </div>
-              <input 
-                type="checkbox" 
-                checked={settings.categories?.chat} 
-                onChange={() => {}} 
-                className="w-4 h-4 rounded text-indigo-600 bg-slate-800 border-white/20 focus:ring-indigo-500 cursor-pointer" 
-              />
-            </div>
+                  {/* Polling Interval Selector Bar */}
+                  <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-semibold">
+                      <FiClock size={12} className="text-slate-400" />
+                      <span>Polling:</span>
+                    </div>
 
-            {/* Broken Images */}
-            <div 
-              onClick={() => handleToggleCategory('brokenImages')}
-              className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
-                settings.categories?.brokenImages
-                  ? 'bg-rose-500/10 border-rose-500/30'
-                  : 'bg-slate-950/40 border-white/5 opacity-60'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-rose-500/20 text-rose-400">
-                  <FiImage size={18} />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-white">Broken Images</h4>
-                  <p className="text-[10px] text-slate-400">Missing image detections in catalog</p>
-                </div>
-              </div>
-              <input 
-                type="checkbox" 
-                checked={settings.categories?.brokenImages} 
-                onChange={() => {}} 
-                className="w-4 h-4 rounded text-rose-600 bg-slate-800 border-white/20 focus:ring-rose-500 cursor-pointer" 
-              />
-            </div>
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={currentInterval}
+                        onChange={(e) => handleUpdatePolling(cat.key, e.target.value)}
+                        className="bg-slate-900/90 border border-white/10 hover:border-white/20 text-white text-[11px] font-bold rounded-xl px-2.5 py-1 outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer transition-colors"
+                      >
+                        {cat.options.map(opt => (
+                          <option key={opt.value} value={opt.value} className="bg-slate-900 text-white">
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
 
-            {/* API Requests */}
-            <div 
-              onClick={() => handleToggleCategory('apiRequests')}
-              className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
-                settings.categories?.apiRequests
-                  ? 'bg-cyan-500/10 border-cyan-500/30'
-                  : 'bg-slate-950/40 border-white/5 opacity-60'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-cyan-500/20 text-cyan-400">
-                  <FiServer size={18} />
+                      <span className="px-2 py-0.5 rounded-lg text-[10px] font-black bg-slate-800 text-slate-300 border border-white/10 min-w-[34px] text-center">
+                        {formatIntervalDisplay(currentInterval)}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-xs font-bold text-white">API Requests</h4>
-                  <p className="text-[10px] text-slate-400">Incoming API calls & webhook activity</p>
-                </div>
-              </div>
-              <input 
-                type="checkbox" 
-                checked={settings.categories?.apiRequests} 
-                onChange={() => {}} 
-                className="w-4 h-4 rounded text-cyan-600 bg-slate-800 border-white/20 focus:ring-cyan-500 cursor-pointer" 
-              />
-            </div>
+              );
+            })}
           </div>
         </Card>
 
@@ -473,4 +592,5 @@ const NotificationSettings = () => {
   );
 };
 
-export default NotificationSettings;
+export default PanelSettings;
+

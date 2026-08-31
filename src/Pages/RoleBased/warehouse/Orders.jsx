@@ -11,13 +11,8 @@ import {
 import CustomDropdown from '../../../Components/CustomDropdown';
 import { formatDateDDMMYYYY, formatDateTimeDDMMYYYY } from '../../../utils/dateUtils';
 import { useOutletContext } from 'react-router-dom';
-
-const getImageUrl = (path) => {
-  if (!path) return '';
-  if (path.startsWith('http') || path.startsWith('blob:')) return path;
-  const cleanPath = path.replace(/\\/g, '/');
-  return `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
-};
+import { getImageUrl } from '../../../utils/imageUtils';
+import OptimizedImage from '../../../Components/OptimizedImage';
 
 const Orders = ({ defaultStatus = 'all' }) => {
   const [orders, setOrders] = useState([]);
@@ -470,7 +465,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                           <div className="flex items-center gap-3">
                             {order.items && (order.items[0]?.image || order.items[0]?.variant?.images?.[0] || order.items[0]?.product?.images?.[0]) && (
                               <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/10 shrink-0 border border-white/5">
-                                <img src={order.items[0].image || order.items[0].variant?.images?.[0] || order.items[0].product?.images?.[0]} alt="Product" className="w-full h-full object-cover bg-white" />
+                                <OptimizedImage src={order.items[0].image || order.items[0].variant?.images?.[0] || order.items[0].product?.images?.[0]} alt="Product" width={90} quality={60} className="w-full h-full object-contain bg-white" />
                               </div>
                             )}
                             <div className="flex flex-col min-w-0">
@@ -686,12 +681,12 @@ const Orders = ({ defaultStatus = 'all' }) => {
       {/* ORDER DETAILS MODAL */}
       {isModalOpen && selectedOrder && createPortal(
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeModal}></div>
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm" onClick={closeModal}></div>
           
-          <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-5xl h-[90vh] md:h-[85vh] max-h-[95vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative bg-slate-950/25 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-5xl h-[90vh] md:h-[85vh] max-h-[95vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             
             {/* Modal Header */}
-            <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-white/10 flex justify-between items-center bg-slate-800/50 shrink-0">
+            <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-white/20 flex justify-between items-center bg-slate-950/30 shrink-0">
               <div>
                 <h3 className="font-bold text-white text-xl flex items-center gap-2">
                   <FiBox className="text-blue-400" />
@@ -705,11 +700,11 @@ const Orders = ({ defaultStatus = 'all' }) => {
             </div>
 
             {/* Modal Body */}
-            <div className="overflow-y-auto w-full flex-1 custom-scrollbar p-4 sm:p-6 space-y-6 bg-black/20">
+            <div className="overflow-y-auto w-full flex-1 custom-scrollbar p-4 sm:p-6 space-y-6 bg-slate-950/25">
               
               {/* Quick Info Badges */}
               <div className="flex flex-wrap gap-3">
-                <div className="px-4 py-2 bg-slate-800 border border-white/5 rounded-xl flex items-center gap-2 text-sm">
+                <div className="px-4 py-2 bg-slate-950/30 border border-white/20 rounded-xl flex items-center gap-2 text-sm">
                   <FiCalendar className="text-slate-400" />
                   <span className="text-slate-200">Date:</span>
                   <span className="font-bold text-white">{new Date(selectedOrder.createdAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}</span>
@@ -752,7 +747,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
 
               {/* Shipping Details Form Overlay */}
               {shippingInputOpen && (
-                <div className="p-5 bg-blue-950/20 border border-blue-500/20 rounded-2xl space-y-4 animate-in slide-in-from-bottom-2">
+                <div className="p-5 bg-slate-950/40 border border-white/20 rounded-2xl space-y-4 animate-in slide-in-from-bottom-2">
                   <h4 className="text-sm font-bold text-blue-400 uppercase tracking-wider flex items-center gap-2">
                     <FiBox /> Enter Shipping details for Shipped status
                   </h4>
@@ -765,7 +760,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                         value={courierNameText}
                         onChange={(e) => setCourierNameText(e.target.value)}
                         placeholder="e.g. Blue Dart Surface"
-                        className="w-full px-4 py-2.5 bg-slate-900 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm font-medium placeholder-slate-500"
+                        className="w-full px-4 py-2.5 bg-slate-950 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm font-medium placeholder-slate-500"
                       />
                     </div>
                     <div>
@@ -776,7 +771,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                         value={awbNumberText}
                         onChange={(e) => setAwbNumberText(e.target.value)}
                         placeholder="e.g. 77030714471"
-                        className="w-full px-4 py-2.5 bg-slate-900 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm font-medium placeholder-slate-500"
+                        className="w-full px-4 py-2.5 bg-slate-950 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm font-medium placeholder-slate-500"
                       />
                     </div>
                   </div>
@@ -790,7 +785,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                     </button>
                     <button
                       onClick={() => { setShippingInputOpen(false); setAwbNumberText(''); setCourierNameText(''); }}
-                      className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                      className="px-5 py-2.5 bg-slate-900/60 hover:bg-slate-800 border border-white/10 text-slate-300 text-xs font-bold rounded-xl transition-colors cursor-pointer"
                     >
                       Cancel
                     </button>
@@ -956,7 +951,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                             return displayImages.length > 0 ? (
                               displayImages.map((img, imgIdx) => (
                                 <div key={imgIdx} className="w-14 h-14 rounded-lg overflow-hidden bg-white/10 shrink-0 border border-white/10 flex items-center justify-center">
-                                  <img src={img} alt={`Product ${imgIdx + 1}`} className="w-full h-full object-cover bg-white" />
+                                  <OptimizedImage src={img} alt={`Product ${imgIdx + 1}`} width={120} quality={65} className="w-full h-full object-contain bg-white" />
                                 </div>
                               ))
                             ) : (
@@ -1065,12 +1060,12 @@ const Orders = ({ defaultStatus = 'all' }) => {
       {/* RETURN DETAILS MODAL */}
       {isReturnModalOpen && selectedReturn && createPortal(
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeReturnModal}></div>
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm" onClick={closeReturnModal}></div>
           
-          <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-4xl h-[90vh] md:h-[80vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative bg-slate-950/25 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-4xl h-[90vh] md:h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             
             {/* Header */}
-            <div className="px-6 py-4 sm:py-5 border-b border-white/10 flex justify-between items-center bg-slate-800/50 shrink-0">
+            <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-white/20 flex justify-between items-center bg-slate-950/30 shrink-0">
               <div>
                 <h3 className="font-bold text-white text-xl flex items-center gap-2">
                   <FiRefreshCcw className="text-blue-400" />
@@ -1084,21 +1079,21 @@ const Orders = ({ defaultStatus = 'all' }) => {
             </div>
 
             {/* Body */}
-            <div className="overflow-y-auto w-full flex-1 custom-scrollbar p-6 space-y-6 bg-black/20">
+            <div className="overflow-y-auto w-full flex-1 custom-scrollbar p-4 sm:p-6 space-y-6 bg-slate-950/25">
               {/* Status Indicator */}
               <div className="flex flex-wrap gap-3">
-                <div className="px-4 py-2 bg-slate-800 border border-white/5 rounded-xl flex items-center gap-2 text-sm">
+                <div className="px-4 py-2 bg-slate-950/30 border border-white/20 rounded-xl flex items-center gap-2 text-sm">
                   <FiCalendar className="text-slate-400" />
                   <span className="text-slate-200">Request Date:</span>
                   <span className="font-bold text-white">{selectedReturn.createdAt ? new Date(selectedReturn.createdAt).toLocaleString() : 'N/A'}</span>
                 </div>
                 {selectedReturn.status && (
-                  <div className={`px-4 py-2 border rounded-xl flex items-center gap-2 text-sm font-bold ${getReturnStatusColor(selectedReturn.status)}`}>
+                  <div className={`px-4 py-2 border border-white/20 rounded-xl flex items-center gap-2 text-sm font-bold ${getReturnStatusColor(selectedReturn.status)}`}>
                     Status: {selectedReturn.status}
                   </div>
                 )}
                 {(selectedReturn.orderId || selectedReturn.order?._id) && (
-                  <div className="px-4 py-2 bg-slate-800 border border-white/5 rounded-xl flex items-center gap-2 text-sm">
+                  <div className="px-4 py-2 bg-slate-950/30 border border-white/20 rounded-xl flex items-center gap-2 text-sm">
                     <FiBox className="text-slate-400" />
                     <span className="text-slate-200">Order Ref:</span>
                     <span className="font-bold text-white font-mono">#{selectedReturn.order?._id || selectedReturn.orderId}</span>
@@ -1108,7 +1103,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Customer Info */}
-                <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5 space-y-3">
+                <div className="bg-slate-950/30 p-4 rounded-2xl border border-white/20 space-y-4">
                   <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                     <FiUser className="text-blue-400" /> Customer Contact
                   </h4>
@@ -1131,12 +1126,12 @@ const Orders = ({ defaultStatus = 'all' }) => {
                 </div>
 
                 {/* Reason Info */}
-                <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5 space-y-3 flex flex-col justify-between">
+                <div className="bg-slate-950/30 p-4 rounded-2xl border border-white/20 space-y-4 flex flex-col justify-between">
                   <div>
                     <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 mb-2">
                       <FiInfo className="text-amber-400" /> Reason for Return
                     </h4>
-                    <p className="text-sm text-slate-200 leading-relaxed italic bg-black/25 p-3 rounded-xl border border-white/5">
+                    <p className="text-sm text-slate-200 leading-relaxed italic bg-black/20 p-3 rounded-xl border border-white/15">
                       "{selectedReturn.items?.[0]?.reason || selectedReturn.reason || 'No description provided.'}"
                     </p>
                   </div>
@@ -1153,7 +1148,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
 
               {/* Items */}
               {selectedReturn.items && selectedReturn.items.length > 0 && (
-                <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5">
+                <div className="bg-slate-950/30 p-4 rounded-2xl border border-white/20">
                   <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
                     <FiBox className="text-purple-400" /> Return Items ({selectedReturn.items.length})
                   </h4>
@@ -1163,11 +1158,11 @@ const Orders = ({ defaultStatus = 'all' }) => {
                       const productImg = item.product?.images?.[0] || item.image || '';
                       
                       return (
-                        <div key={idx} className="flex flex-col sm:flex-row gap-4 justify-between p-4 bg-transparent rounded-xl border border-white/5">
+                        <div key={idx} className="flex flex-col sm:flex-row gap-4 justify-between p-4 bg-transparent rounded-xl border border-white/10">
                           <div className="flex gap-4 items-start flex-1 min-w-0">
                             {productImg ? (
                               <div className="w-16 h-16 rounded-xl overflow-hidden bg-white/10 border border-white/5 shrink-0">
-                                <img src={getImageUrl(productImg)} alt={productName} className="w-full h-full object-cover bg-white" />
+                                <OptimizedImage src={getImageUrl(productImg)} alt={productName} width={140} quality={65} className="w-full h-full object-contain bg-white" />
                               </div>
                             ) : (
                               <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-800 border border-white/5 shrink-0 flex items-center justify-center">
@@ -1192,19 +1187,45 @@ const Orders = ({ defaultStatus = 'all' }) => {
                 </div>
               )}
 
-
+              {/* Rejection Form Overlay */}
+              {rejectionInputOpen && (
+                <div className="p-4 bg-slate-950/40 border border-red-500/30 rounded-2xl space-y-3 animate-in slide-in-from-bottom-2">
+                  <label className="block text-xs font-bold text-red-400 uppercase tracking-wider">Provide Rejection Reason</label>
+                  <textarea
+                    required
+                    rows="3"
+                    value={rejectionReasonText}
+                    onChange={(e) => setRejectionReasonText(e.target.value)}
+                    placeholder="Provide details about why the return is rejected (e.g. Item shows signs of physical damage/usage)..."
+                    className="w-full px-3 py-2 bg-slate-950 border border-white/10 rounded-xl focus:outline-none focus:ring-1 focus:ring-red-500 text-white text-sm"
+                  ></textarea>
+                  <div className="flex gap-2 justify-end">
+                    <button
+                      onClick={() => handleReturnStatusChange(selectedReturn._id || selectedReturn.id, 'Rejected', rejectionReasonText)}
+                      disabled={!rejectionReasonText.trim()}
+                      className="px-4 py-2 text-white text-xs font-bold rounded-lg transition-colors disabled:opacity-50 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700"
+                    >
+                      Confirm Reject
+                    </button>
+                    <button
+                      onClick={() => { setRejectionInputOpen(false); setRejectionReasonText(''); }}
+                      className="px-4 py-2 bg-slate-900/60 hover:bg-slate-800 border border-white/10 text-slate-300 text-xs font-bold rounded-lg transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Footer / Actions */}
-            <div className="px-6 py-4 border-t border-white/10 flex flex-wrap gap-2 justify-between bg-slate-800/30 shrink-0">
+            <div className="px-4 sm:px-6 py-4 border-t border-white/20 flex flex-wrap gap-2 justify-between bg-slate-950/30 shrink-0">
               <button 
                 onClick={closeReturnModal}
-                className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors text-sm"
+                className="px-6 py-2.5 bg-slate-900/60 hover:bg-slate-800 border border-white/10 text-slate-300 font-bold rounded-xl transition-colors text-sm"
               >
                 Close
               </button>
-
-
             </div>
 
           </div>

@@ -53,7 +53,7 @@ const PAGES = {
     name: 'Settings',
     icon: FiSettings,
     subMenus: [
-      { path: '/settings/notifications', name: 'Notification Alerts', icon: FiBell },
+      { path: '/settings/panel', name: 'Panel Settings', icon: FiSliders },
       { path: '/settings/maintenance', name: 'Maintenance', icon: FiTool, role: 'admin' },
       { path: '/settings/faqs', name: 'FAQs', icon: FiHelpCircle },
       { path: '/settings/privacy-policy', name: 'Privacy Policy', icon: FiShield },

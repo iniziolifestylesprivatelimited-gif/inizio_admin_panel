@@ -803,7 +803,7 @@ const UsersList = () => {
       </div>
       {/* Content Area */}
       {loading ? (
-        <div className="h-64 flex flex-col justify-center items-center bg-slate-900/50 border border-white/10 rounded-2xl">
+        <div className="h-64 flex flex-col justify-center items-center bg-slate-950/15 border border-white/10 rounded-2xl">
           <FiLoader className="animate-spin text-3xl text-blue-400 mb-4" />
           <p className="text-slate-400 font-medium">Loading customers...</p>
         </div>
@@ -815,12 +815,12 @@ const UsersList = () => {
         <UsersVerification hideHeader={true} searchQuery={searchTerm} refreshParentCounts={fetchUsers} />
       ) : (
         <>
-          <div className="relative z-10 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full isolate will-change-transform">
+          <div className="relative z-10 bg-transparent border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full isolate will-change-transform">
             <div className="overflow-auto custom-scrollbar max-h-[70vh]">
               <table className="w-full text-left border-collapse whitespace-nowrap min-w-200">
-                <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md shadow-md border-b border-white/10">
+                <thead className="sticky top-0 z-20 bg-white/[0.03] backdrop-blur-md shadow-md border-b border-white/10">
                   <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-slate-400">
-                    <th className="p-2 font-bold text-center bg-slate-900/95">S.No</th>
+                    <th className="p-2 font-bold text-center">S.No</th>
                     <th 
                       onClick={() => handleSortChange('name')}
                       className="p-4 font-bold text-left cursor-pointer select-none hover:text-white transition-colors"

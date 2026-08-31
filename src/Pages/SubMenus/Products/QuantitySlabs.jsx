@@ -6,37 +6,8 @@ import {
   FiBox, FiTag, FiGrid, FiGrid as FiList, FiPackage, FiInfo
 } from 'react-icons/fi';
 import CustomDropdown from '../../../Components/CustomDropdown';
-
-// Helper to construct image URL
-const getImageUrl = (path, options = {}) => {
-  if (!path) return '';
-  const { quality = 60, width = 120, isOriginal = false } = options;
-  let fullUrl = '';
-  if (path.startsWith('http') || path.startsWith('blob:')) {
-    fullUrl = path;
-  } else {
-    const cleanPath = path.replace(/\\/g, '/');
-    fullUrl = `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
-  }
-
-  if (isOriginal) return fullUrl;
-
-  if (fullUrl.includes('cloudinary.com') && fullUrl.includes('/upload/')) {
-    const transforms = [width ? `w_${width}` : '', quality ? `q_${quality}` : ''].filter(Boolean).join(',');
-    return fullUrl.replace('/upload/', `/upload/${transforms}/`);
-  }
-
-  if (fullUrl.includes('/wp-content/uploads/')) {
-    const cleanHostPath = fullUrl.replace(/^https?:\/\//i, '');
-    const params = [];
-    if (width) params.push(`w=${width}`);
-    if (quality) params.push(`quality=${quality}`);
-    const query = params.length > 0 ? `?${params.join('&')}` : '';
-    return `https://i0.wp.com/${cleanHostPath}${query}`;
-  }
-
-  return fullUrl;
-};
+import { getImageUrl } from '../../../utils/imageUtils';
+import OptimizedImage from '../../../Components/OptimizedImage';
 
 export default function QuantitySlabs() {
   const [products, setProducts] = useState([]);
@@ -803,19 +774,20 @@ export default function QuantitySlabs() {
 
                             {/* Name / Info */}
                             <td className="p-3 align-top max-w-[200px]">
-                              <div className="flex gap-2">
-                                {/* {product.images && product.images[0] ? (
-                                  <img
-                                    src={getImageUrl(product.images[0])}
-                                    alt=""
-                                    className="w-8 h-8 rounded-lg object-contain bg-white shrink-0 p-0.5 border border-white/10"
-                                    onError={(e) => { e.target.style.display = 'none'; }}
+                              <div className="flex gap-2.5 items-center">
+                                {product.images && product.images[0] ? (
+                                  <OptimizedImage
+                                    src={product.images[0]}
+                                    alt={product.name}
+                                    width={80}
+                                    quality={60}
+                                    className="w-9 h-9 rounded-lg object-contain bg-white shrink-0 p-0.5 border border-white/10 shadow-sm"
                                   />
                                 ) : (
-                                  <div className="w-8 h-8 rounded-lg bg-slate-800 shrink-0 flex items-center justify-center border border-white/10 text-slate-500">
+                                  <div className="w-9 h-9 rounded-lg bg-slate-800 shrink-0 flex items-center justify-center border border-white/10 text-slate-500">
                                     <FiPackage size={14} />
                                   </div>
-                                )} */}
+                                )}
                                 <div>
                                   <div className="font-semibold text-slate-100 line-clamp-2">{product.name}</div>
                                   <div className="flex gap-1.5 items-center mt-1">

@@ -18,6 +18,14 @@ export const DEFAULT_NOTIFICATION_SETTINGS = {
     chat: true,
     brokenImages: true,
     apiRequests: true
+  },
+  pollingIntervals: {
+    orders: 30,         // seconds (Orders & Status)
+    quotes: 30,         // seconds (Quote Requests)
+    users: 30,          // seconds (User Accounts & Verifications)
+    chat: 15,           // seconds (Live Chat Messages)
+    brokenImages: 180,  // seconds (Broken Images & Catalog Health)
+    apiRequests: 30     // seconds (API Requests & Live Telemetry)
   }
 };
 
@@ -32,6 +40,10 @@ export const getNotificationSettings = () => {
       categories: {
         ...DEFAULT_NOTIFICATION_SETTINGS.categories,
         ...(parsed.categories || {})
+      },
+      pollingIntervals: {
+        ...DEFAULT_NOTIFICATION_SETTINGS.pollingIntervals,
+        ...(parsed.pollingIntervals || {})
       }
     };
   } catch {
@@ -48,6 +60,10 @@ export const saveNotificationSettings = (settings) => {
       categories: {
         ...current.categories,
         ...(settings.categories || {})
+      },
+      pollingIntervals: {
+        ...current.pollingIntervals,
+        ...(settings.pollingIntervals || {})
       }
     };
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(updated));
@@ -57,6 +73,12 @@ export const saveNotificationSettings = (settings) => {
     console.error('Failed to save notification settings:', e);
     return getNotificationSettings();
   }
+};
+
+export const getPollingInterval = (categoryKey, fallbackSeconds = 30) => {
+  const settings = getNotificationSettings();
+  const val = settings.pollingIntervals?.[categoryKey];
+  return (typeof val === 'number' && val >= 5) ? val * 1000 : fallbackSeconds * 1000;
 };
 
 export const isBrowserAlertsEnabled = () => {

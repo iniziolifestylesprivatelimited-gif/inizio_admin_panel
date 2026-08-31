@@ -10,6 +10,7 @@ import { curveMonotoneX } from '@visx/curve';
 import { useTooltip, useTooltipInPortal, defaultStyles as tooltipStyles } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
 import { animated, useTransition, useSpring, to } from '@react-spring/web';
+import { DiAndroid, DiApple } from 'react-icons/di';
 
 const AnimatedPath = animated.path;
 const AnimatedG = animated.g;
@@ -43,6 +44,89 @@ const formatCompactNumber = (num, prefix = '') => {
 // ----------------------------------------------------
 // React Spring Animated Helpers (Physics Engine)
 // ----------------------------------------------------
+function AnimatedPoly({ d, fill, onMouseMove, onMouseLeave, className }) {
+  const spring = useSpring({
+    from: { opacity: 0 },
+    to: { opacity: 1 },
+    config: { tension: 120, friction: 14 }
+  });
+
+  return (
+    <AnimatedPath
+      d={d}
+      fill={fill}
+      opacity={spring.opacity}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
+      className={className}
+    />
+  );
+}
+
+function AnimatedLine({ d, stroke, strokeWidth, className }) {
+  const spring = useSpring({
+    from: { opacity: 0 },
+    to: { opacity: 1 },
+    config: { tension: 120, friction: 14 }
+  });
+
+  return (
+    <AnimatedPath
+      d={d}
+      fill="none"
+      stroke={stroke}
+      strokeWidth={strokeWidth}
+      opacity={spring.opacity}
+      className={className}
+    />
+  );
+}
+
+function AnimatedArcItem({ path, fill, onMouseMove, onMouseLeave, onClick, className, stroke, strokeWidth }) {
+  const spring = useSpring({
+    from: { opacity: 0, scale: 0.8 },
+    to: { opacity: 1, scale: 1 },
+    config: { tension: 150, friction: 12 }
+  });
+
+  return (
+    <AnimatedPath
+      d={path}
+      fill={fill}
+      stroke={stroke}
+      strokeWidth={strokeWidth}
+      opacity={spring.opacity}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
+      onClick={onClick}
+      className={className}
+    />
+  );
+}
+
+function AnimatedHorizontalBarItem({ x = 0, y, width, height, fill, rx = 6, ry = 6, onMouseMove, onMouseLeave, className }) {
+  const spring = useSpring({
+    from: { width: 0, x: 0 },
+    to: { width, x },
+    config: { tension: 130, friction: 15 }
+  });
+
+  return (
+    <AnimatedRect
+      x={spring.x}
+      y={y}
+      width={spring.width}
+      height={height}
+      fill={fill}
+      rx={rx}
+      ry={ry}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
+      className={className}
+    />
+  );
+}
+
 function AnimatedPie({
   arcs,
   path,
@@ -119,29 +203,6 @@ function AnimatedPie({
   });
 }
 
-function AnimatedHorizontalBarItem({ x, y, width, height, fill, rx, ry, onMouseMove, onMouseLeave, className }) {
-  const spring = useSpring({
-    from: { width: 0 },
-    to: { width },
-    config: { tension: 130, friction: 15 }
-  });
-
-  return (
-    <AnimatedRect
-      x={x}
-      y={y}
-      width={spring.width}
-      height={height}
-      fill={fill}
-      rx={rx}
-      ry={ry}
-      onMouseMove={onMouseMove}
-      onMouseLeave={onMouseLeave}
-      className={className}
-    />
-  );
-}
-
 function AnimatedVerticalBarItem({ x, y, width, height, yMax, fill, rx, ry, onMouseMove, onMouseLeave, className, opacity }) {
   const spring = useSpring({
     from: { y: yMax, height: 0 },
@@ -184,16 +245,32 @@ function AppVersionsHorizontalChart({ data, width, height }) {
     scroll: true
   });
 
-  const margin = { top: 15, right: 40, bottom: 25, left: 110 };
+  const margin = { top: 15, right: 40, bottom: 45, left: 75 };
   const xMax = Math.max(0, width - margin.left - margin.right);
   const yMax = Math.max(0, height - margin.top - margin.bottom);
 
-  const maxVal = Math.max(...data.map(d => d.count || 0), 1);
+  const formatVerLabel = (ver) => {
+    const s = String(ver || '').trim();
+    if (!s || /^unknown/i.test(s) || /^legacy/i.test(s)) return 'Legacy';
+    return s.startsWith('v') || s.startsWith('V') ? s : `v${s}`;
+  };
+
+  const totalAndroid = data.reduce((sum, d) => sum + (d.androidCount || 0), 0);
+  const totalIos = data.reduce((sum, d) => sum + (d.iosCount || 0), 0);
+
+  const maxVal = Math.max(
+    ...data.map(d => {
+      const a = d.androidCount || 0;
+      const i = d.iosCount || 0;
+      return (a + i) > 0 ? (a + i) : (d.count || 0);
+    }),
+    1
+  );
 
   const yScale = scaleBand({
     range: [0, yMax],
-    domain: data.map(d => d.version || 'Unknown'),
-    padding: 0.35
+    domain: data.map(d => formatVerLabel(d.version)),
+    padding: data.length > 6 ? 0.25 : 0.35
   });
 
   const xScale = scaleLinear({
@@ -206,48 +283,98 @@ function AppVersionsHorizontalChart({ data, width, height }) {
   return (
     <div ref={containerRef} className="relative w-full h-full">
       <svg width={width} height={height}>
-        <LinearGradient id="visx-app-bar-grad" from="#6366f1" to="#3d458cff" fromOpacity={1} toOpacity={0.65} />
+        {/* Soft Blue Gradient for Android */}
+        <LinearGradient id="visx-app-android-grad" from="#3b82f6" to="#2563eb" fromOpacity={0.9} toOpacity={0.55} />
+        {/* Soft Emerald Gradient for iOS */}
+        <LinearGradient id="visx-app-ios-grad" from="#10b981" to="#059669" fromOpacity={0.9} toOpacity={0.55} />
+
         <Group left={margin.left} top={margin.top}>
           {data.map((d, idx) => {
-            const version = d.version || 'Unknown';
-            const barWidth = xScale(d.count || 0);
-            const barHeight = yScale.bandwidth();
-            const barY = yScale(version);
-            const isHovered = tooltipOpen && tooltipData?.version === version;
+            const verLabel = formatVerLabel(d.version);
+            const androidCount = d.androidCount !== undefined 
+              ? d.androidCount 
+              : (d.platform?.toLowerCase() === 'ios' ? 0 : (d.count || 0));
+            const iosCount = d.iosCount !== undefined 
+              ? d.iosCount 
+              : (d.platform?.toLowerCase() === 'ios' ? (d.count || 0) : 0);
+            const totalCount = (androidCount + iosCount) > 0 ? (androidCount + iosCount) : (d.count || 0);
+
+            const totalWidth = xScale(totalCount);
+            const androidWidth = totalCount > 0 ? (androidCount / totalCount) * totalWidth : 0;
+            const iosWidth = totalCount > 0 ? (iosCount / totalCount) * totalWidth : 0;
+
+            const bandHeight = yScale.bandwidth();
+            const barHeight = Math.min(22, Math.max(12, bandHeight));
+            const barY = (yScale(verLabel) || 0) + (bandHeight - barHeight) / 2;
+
+            const isHovered = tooltipOpen && tooltipData?.label === verLabel;
+            const hasBoth = androidCount > 0 && iosCount > 0;
+
+            const handleHover = (event) => {
+              const coords = localPoint(event.target.ownerSVGElement, event);
+              showTooltip({
+                tooltipLeft: coords?.x || 0,
+                tooltipTop: coords?.y || 0,
+                tooltipData: {
+                  label: verLabel,
+                  version: d.version,
+                  androidCount,
+                  iosCount,
+                  count: totalCount
+                }
+              });
+            };
+
             return (
-              <React.Fragment key={`app-ver-${version}-${idx}`}>
-                <AnimatedHorizontalBarItem
-                  x={0}
-                  y={barY}
-                  width={barWidth}
-                  height={barHeight}
-                  fill={isHovered ? '#a5b4fc' : 'url(#visx-app-bar-grad)'}
-                  rx={6}
-                  ry={6}
-                  onMouseMove={(event) => {
-                    const coords = localPoint(event.target.ownerSVGElement, event);
-                    showTooltip({
-                      tooltipLeft: coords?.x || 0,
-                      tooltipTop: coords?.y || 0,
-                      tooltipData: d
-                    });
-                  }}
-                  onMouseLeave={hideTooltip}
-                  className="transition-colors duration-150 cursor-pointer"
-                />
+              <React.Fragment key={`app-ver-${verLabel}-${idx}`}>
+                {/* Android Segment / Bar */}
+                {androidCount > 0 && (
+                  <AnimatedHorizontalBarItem
+                    x={0}
+                    y={barY}
+                    width={androidWidth}
+                    height={barHeight}
+                    fill={isHovered ? '#60a5fa' : 'url(#visx-app-android-grad)'}
+                    rx={hasBoth ? 4 : 6}
+                    ry={hasBoth ? 4 : 6}
+                    onMouseMove={handleHover}
+                    onMouseLeave={hideTooltip}
+                    className="transition-colors duration-150 cursor-pointer"
+                  />
+                )}
+
+                {/* iOS Segment / Bar */}
+                {iosCount > 0 && (
+                  <AnimatedHorizontalBarItem
+                    x={hasBoth ? androidWidth + 1 : 0}
+                    y={barY}
+                    width={hasBoth ? Math.max(0, iosWidth - 1) : iosWidth}
+                    height={barHeight}
+                    fill={isHovered ? '#34d399' : 'url(#visx-app-ios-grad)'}
+                    rx={hasBoth ? 4 : 6}
+                    ry={hasBoth ? 4 : 6}
+                    onMouseMove={handleHover}
+                    onMouseLeave={hideTooltip}
+                    className="transition-colors duration-150 cursor-pointer"
+                  />
+                )}
+
+                {/* Total Count Label */}
                 <text
-                  x={barWidth + 8}
-                  y={(barY || 0) + barHeight / 2}
+                  x={totalWidth + 8}
+                  y={barY + barHeight / 2}
                   dy=".35em"
                   fill={isHovered ? '#ffffff' : '#94a3b8'}
                   fontSize={11}
                   fontWeight={700}
+                  className="font-mono select-none"
                 >
-                  {d.count || 0}
+                  {totalCount}
                 </text>
               </React.Fragment>
             );
           })}
+
           <AxisLeft
             scale={yScale}
             stroke="transparent"
@@ -255,7 +382,7 @@ function AppVersionsHorizontalChart({ data, width, height }) {
             tickLabelProps={{
               fill: '#94a3b8',
               fontSize: 11,
-              fontWeight: 600,
+              fontWeight: 700,
               textAnchor: 'end',
               dx: -4,
               dy: 3
@@ -263,11 +390,58 @@ function AppVersionsHorizontalChart({ data, width, height }) {
           />
         </Group>
       </svg>
+
+      {/* Bottom Platform Colors Legend */}
+      <div className="absolute bottom-1 left-0 right-0 flex justify-center items-center gap-6 text-xs font-bold">
+        <div className="flex items-center gap-2 px-3 py-1 rounded-lg backdrop-blur-md border border-white/10 bg-slate-900/60 shadow-lg">
+          <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-xs shadow-blue-500/50"></span>
+          <span className="text-slate-300">Android</span>
+          {totalAndroid > 0 && <span className="font-mono text-blue-400 font-bold">({totalAndroid})</span>}
+        </div>
+        <div className="flex items-center gap-2 px-3 py-1 rounded-lg backdrop-blur-md border border-white/10 bg-slate-900/60 shadow-lg">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs shadow-emerald-500/50"></span>
+          <span className="text-slate-300">iOS</span>
+          {totalIos > 0 && <span className="font-mono text-emerald-400 font-bold">({totalIos})</span>}
+        </div>
+      </div>
+
       {tooltipOpen && tooltipData && (
         <TooltipInPortal top={tooltipTop} left={tooltipLeft} style={tooltipCustomStyles}>
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-indigo-400"></span>
-            <span>{tooltipData.version}: <strong className="text-white font-mono">{tooltipData.count} devices</strong></span>
+          <div className="min-w-[150px] space-y-2 p-0.5">
+            <div className="flex items-center justify-between border-b border-white/10 pb-1.5 gap-3">
+              <span className="font-extrabold text-white text-xs">{tooltipData.label}</span>
+              <span className="font-mono text-[11px] text-slate-300 font-bold bg-white/5 px-1.5 py-0.5 rounded border border-white/10">
+                {tooltipData.count} devices
+              </span>
+            </div>
+
+            <div className="space-y-1.5 text-xs">
+              <div className="flex items-center justify-between gap-3 text-blue-400">
+                <span className="flex items-center gap-1.5 text-[11px] font-bold">
+                  <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                  Android:
+                </span>
+                <span className="font-mono font-bold text-white text-[11px]">
+                  {tooltipData.androidCount}
+                  <span className="text-[9px] text-blue-400/80 ml-1 font-semibold">
+                    ({tooltipData.count > 0 ? Math.round((tooltipData.androidCount / tooltipData.count) * 100) : 0}%)
+                  </span>
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between gap-3 text-emerald-400">
+                <span className="flex items-center gap-1.5 text-[11px] font-bold">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  iOS:
+                </span>
+                <span className="font-mono font-bold text-white text-[11px]">
+                  {tooltipData.iosCount}
+                  <span className="text-[9px] text-emerald-400/80 ml-1 font-semibold">
+                    ({tooltipData.count > 0 ? Math.round((tooltipData.iosCount / tooltipData.count) * 100) : 0}%)
+                  </span>
+                </span>
+              </div>
+            </div>
           </div>
         </TooltipInPortal>
       )}

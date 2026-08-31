@@ -6,13 +6,8 @@ import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiAlertCircle, FiTag, FiImage, 
 import { api, BASE_URL } from '../../../api/axios';
 import { formatDateTimeDDMMYYYY } from '../../../utils/dateUtils';
 import CopyButton from '../../../Components/CopyButton';
-
-const getImageUrl = (path) => {
-  if (!path) return '';
-  if (path.startsWith('http') || path.startsWith('blob:')) return path;
-  const cleanPath = path.replace(/\\/g, '/');
-  return `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
-};
+import { getImageUrl } from '../../../utils/imageUtils';
+import OptimizedImage from '../../../Components/OptimizedImage';
 
 const Category = () => {
   const [categories, setCategories] = useState([]);
@@ -383,13 +378,13 @@ const Category = () => {
                         <td className="px-3 py-4 text-sm text-center font-medium text-slate-300">{indexOfFirstItem + index + 1}</td>
                         <td className="px-6 py-4">
                           <div className="flex items-center">
-                            {/* {category.image ? (
-                            <img src={getImageUrl(category.image)} alt={category.name} className="w-10 h-10 rounded-lg object-contain bg-white p-1 border border-white/10 mr-3 shrink-0" />
+                            {category.image ? (
+                              <OptimizedImage src={category.image} alt={category.name} width={80} quality={65} className="w-10 h-10 rounded-lg object-contain bg-white p-1 border border-white/10 mr-3 shrink-0" />
                             ) : (
-                            <div className="w-10 h-10 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center mr-3 text-slate-400 shrink-0">
+                              <div className="w-10 h-10 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center mr-3 text-slate-400 shrink-0">
                                 <FiTag />
                               </div>
-                            )} */}
+                            )}
                           <div className="flex flex-col">
                             <span className="font-bold text-white">{category.name}</span>
                             <div className="flex items-center gap-1 mt-0.5">

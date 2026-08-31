@@ -5,13 +5,8 @@ import {
   FiAlertCircle, FiCheck, FiSliders, FiGrid, FiTag, FiLayout 
 } from 'react-icons/fi';
 import { api, BASE_URL } from '../../../api/axios';
-
-const getImageUrl = (path) => {
-  if (!path) return '';
-  if (path.startsWith('http') || path.startsWith('blob:')) return path;
-  const cleanPath = path.replace(/\\/g, '/');
-  return `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
-};
+import { getImageUrl } from '../../../utils/imageUtils';
+import OptimizedImage from '../../../Components/OptimizedImage';
 
 const HomeOrdering = () => {
   const [activeTab, setActiveTab] = useState('categories'); // 'categories' | 'brands'
@@ -256,9 +251,11 @@ const HomeOrdering = () => {
                       {/* Avatar/Preview */}
                       <div className="w-12 h-12 bg-slate-800 rounded-xl border border-white/10 overflow-hidden flex items-center justify-center shrink-0">
                         {item.image || item.logo ? (
-                          <img 
-                            src={getImageUrl(item.image || item.logo)} 
+                          <OptimizedImage 
+                            src={item.image || item.logo} 
                             alt={item.name} 
+                            width={100}
+                            quality={65}
                             className="w-full h-full object-contain bg-white p-1"
                           />
                         ) : (

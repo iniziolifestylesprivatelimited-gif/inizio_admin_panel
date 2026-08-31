@@ -24,13 +24,23 @@ import {
   getNotificationSettings,
   saveNotificationSettings,
   isBrowserAlertsEnabled,
-  isToastAlertsEnabled
+  isToastAlertsEnabled,
+  getPollingInterval
 } from '../utils/browserNotifications';
 
 const Layout = () => {
   const { user, logout, userPermissions } = useAuth();
   const location = useLocation();
   const mainRef = useRef(null);
+  const [pollingConfigVersion, setPollingConfigVersion] = useState(0);
+
+  useEffect(() => {
+    const handleSettingsChange = () => {
+      setPollingConfigVersion(v => v + 1);
+    };
+    window.addEventListener('inizio:notification-settings-changed', handleSettingsChange);
+    return () => window.removeEventListener('inizio:notification-settings-changed', handleSettingsChange);
+  }, []);
 
   const isChatRoute = location.pathname.startsWith('/chat');
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -534,9 +544,10 @@ const Layout = () => {
     };
 
     fetchUnreadCount();
-    const intervalId = setInterval(fetchUnreadCount, 30000);
+    const chatInterval = getPollingInterval('chat', 15);
+    const intervalId = setInterval(fetchUnreadCount, chatInterval);
     return () => clearInterval(intervalId);
-  }, [user]);
+  }, [user, pollingConfigVersion]);
 
   // Clear counts when visiting the page
   useEffect(() => {
@@ -722,9 +733,15 @@ const Layout = () => {
     };
 
     fetchOrdersAndUsers();
-    const intervalId = setInterval(fetchOrdersAndUsers, 30000);
+    const ordersInterval = Math.min(
+      getPollingInterval('orders', 30),
+      getPollingInterval('users', 30),
+      getPollingInterval('quotes', 30),
+      getPollingInterval('brokenImages', 180)
+    );
+    const intervalId = setInterval(fetchOrdersAndUsers, ordersInterval);
     return () => clearInterval(intervalId);
-  }, [user, location.pathname]);
+  }, [user, location.pathname, pollingConfigVersion]);
 
   // Update browser tab title with total unread notification counts
   useEffect(() => {
@@ -905,16 +922,17 @@ const Layout = () => {
       }
     };
 
-    // Run first check after 2s, then recurring every 15 minutes
+    // Run first check after 2s, then recurring according to brokenImages polling interval
     timeoutId = setTimeout(checkProductImages, 2000);
-    intervalId = setInterval(checkProductImages, 3 * 60 * 1000);
+    const imgInterval = getPollingInterval('brokenImages', 180);
+    intervalId = setInterval(checkProductImages, imgInterval);
 
     return () => {
       isMounted = false;
       clearTimeout(timeoutId);
       clearInterval(intervalId);
     };
-  }, [user]);
+  }, [user, pollingConfigVersion]);
 
   if (!user) {
     return <Navigate to="/login" replace />;
