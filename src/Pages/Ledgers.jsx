@@ -26,6 +26,8 @@ export const Ledgers = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   
   // Modal and Form State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -190,6 +192,13 @@ export const Ledgers = () => {
     });
   }, [ledgers, searchQuery, users]);
 
+  const totalPages = Math.ceil(filteredLedgers.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentLedgers = useMemo(() => {
+    return filteredLedgers.slice(indexOfFirstItem, indexOfLastItem);
+  }, [filteredLedgers, indexOfFirstItem, indexOfLastItem]);
+
   return (
     <div className="relative space-y-4 min-h-full z-0 isolate w-full">
       {/* Header */}
@@ -210,13 +219,19 @@ export const Ledgers = () => {
               type="text"
               placeholder="Search by title, customer..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-full pl-10 pr-9 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 text-xs font-medium transition-all"
             />
             {searchQuery && (
               <button
                 type="button"
-                onClick={() => setSearchQuery('')}
+                onClick={() => {
+                  setSearchQuery('');
+                  setCurrentPage(1);
+                }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
               >
                 <FiX size={13} />
@@ -244,10 +259,10 @@ export const Ledgers = () => {
           <FiAlertCircle className="mr-2 text-lg shrink-0" /> {error}
         </div>
       ) : (
-        <div className="relative z-10 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full">
+        <div className="relative z-10 border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full">
           <div className="overflow-auto custom-scrollbar max-h-[59vh]">
             <table className="w-full text-left border-collapse whitespace-nowrap min-w-150">
-              <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md shadow-md">
+              <thead className="sticky top-0 z-20 bg-white/[0.03] backdrop-blur-md shadow-md border-b border-white/10">
                 <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-slate-400">
                   <th className="p-5 font-bold w-16">S.No</th>
                   <th className="p-5 font-bold">Title</th>
@@ -257,12 +272,12 @@ export const Ledgers = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {filteredLedgers.length > 0 ? (
-                  filteredLedgers.map((ledger, index) => {
+                {currentLedgers.length > 0 ? (
+                  currentLedgers.map((ledger, index) => {
                     const user = getUserDetails(ledger.user);
                     return (
                       <tr key={ledger._id} className="hover:bg-white/[0.02] transition-colors">
-                        <td className="p-5 text-sm text-slate-400 font-medium font-mono">{index + 1}</td>
+                        <td className="p-5 text-sm text-slate-400 font-medium font-mono">{indexOfFirstItem + index + 1}</td>
                         <td className="p-5">
                           <div className="flex items-center gap-2.5">
                             <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 shrink-0">
@@ -307,7 +322,7 @@ export const Ledgers = () => {
                             <a 
                               href={getFileUrl(ledger.fileUrl)} 
                               target="_blank" 
-                              rel="noopener noreferrer"
+                              rel="noopener noreferrer" 
                               className="p-2.5 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg transition-all cursor-pointer hover:scale-105" 
                               title="Download Ledger"
                             >
@@ -335,6 +350,73 @@ export const Ledgers = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination Controls */}
+          {!loading && filteredLedgers.length > 0 && (
+            <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
+              <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
+                Showing <span className="font-bold text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastItem, filteredLedgers.length)}</span> of <span className="font-bold text-white">{filteredLedgers.length}</span> ledgers
+              </span>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                >
+                  &larr;
+                </button>
+                <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 items-center">
+                  {(() => {
+                    const pageNumbers = [];
+                    if (totalPages <= 7) {
+                      for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+                    } else {
+                      if (currentPage <= 4) {
+                        for (let i = 1; i <= 5; i++) pageNumbers.push(i);
+                        pageNumbers.push('...');
+                        pageNumbers.push(totalPages);
+                      } else if (currentPage >= totalPages - 3) {
+                        pageNumbers.push(1);
+                        pageNumbers.push('...');
+                        for (let i = totalPages - 4; i <= totalPages; i++) pageNumbers.push(i);
+                      } else {
+                        pageNumbers.push(1);
+                        pageNumbers.push('...');
+                        for (let i = currentPage - 1; i <= currentPage + 1; i++) pageNumbers.push(i);
+                        pageNumbers.push('...');
+                        pageNumbers.push(totalPages);
+                      }
+                    }
+                    return pageNumbers.map((page, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          if (page !== '...') setCurrentPage(page);
+                        }}
+                        disabled={page === '...'}
+                        className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${
+                          page === currentPage
+                            ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
+                            : page === '...'
+                            ? 'bg-transparent text-slate-500 border-transparent cursor-default'
+                            : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ));
+                  })()}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                >
+                  &rarr;
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

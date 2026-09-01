@@ -437,13 +437,13 @@ const ActiveUsers = () => {
           <FiAlertCircle className="mr-2 text-lg shrink-0" /> {error}
         </div>
       ) : (
-        <div className="relative z-10 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full isolate will-change-transform">
+        <div className="relative z-10 border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full isolate will-change-transform">
           <div className="overflow-auto custom-scrollbar max-h-[70vh]">
             <table className="w-full text-left border-collapse whitespace-nowrap min-w-200">
-              <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md shadow-md border-b border-white/10">
+              <thead className="sticky top-0 z-20 bg-white/[0.03] backdrop-blur-md shadow-md border-b border-white/10">
                 {activeTab === 'login' ? (
                   <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-slate-400">
-                    <th className="p-2 font-bold text-center bg-slate-900/95">
+                    <th className="p-2 font-bold text-center">
                       <div className="flex items-center justify-center gap-1">
                         <span>S.No</span>
                         {hasActiveFilters && (
@@ -712,69 +712,72 @@ const ActiveUsers = () => {
               </tbody>
             </table>
           </div>
-        </div>
-      )}
 
-      {/* Pagination Controls */}
-      {!loading && !error && filteredData.length > 0 && (
-        <div className="relative z-10 flex flex-col md:flex-row justify-end items-center gap-4 bg-transparent backdrop-blur-2xl shadow-lg shadow-black/20 p-4 rounded-2xl border border-white/10 isolate">
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 bg-transparent border border-white/10 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold cursor-pointer"
-            >
-              Previous
-            </button>
-            <div className="flex gap-1 mx-1 sm:mx-2 items-center">
-              {(() => {
-                const pageNumbers = [];
-                if (totalPages <= 7) {
-                  for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
-                } else {
-                  if (currentPage <= 4) {
-                    for (let i = 1; i <= 5; i++) pageNumbers.push(i);
-                    pageNumbers.push('...');
-                    pageNumbers.push(totalPages);
-                  } else if (currentPage >= totalPages - 3) {
-                    pageNumbers.push(1);
-                    pageNumbers.push('...');
-                    for (let i = totalPages - 4; i <= totalPages; i++) pageNumbers.push(i);
-                  } else {
-                    pageNumbers.push(1);
-                    pageNumbers.push('...');
-                    for (let i = currentPage - 1; i <= currentPage + 1; i++) pageNumbers.push(i);
-                    pageNumbers.push('...');
-                    pageNumbers.push(totalPages);
-                  }
-                }
-                return pageNumbers.map((page, index) => (
-                  <button
-                    key={index}
-                    onClick={() => {
-                      if (page !== '...') setCurrentPage(page);
-                    }}
-                    disabled={page === '...'}
-                    className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-sm font-medium border transition-colors shrink-0 ${page === currentPage
-                        ? 'bg-blue-600 text-white border-blue-500 shadow-md'
-                        : page === '...'
-                          ? 'bg-transparent text-slate-500 border-transparent cursor-default'
-                          : 'bg-slate-800 text-slate-300 border-white/10 hover:bg-slate-700 cursor-pointer'
-                      }`}
-                  >
-                    {page}
-                  </button>
-                ));
-              })()}
+          {/* Pagination Controls */}
+          {!loading && !error && sortedData.length > 0 && (
+            <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
+              <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
+                Showing <span className="font-bold text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastItem, sortedData.length)}</span> of <span className="font-bold text-white">{sortedData.length}</span> records
+              </span>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                >
+                  &larr;
+                </button>
+                <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 items-center">
+                  {(() => {
+                    const pageNumbers = [];
+                    if (totalPages <= 7) {
+                      for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+                    } else {
+                      if (currentPage <= 4) {
+                        for (let i = 1; i <= 5; i++) pageNumbers.push(i);
+                        pageNumbers.push('...');
+                        pageNumbers.push(totalPages);
+                      } else if (currentPage >= totalPages - 3) {
+                        pageNumbers.push(1);
+                        pageNumbers.push('...');
+                        for (let i = totalPages - 4; i <= totalPages; i++) pageNumbers.push(i);
+                      } else {
+                        pageNumbers.push(1);
+                        pageNumbers.push('...');
+                        for (let i = currentPage - 1; i <= currentPage + 1; i++) pageNumbers.push(i);
+                        pageNumbers.push('...');
+                        pageNumbers.push(totalPages);
+                      }
+                    }
+                    return pageNumbers.map((page, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          if (page !== '...') setCurrentPage(page);
+                        }}
+                        disabled={page === '...'}
+                        className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${page === currentPage
+                            ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
+                            : page === '...'
+                              ? 'bg-transparent text-slate-500 border-transparent cursor-default'
+                              : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
+                          }`}
+                      >
+                        {page}
+                      </button>
+                    ));
+                  })()}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                >
+                  &rarr;
+                </button>
+              </div>
             </div>
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages || totalPages === 0}
-              className="px-4 py-2 bg-transparent border border-white/10 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold cursor-pointer"
-            >
-              Next
-            </button>
-          </div>
+          )}
         </div>
       )}
     </div>

@@ -524,7 +524,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
       )}
 
       {!loading && !error && (
-        <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-2xl md:rounded-3xl overflow-hidden flex flex-col h-full">
+        <div className="border border-white/10 shadow-2xl shadow-black/50 rounded-2xl md:rounded-3xl overflow-hidden flex flex-col h-full">
           
           {/* Delivered Tab Header Switching Section */}
           {defaultStatus === 'delivered' && (
@@ -552,7 +552,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
             <>
               <div className="overflow-auto custom-scrollbar max-h-[70vh]">
                 <table className="w-full text-left border-collapse min-w-200">
-                  <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md shadow-md border-b border-white/10">
+                  <thead className="sticky top-0 z-20 bg-white/[0.03] backdrop-blur-md shadow-md border-b border-white/10">
                     <tr className="border-b border-white/10 text-xs font-bold text-slate-400 uppercase tracking-wider">
                       <th className="p-2 pl-6 w-16">S.No</th>
                       <th className="p-4">Order ID</th>
@@ -719,40 +719,67 @@ const Orders = ({ defaultStatus = 'all' }) => {
                 )}
               </div>
 
-              {filteredOrders.length > itemsPerPage && (
-                <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-black/20">
-                  <span className="text-sm text-slate-400 text-center sm:text-left">
+              {!loading && filteredOrders.length > 0 && (
+                <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
+                  <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
                     Showing <span className="font-bold text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastItem, filteredOrders.length)}</span> of <span className="font-bold text-white">{filteredOrders.length}</span> orders
                   </span>
-                  <div className="flex space-x-2 w-full sm:w-auto justify-center sm:justify-end">
+                  <div className="flex space-x-2">
                     <button
                       onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1}
-                      className="px-4 py-2 bg-transparent hover:bg-white/10 text-slate-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium border border-white/10"
+                      className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
                     >
-                      Previous
+                      &larr;
                     </button>
                     <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 items-center">
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                        <button
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
-                          className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-sm font-medium border transition-colors shrink-0 ${
-                            page === currentPage
-                              ? 'bg-blue-600 text-white border-blue-500'
-                              : 'bg-slate-800 text-slate-300 border-white/10 hover:bg-slate-700'
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      ))}
+                      {(() => {
+                        const pageNumbers = [];
+                        if (totalPages <= 7) {
+                          for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+                        } else {
+                          if (currentPage <= 4) {
+                            for (let i = 1; i <= 5; i++) pageNumbers.push(i);
+                            pageNumbers.push('...');
+                            pageNumbers.push(totalPages);
+                          } else if (currentPage >= totalPages - 3) {
+                            pageNumbers.push(1);
+                            pageNumbers.push('...');
+                            for (let i = totalPages - 4; i <= totalPages; i++) pageNumbers.push(i);
+                          } else {
+                            pageNumbers.push(1);
+                            pageNumbers.push('...');
+                            for (let i = currentPage - 1; i <= currentPage + 1; i++) pageNumbers.push(i);
+                            pageNumbers.push('...');
+                            pageNumbers.push(totalPages);
+                          }
+                        }
+                        return pageNumbers.map((page, index) => (
+                          <button
+                            key={index}
+                            onClick={() => {
+                              if (page !== '...') setCurrentPage(page);
+                            }}
+                            disabled={page === '...'}
+                            className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${
+                              page === currentPage
+                                ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
+                                : page === '...'
+                                ? 'bg-transparent text-slate-500 border-transparent cursor-default'
+                                : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        ));
+                      })()}
                     </div>
                     <button
                       onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                       disabled={currentPage === totalPages || totalPages === 0}
-                      className="px-4 py-2 bg-transparent hover:bg-white/10 text-slate-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium border border-white/10"
+                      className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
                     >
-                      Next
+                      &rarr;
                     </button>
                   </div>
                 </div>
@@ -774,7 +801,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                 ) : (
                   <>
                     <table className="w-full text-left border-collapse min-w-200">
-                      <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md shadow-md">
+                      <thead className="sticky top-0 z-20 bg-white/[0.03] backdrop-blur-md shadow-md border-b border-white/10">
                         <tr className="border-b border-white/10 text-xs font-bold text-slate-400 uppercase tracking-wider">
                           <th className="p-2 pl-6 w-16">S.No</th>
                           <th className="p-4">Return ID</th>
@@ -869,40 +896,67 @@ const Orders = ({ defaultStatus = 'all' }) => {
                 )}
               </div>
 
-              {returnsList.length > itemsPerPage && (
-                <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-black/20">
-                  <span className="text-sm text-slate-400 text-center sm:text-left">
+              {!loadingReturns && returnsList.length > 0 && (
+                <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
+                  <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
                     Showing <span className="font-bold text-white">{indexOfFirstReturn + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastReturn, returnsList.length)}</span> of <span className="font-bold text-white">{returnsList.length}</span> tickets
                   </span>
-                  <div className="flex space-x-2 w-full sm:w-auto justify-center sm:justify-end">
+                  <div className="flex space-x-2">
                     <button
                       onClick={() => setCurrentReturnsPage(prev => Math.max(prev - 1, 1))}
                       disabled={currentReturnsPage === 1}
-                      className="px-4 py-2 bg-transparent hover:bg-white/10 text-slate-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium border border-white/10"
+                      className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
                     >
-                      Previous
+                      &larr;
                     </button>
                     <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 items-center">
-                      {Array.from({ length: totalReturnsPages }, (_, i) => i + 1).map((page) => (
-                        <button
-                          key={page}
-                          onClick={() => setCurrentReturnsPage(page)}
-                          className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-sm font-medium border transition-colors shrink-0 ${
-                            page === currentReturnsPage
-                              ? 'bg-blue-600 text-white border-blue-500'
-                              : 'bg-slate-800 text-slate-300 border-white/10 hover:bg-slate-700'
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      ))}
+                      {(() => {
+                        const pageNumbers = [];
+                        if (totalReturnsPages <= 7) {
+                          for (let i = 1; i <= totalReturnsPages; i++) pageNumbers.push(i);
+                        } else {
+                          if (currentReturnsPage <= 4) {
+                            for (let i = 1; i <= 5; i++) pageNumbers.push(i);
+                            pageNumbers.push('...');
+                            pageNumbers.push(totalReturnsPages);
+                          } else if (currentReturnsPage >= totalReturnsPages - 3) {
+                            pageNumbers.push(1);
+                            pageNumbers.push('...');
+                            for (let i = totalReturnsPages - 4; i <= totalReturnsPages; i++) pageNumbers.push(i);
+                          } else {
+                            pageNumbers.push(1);
+                            pageNumbers.push('...');
+                            for (let i = currentReturnsPage - 1; i <= currentReturnsPage + 1; i++) pageNumbers.push(i);
+                            pageNumbers.push('...');
+                            pageNumbers.push(totalReturnsPages);
+                          }
+                        }
+                        return pageNumbers.map((page, index) => (
+                          <button
+                            key={index}
+                            onClick={() => {
+                              if (page !== '...') setCurrentReturnsPage(page);
+                            }}
+                            disabled={page === '...'}
+                            className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${
+                              page === currentReturnsPage
+                                ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
+                                : page === '...'
+                                ? 'bg-transparent text-slate-500 border-transparent cursor-default'
+                                : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        ));
+                      })()}
                     </div>
                     <button
                       onClick={() => setCurrentReturnsPage(prev => Math.min(prev + 1, totalReturnsPages))}
                       disabled={currentReturnsPage === totalReturnsPages || totalReturnsPages === 0}
-                      className="px-4 py-2 bg-transparent hover:bg-white/10 text-slate-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium border border-white/10"
+                      className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
                     >
-                      Next
+                      &rarr;
                     </button>
                   </div>
                 </div>
@@ -918,7 +972,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm" onClick={closeModal}></div>
           
-          <div className="relative bg-slate-950/15 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-5xl h-[90vh] md:h-[85vh] max-h-[95vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative bg-slate-950/25 border border-white/20 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-5xl h-[90vh] md:h-[85vh] max-h-[95vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             
             {/* Modal Header */}
             <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-white/20 flex justify-between items-center bg-white/[0.03] shrink-0">

@@ -38,7 +38,7 @@ const CampaignDetail = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'Sent' | 'Received' | 'Clicked'
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 15;
+  const itemsPerPage = 10;
 
   // Selection list lookups to resolve action names
   const [products, setProducts] = useState([]);
@@ -225,7 +225,7 @@ const CampaignDetail = () => {
                 <img 
                   src={getImageUrl(campaignDetail.imageUrl)} 
                   alt="Campaign media" 
-                  className="max-h-56 w-auto object-cover rounded-xl shadow-lg border border-white/5"
+                  className="bg-white max-h-56 w-auto object-cover rounded-xl shadow-lg border border-white/5"
                   onError={(e) => e.target.src='https://placehold.co/300x150?text=Error+Loading+Image'} 
                 />
               </div>
@@ -320,10 +320,10 @@ const CampaignDetail = () => {
           </div>
 
           {/* Recipient Activity Table Card */}
-          <Card className="overflow-hidden flex flex-col !p-0">
+          <div className="border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col">
             
             {/* Table Search & Tab Filters */}
-            <div className="p-6 border-b border-white/10 bg-slate-950/90 space-y-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="p-5 sm:p-6 border-b border-white/10 space-y-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div className="flex flex-wrap gap-2">
                 {['all', 'Sent', 'Received', 'Clicked'].map((status) => (
                   <button
@@ -369,7 +369,7 @@ const CampaignDetail = () => {
             {/* Recipients Data Table */}
             <div className="overflow-auto custom-scrollbar max-h-[60vh]">
               <table className="w-full text-left border-collapse whitespace-nowrap min-w-125">
-                <thead className="sticky top-0 z-20 bg-slate-950/30 backdrop-blur-md shadow-md">
+                <thead className="sticky top-0 z-20 bg-white/[0.03] backdrop-blur-md shadow-md border-b border-white/10">
                   <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-slate-400">
                     <th className="px-6 py-4 font-bold w-16 text-center">S.No.</th>
                     <th className="px-6 py-4 font-bold">Recipient Details</th>
@@ -434,54 +434,72 @@ const CampaignDetail = () => {
             </div>
 
             {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-4 bg-transparent border-t border-white/10 p-4 rounded-b-3xl">
-                <p className="text-xs text-slate-400">
-                  Showing <span className="font-semibold text-white">{indexOfFirstItem + 1}</span> to <span className="font-semibold text-white">{Math.min(indexOfLastItem, filteredRecipients.length)}</span> of <span className="font-semibold text-white">{filteredRecipients.length}</span> entries
-                </p>
-                <div className="flex items-center gap-2">
+            {!loading && filteredRecipients.length > 0 && (
+              <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
+                <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
+                  Showing <span className="font-bold text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastItem, filteredRecipients.length)}</span> of <span className="font-bold text-white">{filteredRecipients.length}</span> recipients
+                </span>
+                <div className="flex space-x-2">
                   <button
                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
-                    className="p-2 bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-white/5 text-slate-300 rounded-lg transition-colors cursor-pointer"
+                    className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
                   >
-                    <FiChevronLeft className="text-sm" />
+                    &larr;
                   </button>
-                  
-                  {getPaginationRange().map((page, index) => {
-                    if (page === '...') {
-                      return (
-                        <span key={`dots-${index}`} className="px-2 py-1 text-xs text-slate-500 font-bold select-none">
-                          ...
-                        </span>
-                      );
-                    }
-                    return (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                          currentPage === page 
-                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' 
-                            : 'bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10'
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    );
-                  })}
-
+                  <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 items-center">
+                    {(() => {
+                      const pageNumbers = [];
+                      if (totalPages <= 7) {
+                        for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+                      } else {
+                        if (currentPage <= 4) {
+                          for (let i = 1; i <= 5; i++) pageNumbers.push(i);
+                          pageNumbers.push('...');
+                          pageNumbers.push(totalPages);
+                        } else if (currentPage >= totalPages - 3) {
+                          pageNumbers.push(1);
+                          pageNumbers.push('...');
+                          for (let i = totalPages - 4; i <= totalPages; i++) pageNumbers.push(i);
+                        } else {
+                          pageNumbers.push(1);
+                          pageNumbers.push('...');
+                          for (let i = currentPage - 1; i <= currentPage + 1; i++) pageNumbers.push(i);
+                          pageNumbers.push('...');
+                          pageNumbers.push(totalPages);
+                        }
+                      }
+                      return pageNumbers.map((page, index) => (
+                        <button
+                          key={index}
+                          onClick={() => {
+                            if (page !== '...') setCurrentPage(page);
+                          }}
+                          disabled={page === '...'}
+                          className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${
+                            page === currentPage
+                              ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
+                              : page === '...'
+                              ? 'bg-transparent text-slate-500 border-transparent cursor-default'
+                              : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ));
+                    })()}
+                  </div>
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    className="p-2 bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-white/5 text-slate-300 rounded-lg transition-colors cursor-pointer"
+                    disabled={currentPage === totalPages || totalPages === 0}
+                    className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
                   >
-                    <FiChevronRight className="text-sm" />
+                    &rarr;
                   </button>
                 </div>
               </div>
             )}  
-          </Card>
+          </div>
         </div>
       </div>
     </div>

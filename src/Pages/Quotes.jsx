@@ -51,6 +51,8 @@ const Quotes = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'table'
   const [viewModalProductId, setViewModalProductId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Modal States
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -190,6 +192,11 @@ const Quotes = () => {
     return matchesSearch && matchesStatus;
   });
 
+  const totalPages = Math.ceil(filteredQuotes.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentQuotes = filteredQuotes.slice(indexOfFirstItem, indexOfLastItem);
+
   // Calculate statistics
   const stats = {
     total: quotes.length,
@@ -219,7 +226,10 @@ const Quotes = () => {
             type="text"
             placeholder="Search by client name, email, phone, or product requested..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
             className="w-full pl-10 pr-4 py-3 bg-slate-950/30 border border-white/10 text-white rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md transition-all text-sm font-medium placeholder-slate-400"
           />
         </div>
@@ -313,7 +323,10 @@ const Quotes = () => {
           ].map(tab => (
             <button
               key={tab.id}
-              onClick={() => setStatusFilter(tab.id)}
+              onClick={() => {
+                setStatusFilter(tab.id);
+                setCurrentPage(1);
+              }}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
                 statusFilter === tab.id
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
@@ -371,10 +384,10 @@ const Quotes = () => {
         </div>
       ) : viewMode === 'table' ? (
         /* ================= TABLE VIEW ================= */
-        <div className="bg-linear-to-br from-transparent to-blue-950/65 border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+        <div className="border border-white/10 rounded-2xl overflow-hidden shadow-xl flex flex-col h-full">
           <div className="overflow-auto custom-scrollbar max-h-[65vh]">
             <table className="w-full text-left border-collapse whitespace-nowrap min-w-200">
-              <thead className="sticky top-0 z-20 bg-slate-950/95 backdrop-blur-md shadow-md">
+              <thead className="sticky top-0 z-20 bg-white/[0.03] backdrop-blur-md shadow-md border-b border-white/10">
                 <tr className="border-b border-white/10 text-[11px] uppercase tracking-wider text-slate-400">
                   <th className="p-3.5 font-bold text-center">S.No</th>
                   <th className="p-3.5 font-bold">Date & ID</th>
@@ -389,7 +402,7 @@ const Quotes = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 text-xs">
-                {filteredQuotes.map((q, idx) => {
+                {currentQuotes.map((q, idx) => {
                   const clientName = q.name || q.user?.name || 'Unknown Client';
                   const clientPhone = q.phone || q.user?.phone;
                   const clientEmail = q.user?.email || (q.email ? q.email : null);
@@ -418,35 +431,33 @@ const Quotes = () => {
 
                   return (
                     <tr key={q._id} className="hover:bg-white/[0.03] transition-colors">
-                      <td className="p-3.5 text-center font-mono text-slate-500 font-bold">{idx + 1}</td>
+                      <td className="p-3.5 text-center font-mono text-slate-400 font-bold">{indexOfFirstItem + idx + 1}</td>
                       <td className="p-3.5">
-                        <div className="flex flex-col gap-0.5">
-                          <span className="font-medium text-slate-300">{formatDateDDMMYYYY(q.createdAt)}</span>
+                        <div className="flex flex-col gap-1">
+                          <span className="font-mono text-xs text-white font-bold">{formatDateDDMMYYYY(q.createdAt)}</span>
                           <CopyIdBadge id={q._id} />
                         </div>
                       </td>
                       <td className="p-3.5">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-lg bg-blue-600/20 text-blue-400 font-black flex items-center justify-center text-xs shrink-0">
-                            {clientName.charAt(0).toUpperCase()}
-                          </div>
-                          <div>
-                            <p className="font-bold text-white">{clientName}</p>
-                            <p className="text-[11px] text-slate-400 font-mono">{clientPhone || clientEmail || 'No contact'}</p>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-white text-xs">{clientName}</span>
+                          <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
+                            {clientPhone && <span className="font-mono">{clientPhone}</span>}
+                            {clientEmail && <span className="text-slate-500 truncate max-w-[120px]">{clientEmail}</span>}
                           </div>
                         </div>
                       </td>
-                      <td className="p-3.5">
-                        <div className="flex items-center gap-2.5 max-w-[200px]">
-                          {productImage ? (
-                            <OptimizedImage src={productImage} alt={productName} width={80} quality={60} className="w-8 h-8 rounded-lg object-contain bg-white border border-white/10 shrink-0 p-0.5" />
-                          ) : (
-                            <div className="w-8 h-8 rounded-lg bg-slate-800 text-slate-500 flex items-center justify-center shrink-0">
-                              <FiTag size={14} />
-                            </div>
+                      <td className="p-3.5 max-w-[200px]">
+                        <div className="flex items-center gap-2">
+                          {productImage && (
+                            <OptimizedImage
+                              src={productImage}
+                              alt={productName}
+                              className="w-8 h-8 rounded-lg object-cover bg-white border border-white/10 shrink-0"
+                            />
                           )}
                           <span
-                            onClick={() => { if (prodId) setViewModalProductId(prodId); }}
+                            onClick={() => prodId && setViewModalProductId(prodId)}
                             className={`truncate font-semibold text-white ${prodId ? 'hover:text-blue-400 cursor-pointer' : ''}`}
                             title={productName}
                           >
@@ -496,11 +507,79 @@ const Quotes = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Table Pagination */}
+          {!loading && filteredQuotes.length > 0 && (
+            <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
+              <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
+                Showing <span className="font-bold text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastItem, filteredQuotes.length)}</span> of <span className="font-bold text-white">{filteredQuotes.length}</span> quotes
+              </span>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                >
+                  &larr;
+                </button>
+                <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 items-center">
+                  {(() => {
+                    const pageNumbers = [];
+                    if (totalPages <= 7) {
+                      for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+                    } else {
+                      if (currentPage <= 4) {
+                        for (let i = 1; i <= 5; i++) pageNumbers.push(i);
+                        pageNumbers.push('...');
+                        pageNumbers.push(totalPages);
+                      } else if (currentPage >= totalPages - 3) {
+                        pageNumbers.push(1);
+                        pageNumbers.push('...');
+                        for (let i = totalPages - 4; i <= totalPages; i++) pageNumbers.push(i);
+                      } else {
+                        pageNumbers.push(1);
+                        pageNumbers.push('...');
+                        for (let i = currentPage - 1; i <= currentPage + 1; i++) pageNumbers.push(i);
+                        pageNumbers.push('...');
+                        pageNumbers.push(totalPages);
+                      }
+                    }
+                    return pageNumbers.map((page, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          if (page !== '...') setCurrentPage(page);
+                        }}
+                        disabled={page === '...'}
+                        className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${
+                          page === currentPage
+                            ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
+                            : page === '...'
+                            ? 'bg-transparent text-slate-500 border-transparent cursor-default'
+                            : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ));
+                  })()}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                >
+                  &rarr;
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         /* ================= CARD GRID VIEW ================= */
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 items-stretch">
-          {filteredQuotes.map((q) => {
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 items-stretch">
+            {currentQuotes.map((q) => {
             const clientName = q.name || q.user?.name || 'Unknown Client';
             const clientPhone = q.phone || q.user?.phone;
             const clientEmail = q.user?.email || (q.email ? q.email : null);
@@ -715,6 +794,74 @@ const Quotes = () => {
               </div>
             );
           })}
+          </div>
+
+          {/* Cards Pagination */}
+          {!loading && filteredQuotes.length > 0 && (
+            <div className="p-4 border border-white/10 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
+              <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
+                Showing <span className="font-bold text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastItem, filteredQuotes.length)}</span> of <span className="font-bold text-white">{filteredQuotes.length}</span> quotes
+              </span>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                >
+                  &larr;
+                </button>
+                <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 items-center">
+                  {(() => {
+                    const pageNumbers = [];
+                    if (totalPages <= 7) {
+                      for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+                    } else {
+                      if (currentPage <= 4) {
+                        for (let i = 1; i <= 5; i++) pageNumbers.push(i);
+                        pageNumbers.push('...');
+                        pageNumbers.push(totalPages);
+                      } else if (currentPage >= totalPages - 3) {
+                        pageNumbers.push(1);
+                        pageNumbers.push('...');
+                        for (let i = totalPages - 4; i <= totalPages; i++) pageNumbers.push(i);
+                      } else {
+                        pageNumbers.push(1);
+                        pageNumbers.push('...');
+                        for (let i = currentPage - 1; i <= currentPage + 1; i++) pageNumbers.push(i);
+                        pageNumbers.push('...');
+                        pageNumbers.push(totalPages);
+                      }
+                    }
+                    return pageNumbers.map((page, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          if (page !== '...') setCurrentPage(page);
+                        }}
+                        disabled={page === '...'}
+                        className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${
+                          page === currentPage
+                            ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
+                            : page === '...'
+                            ? 'bg-transparent text-slate-500 border-transparent cursor-default'
+                            : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ));
+                  })()}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                >
+                  &rarr;
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

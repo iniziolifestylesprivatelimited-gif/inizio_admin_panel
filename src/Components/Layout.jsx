@@ -1323,7 +1323,7 @@ const Layout = () => {
                                 flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-200
                                 ${isSubActive
                                     ? 'bg-blue-600/25 text-white font-bold border border-blue-500/40 shadow-sm shadow-blue-500/10'
-                                    : 'text-slate-400 hover:bg-white/[0.02] border border-transparent hover:border-white/15 hover:text-slate-100 hover:translate-x-1'
+                                    : 'text-slate-400 hover:bg-white/[0.03] border border-transparent hover:border-white/15 hover:text-slate-100 hover:translate-x-1'
                                   }
                               `}
                               >

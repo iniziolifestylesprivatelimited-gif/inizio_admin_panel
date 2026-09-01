@@ -1113,7 +1113,7 @@ const UserDetails = () => {
                   <span className="text-xs">Processing activity logs...</span>
                 </div>
               ) : (
-                <div className="max-h-[350px] overflow-y-auto overflow-x-auto custom-scrollbar rounded-2xl border border-white/10 bg-slate-950/20">
+                <div className="max-h-[350px] overflow-y-auto overflow-x-auto custom-scrollbar rounded-2xl border border-white/10">
                   {activeActivityTab === 'products' && (
                     <table className="w-full text-left border-collapse min-w-[500px]">
                       <thead>

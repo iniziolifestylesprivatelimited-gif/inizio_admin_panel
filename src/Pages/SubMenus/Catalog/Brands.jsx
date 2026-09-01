@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
-import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiTag, FiAlertCircle, FiImage, FiLoader, FiSearch, FiCopy, FiCheck } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiTag, FiAlertCircle, FiImage, FiLoader, FiSearch, FiCopy, FiCheck, FiInfo } from 'react-icons/fi';
 
 import { api, BASE_URL } from '../../../api/axios';
 import { formatDateTimeDDMMYYYY } from '../../../utils/dateUtils';
@@ -204,12 +204,12 @@ const Brands = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         
         {/* Left Column: Add / Edit Form */}
         <div className="lg:col-span-1">
-          <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 sticky top-24">
-            <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
+          <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 flex flex-col justify-between lg:h-[580px]">
+            <div className="flex items-center gap-3 mb-4 border-b border-white/10 pb-3">
               <div className="w-10 h-10 rounded-xl bg-blue-900/50 text-blue-400 flex items-center justify-center text-lg">
                 {editingId ? <FiEdit2 /> : <FiTag />}
               </div>
@@ -218,132 +218,134 @@ const Brands = () => {
               </h2>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Brand Name</label>
-                <input 
-                  type="text" 
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g. Sony, Samsung"
-                  className="w-full px-4 py-2.5 bg-black/20 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md transition-all text-sm font-medium placeholder-slate-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Description</label>
-                <input 
-                  type="text" 
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="e.g. Smart accessories brand"
-                  className="w-full px-4 py-2.5 bg-black/20 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md transition-all text-sm font-medium placeholder-slate-500"
-                />
-              </div>
-
-              {/* Brand Logo Upload Dropzone */}
-              <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Brand Logo</label>
-                <div 
-                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                  onDragLeave={() => setIsDragging(false)}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    setIsDragging(false);
-                    const file = e.dataTransfer.files[0];
-                    if (file && file.type.startsWith('image/')) {
-                      setImageFile(file);
-                      setImagePreview(URL.createObjectURL(file));
-                    }
-                  }}
-                  onClick={() => document.getElementById('brand-logo-input').click()}
-                  className={`w-full h-36 border-2 border-dashed rounded-2xl flex flex-col justify-center items-center gap-2 cursor-pointer transition-all duration-300 relative overflow-hidden group select-none ${
-                    isDragging 
-                      ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/20' 
-                      : 'border-white/10 hover:border-blue-500/40 hover:bg-white/5'
-                  }`}
-                >
+            <form onSubmit={handleSubmit} className="space-y-4 flex-1 flex flex-col justify-between overflow-y-auto custom-scrollbar pr-1">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Brand Name</label>
                   <input 
-                    id="brand-logo-input"
-                    type="file" 
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="hidden"
+                    type="text" 
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="e.g. Sony, Samsung"
+                    className="w-full px-4 py-2.5 bg-black/20 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md transition-all text-sm font-medium placeholder-slate-500"
                   />
-                  {imagePreview ? (
-                    <>
-                      <button 
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setImageFile(null);
-                          setImagePreview(null);
-                        }}
-                        className="absolute top-2.5 right-2.5 p-1.5 bg-slate-900/80 hover:bg-red-600 hover:text-white rounded-lg text-slate-400 transition-colors z-30"
-                        title="Clear file"
-                      >
-                        <FiX size={14} />
-                      </button>
-                      <img src={imagePreview} alt="Preview" className="w-full h-full object-contain bg-white p-2 transition-transform duration-300 group-hover:scale-105" />
-                      <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-center items-center text-xs font-bold text-white gap-2">
-                        <FiImage size={18} className="text-blue-400" />
-                        <span>Click or drag to replace image</span>
-                      </div>
-                    </>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Description</label>
+                  <input 
+                    type="text" 
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="e.g. Smart accessories brand"
+                    className="w-full px-4 py-2.5 bg-black/20 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md transition-all text-sm font-medium placeholder-slate-500"
+                  />
+                </div>
+
+                {/* Brand Logo Upload Dropzone */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Brand Logo</label>
+                  <div 
+                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setIsDragging(false);
+                      const file = e.dataTransfer.files[0];
+                      if (file && file.type.startsWith('image/')) {
+                        setImageFile(file);
+                        setImagePreview(URL.createObjectURL(file));
+                      }
+                    }}
+                    onClick={() => document.getElementById('brand-logo-input').click()}
+                    className={`w-full h-32 border-2 border-dashed rounded-2xl flex flex-col justify-center items-center gap-1.5 cursor-pointer transition-all duration-300 relative overflow-hidden group select-none ${
+                      isDragging 
+                        ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/20' 
+                        : 'border-white/10 hover:border-blue-500/40 hover:bg-white/5'
+                    }`}
+                  >
+                    <input 
+                      id="brand-logo-input"
+                      type="file" 
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
+                    {imagePreview ? (
+                      <>
+                        <button 
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setImageFile(null);
+                            setImagePreview(null);
+                          }}
+                          className="absolute top-2.5 right-2.5 p-1.5 bg-slate-900/80 hover:bg-red-600 hover:text-white rounded-lg text-slate-400 transition-colors z-30 cursor-pointer"
+                          title="Clear file"
+                        >
+                          <FiX size={14} />
+                        </button>
+                        <img src={imagePreview} alt="Preview" className="w-full h-full object-contain bg-white p-2 transition-transform duration-300 group-hover:scale-105" />
+                        <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-center items-center text-xs font-bold text-white gap-2">
+                          <FiImage size={18} className="text-blue-400" />
+                          <span>Click or drag to replace image</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <FiImage size={22} className="text-slate-400 group-hover:text-blue-400 transition-colors" />
+                        <span className="text-xs font-medium text-slate-300 group-hover:text-white transition-colors">Drag & drop logo here, or <span className="text-blue-400 group-hover:underline">browse</span></span>
+                        <span className="text-[10px] text-slate-500">Supports JPG, PNG, WEBP</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Placement Toggles */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-2">Home Screen</label>
+                    <label className="inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only peer"
+                        checked={formData.showOnHomeScreen}
+                        onChange={(e) => setFormData({...formData, showOnHomeScreen: e.target.checked})}
+                      />
+                      <div className="relative w-9 h-5 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-500/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-white after:border-slate-400 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500"></div>
+                      <span className="ms-2 text-xs font-bold text-slate-300">
+                        {formData.showOnHomeScreen ? 'Show' : 'Hide'}
+                      </span>
+                    </label>
+                  </div>
+
+                  {editingId ? (
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-2">Status</label>
+                      <label className="inline-flex items-center cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          className="sr-only peer"
+                          checked={formData.isActive}
+                          onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
+                        />
+                        <div className="relative w-9 h-5 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-white after:border-slate-400 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                        <span className="ms-2 text-xs font-bold text-slate-300">
+                          {formData.isActive ? 'Active' : 'Hidden'}
+                        </span>
+                      </label>
+                    </div>
                   ) : (
-                    <>
-                      <FiImage size={24} className="text-slate-400 group-hover:text-blue-400 transition-colors" />
-                      <span className="text-xs font-medium text-slate-300 group-hover:text-white transition-colors">Drag & drop logo here, or <span className="text-blue-400 group-hover:underline">browse</span></span>
-                      <span className="text-[10px] text-slate-500">Supports JPG, PNG, WEBP</span>
-                    </>
+                    <div></div>
                   )}
                 </div>
               </div>
 
-            {/* Placement Toggles */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-2">Home Screen</label>
-                <label className="inline-flex items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    className="sr-only peer"
-                    checked={formData.showOnHomeScreen}
-                    onChange={(e) => setFormData({...formData, showOnHomeScreen: e.target.checked})}
-                  />
-                  <div className="relative w-9 h-5 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-500/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-white after:border-slate-400 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500"></div>
-                  <span className="ms-2 text-xs font-bold text-slate-300">
-                    {formData.showOnHomeScreen ? 'Show' : 'Hide'}
-                  </span>
-                </label>
-              </div>
-
-              {editingId ? (
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-2">Status</label>
-                  <label className="inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      className="sr-only peer"
-                      checked={formData.isActive}
-                      onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
-                    />
-                    <div className="relative w-9 h-5 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-white after:border-slate-400 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
-                    <span className="ms-2 text-xs font-bold text-slate-300">
-                      {formData.isActive ? 'Active' : 'Hidden'}
-                    </span>
-                  </label>
-                </div>
-              ) : (
-                <div></div>
-              )}
-            </div>
-
-              <div className="pt-4 flex gap-3">
+              <div className="pt-3 flex gap-3">
                 <button 
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 flex items-center justify-center px-4 py-2.5 bg-blue-600/70 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/5 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 flex items-center justify-center px-4 py-2.5 bg-blue-600/70 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {isSubmitting ? <FiLoader className="mr-2 animate-spin" /> : (editingId ? <FiSave className="mr-2" /> : <FiPlus className="mr-2" />)}
                   {isSubmitting ? 'Saving...' : (editingId ? 'Update Brand' : 'Add Brand')}
@@ -353,7 +355,7 @@ const Brands = () => {
                   <button 
                     type="button"
                     onClick={cancelEdit}
-                    className="flex items-center justify-center px-4 py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl hover:bg-slate-700 transition-colors"
+                    className="flex items-center justify-center px-4 py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl hover:bg-slate-700 transition-colors cursor-pointer"
                     title="Cancel Edit"
                   >
                     <FiX />
@@ -366,10 +368,10 @@ const Brands = () => {
 
         {/* Right Column: Brands List Table */}
         <div className="lg:col-span-2">
-          <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full">
+          <div className="border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full lg:h-[580px]">
             <div className="overflow-auto custom-scrollbar flex-1 min-h-0">
               <table className="w-full text-left border-collapse whitespace-nowrap min-w-full">
-                <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md border-b border-white/10 shadow-md">
+                <thead className="sticky top-0 z-20 bg-white/[0.03] backdrop-blur-md border-b border-white/10 shadow-md">
                   <tr>
                     <th className="px-3 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider w-16">S.No.</th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider">Brand Name</th>
@@ -458,19 +460,19 @@ const Brands = () => {
             
             {/* Pagination */}
             {!loading && filteredBrands.length > 0 && (
-              <div className="flex flex-col sm:flex-row gap-4 justify-between items-center px-6 py-4 border-t border-white/10 bg-slate-800/50">
-                <span className="text-sm text-slate-400">
-                  Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredBrands.length)} of {filteredBrands.length} entries
+              <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
+                <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
+                  Showing <span className="font-bold text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastItem, filteredBrands.length)}</span> of <span className="font-bold text-white">{filteredBrands.length}</span> brands
                 </span>
-                <div className="flex gap-2">
+                <div className="flex space-x-2">
                   <button 
                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
-                    className="px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed border border-white/10 transition-colors"
+                    className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
                   >
-                    Previous
+                    &larr;
                   </button>
-                  <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
+                  <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 items-center">
                     {(() => {
                       const pageNumbers = [];
                       if (totalPages <= 7) {
@@ -501,12 +503,12 @@ const Brands = () => {
                             }
                           }}
                           disabled={page === '...'}
-                          className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-sm font-medium border transition-colors shrink-0 ${
+                          className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${
                             page === currentPage
                               ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
                               : page === '...'
                               ? 'bg-transparent text-slate-500 border-transparent cursor-default'
-                              : 'bg-slate-800 text-slate-300 border-white/10 hover:bg-slate-700 cursor-pointer'
+                              : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
                           }`}
                         >
                           {page}
@@ -517,9 +519,9 @@ const Brands = () => {
                   <button 
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages || totalPages === 0}
-                    className="px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed border border-white/10 transition-colors"
+                    className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
                   >
-                    Next
+                    &rarr;
                   </button>
                 </div>
               </div>

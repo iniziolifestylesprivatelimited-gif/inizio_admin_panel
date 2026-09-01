@@ -551,7 +551,7 @@ const CampaignStats = () => {
           <TableRowSkeleton columns={5} rows={5} />
         </Card>
       ) : sortedGroups.length === 0 ? (
-        <div className="py-16 flex flex-col items-center justify-center bg-slate-900/40 backdrop-blur-xl rounded-3xl border border-dashed border-white/20">
+        <div className="py-16 flex flex-col items-center justify-center rounded-3xl border border-dashed border-white/20">
           <MdHistory className="text-5xl text-slate-500 mb-4" />
           <p className="text-slate-400 font-medium">No campaign statistics found matching the current filters.</p>
           {(metricFilter !== 'all' || statusFilter !== 'all' || searchQuery) && (
@@ -570,10 +570,10 @@ const CampaignStats = () => {
           )}
         </div>
       ) : (
-        <Card className="overflow-hidden flex flex-col h-full isolate will-change-transform !p-0">
+        <div className="border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full">
           <div className="overflow-auto custom-scrollbar max-h-[60vh]">
             <table className="w-full text-left border-collapse whitespace-nowrap min-w-200">
-              <thead className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md shadow-md">
+              <thead className="sticky top-0 z-20 bg-white/[0.03] backdrop-blur-md shadow-md border-b border-white/10">
                 <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-slate-400">
                   <th className="p-4 font-bold text-center">S.No</th>
                   <th className="p-4 font-bold">Campaign</th>
@@ -598,7 +598,7 @@ const CampaignStats = () => {
                         onChange={handleMetricFilterChange}
                         options={metricOptions}
                         defaultLabel="Sent / Received / Clicked"
-                        statusColor={`!border-none !bg-slate-900/90 !py-1.5 !px-3 text-xs select-none hover:text-white ${
+                        statusColor={`!border-none !bg-tranparent !py-1.5 !px-3 text-xs select-none hover:text-white ${
                           metricFilter !== 'all' ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'
                         }`}
                       />
@@ -614,17 +614,13 @@ const CampaignStats = () => {
 
                   return (
                     <React.Fragment key={group.groupKey}>
-                      {/* Main Group Row */}
                       <tr 
                         onClick={() => navigate(`/campaign-stats/${item.campaignId}`, { state: { from: '/campaign-stats' } })}
                         className="hover:bg-white/[0.02] cursor-pointer transition-colors group"
                       >
-                        {/* S.No */}
                         <td className="p-4 text-sm text-slate-400 text-center font-medium">
                           {indexOfFirstItem + index + 1}
                         </td>
-
-                        {/* Campaign Info */}
                         <td className="p-4 text-sm font-medium text-white">
                           <div className="flex items-center gap-3">
                             {item.imageUrl ? (
@@ -639,219 +635,182 @@ const CampaignStats = () => {
                                 <MdImage className="text-xl" />
                               </div>
                             )}
-                            <div className="flex flex-col min-w-0 max-w-[200px]">
-                              <span className="font-bold text-white truncate hover:text-blue-400 transition-colors" title={item.title}>
-                                {item.title}
+                            <div className="flex flex-col min-w-0">
+                              <span className="font-bold text-white group-hover:text-blue-400 transition-colors truncate max-w-[200px]" title={item.title}>
+                                {item.title || 'Untitled Notification'}
                               </span>
-                              <span className="text-[9px] text-slate-500 font-mono tracking-wider truncate mt-0.5" title={item.campaignId}>
-                                ID: {item.campaignId}
-                              </span>
-                            </div>
-                          </div>
-                        </td>
-
-                        {/* Message snippet & Date */}
-                        <td className="p-4 text-sm max-w-[250px]">
-                          <div className="truncate text-slate-300 font-medium whitespace-normal line-clamp-2" title={item.message}>
-                            {item.message}
-                          </div>
-                          <div className="text-[10px] text-slate-500 font-semibold mt-1">
-                            {item.createdAt ? formatDateTimeDDMMYYYY(item.createdAt) : 'N/A'}
-                          </div>
-                        </td>
-
-                        {/* Sent To */}
-                        <td className="p-4 text-sm text-center" onClick={(e) => { if (isGrouped) { e.stopPropagation(); toggleGroupExpand(group.groupKey); } }}>
-                          <div className="inline-flex flex-col items-center gap-1.5">
-                            <div className="flex items-center gap-1.5">
-                              {renderGroupDirectNames(group)}
-                              {isGrouped && (
-                                <button
-                                  className="flex items-center gap-1 px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-slate-400 text-[10px] font-bold hover:bg-white/10 transition-colors cursor-pointer"
-                                  title={`${group.members.length} platform variants — click to ${isExpanded ? 'collapse' : 'expand'}`}
-                                >
-                                  <FiSmartphone size={10} />
-                                  {group.members.length} Variants
-                                  <FiChevronDown size={10} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-                                </button>
-                              )}
-                            </div>
-                            {/* Platform breakdown badges */}
-                            {/* <div className="flex flex-wrap gap-1 justify-center max-w-[150px]">
-                              {group.members.map((m) => {
-                                const platform = m.platform || m.targetPlatform || 'all';
-                                const color = platform === 'android' ? 'bg-green-500/10 text-green-400 border-green-500/20'
-                                            : platform === 'ios' ? 'bg-slate-500/10 text-slate-300 border-slate-500/20'
-                                            : 'bg-blue-500/10 text-blue-400 border-blue-500/20';
-                                const label = platform === 'android' ? 'Android'
-                                            : platform === 'ios' ? 'iOS'
-                                            : 'All Users';
-                                return (
-                                  <span key={m.campaignId} className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded border uppercase tracking-wide ${color}`}>
-                                    {label} ({m.totalSent || 0})
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className="text-[10px] text-slate-500 font-mono">ID: {item.campaignId}</span>
+                                {isGrouped && (
+                                  <span 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleGroupExpand(group.groupKey);
+                                    }}
+                                    className="px-1.5 py-0.2 text-[9px] font-bold bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 rounded border border-indigo-500/30 transition-colors"
+                                  >
+                                    {isExpanded ? '▲ hide' : `▼ +${group.members.length - 1} platform`}
                                   </span>
-                                );
-                              })}
-                            </div> */}
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </td>
-
-                        {/* Action Target Link */}
-                        {/* <td className="p-4 text-sm text-center">
-                          {item.clickAction && item.clickAction !== 'none' ? (
-                            <div className="inline-flex flex-col items-center gap-1">
-                              <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px] font-extrabold border border-blue-500/20 uppercase tracking-wide">
-                                {item.clickAction}
-                              </span>
-                              {item.actionId && (
-                                <span className="text-[10px] text-slate-400 font-medium truncate max-w-[120px]" title={getActionTargetName(item.clickAction, item.actionId)}>
-                                  {getActionTargetName(item.clickAction, item.actionId)}
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-slate-600 text-xs font-semibold">None</span>
-                          )}
-                        </td> */}
-
-                        {/* Aggregated Progress details */}
+                        <td className="p-4 text-sm max-w-[260px]">
+                          <p className="text-slate-300 text-xs truncate leading-relaxed" title={item.message}>
+                            {item.message || 'No description'}
+                          </p>
+                          <span className="text-slate-500 text-[11px] block mt-0.5">
+                            {item.createdAt ? formatDateTimeDDMMYYYY(item.createdAt) : 'N/A'}
+                          </span>
+                        </td>
+                        <td className="p-4 text-sm text-center" onClick={(e) => e.stopPropagation()}>
+                          {renderGroupDirectNames(group)}
+                        </td>
                         <td className="p-4 text-sm text-center">
                           <div className="inline-flex flex-col items-stretch gap-1.5 min-w-[160px]">
                             <div className="flex justify-between items-center text-xs">
-                              <span className="text-slate-400">Sent: <strong className="text-white font-bold">{group.totalSent}</strong></span>
-                              <span className="text-slate-400">Click Rate: <strong className="text-blue-400 font-bold">{group.clickRate}</strong></span>
+                              <span className="text-slate-400 font-medium">Sent: <strong className="text-white font-bold">{group.totalSent}</strong></span>
+                              <span className="text-blue-400 font-extrabold text-xs">{group.clickRate}</span>
                             </div>
-                            <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden flex">
+                            <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden flex">
                               <div 
-                                className="bg-emerald-500 h-full" 
+                                className="bg-emerald-500 h-full transition-all duration-500" 
                                 style={{ width: `${parseFloat(group.deliveryRate) || 0}%` }}
-                                title={`Delivery Rate: ${group.deliveryRate}`}
-                              ></div>
+                                title={`Delivered: ${group.deliveryRate}`}
+                              />
                               <div 
-                                className="h-full border-l border-black/40 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" 
+                                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 h-full transition-all duration-500" 
                                 style={{ width: `${parseFloat(group.clickRate) || 0}%` }}
-                                title={`Click Rate: ${group.clickRate}`}
-                              ></div>
+                                title={`Clicked: ${group.clickRate}`}
+                              />
                             </div>
                             <div className="flex justify-between items-center text-[10px] text-slate-500">
-                              <span>Recv: <strong className="text-emerald-400">{group.totalReceived} ({group.deliveryRate})</strong></span>
-                              <span>Clicks: <strong className="text-blue-400">{group.totalClicked}</strong></span>
+                              <span className="flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+                                Recv: <strong className="text-slate-300 font-semibold">{group.totalReceived}</strong>
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block" />
+                                Clicks: <strong className="text-slate-300 font-semibold">{group.totalClicked}</strong>
+                              </span>
                             </div>
                           </div>
                         </td>
                       </tr>
-
-                      {/* Expanded Sub-Rows for each member in a grouped campaign */}
-                      {isGrouped && isExpanded && group.members.map((member, mIdx) => {
-                        // const platform = member.platform || member.targetPlatform || 'all';
-                        // const platformLabel = platform === 'android' ? 'Android' : platform === 'ios' ? 'iOS' : 'All Users';
-                        // const platformColor = platform === 'android' ? 'text-green-400 bg-green-500/10 border-green-500/20'
-                        //                     : platform === 'ios' ? 'text-slate-300 bg-slate-500/10 border-slate-500/20'
-                        //                     : 'text-blue-400 bg-blue-500/10 border-blue-500/20';
-                        return (
-                          <tr 
-                            key={member.campaignId}
-                            onClick={() => navigate(`/campaign-stats/${member.campaignId}`)}
-                            className="bg-white/[0.015] hover:bg-white/[0.03] cursor-pointer transition-colors border-l-2 border-indigo-500/40"
-                          >
-                            <td className="p-3 text-center">
-                              <span className="text-[10px] text-slate-600 font-mono">{mIdx + 1}</span>
-                            </td>
-                            <td className="p-3 pl-6 text-sm">
-                              <div className="flex items-center gap-2">
-                                <div className="w-1 h-8 rounded-full bg-indigo-500/30 shrink-0" />
-                                <div>
-                                  <span className="text-[10px] text-slate-500 font-mono block">ID: {member.campaignId}</span>
-                                  {/* <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded border uppercase tracking-wide ${platformColor}`}>
-                                    {platformLabel}
-                                  </span> */}
-                                </div>
+                      {isGrouped && isExpanded && group.members.map((member, mIdx) => (
+                        <tr 
+                          key={member.campaignId}
+                          onClick={() => navigate(`/campaign-stats/${member.campaignId}`)}
+                          className="bg-white/[0.015] hover:bg-white/[0.03] cursor-pointer transition-colors border-l-2 border-indigo-500/40"
+                        >
+                          <td className="p-3 text-center">
+                            <span className="text-[10px] text-slate-600 font-mono">{mIdx + 1}</span>
+                          </td>
+                          <td className="p-3 pl-6 text-sm">
+                            <div className="flex items-center gap-2">
+                              <div className="w-1 h-8 rounded-full bg-indigo-500/30 shrink-0" />
+                              <div>
+                                <span className="text-[10px] text-slate-500 font-mono block">ID: {member.campaignId}</span>
                               </div>
-                            </td>
-                            <td className="p-3 text-sm text-slate-500 text-[11px]">
-                              {member.createdAt ? formatDateTimeDDMMYYYY(member.createdAt) : 'N/A'}
-                            </td>
-                            <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
-                              {renderDirectNames(member.campaignId)}
-                            </td>
-                            {/* <td className="p-3 text-center">
-                              <span className="text-slate-600 text-[10px]">—</span>
-                            </td> */}
-                            <td className="p-3 text-center">
-                              <div className="inline-flex flex-col items-stretch gap-1 min-w-[140px]">
-                                <div className="flex justify-between text-[10px] text-slate-500">
-                                  <span>Sent: <strong className="text-white">{member.totalSent || 0}</strong></span>
-                                  <span className="text-blue-400 font-bold">{member.clickRate || '0%'}</span>
-                                </div>
-                                <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden flex">
-                                  <div className="bg-emerald-500 h-full" style={{ width: `${parseFloat(member.deliveryRate) || 0}%` }} />
-                                  <div className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" style={{ width: `${parseFloat(member.clickRate) || 0}%` }} />
-                                </div>
-                                <div className="flex justify-between text-[9px] text-slate-600">
-                                  <span>Recv: <strong className="text-emerald-400">{member.totalReceived || 0}</strong></span>
-                                  <span>Clicks: <strong className="text-blue-400">{member.totalClicked || 0}</strong></span>
-                                </div>
+                            </div>
+                          </td>
+                          <td className="p-3 text-sm text-slate-500 text-[11px]">
+                            {member.createdAt ? formatDateTimeDDMMYYYY(member.createdAt) : 'N/A'}
+                          </td>
+                          <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
+                            {renderDirectNames(member.campaignId)}
+                          </td>
+                          <td className="p-3 text-center">
+                            <div className="inline-flex flex-col items-stretch gap-1 min-w-[140px]">
+                              <div className="flex justify-between text-[10px] text-slate-500">
+                                <span>Sent: <strong className="text-white">{member.totalSent || 0}</strong></span>
+                                <span className="text-blue-400 font-bold">{member.clickRate || '0%'}</span>
                               </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
+                              <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden flex">
+                                <div className="bg-emerald-500 h-full" style={{ width: `${parseFloat(member.deliveryRate) || 0}%` }} />
+                                <div className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" style={{ width: `${parseFloat(member.clickRate) || 0}%` }} />
+                              </div>
+                              <div className="flex justify-between text-[9px] text-slate-600">
+                                <span>Recv: <strong className="text-emerald-400">{member.totalReceived || 0}</strong></span>
+                                <span>Clicks: <strong className="text-blue-400">{member.totalClicked || 0}</strong></span>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
                     </React.Fragment>
                   );
                 })}
               </tbody>
             </table>
           </div>
-
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-4 bg-transparent border-t border-white/10 p-4 rounded-b-3xl">
-              <p className="text-xs text-slate-400">
-                Showing <span className="font-semibold text-white">{indexOfFirstItem + 1}</span> to <span className="font-semibold text-white">{Math.min(indexOfLastItem, sortedGroups.length)}</span> of <span className="font-semibold text-white">{sortedGroups.length}</span> campaigns
-              </p>
-              <div className="flex items-center gap-2">
+          {!loading && sortedGroups.length > 0 && (
+            <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
+              <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
+                Showing <span className="font-bold text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastItem, sortedGroups.length)}</span> of <span className="font-bold text-white">{sortedGroups.length}</span> campaigns
+              </span>
+              <div className="flex space-x-2">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className="p-2 bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-white/5 text-slate-300 rounded-lg transition-colors cursor-pointer"
+                  className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
                 >
-                  <FiChevronLeft className="text-lg" />
+                  &larr;
                 </button>
-                
-                {getPaginationRange().map((page, index) => {
-                  if (page === '...') {
-                    return (
-                      <span key={`dots-${index}`} className="px-2.5 py-1.5 text-xs text-slate-500 font-bold select-none">
-                        ...
-                      </span>
-                    );
-                  }
-                  return (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                        currentPage === page 
-                          ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' 
-                          : 'bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  );
-                })}
-
+                <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 items-center">
+                  {(() => {
+                    const pageNumbers = [];
+                    if (totalPages <= 7) {
+                      for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+                    } else {
+                      if (currentPage <= 4) {
+                        for (let i = 1; i <= 5; i++) pageNumbers.push(i);
+                        pageNumbers.push('...');
+                        pageNumbers.push(totalPages);
+                      } else if (currentPage >= totalPages - 3) {
+                        pageNumbers.push(1);
+                        pageNumbers.push('...');
+                        for (let i = totalPages - 4; i <= totalPages; i++) pageNumbers.push(i);
+                      } else {
+                        pageNumbers.push(1);
+                        pageNumbers.push('...');
+                        for (let i = currentPage - 1; i <= currentPage + 1; i++) pageNumbers.push(i);
+                        pageNumbers.push('...');
+                        pageNumbers.push(totalPages);
+                      }
+                    }
+                    return pageNumbers.map((page, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          if (page !== '...') setCurrentPage(page);
+                        }}
+                        disabled={page === '...'}
+                        className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${
+                          page === currentPage
+                            ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
+                            : page === '...'
+                            ? 'bg-transparent text-slate-500 border-transparent cursor-default'
+                            : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ));
+                  })()}
+                </div>
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="p-2 bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-white/5 text-slate-300 rounded-lg transition-colors cursor-pointer"
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
                 >
-                  <FiChevronRight className="text-lg" />
+                  &rarr;
                 </button>
               </div>
             </div>
           )}
-        </Card>
+        </div>
       )}
     </div>
   );

@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { api, BASE_URL } from '../api/axios';
 import { formatDateTimeDDMMYYYY } from '../utils/dateUtils';
 import CopyButton from './CopyButton';
-import { getImageUrl } from '../utils/imageUtils';
+import { getImageUrl, DEFAULT_FALLBACK_IMAGE } from '../utils/imageUtils';
 import OptimizedImage from './OptimizedImage';
 
 const ProductDetailsModal = ({
@@ -216,17 +216,18 @@ const ProductDetailsModal = ({
                   {/* Main Product Image */}
                   <div className="flex flex-col items-center justify-start">
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 self-start">Product Image</p>
-                    <div className="w-full h-44 sm:h-52 md:h-full max-h-56 rounded-2xl border border-white/10 overflow-hidden bg-slate-900/60 p-2 flex items-center justify-center">
+                    <div className="w-full h-44 sm:h-52 md:h-full max-h-56 rounded-2xl border border-white/10 overflow-hidden bg-white p-2 flex items-center justify-center shadow-inner">
                       {(() => {
                         const firstImage = (product.images && product.images.length > 0 && product.images[0]) ||
                           (product.variants && product.variants.length > 0 && product.variants[0]?.images && product.variants[0]?.images[0]);
                         return firstImage ? (
-                          <OptimizedImage
-                            src={firstImage}
+                          <img
+                            src={getImageUrl(firstImage, { isOriginal: true })}
                             alt={product.name || 'Product Image'}
-                            width={400}
-                            quality={75}
-                            className="max-w-full max-h-full object-contain rounded-xl bg-white"
+                            className="max-w-full max-h-full object-contain rounded-xl"
+                            onError={(e) => {
+                              e.target.src = DEFAULT_FALLBACK_IMAGE;
+                            }}
                           />
                         ) : (
                           <div className="flex flex-col items-center justify-center text-slate-500 gap-2">

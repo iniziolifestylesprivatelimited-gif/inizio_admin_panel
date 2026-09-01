@@ -368,7 +368,7 @@ const ActivityDetails = () => {
           }
 
           if (type === 'most-searched-brands' || type === 'brand-views') {
-            let rawBrands = (queryBreakdown === 'true' ? [] : (res.data?.mostSearchedBrands || []));
+            let rawBrands = ((queryBreakdown === 'true' && queryBreakdownInterval === 'day') ? [] : (res.data?.mostSearchedBrands || []));
             if (rawBrands.length === 0 && activities.length > 0) {
               const brandMap = {};
               activities.forEach(act => {
@@ -431,7 +431,7 @@ const ActivityDetails = () => {
             }).sort((a, b) => b.searches - a.searches);
             setData(processed);
           } else if (type === 'most-searched-categories' || type === 'category-views') {
-            let rawCategories = (queryBreakdown === 'true' ? [] : (res.data?.mostSearchedCategories || []));
+            let rawCategories = ((queryBreakdown === 'true' && queryBreakdownInterval === 'day') ? [] : (res.data?.mostSearchedCategories || []));
             if (rawCategories.length === 0 && activities.length > 0) {
               const catMap = {};
               activities.forEach(act => {
@@ -494,7 +494,7 @@ const ActivityDetails = () => {
             }).sort((a, b) => b.searches - a.searches);
             setData(processed);
           } else if (type === 'most-searched') {
-            let rawSearches = (queryBreakdown === 'true' ? [] : (res.data?.mostSearched || []));
+            let rawSearches = ((queryBreakdown === 'true' && queryBreakdownInterval === 'day') ? [] : (res.data?.mostSearched || []));
             if (rawSearches.length === 0 && activities.length > 0) {
               const searchMap = {};
               activities.forEach(act => {
@@ -514,7 +514,7 @@ const ActivityDetails = () => {
             }
             setData(rawSearches);
           } else if (type === 'most-viewed-products' || type === 'product-views') {
-            let rawProducts = (queryBreakdown === 'true' ? [] : (res.data?.mostViewedProducts || []));
+            let rawProducts = ((queryBreakdown === 'true' && queryBreakdownInterval === 'day') ? [] : (res.data?.mostViewedProducts || []));
             if (rawProducts.length === 0 && activities.length > 0) {
               const pvActivities = activities.filter(act => {
                 const action = (act.action || '').toUpperCase();
@@ -2689,9 +2689,9 @@ const ActivityDetails = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 z-10 relative">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate(-1)}
             className="p-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-2xl shadow-md transition-all cursor-pointer flex items-center justify-center shrink-0 hover:scale-105"
-            title="Back to Dashboard"
+            title="Back"
           >
             <FiArrowLeft size={18} />
           </button>
@@ -2749,38 +2749,63 @@ const ActivityDetails = () => {
         </div>
       </div>
 
-      {['product-views', 'most-viewed-products', 'brand-views', 'most-searched-brands', 'category-views', 'most-searched-categories', 'search-queries', 'most-searched'].includes(type) && (
-        <div className="flex gap-4 z-10 relative">
-          <Card
-            hoverable
-            className={`p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group ${
-              type === 'search-queries' || type === 'most-searched' ? 'hover:border-amber-500/30' : 'hover:border-blue-500/30'
-            }`}
-          >
-            <div className={`absolute inset-0 bg-linear-to-b ${type === 'search-queries' || type === 'most-searched' ? 'from-amber-500/25' : 'from-blue-500/25'} to-transparent pointer-events-none`}></div>
-            <div className="relative flex items-center justify-between gap-4 z-10">
-              <div className="min-w-0 flex-1">
-                <h3 className={`${type === 'search-queries' || type === 'most-searched' ? 'text-amber-400' : 'text-blue-400'} text-xs sm:text-sm font-bold tracking-wide truncate`}>
-                  {type === 'search-queries' || type === 'most-searched' ? 'Total Accumulated Searches' : 'Total Accumulated Views'}
-                </h3>
-                <p className="text-xl sm:text-2xl xl:text-3xl font-extrabold text-white mt-1 tracking-tight truncate">
-                  {data.reduce((sum, item) => sum + (item.views || item.searches || item.count || (type === 'search-queries' ? 1 : 0)), 0).toLocaleString()}{' '}
-                  <span className="text-sm font-semibold text-slate-400">
-                    {type === 'search-queries' || type === 'most-searched' ? 'Searches' : 'Views'}
-                  </span>
-                </p>
+      {['product-views', 'most-viewed-products', 'brand-views', 'most-searched-brands', 'category-views', 'most-searched-categories', 'search-queries', 'most-searched'].includes(type) && (() => {
+        const isSearch = type === 'search-queries' || type === 'most-searched';
+        const cardTitle = queryBreakdown === 'true' && queryBreakdownInterval === 'day'
+          ? (isSearch ? 'Daily Searches' : 'Daily Views')
+          : queryBreakdown === 'true' && queryBreakdownInterval === 'month'
+          ? (isSearch ? 'Monthly Searches' : 'Monthly Views')
+          : (isSearch ? 'Total Searches' : 'Total Views');
+
+        const cardCount = (() => {
+          if (type === 'search-queries') {
+            return data.length;
+          }
+          if (type === 'most-searched') {
+            return data.reduce((sum, item) => sum + (item.count || 1), 0);
+          }
+          if (type === 'product-views' || type === 'most-viewed-products') {
+            return data.reduce((sum, item) => sum + (item.views !== undefined ? item.views : (item.count !== undefined ? item.count : 1)), 0);
+          }
+          if (type === 'brand-views' || type === 'most-searched-brands' || type === 'category-views' || type === 'most-searched-categories') {
+            return data.reduce((sum, item) => sum + (item.searches !== undefined ? item.searches : (item.views !== undefined ? item.views : (item.count !== undefined ? item.count : 1))), 0);
+          }
+          return data.length;
+        })();
+
+        return (
+          <div className="flex gap-4 z-10 relative">
+            <Card
+              hoverable
+              className={`p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group ${
+                isSearch ? 'hover:border-amber-500/30' : 'hover:border-blue-500/30'
+              }`}
+            >
+              <div className={`absolute inset-0 bg-linear-to-b ${isSearch ? 'from-amber-500/25' : 'from-blue-500/25'} to-transparent pointer-events-none`}></div>
+              <div className="relative flex items-center justify-between gap-4 z-10">
+                <div className="min-w-0 flex-1">
+                  <h3 className={`${isSearch ? 'text-amber-400' : 'text-blue-400'} text-xs sm:text-sm font-bold tracking-wide truncate`}>
+                    {cardTitle}
+                  </h3>
+                  <p className="text-xl sm:text-2xl xl:text-3xl font-extrabold text-white mt-1 tracking-tight truncate">
+                    {cardCount.toLocaleString()}{' '}
+                    <span className="text-sm font-semibold text-slate-400">
+                      {isSearch ? 'Searches' : 'Views'}
+                    </span>
+                  </p>
+                </div>
+                <div className={`p-3 sm:p-3.5 rounded-xl ${isSearch ? 'bg-amber-500/20' : 'bg-blue-500/20'} shrink-0`}>
+                  {isSearch ? (
+                    <FiSearch className="text-lg sm:text-xl text-amber-400" />
+                  ) : (
+                    <FiEye className="text-lg sm:text-xl text-blue-400" />
+                  )}
+                </div>
               </div>
-              <div className={`p-3 sm:p-3.5 rounded-xl ${type === 'search-queries' || type === 'most-searched' ? 'bg-amber-500/20' : 'bg-blue-500/20'} shrink-0`}>
-                {type === 'search-queries' || type === 'most-searched' ? (
-                  <FiSearch className="text-lg sm:text-xl text-amber-400" />
-                ) : (
-                  <FiEye className="text-lg sm:text-xl text-blue-400" />
-                )}
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
+            </Card>
+          </div>
+        );
+      })()}
 
       {/* Summary Cards Grid for Users Status */}
       {(type === 'users' || type === 'users-status') && (
@@ -3117,8 +3142,7 @@ const ActivityDetails = () => {
       )}
 
       {/* Main Table Card */}
-      <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden z-10 relative">
-        <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
+      <div className="border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden z-10 relative flex flex-col h-full">
 
         {/* Admin Analytics Table Filter Toolbar */}
         {type === 'analytics' && (() => {
@@ -3194,7 +3218,7 @@ const ActivityDetails = () => {
 
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left border-collapse whitespace-nowrap divide-x divide-white/10">
-            <thead className="sticky top-0 z-20 bg-slate-950/40 backdrop-blur-xl border-b border-white/10 text-slate-300 text-sm shadow-md">
+            <thead className="sticky top-0 z-20 bg-white/[0.03] backdrop-blur-md border-b border-white/10 text-slate-300 text-sm shadow-md">
               <tr className="divide-x divide-white/10">
                 {getTableHeaders()}
               </tr>
@@ -3206,58 +3230,65 @@ const ActivityDetails = () => {
         </div>
 
         {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <div className="flex justify-between items-center px-6 py-4.5 border-t border-white/5 bg-white/[0.01]">
-            <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">
-              Page {currentPage} of {totalPages} ({filtered.length} total entries)
+        {!loading && filtered.length > 0 && (
+          <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
+            <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
+              Showing <span className="font-bold text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastItem, filtered.length)}</span> of <span className="font-bold text-white">{filtered.length}</span> entries
             </span>
-            <div className="flex items-center gap-1.5">
+            <div className="flex space-x-2">
               <button
-                onClick={() => handlePageChange(currentPage - 1)}
+                onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
                 disabled={currentPage === 1}
-                className="px-3 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-bold disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer flex items-center justify-center"
-                title="Previous Page"
+                className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
               >
                 &larr;
               </button>
-
-              {/* Numbered Page Buttons */}
-              {Array.from({ length: totalPages }, (_, index) => {
-                const pageNumber = index + 1;
-                if (totalPages > 6) {
-                  const isFirstOrLast = pageNumber === 1 || pageNumber === totalPages;
-                  const isNearCurrent = Math.abs(pageNumber - currentPage) <= 1;
-
-                  if (!isFirstOrLast && !isNearCurrent) {
-                    if (pageNumber === 2 && currentPage > 3) {
-                      return <span key="ellipsis-start" className="px-1.5 text-slate-600 text-xs font-black select-none">...</span>;
+              <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 items-center">
+                {(() => {
+                  const pageNumbers = [];
+                  if (totalPages <= 7) {
+                    for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+                  } else {
+                    if (currentPage <= 4) {
+                      for (let i = 1; i <= 5; i++) pageNumbers.push(i);
+                      pageNumbers.push('...');
+                      pageNumbers.push(totalPages);
+                    } else if (currentPage >= totalPages - 3) {
+                      pageNumbers.push(1);
+                      pageNumbers.push('...');
+                      for (let i = totalPages - 4; i <= totalPages; i++) pageNumbers.push(i);
+                    } else {
+                      pageNumbers.push(1);
+                      pageNumbers.push('...');
+                      for (let i = currentPage - 1; i <= currentPage + 1; i++) pageNumbers.push(i);
+                      pageNumbers.push('...');
+                      pageNumbers.push(totalPages);
                     }
-                    if (pageNumber === totalPages - 1 && currentPage < totalPages - 2) {
-                      return <span key="ellipsis-end" className="px-1.5 text-slate-600 text-xs font-black select-none">...</span>;
-                    }
-                    return null;
                   }
-                }
-
-                return (
-                  <button
-                    key={pageNumber}
-                    onClick={() => handlePageChange(pageNumber)}
-                    className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center border ${currentPage === pageNumber
-                      ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/25'
-                      : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'
+                  return pageNumbers.map((page, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        if (page !== '...') handlePageChange(page);
+                      }}
+                      disabled={page === '...'}
+                      className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${
+                        page === currentPage
+                          ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
+                          : page === '...'
+                          ? 'bg-transparent text-slate-500 border-transparent cursor-default'
+                          : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
                       }`}
-                  >
-                    {pageNumber}
-                  </button>
-                );
-              })}
-
+                    >
+                      {page}
+                    </button>
+                  ));
+                })()}
+              </div>
               <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="px-3 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-bold disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer flex items-center justify-center"
-                title="Next Page"
+                onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
+                disabled={currentPage === totalPages || totalPages === 0}
+                className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
               >
                 &rarr;
               </button>

@@ -132,7 +132,7 @@ const QuantityFilterDropdown = ({ qtyOp, qtyVal, onApply, onClear }) => {
             left: `${position.left}px`,
             zIndex: 999999
           }}
-          className="w-[270px] bg-slate-900 border border-white/20 rounded-2xl shadow-2xl shadow-black p-4 animate-in fade-in slide-in-from-top-2 text-left backdrop-blur-3xl"
+          className="w-[270px] bg-slate-950/45 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl shadow-black p-4 animate-in fade-in slide-in-from-top-2 text-left backdrop-blur-3xl"
         >
           <div className="flex items-center justify-between border-b border-white/10 pb-2.5 mb-3">
             <span className="text-xs font-bold text-white uppercase tracking-wider">Filter by Quantity</span>
@@ -2328,24 +2328,24 @@ const ProductList = () => {
 
         {/* Pagination */}
         {!loading && filteredProducts.length > 0 && (
-          <div className="flex flex-col sm:flex-row gap-4 justify-center sm:justify-end items-center px-4 sm:px-6 py-4 border-t border-white/10 bg-slate-950/30">
-            {/* <span className="text-sm text-slate-400">
-              Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredProducts.length)} of {filteredProducts.length} entries
-            </span> */}
-            <div className="flex gap-2">
+          <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
+            <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
+              Showing <span className="font-bold text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastItem, sortedProducts.length)}</span> of <span className="font-bold text-white">{sortedProducts.length}</span> products
+            </span>
+            <div className="flex space-x-2">
               <button
                 onClick={() => {
                   setSearchParams(prev => {
-                    prev.set('page', Math.max(currentPage - 1, 1));
+                    prev.set('page', String(Math.max(currentPage - 1, 1)));
                     return prev;
                   });
                 }}
                 disabled={currentPage === 1}
-                className="px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed border border-white/10 transition-colors"
+                className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
               >
-                Previous
+                &larr;
               </button>
-              <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
+              <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 items-center">
                 {(() => {
                   const pageNumbers = [];
                   if (totalPages <= 7) {
@@ -2373,17 +2373,17 @@ const ProductList = () => {
                       onClick={() => {
                         if (page !== '...') {
                           setSearchParams(prev => {
-                            prev.set('page', page);
+                            prev.set('page', String(page));
                             return prev;
                           });
                         }
                       }}
                       disabled={page === '...'}
-                      className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-sm font-medium border transition-colors shrink-0 ${page === currentPage
+                      className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${page === currentPage
                           ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
                           : page === '...'
                             ? 'bg-transparent text-slate-500 border-transparent cursor-default'
-                            : 'bg-slate-800 text-slate-300 border-white/10 hover:bg-slate-700 cursor-pointer'
+                            : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
                         }`}
                     >
                       {page}
@@ -2394,14 +2394,14 @@ const ProductList = () => {
               <button
                 onClick={() => {
                   setSearchParams(prev => {
-                    prev.set('page', Math.min(currentPage + 1, totalPages));
+                    prev.set('page', String(Math.min(currentPage + 1, totalPages)));
                     return prev;
                   });
                 }}
                 disabled={currentPage === totalPages || totalPages === 0}
-                className="px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed border border-white/10 transition-colors"
+                className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
               >
-                Next
+                &rarr;
               </button>
             </div>
           </div>

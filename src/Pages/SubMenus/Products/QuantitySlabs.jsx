@@ -862,56 +862,67 @@ export default function QuantitySlabs() {
                 </div>
 
                 {/* Pagination Controls */}
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-between border-t border-white/5 pt-4">
-                    <div className="text-[11px] text-slate-400">
-                      Showing Page {currentPage} of {totalPages} ({filteredProducts.length} items total)
-                    </div>
-                    <div className="flex items-center gap-1.5">
+                {!loading && filteredProducts.length > 0 && (
+                  <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
+                    <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
+                      Showing <span className="font-bold text-white">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-bold text-white">{Math.min(currentPage * itemsPerPage, filteredProducts.length)}</span> of <span className="font-bold text-white">{filteredProducts.length}</span> items
+                    </span>
+                    <div className="flex space-x-2">
                       <button
                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                         disabled={currentPage === 1}
-                        className="p-1.5 rounded-lg border border-white/10 bg-slate-900/60 text-slate-300 hover:bg-slate-800 disabled:opacity-30 disabled:hover:bg-transparent transition-all cursor-pointer"
+                        className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
                       >
-                        <FiChevronLeft size={16} />
+                        &larr;
                       </button>
-                      
-                      {Array.from({ length: totalPages }).map((_, pageIdx) => {
-                        const pageNum = pageIdx + 1;
-                        // Render subset of page numbers for clean UX
-                        if (
-                          pageNum === 1 || 
-                          pageNum === totalPages || 
-                          Math.abs(pageNum - currentPage) <= 1
-                        ) {
-                          return (
+                      <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 items-center">
+                        {(() => {
+                          const pageNumbers = [];
+                          if (totalPages <= 7) {
+                            for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+                          } else {
+                            if (currentPage <= 4) {
+                              for (let i = 1; i <= 5; i++) pageNumbers.push(i);
+                              pageNumbers.push('...');
+                              pageNumbers.push(totalPages);
+                            } else if (currentPage >= totalPages - 3) {
+                              pageNumbers.push(1);
+                              pageNumbers.push('...');
+                              for (let i = totalPages - 4; i <= totalPages; i++) pageNumbers.push(i);
+                            } else {
+                              pageNumbers.push(1);
+                              pageNumbers.push('...');
+                              for (let i = currentPage - 1; i <= currentPage + 1; i++) pageNumbers.push(i);
+                              pageNumbers.push('...');
+                              pageNumbers.push(totalPages);
+                            }
+                          }
+                          return pageNumbers.map((page, index) => (
                             <button
-                              key={pageNum}
-                              onClick={() => setCurrentPage(pageNum)}
-                              className={`w-7 h-7 text-xs rounded-lg font-bold transition-all cursor-pointer ${
-                                currentPage === pageNum 
-                                  ? 'bg-blue-600 text-white' 
-                                  : 'border border-white/10 bg-slate-900/60 text-slate-300 hover:bg-slate-800'
+                              key={index}
+                              onClick={() => {
+                                if (page !== '...') setCurrentPage(page);
+                              }}
+                              disabled={page === '...'}
+                              className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${
+                                page === currentPage
+                                  ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
+                                  : page === '...'
+                                  ? 'bg-transparent text-slate-500 border-transparent cursor-default'
+                                  : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
                               }`}
                             >
-                              {pageNum}
+                              {page}
                             </button>
-                          );
-                        } else if (
-                          pageNum === 2 || 
-                          pageNum === totalPages - 1
-                        ) {
-                          return <span key={pageNum} className="text-slate-600 text-xs px-0.5">...</span>;
-                        }
-                        return null;
-                      })}
-
+                          ));
+                        })()}
+                      </div>
                       <button
                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                        disabled={currentPage === totalPages}
-                        className="p-1.5 rounded-lg border border-white/10 bg-slate-900/60 text-slate-300 hover:bg-slate-800 disabled:opacity-30 disabled:hover:bg-transparent transition-all cursor-pointer"
+                        disabled={currentPage === totalPages || totalPages === 0}
+                        className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
                       >
-                        <FiChevronRight size={16} />
+                        &rarr;
                       </button>
                     </div>
                   </div>

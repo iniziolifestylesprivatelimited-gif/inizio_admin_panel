@@ -229,3 +229,20 @@ input:-webkit-autofill:active {
 .glowing-card:hover .glowing-card-inner {
   background: rgba(15, 25, 55, 0.92);
 }
+
+/* Smooth Dropdown & Popup Opening Animation */
+@keyframes dropdown-fade {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-dropdown {
+  animation: dropdown-fade 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: top;
+}

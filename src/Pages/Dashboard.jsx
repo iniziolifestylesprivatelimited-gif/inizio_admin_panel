@@ -7,7 +7,7 @@ import {
 } from 'react-icons/fi';
 import { BiRupee } from 'react-icons/bi';
 import { DiAndroid, DiApple } from 'react-icons/di';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import {
   VisxAreaChart,
@@ -781,13 +781,73 @@ const Dashboard = () => {
   const [requestStats, setRequestStats] = useState([]);
   const [subscriptions, setSubscriptions] = useState([]);
   const [analyticsData, setAnalyticsData] = useState(null);
-  const [breakdownType, setBreakdownType] = useState('day'); // 'day', 'month', 'custom'
-  const [startDate, setStartDate] = useState(() => {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [breakdownType, setBreakdownTypeState] = useState(() => {
+    const queryBreakdown = searchParams.get('breakdown');
+    const queryInterval = searchParams.get('breakdownInterval');
+    if (queryBreakdown === 'true' && queryInterval && ['day', 'month', 'custom'].includes(queryInterval)) {
+      return queryInterval;
+    }
+    const queryStart = searchParams.get('startDate');
+    const queryEnd = searchParams.get('endDate');
+    if (queryStart && queryEnd) {
+      return 'custom';
+    }
+    const saved = sessionStorage.getItem('dashboard_breakdownType');
+    if (saved && ['day', 'month', 'custom'].includes(saved)) {
+      return saved;
+    }
+    return 'day';
+  });
+
+  const [startDate, setStartDateState] = useState(() => {
+    const queryStart = searchParams.get('startDate');
+    if (queryStart) return queryStart;
+    const savedStart = sessionStorage.getItem('dashboard_startDate');
+    if (savedStart) return savedStart;
     const d = new Date();
     d.setDate(d.getDate() - 14);
     return d.toISOString().split('T')[0];
   });
-  const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
+
+  const [endDate, setEndDateState] = useState(() => {
+    const queryEnd = searchParams.get('endDate');
+    if (queryEnd) return queryEnd;
+    const savedEnd = sessionStorage.getItem('dashboard_endDate');
+    if (savedEnd) return savedEnd;
+    return new Date().toISOString().split('T')[0];
+  });
+
+  const setBreakdownType = (type) => {
+    setBreakdownTypeState(type);
+    sessionStorage.setItem('dashboard_breakdownType', type);
+    if (type === 'day') {
+      setSearchParams({ breakdown: 'true', breakdownInterval: 'day' }, { replace: true });
+    } else if (type === 'month') {
+      setSearchParams({ breakdown: 'true', breakdownInterval: 'month' }, { replace: true });
+    } else if (type === 'custom') {
+      setSearchParams({ startDate, endDate }, { replace: true });
+    }
+  };
+
+  const setStartDate = (val) => {
+    setStartDateState(val);
+    sessionStorage.setItem('dashboard_startDate', val);
+    if (breakdownType === 'custom') {
+      setSearchParams({ startDate: val, endDate }, { replace: true });
+    }
+  };
+
+  const setEndDate = (val) => {
+    setEndDateState(val);
+    sessionStorage.setItem('dashboard_endDate', val);
+    if (breakdownType === 'custom') {
+      setSearchParams({ startDate, endDate: val }, { replace: true });
+    }
+  };
+
   const [selectedProductViews, setSelectedProductViews] = useState(null);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [productViewerSearch, setProductViewerSearch] = useState('');
@@ -797,7 +857,6 @@ const Dashboard = () => {
   const [trendsRange, setTrendsRange] = useState('1w'); // '1d', '1w', '1y'
   const [activeChartModal, setActiveChartModal] = useState(null); // 'revenue' | 'volume' | 'brand' | 'version' | 'notifications' | 'priceTier' | null
   const [viewModalProductId, setViewModalProductId] = useState(null);
-  const navigate = useNavigate();
 
   const getActivityStatsUrl = () => {
     if (breakdownType === 'day') {

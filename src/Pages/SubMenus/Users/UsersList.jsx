@@ -1058,7 +1058,7 @@ const UsersList = () => {
                   ) : (
                     <tr>
                       <td colSpan={10} className="p-12 text-center text-slate-400 italic">
-                        {searchTerm || selectedBusinessType || selectedAppStatus || selectedDevice
+                        {searchTerm || selectedBusinessType || selectedDevice || sortKey
                           ? 'No matching users found.' 
                           : userTab === 'approved' 
                             ? 'No approved customers found.' 
@@ -1072,71 +1072,74 @@ const UsersList = () => {
                 </tbody>
               </table>
             </div>
-          </div>
 
-          {/* Pagination Controls */}
-          {!loading && !error && filteredUsers.length > 0 && (
-            <div className="relative z-10 flex flex-col md:flex-row justify-end items-center gap-4 bg-transparent backdrop-blur-2xl shadow-lg shadow-black/20 p-4 rounded-2xl border border-white/10 isolate will-change-transform">
-              <div className="flex space-x-2">
-                <button 
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="px-4 py-2 bg-transparent border border-white/10 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold transform-gpu"
-                >
-                  Previous
-                </button>
-                <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 items-center">
-                  {(() => {
-                    const pageNumbers = [];
-                    if (totalPages <= 7) {
-                      for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
-                    } else {
-                      if (currentPage <= 4) {
-                        for (let i = 1; i <= 5; i++) pageNumbers.push(i);
-                        pageNumbers.push('...');
-                        pageNumbers.push(totalPages);
-                      } else if (currentPage >= totalPages - 3) {
-                        pageNumbers.push(1);
-                        pageNumbers.push('...');
-                        for (let i = totalPages - 4; i <= totalPages; i++) pageNumbers.push(i);
+            {/* Pagination Controls */}
+            {!loading && !error && sortedUsers.length > 0 && (
+              <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
+                <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
+                  Showing <span className="font-bold text-white">{indexOfFirstUser + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastUser, sortedUsers.length)}</span> of <span className="font-bold text-white">{sortedUsers.length}</span> users
+                </span>
+                <div className="flex space-x-2">
+                  <button 
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                  >
+                    &larr;
+                  </button>
+                  <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 items-center">
+                    {(() => {
+                      const pageNumbers = [];
+                      if (totalPages <= 7) {
+                        for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
                       } else {
-                        pageNumbers.push(1);
-                        pageNumbers.push('...');
-                        for (let i = currentPage - 1; i <= currentPage + 1; i++) pageNumbers.push(i);
-                        pageNumbers.push('...');
-                        pageNumbers.push(totalPages);
+                        if (currentPage <= 4) {
+                          for (let i = 1; i <= 5; i++) pageNumbers.push(i);
+                          pageNumbers.push('...');
+                          pageNumbers.push(totalPages);
+                        } else if (currentPage >= totalPages - 3) {
+                          pageNumbers.push(1);
+                          pageNumbers.push('...');
+                          for (let i = totalPages - 4; i <= totalPages; i++) pageNumbers.push(i);
+                        } else {
+                          pageNumbers.push(1);
+                          pageNumbers.push('...');
+                          for (let i = currentPage - 1; i <= currentPage + 1; i++) pageNumbers.push(i);
+                          pageNumbers.push('...');
+                          pageNumbers.push(totalPages);
+                        }
                       }
-                    }
-                    return pageNumbers.map((page, index) => (
-                      <button
-                        key={index}
-                        onClick={() => {
-                          if (page !== '...') setCurrentPage(page);
-                        }}
-                        disabled={page === '...'}
-                        className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-sm font-medium border transition-colors shrink-0 transform-gpu ${
-                          page === currentPage
-                            ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
-                            : page === '...'
-                            ? 'bg-transparent text-slate-500 border-transparent cursor-default'
-                            : 'bg-slate-800 text-slate-300 border-white/10 hover:bg-slate-700 cursor-pointer'
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ));
-                  })()}
+                      return pageNumbers.map((page, index) => (
+                        <button
+                          key={index}
+                          onClick={() => {
+                            if (page !== '...') setCurrentPage(page);
+                          }}
+                          disabled={page === '...'}
+                          className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${
+                            page === currentPage
+                              ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
+                              : page === '...'
+                              ? 'bg-transparent text-slate-500 border-transparent cursor-default'
+                              : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ));
+                    })()}
+                  </div>
+                  <button 
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages || totalPages === 0}
+                    className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                  >
+                    &rarr;
+                  </button>
                 </div>
-                <button 
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages || totalPages === 0}
-                  className="px-4 py-2 bg-transparent border border-white/10 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold transform-gpu"
-                >
-                  Next
-                </button>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </>
       )}
 
