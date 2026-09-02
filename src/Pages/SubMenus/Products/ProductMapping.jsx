@@ -1708,11 +1708,11 @@ const ProductMapping = () => {
               <div className="space-y-4 pt-4 border-t border-white/10">
                 <h3 className="text-lg font-bold text-white">Stock Sync Complete</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-slate-800/50 rounded-xl">
+                  <div className="p-4 bg-slate-950/50 rounded-xl border border-white/20">
                     <p className="text-sm text-slate-400">Products Synchronized</p>
                     <p className="text-2xl font-bold text-emerald-400">{stockSyncResult.updatedProducts}</p>
                   </div>
-                  <div className="p-4 bg-slate-800/50 rounded-xl">
+                  <div className="p-4 bg-slate-950/50 rounded-xl border border-white/20">
                     <p className="text-sm text-slate-400">Products Failed / Not Synced</p>
                     <p className="text-2xl font-bold text-amber-400">{stockSyncResult.failedProducts}</p>
                   </div>
@@ -1723,7 +1723,7 @@ const ProductMapping = () => {
                     <div className="max-h-60 overflow-y-auto bg-slate-900/50 p-2 rounded-lg custom-scrollbar">
                       <ul className="text-sm text-slate-400 space-y-1">
                         {stockSyncResult.syncedLog.map((item, index) => (
-                          <li key={index} className="p-2 bg-slate-800/50 rounded flex justify-between">
+                          <li key={index} className="p-2 bg-slate-950/50 rounded-xl border border-white/10 rounded flex justify-between">
                             <span>{item.name}</span>
                             <span className="font-mono text-xs">
                               <span className="text-slate-500 font-bold">{item.oldQuantity}</span>
@@ -1750,8 +1750,8 @@ const ProductMapping = () => {
 
       {/* Progress & Log Modal */}
       {showStatusModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm transition-all">
-          <div className="w-full max-w-lg bg-linear-to-br from-tranparent to-blue-950/65 border border-white/15 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-md transition-all">
+          <div className="w-full max-w-lg bg-slate-950/25 border border-white/15 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
             <div className="p-5 border-b border-white/10 flex justify-between items-center bg-slate-950/40">
               <h3 className="font-bold text-white text-lg flex items-center gap-2">
                 <FiDatabase size={18} className={`text-blue-400 ${isSyncingInProgress ? 'animate-spin' : ''}`} />
@@ -1788,7 +1788,7 @@ const ProductMapping = () => {
               </div>
 
               {/* Logs output */}
-              <div className="bg-slate-950 border border-white/5 rounded-2xl p-3 h-64 overflow-y-auto font-mono text-[10px] space-y-2">
+              <div className="bg-slate-950/25 border border-white/5 rounded-2xl p-3 h-64 overflow-y-auto font-mono text-[10px] space-y-2">
                 {syncLogs.length === 0 ? (
                   <div className="text-slate-600 italic">Starting bulk operation...</div>
                 ) : (

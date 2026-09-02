@@ -458,8 +458,8 @@ const Category = () => {
       {/* Delete Confirmation Modal */}
       {deleteConfirmOpen && categoryToDelete && createPortal(
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setCategoryToDelete(null); setTypedConfirmName(''); }}></div>
-          <div className="relative bg-slate-900 border border-red-500/20 rounded-2xl p-6 shadow-2xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-slate-950/25 backdrop-blur-md animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setCategoryToDelete(null); setTypedConfirmName(''); }}></div>
+          <div className="relative bg-slate-950/15 backdrop-blur-md border border-red-500/20 rounded-2xl p-6 shadow-2xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
               <FiAlertCircle className="text-red-500 animate-pulse" /> Confirm Deletion
             </h3>
@@ -503,8 +503,8 @@ const Category = () => {
       {/* Custom Alert Modal */}
       {alertOpen && createPortal(
         <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => setAlertOpen(false)}></div>
-          <div className="relative bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-slate-950/25 backdrop-blur-md animate-fade-in" onClick={() => setAlertOpen(false)}></div>
+          <div className="relative bg-slate-950/15 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
               <FiInfo className="text-blue-400" /> Alert
             </h3>

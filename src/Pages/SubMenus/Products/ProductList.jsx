@@ -10,6 +10,7 @@ import CopyButton from '../../../Components/CopyButton';
 import * as XLSX from 'xlsx';
 import { formatDateTimeDDMMYYYY } from '../../../utils/dateUtils';
 import { getImageUrl } from '../../../utils/imageUtils';
+import { getVariantColorStyle, VARIANT_COLOR_PALETTE } from '../../../utils/colorUtils';
 import { ProgressiveImage } from '../../../Components/OptimizedImage';
 
 const QuantityFilterDropdown = ({ qtyOp, qtyVal, onApply, onClear }) => {
@@ -400,6 +401,7 @@ const ProductList = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addProductImageFiles, setAddProductImageFiles] = useState([]);
   const [isImageViewOpen, setIsImageViewOpen] = useState(false);
+  const [selectedVariantImageIndex, setSelectedVariantImageIndex] = useState(0);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isVariantsExpanded, setIsVariantsExpanded] = useState(false);
   const [currentProductForView, setCurrentProductForView] = useState(null);
@@ -1386,6 +1388,7 @@ const ProductList = () => {
 
   const openImageView = (product) => {
     setCurrentProductForView(product);
+    setSelectedVariantImageIndex(0);
     setIsImageViewOpen(true);
   };
 
@@ -2411,25 +2414,22 @@ const ProductList = () => {
       {/* Product Details Modal */}
       {isDetailsModalOpen && currentProductForView && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={() => setIsDetailsModalOpen(false)}></div>
-          <div className="relative bg-linear-to-br from-slate-950 to-blue-950/65 border border-white/10 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
-
-            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-950/30">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-900/50 text-blue-400 flex items-center justify-center text-lg">
-                  <FiPackage />
-                </div>
-                <h2 className="text-xl font-bold text-white">Product Details</h2>
-              </div>
-              <button onClick={() => setIsDetailsModalOpen(false)} className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors">
-                <FiX className="text-xl" />
-              </button>
-            </div>
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm" onClick={() => setIsDetailsModalOpen(false)}></div>
+          <div className="relative bg-slate-950/25 border border-white/20 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
+            {/* Floating Close Button */}
+            <button
+              type="button"
+              onClick={() => setIsDetailsModalOpen(false)}
+              className="absolute top-3.5 right-3.5 z-30 p-2 text-slate-400 hover:text-white bg-slate-900/80 hover:bg-slate-800 border border-white/10 rounded-full transition-all shadow-lg cursor-pointer"
+              title="Close"
+            >
+              <FiX className="text-xl" />
+            </button>
 
             <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
 
               {/* General Information */}
-              <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5">
+              <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15">
                 {/* <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-2"><span className="w-1.5 h-5 bg-blue-500 rounded-full"></span>General Information</h3> */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="md:col-span-2 space-y-4">
@@ -2489,7 +2489,7 @@ const ProductList = () => {
                   {/* Product Image in Previous Column Position */}
                   <div className="flex flex-col items-center justify-start">
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 self-start">Product Image</p>
-                    <div className="w-full h-44 sm:h-52 md:h-full max-h-56 rounded-2xl border border-white/10 overflow-hidden bg-slate-900/60 p-2 flex items-center justify-center">
+                    <div className="w-full h-44 sm:h-52 md:h-full max-h-56 rounded-2xl border border-white/10 overflow-hidden bg-white p-2 flex items-center justify-center">
                       {(() => {
                         const firstImage = (currentProductForView.images && currentProductForView.images.length > 0 && currentProductForView.images[0]) ||
                           (currentProductForView.variants && currentProductForView.variants.length > 0 && currentProductForView.variants[0]?.images && currentProductForView.variants[0]?.images[0]);
@@ -2497,7 +2497,7 @@ const ProductList = () => {
                           <ProgressiveImage
                             src={getImageUrl(firstImage, { width: 400, quality: 70 })}
                             alt={currentProductForView.name || 'Product Image'}
-                            className="max-w-full max-h-full object-contain rounded-xl bg-white"
+                            className="max-w-full max-h-full object-contain rounded-xl"
                             fallback="https://placehold.co/200x200?text=No+Image"
                           />
                         ) : (
@@ -2513,8 +2513,8 @@ const ProductList = () => {
               </div>
 
               {/* Pricing & Inventory */}
-              <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5">
-                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-2"><span className="w-1.5 h-5 bg-emerald-500 rounded-full"></span>Pricing & Inventory</h3>
+              <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/15 pb-2"><span className="w-1.5 h-5 bg-emerald-500 rounded-full"></span>Pricing & Inventory</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-5">
                   <div>
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Total Quantity</p>
@@ -2559,8 +2559,8 @@ const ProductList = () => {
               </div>
 
               {/* Extended Details */}
-              <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5 space-y-4">
-                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-2"><span className="w-1.5 h-5 bg-amber-500 rounded-full"></span>Descriptions & Policies</h3>
+              <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15 space-y-4">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/15 pb-2"><span className="w-1.5 h-5 bg-amber-500 rounded-full"></span>Descriptions & Policies</h3>
                 <div>
                   <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Description</p>
                   <p className="text-slate-300 text-sm whitespace-pre-wrap">{currentProductForView.description || 'N/A'}</p>
@@ -2575,7 +2575,7 @@ const ProductList = () => {
                     <p className="text-slate-300 text-sm whitespace-pre-wrap">{currentProductForView.expertNotes || 'N/A'}</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-white/5 pt-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-white/15 pt-4">
                   <div>
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Warranty</p>
                     <p className="text-slate-300 text-sm">{currentProductForView.warranty || 'N/A'}</p>
@@ -2592,12 +2592,12 @@ const ProductList = () => {
               </div>
 
               {/* Images */}
-              <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5">
-                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-2"><span className="w-1.5 h-5 bg-purple-500 rounded-full"></span>Product Images</h3>
+              <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/15 pb-2"><span className="w-1.5 h-5 bg-purple-500 rounded-full"></span>Product Images</h3>
                 {currentProductForView.images && currentProductForView.images.length > 0 ? (
                   <div className="flex flex-wrap gap-4">
                     {currentProductForView.images.map((url, i) => (
-                      <div key={i} className="relative w-24 h-24 border border-white/10 rounded-xl overflow-hidden bg-slate-800 flex items-center justify-center">
+                      <div key={i} className="relative w-24 h-24 border border-white/15 rounded-xl overflow-hidden bg-slate-800 flex items-center justify-center">
                         <ProgressiveImage
                           src={getImageUrl(url, { width: 250, quality: 60 })}
                           alt={`Image ${i + 1}`}
@@ -2615,7 +2615,7 @@ const ProductList = () => {
               <div className="mt-2">
                 <button
                   onClick={() => setIsVariantsExpanded(!isVariantsExpanded)}
-                  className="w-full flex items-center justify-between px-5 py-4 bg-slate-950/30 border border-white/10 rounded-2xl hover:bg-slate-900/30 transition-colors cursor-pointer"
+                  className="w-full flex items-center justify-between px-5 py-4 bg-white/[0.03] border border-white/15 rounded-2xl hover:bg-slate-900/30 transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
                     <span className="w-8 h-8 rounded-full bg-blue-900/50 flex items-center justify-center text-blue-400 font-bold text-sm">
@@ -2630,8 +2630,8 @@ const ProductList = () => {
                   <div className="mt-3 space-y-3">
                     {currentProductForView.variants && currentProductForView.variants.length > 0 ? (
                       currentProductForView.variants.map((variant, idx) => (
-                        <div key={idx} className="p-5 bg-slate-950/30 border border-white/5 rounded-2xl space-y-4">
-                          <div className="flex justify-between items-center border-b border-white/5 pb-2 mb-3">
+                        <div key={idx} className="p-5 bg-white/[0.03] border border-white/15 rounded-2xl space-y-4">
+                          <div className="flex justify-between items-center border-b border-white/15 pb-2 mb-3">
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-bold text-white uppercase tracking-wider">Variant #{idx + 1}</span>
                               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${variant.isActive !== false ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
@@ -2687,7 +2687,7 @@ const ProductList = () => {
                               </div>
                             </div>
                           </div>
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 pt-3 border-t border-white/5">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 pt-3 border-t border-white/15">
                             <div>
                               <p className="text-xs text-slate-500 uppercase tracking-wider mb-1 font-bold">L1 Price</p>
                               <p className="text-sm text-blue-300 font-medium">₹{variant.l1Price || '0'}</p>
@@ -2715,7 +2715,7 @@ const ProductList = () => {
                           </div>
 
                           {/* Variant Images */}
-                          <div className="pt-3 border-t border-white/5">
+                          <div className="pt-3 border-t border-white/15">
                             {(() => {
                               let variantImgs = [];
                               if (Array.isArray(variant.images)) {
@@ -2773,24 +2773,18 @@ const ProductList = () => {
                 )}
               </div>
 
-            </div>
+              {/* Edit Products Button at bottom of card */}
+              <div className="flex justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={() => navigate(`/products/variants/${currentProductForView._id}`)}
+                  className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/30 cursor-pointer text-sm"
+                >
+                  <FiEdit2 className="mr-2" />
+                  Edit Product & Variants
+                </button>
+              </div>
 
-            <div className="px-4 sm:px-6 py-4 border-t border-white/10 bg-slate-950/30 flex flex-col sm:flex-row justify-between gap-3 shrink-0">
-              <button
-                type="button"
-                onClick={() => setIsDetailsModalOpen(false)}
-                className="w-full sm:w-auto px-5 py-2.5 text-slate-300 font-bold rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                Close
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate(`/products/variants/${currentProductForView._id}`)}
-                className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 cursor-pointer"
-              >
-                <FiEdit2 className="mr-2" />
-                Edit Product & Variants
-              </button>
             </div>
           </div>
         </div>
@@ -2799,10 +2793,10 @@ const ProductList = () => {
       {/* Add Product Modal */}
       {isAddModalOpen && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={closeAddModal}></div>
-          <div className="relative bg-linear-to-br from-slate-950 to-blue-900/60 border border-white/10 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-md" onClick={closeAddModal}></div>
+          <div className="relative bg-slate-950/25 border border-white/10 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
 
-            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-950/30">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-white/[0.03]">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-900/50 text-blue-400 flex items-center justify-center text-lg">
                   <FiPlus />
@@ -2818,8 +2812,8 @@ const ProductList = () => {
               <form id="addProductForm" onSubmit={handleAddSubmit} className="space-y-6">
 
                 {/* General Information */}
-                <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5">
-                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-2"><span className="w-1.5 h-5 bg-blue-500 rounded-full"></span>General Information</h3>
+                <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15">
+                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/20 pb-2"><span className="w-1.5 h-5 bg-blue-500 rounded-full"></span>General Information</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
                       <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Brand</label>
@@ -2855,8 +2849,8 @@ const ProductList = () => {
                 </div>
 
                 {/* Pricing & Inventory */}
-                <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5">
-                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-2"><span className="w-1.5 h-5 bg-emerald-500 rounded-full"></span>Pricing & Inventory</h3>
+                <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15">
+                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/20 pb-2"><span className="w-1.5 h-5 bg-emerald-500 rounded-full"></span>Pricing & Inventory</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
                       <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Base Price</label>
@@ -2901,8 +2895,8 @@ const ProductList = () => {
                 </div>
 
                 {/* Descriptions & Policies */}
-                <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5">
-                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-2"><span className="w-1.5 h-5 bg-amber-500 rounded-full"></span>Descriptions & Policies</h3>
+                <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15">
+                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/20 pb-2"><span className="w-1.5 h-5 bg-amber-500 rounded-full"></span>Descriptions & Policies</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div className="sm:col-span-2">
                       <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Warranty</label>
@@ -2932,8 +2926,8 @@ const ProductList = () => {
                 </div>
 
                 {/* Images */}
-                <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5">
-                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-2"><span className="w-1.5 h-5 bg-purple-500 rounded-full"></span>Product Images</h3>
+                <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15">
+                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/20 pb-2"><span className="w-1.5 h-5 bg-purple-500 rounded-full"></span>Product Images</h3>
                   <div className="grid grid-cols-1 gap-5">
                     {/* Image URLs Section */}
                     <div>
@@ -3009,14 +3003,14 @@ const ProductList = () => {
                 </div>
 
                 {/* Product Variants */}
-                <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5 space-y-6">
-                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-2"><span className="w-1.5 h-5 bg-blue-500 rounded-full"></span>Product Variants</h3>
+                <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15 space-y-6">
+                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/20 pb-2"><span className="w-1.5 h-5 bg-blue-500 rounded-full"></span>Product Variants</h3>
                   <div className="space-y-4">
                     {addVariants.map((variant, index) => (
                       <div key={index} className="bg-transparent border border-white/10 shadow-lg shadow-black/50 rounded-2xl overflow-hidden group">
                         {/* Accordion Header */}
                         <div
-                          className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors bg-slate-800/30"
+                          className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors bg-slate-800/50"
                           onClick={() => setExpandedAddVariantIndex(expandedAddVariantIndex === index ? null : index)}
                         >
                           <div className="flex items-center gap-3">
@@ -3128,7 +3122,7 @@ const ProductList = () => {
               </form>
             </div>
 
-            <div className="px-4 sm:px-6 py-4 border-t border-white/10 bg-slate-950/30 flex flex-col sm:flex-row justify-end gap-3 shrink-0">
+            <div className="px-4 sm:px-6 py-4 border-t border-white/10 bg-white/[0.03] flex flex-col sm:flex-row justify-end gap-3 shrink-0">
               <button onClick={closeAddModal} className="w-full sm:w-auto px-5 py-2.5 text-slate-300 font-bold rounded-xl hover:bg-slate-800 transition-colors">Cancel</button>
               <button type="submit" form="addProductForm" className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30">
                 <FiPlus className="mr-2" />
@@ -3142,10 +3136,10 @@ const ProductList = () => {
       {/* Deactivate Products Conditions Modal */}
       {isDeactivateModalOpen && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={() => !isBulkUpdating && setIsDeactivateModalOpen(false)}></div>
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-md" onClick={() => !isBulkUpdating && setIsDeactivateModalOpen(false)}></div>
 
-          <div className="relative bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-950/30">
+          <div className="relative bg-slate-950/25 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-white/[0.03]">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-red-900/50 text-red-400 flex items-center justify-center text-lg">
                   <FiTrash2 />
@@ -3272,7 +3266,7 @@ const ProductList = () => {
               )}
             </div>
 
-            <div className="px-6 py-4 border-t border-white/10 bg-slate-950/30 flex flex-col sm:flex-row justify-end gap-3">
+            <div className="px-6 py-4 border-t border-white/10 bg-white/[0.03] flex flex-col sm:flex-row justify-end gap-3">
               <button
                 onClick={() => setIsDeactivateModalOpen(false)}
                 disabled={isBulkUpdating}
@@ -3305,10 +3299,10 @@ const ProductList = () => {
       {/* Activate Products Conditions Modal */}
       {isActivateModalOpen && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={() => !isBulkUpdating && setIsActivateModalOpen(false)}></div>
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-md" onClick={() => !isBulkUpdating && setIsActivateModalOpen(false)}></div>
 
-          <div className="relative bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-950/30">
+          <div className="relative bg-slate-950/25 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-white/[0.03]">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-emerald-900/50 text-emerald-400 flex items-center justify-center text-lg">
                   <FiCheck />
@@ -3435,7 +3429,7 @@ const ProductList = () => {
               )}
             </div>
 
-            <div className="px-6 py-4 border-t border-white/10 bg-slate-950/30 flex flex-col sm:flex-row justify-end gap-3">
+            <div className="px-6 py-4 border-t border-white/10 bg-white/[0.03] flex flex-col sm:flex-row justify-end gap-3">
               <button
                 onClick={() => setIsActivateModalOpen(false)}
                 disabled={isBulkUpdating}
@@ -3468,19 +3462,17 @@ const ProductList = () => {
       {/* Image View Modal */}
       {isImageViewOpen && currentProductForView && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={() => setIsImageViewOpen(false)}></div>
-          <div className="relative bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-950/30">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-900/50 text-blue-400 flex items-center justify-center text-lg">
-                  <FiImage />
-                </div>
-                <h2 className="text-xl font-bold text-white">Images - {currentProductForView.name}</h2>
-              </div>
-              <button onClick={() => setIsImageViewOpen(false)} className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors">
-                <FiX className="text-xl" />
-              </button>
-            </div>
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-md" onClick={() => setIsImageViewOpen(false)}></div>
+          <div className="relative bg-slate-950/25 border border-white/20 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+            {/* Floating Close Button */}
+            <button
+              type="button"
+              onClick={() => setIsImageViewOpen(false)}
+              className="absolute top-3.5 right-3.5 z-30 p-2 text-slate-400 hover:text-white bg-slate-900/80 hover:bg-slate-800 border border-white/10 rounded-full transition-all shadow-lg cursor-pointer"
+              title="Close"
+            >
+              <FiX className="text-xl" />
+            </button>
 
             {(() => {
               let mainImages = [];
@@ -3489,101 +3481,140 @@ const ProductList = () => {
               } else if (typeof currentProductForView.images === 'string') {
                 mainImages = currentProductForView.images.split(',').map(url => url.trim()).filter(Boolean);
               }
-              
+
               let variantGroups = [];
               if (currentProductForView.variants && Array.isArray(currentProductForView.variants)) {
-                currentProductForView.variants.forEach(v => {
-                  if (v.images) {
-                    let imgs = [];
-                    if (Array.isArray(v.images)) {
-                      imgs = v.images;
-                    } else if (typeof v.images === 'string') {
-                      imgs = v.images.split(',').map(url => url.trim()).filter(Boolean);
-                    }
-                    if (imgs.length > 0) {
-                      variantGroups.push({
-                        name: v.name || 'Unnamed Variant',
-                        images: imgs
-                      });
-                    }
+                currentProductForView.variants.forEach((v, idx) => {
+                  let imgs = [];
+                  if (Array.isArray(v.images)) {
+                    imgs = v.images;
+                  } else if (typeof v.images === 'string') {
+                    imgs = v.images.split(',').map(url => url.trim()).filter(Boolean);
+                  } else if (Array.isArray(v.image_urls)) {
+                    imgs = v.image_urls;
+                  } else if (typeof v.image_urls === 'string') {
+                    imgs = v.image_urls.split(',').map(url => url.trim()).filter(Boolean);
+                  } else if (v.image) {
+                    imgs = [v.image];
                   }
+
+                  variantGroups.push({
+                    name: v.name || `Variant ${idx + 1}`,
+                    images: imgs
+                  });
                 });
               }
 
-              const allVariantUrls = variantGroups.reduce((acc, g) => [...acc, ...g.images], []);
-              const hasAnyImages = mainImages.length > 0 || variantGroups.length > 0;
+              const hasVariants = variantGroups.length > 0;
 
               return (
-                <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
-                  {hasAnyImages ? (
-                    <>
-                      {/* Main Product Images */}
-                      {mainImages.length > 0 && (
-                        <div>
-                          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Main Product Images</h3>
+                <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-5">
+                  {/* Product Context Banner */}
+                  <div className="flex items-center gap-3 pr-10">
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center text-lg shrink-0 border border-blue-500/20">
+                      <FiImage />
+                    </div>
+                    <div className="min-w-0">
+                      <h2 className="text-base sm:text-lg font-bold text-white truncate">{currentProductForView.name || 'Product Images'}</h2>
+                      <p className="text-[11px] text-slate-400 font-medium">
+                        {hasVariants ? `${variantGroups.length} Variant${variantGroups.length === 1 ? '' : 's'} Available` : 'Main Product Images'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {!hasVariants ? (
+                    /* Case 1: No variants - display main images */
+                    mainImages.length > 0 ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {mainImages.map((url, i) => (
+                          <div
+                            key={`main-${i}`}
+                            className="relative aspect-square border border-white/15 rounded-2xl overflow-hidden bg-white p-2 flex items-center justify-center shadow-sm group hover:border-blue-500/40 transition-all"
+                          >
+                            <ProgressiveImage
+                              src={getImageUrl(url, { width: 450, quality: 70 })}
+                              alt={`Product Main ${i + 1}`}
+                              className="max-w-full max-h-full object-contain"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-16 text-slate-400 bg-white/[0.02] border border-white/10 rounded-2xl">
+                        <FiImage className="text-4xl mx-auto mb-2 opacity-40 text-slate-500" />
+                        <p className="text-sm font-semibold">No images available for this product.</p>
+                      </div>
+                    )
+                  ) : (
+                    /* Case 2: Has variants - buttons with variant names, first variant images as default */
+                    <div className="space-y-4">
+                      {/* Variant Name Buttons */}
+                      <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1.5">
+                        {variantGroups.map((group, idx) => {
+                          const isSelected = (selectedVariantImageIndex ?? 0) === idx;
+                          const colorStyle = getVariantColorStyle(group.name);
+                          return (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => setSelectedVariantImageIndex(idx)}
+                              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 border ${
+                                isSelected
+                                  ? colorStyle.activeBg
+                                  : colorStyle.idleBg
+                              }`}
+                            >
+                              <span
+                                className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs ring-1 ring-white/20"
+                                style={{ backgroundColor: colorStyle.hex }}
+                              />
+                              <span>{group.name}</span>
+                              {group.images.length > 0 && (
+                                <span className={`px-1.5 py-0.25 rounded-full text-[10px] font-black ${
+                                  isSelected ? 'bg-black/30 text-white' : 'bg-black/40 text-slate-300 border border-white/10'
+                                }`}>
+                                  {group.images.length}
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Display Selected Variant Images */}
+                      {(() => {
+                        const currentGroup = variantGroups[selectedVariantImageIndex] || variantGroups[0];
+                        if (!currentGroup || currentGroup.images.length === 0) {
+                          return (
+                            <div className="text-center py-16 text-slate-400 bg-white/[0.02] border border-white/10 rounded-2xl">
+                              <FiImage className="text-4xl mx-auto mb-2 opacity-40 text-slate-500" />
+                              <p className="text-sm font-semibold">No images available for {currentGroup?.name || 'this variant'}.</p>
+                            </div>
+                          );
+                        }
+
+                        return (
                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                            {mainImages.map((url, i) => (
-                              <div key={`main-${i}`} className="relative aspect-square border border-white/10 rounded-xl overflow-hidden bg-slate-800 flex items-center justify-center">
+                            {currentGroup.images.map((url, i) => (
+                              <div
+                                key={`${selectedVariantImageIndex}-${i}`}
+                                className="relative aspect-square border border-white/15 rounded-2xl overflow-hidden bg-white p-2 flex items-center justify-center shadow-sm group hover:border-blue-500/40 transition-all"
+                              >
                                 <ProgressiveImage
-                                  src={getImageUrl(url, { width: 350, quality: 60 })}
-                                  alt={`Product Main ${i + 1}`}
-                                  className="max-w-full max-h-full object-contain bg-white p-2"
+                                  src={getImageUrl(url, { width: 450, quality: 70 })}
+                                  alt={`${currentGroup.name} ${i + 1}`}
+                                  className="max-w-full max-h-full object-contain"
                                 />
                               </div>
                             ))}
                           </div>
-                        </div>
-                      )}
-
-                      {/* Variant Images Grouped by Variant Name */}
-                      {variantGroups.length > 0 && (
-                        <div className="space-y-6 pt-4 border-t border-white/5">
-                          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Variant Images</h3>
-                          {variantGroups.map((group, groupIdx) => (
-                            <div key={groupIdx} className="space-y-2 border-l-2 border-blue-500/20 pl-4 py-1 animate-in fade-in duration-200">
-                              <span className="inline-block px-2.5 py-0.5 rounded-full text-[18px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 mb-1">
-                                {group.name}
-                              </span>
-                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                {group.images.map((url, i) => (
-                                  <div key={`${groupIdx}-${i}`} className="relative aspect-square border border-white/10 rounded-xl overflow-hidden bg-slate-800 flex items-center justify-center">
-                                    <ProgressiveImage
-                                      src={getImageUrl(url, { width: 350, quality: 60 })}
-                                      alt={`${group.name} ${i + 1}`}
-                                      className="max-w-full max-h-full object-contain bg-white p-2"
-                                    />
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* URLs for copying */}
-                      {/* <div className="mt-2 border-t border-white/5 pt-4">
-                        <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">All Image URLs</label>
-                        <textarea
-                          readOnly
-                          rows="3"
-                          value={[...mainImages, ...allVariantUrls].map(url => getImageUrl(url)).join(', ')}
-                          className="w-full text-sm bg-slate-900/50 border border-white/10 rounded-xl px-4 py-2.5 text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 cursor-text resize-none"
-                          onClick={(e) => e.target.select()}
-                        />
-                      </div> */}
-                    </>
-                  ) : (
-                    <div className="text-center py-10 text-slate-400">
-                      <FiImage className="text-5xl mx-auto mb-3 opacity-50" />
-                      <p>No images available for this product or its variants.</p>
+                        );
+                      })()}
                     </div>
                   )}
                 </div>
               );
             })()}
-            <div className="px-6 py-4 border-t border-white/10 bg-slate-950/30 flex justify-end shrink-0">
-              <button onClick={() => setIsImageViewOpen(false)} className="px-6 py-2.5 bg-slate-700 text-white font-bold rounded-xl hover:bg-slate-600 transition-colors cursor-pointer">Close</button>
-            </div>
           </div>
         </div>
         , document.body)}
@@ -3591,8 +3622,8 @@ const ProductList = () => {
       {/* Delete Confirmation Modal */}
       {deleteConfirmOpen && productToDelete && createPortal(
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setProductToDelete(null); setTypedConfirmName(''); }}></div>
-          <div className="relative bg-slate-900 border border-red-500/20 rounded-2xl p-6 shadow-2xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-md animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setProductToDelete(null); setTypedConfirmName(''); }}></div>
+          <div className="relative bg-slate-950/25 border border-red-500/20 rounded-2xl p-6 shadow-2xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
               <FiAlertCircle className="text-red-500 animate-pulse" /> Confirm Deletion
             </h3>
@@ -3636,8 +3667,8 @@ const ProductList = () => {
       {/* Custom Alert Modal */}
       {alertOpen && createPortal(
         <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => setAlertOpen(false)}></div>
-          <div className="relative bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-md animate-fade-in" onClick={() => setAlertOpen(false)}></div>
+          <div className="relative bg-slate-950/25 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
               <FiInfo className="text-blue-400" /> Alert
             </h3>

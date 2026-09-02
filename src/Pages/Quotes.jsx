@@ -254,7 +254,7 @@ const Quotes = () => {
             color: 'text-amber-400',
             bg: 'bg-amber-500/20',
             fromColor: 'from-amber-500/25',
-            hoverBorder: 'hover:border-amber-500/30'
+            hoverBorder: 'hover:!border-amber-500/30'
           },
           {
             title: 'Contacted',

@@ -2778,7 +2778,7 @@ const ActivityDetails = () => {
             <Card
               hoverable
               className={`p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group ${
-                isSearch ? 'hover:border-amber-500/30' : 'hover:border-blue-500/30'
+                isSearch ? 'hover:!border-amber-500/30' : 'hover:border-blue-500/30'
               }`}
             >
               <div className={`absolute inset-0 bg-linear-to-b ${isSearch ? 'from-amber-500/25' : 'from-blue-500/25'} to-transparent pointer-events-none`}></div>
@@ -2887,7 +2887,7 @@ const ActivityDetails = () => {
                 color: "text-amber-400",
                 bg: "bg-amber-500/20",
                 fromColor: "from-amber-500/25",
-                hoverBorder: "hover:border-amber-500/30"
+                hoverBorder: "hover:!border-amber-500/30"
               },
               {
                 title: "Cart Items",

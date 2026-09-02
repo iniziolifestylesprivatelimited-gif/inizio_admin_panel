@@ -98,9 +98,10 @@ const UsersList = () => {
 
   // URL search params logic similar to ProductList
   const [searchParams, setSearchParams] = useSearchParams();
-  const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
-  const lastPushedSearchRef = useRef(searchParams.get('search') || '');
-  const searchTerm = searchParams.get('search') || '';
+  const rawSearchParam = searchParams.get('search') || searchParams.get('userId') || '';
+  const [searchInput, setSearchInput] = useState(rawSearchParam);
+  const lastPushedSearchRef = useRef(rawSearchParam);
+  const searchTerm = rawSearchParam;
   const currentPage = parseInt(searchParams.get('page') || '1', 10);
 
   const selectedBusinessType = searchParams.get('businessType') || '';
@@ -145,6 +146,7 @@ const UsersList = () => {
     setSearchInput('');
     setSearchParams(prev => {
       prev.delete('search');
+      prev.delete('userId');
       prev.delete('businessType');
       prev.delete('appStatus');
       prev.delete('device');
@@ -157,7 +159,7 @@ const UsersList = () => {
 
   // Sync local input with URL search param changes
   useEffect(() => {
-    const urlSearch = searchParams.get('search') || '';
+    const urlSearch = searchParams.get('search') || searchParams.get('userId') || '';
     if (urlSearch !== lastPushedSearchRef.current) {
       setSearchInput(urlSearch);
       lastPushedSearchRef.current = urlSearch;
@@ -189,6 +191,8 @@ const UsersList = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const [typedConfirmName, setTypedConfirmName] = useState('');
+  const [reactivateConfirmOpen, setReactivateConfirmOpen] = useState(false);
+  const [userToReactivate, setUserToReactivate] = useState(null);
   
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
@@ -446,6 +450,7 @@ const UsersList = () => {
         const nameMatch = user.name?.toLowerCase().includes(term);
         const emailMatch = user.email?.toLowerCase().includes(term);
         const phoneMatch = user.phone?.includes(term);
+        const idMatch = user._id?.toLowerCase().includes(term);
         const userIdMatch = user.userId?.toLowerCase().includes(term);
         const gstNumberMatch = user.gstNumber?.toLowerCase().includes(term);
         const onlineText = user.isOnline ? 'online' : 'offline';
@@ -457,7 +462,7 @@ const UsersList = () => {
         const createdDateStr = userCreatedAt ? formatDateDDMMYYYY(userCreatedAt).toLowerCase() : '';
         const createdDateMatch = createdDateStr.includes(term);
 
-        if (!(nameMatch || emailMatch || phoneMatch || userIdMatch || gstNumberMatch || onlineMatch || appVersionMatch || loginMethodMatch || createdDateMatch)) {
+        if (!(nameMatch || emailMatch || phoneMatch || idMatch || userIdMatch || gstNumberMatch || onlineMatch || appVersionMatch || loginMethodMatch || createdDateMatch)) {
           return false;
         }
       }
@@ -515,10 +520,18 @@ const UsersList = () => {
   ];
 
   // Pagination logic
+  const totalPages = Math.ceil(sortedUsers.length / usersPerPage);
+
+  // Auto-reset page to 1 if current page is beyond totalPages
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage]);
+
   const indexOfLastUser = currentPage * usersPerPage;
   const indexOfFirstUser = indexOfLastUser - usersPerPage;
   const currentUsers = sortedUsers.slice(indexOfFirstUser, indexOfLastUser);
-  const totalPages = Math.ceil(sortedUsers.length / usersPerPage);
 
   // console.log(users)
   
@@ -1024,13 +1037,17 @@ const UsersList = () => {
                         <td className="p-4 justify-center gap-2">
                           {user.deleteRequested ? (
                             <button 
-                              onClick={(e) => { e.stopPropagation(); handleReactivate(user._id); }} 
+                              onClick={(e) => { 
+                                e.stopPropagation(); 
+                                setUserToReactivate(user); 
+                                setReactivateConfirmOpen(true); 
+                              }} 
                               disabled={isActionLoading} 
-                              className="flex items-center gap-1 p-2.5 text-white bg-emerald-500 hover:bg-emerald-500/20 rounded-lg transition-all disabled:opacity-50 cursor-pointer transform-gpu" 
+                              className="flex items-center gap-1.5 px-3 py-2 text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg transition-all disabled:opacity-50 cursor-pointer transform-gpu shadow-md hover:scale-105" 
                               title="Reactivate User"
                             >
-                              <FiRefreshCcw />
-                              <span className='font-bold'>Reactivate</span>
+                              <FiRefreshCcw className="text-xs" />
+                              <span className='font-bold text-xs'>Reactivate</span>
                             </button>
                           ) : (
                             <button 
@@ -1146,8 +1163,8 @@ const UsersList = () => {
       {/* Delete Confirmation Modal */}
       {deleteConfirmOpen && userToDelete && createPortal(
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setUserToDelete(null); setTypedConfirmName(''); }}></div>
-          <div className="relative bg-slate-900 border border-red-500/20 rounded-2xl p-6 shadow-2xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-slate-950/25 backdrop-blur-md animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setUserToDelete(null); setTypedConfirmName(''); }}></div>
+          <div className="relative bg-slate-950/15 backdrop-blur-md border border-red-500/20 rounded-2xl p-6 shadow-2xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
               <FiAlertCircle className="text-red-500 animate-pulse" /> Confirm Deletion
             </h3>
@@ -1188,11 +1205,52 @@ const UsersList = () => {
         document.body
       )}
 
+      {/* Reactivate Confirmation Modal */}
+      {reactivateConfirmOpen && userToReactivate && createPortal(
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-slate-950/25 backdrop-blur-md animate-fade-in"
+            onClick={() => { setReactivateConfirmOpen(false); setUserToReactivate(null); }}
+          ></div>
+          <div className="relative bg-slate-950/15 backdrop-blur-md border border-emerald-500/20 rounded-2xl p-6 shadow-2xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+              <FiRefreshCcw className="text-emerald-400" /> Confirm Reactivation
+            </h3>
+            <p className="text-slate-300 text-sm mb-5 leading-relaxed">
+              Are you sure you want to reactivate the customer account for <strong className="text-white">"{userToReactivate.name}"</strong>? This will restore their active status and access.
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => { setReactivateConfirmOpen(false); setUserToReactivate(null); }}
+                className="flex-1 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors text-sm cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isActionLoading}
+                onClick={async () => {
+                  const targetId = userToReactivate._id;
+                  setReactivateConfirmOpen(false);
+                  setUserToReactivate(null);
+                  await handleReactivate(targetId);
+                }}
+                className="flex-1 px-4 py-2.5 text-white font-bold rounded-xl transition-all text-sm bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 cursor-pointer shadow-lg shadow-emerald-600/20"
+              >
+                Reactivate Account
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
       {/* Custom Alert Modal */}
       {alertOpen && createPortal(
         <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => setAlertOpen(false)}></div>
-          <div className="relative bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-slate-950/25 backdrop-blur-md animate-fade-in" onClick={() => setAlertOpen(false)}></div>
+          <div className="relative bg-slate-950/15 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
               <FiAlertCircle className="text-blue-400" /> Alert
             </h3>

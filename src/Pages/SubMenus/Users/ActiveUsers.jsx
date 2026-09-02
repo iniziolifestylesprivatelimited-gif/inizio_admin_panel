@@ -31,7 +31,6 @@ const ActiveUsers = () => {
   // Table header filters & sort states
   const [selectedBusinessType, setSelectedBusinessType] = useState('');
   const [selectedMethod, setSelectedMethod] = useState('');
-  const [selectedAppStatus, setSelectedAppStatus] = useState('');
   const [selectedSetupStatus, setSelectedSetupStatus] = useState('');
   const [sortKey, setSortKey] = useState('');
   const [sortOrder, setSortOrder] = useState('asc');
@@ -69,7 +68,6 @@ const ActiveUsers = () => {
   const handleClearHeaderFilters = () => {
     setSelectedBusinessType('');
     setSelectedMethod('');
-    setSelectedAppStatus('');
     setSelectedSetupStatus('');
     setSortKey('');
     setSortOrder('asc');
@@ -103,7 +101,7 @@ const ActiveUsers = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedBusinessType, selectedMethod, selectedAppStatus, selectedSetupStatus, sortKey, sortOrder]);
+  }, [searchQuery, selectedBusinessType, selectedMethod, selectedSetupStatus, sortKey, sortOrder]);
 
   // Derived Stats
   // Login Tab Stats
@@ -135,12 +133,6 @@ const ActiveUsers = () => {
     ];
   }, [reportData]);
 
-  const appStatusOptions = [
-    { value: '', label: 'Name' },
-    { value: 'installed', label: 'App Installed' },
-    { value: 'uninstalled', label: 'App Uninstalled' }
-  ];
-
   const setupStatusOptions = [
     { value: '', label: 'Setup Status' },
     { value: 'not_sent', label: 'Not Sent' },
@@ -149,7 +141,7 @@ const ActiveUsers = () => {
   ];
 
   const hasActiveFilters = Boolean(
-    selectedBusinessType || selectedMethod || selectedAppStatus || selectedSetupStatus || sortKey || searchQuery
+    selectedBusinessType || selectedMethod || selectedSetupStatus || sortKey || searchQuery
   );
 
   // Filtering Logic
@@ -178,11 +170,6 @@ const ActiveUsers = () => {
         return false;
       }
 
-      // App Installed / Uninstalled Status filter on Name header
-      if (selectedAppStatus && checkAppStatus(item) !== selectedAppStatus) {
-        return false;
-      }
-
       // Tab-specific filters
       if (activeTab === 'login') {
         if (selectedMethod && (item.lastLoginMethod || 'password').toLowerCase() !== selectedMethod.toLowerCase()) {
@@ -201,7 +188,7 @@ const ActiveUsers = () => {
 
       return true;
     });
-  }, [reportData, searchQuery, selectedBusinessType, selectedMethod, selectedAppStatus, selectedSetupStatus, activeTab]);
+  }, [reportData, searchQuery, selectedBusinessType, selectedMethod, selectedSetupStatus, activeTab]);
 
   // Sorting Logic
   const sortedData = useMemo(() => {
@@ -335,7 +322,7 @@ const ActiveUsers = () => {
               color: "text-amber-400",
               bg: "bg-amber-500/20",
               fromColor: "from-amber-500/25",
-              hoverBorder: "hover:border-amber-500/30"
+              hoverBorder: "hover:!border-amber-500/30"
             }
           ].map((metric, index) => (
             <Card
@@ -470,25 +457,17 @@ const ActiveUsers = () => {
                         )}
                       </div>
                     </th>
-                    <th className="p-4 font-bold text-left min-w-[140px]">
-                      <div className="flex items-center gap-2">
-                        <div
-                          onClick={() => handleSortChange('name')}
-                          className="cursor-pointer select-none hover:text-white transition-colors shrink-0"
-                          title="Sort by Name"
-                        >
-                          {sortKey === 'name' ? (
-                            sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
-                          ) : (
-                            <span className="text-slate-500">⇅</span>
-                          )}
-                        </div>
-                        <CustomDropdown
-                          value={selectedAppStatus}
-                          onChange={(val) => setSelectedAppStatus(val)}
-                          options={appStatusOptions}
-                          statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedAppStatus || sortKey === 'name' ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'}`}
-                        />
+                    <th
+                      onClick={() => handleSortChange('name')}
+                      className="p-4 font-bold text-left cursor-pointer select-none hover:text-white transition-colors min-w-[140px]"
+                    >
+                      <div className="flex items-center gap-1">
+                        <span className={sortKey === 'name' ? 'text-blue-400 font-extrabold' : ''}>Name</span>
+                        {sortKey === 'name' ? (
+                          sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                        ) : (
+                          <span className="text-slate-500">⇅</span>
+                        )}
                       </div>
                     </th>
                     <th
@@ -577,25 +556,17 @@ const ActiveUsers = () => {
                         )}
                       </div>
                     </th>
-                    <th className="p-4 font-bold text-left min-w-[140px]">
-                      <div className="flex items-center gap-2">
-                        <div
-                          onClick={() => handleSortChange('name')}
-                          className="cursor-pointer select-none hover:text-white transition-colors shrink-0"
-                          title="Sort by Name"
-                        >
-                          {sortKey === 'name' ? (
-                            sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
-                          ) : (
-                            <span className="text-slate-500">⇅</span>
-                          )}
-                        </div>
-                        <CustomDropdown
-                          value={selectedAppStatus}
-                          onChange={(val) => setSelectedAppStatus(val)}
-                          options={appStatusOptions}
-                          statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedAppStatus || sortKey === 'name' ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'}`}
-                        />
+                    <th
+                      onClick={() => handleSortChange('name')}
+                      className="p-4 font-bold text-left cursor-pointer select-none hover:text-white transition-colors min-w-[140px]"
+                    >
+                      <div className="flex items-center gap-1">
+                        <span className={sortKey === 'name' ? 'text-blue-400 font-extrabold' : ''}>Name</span>
+                        {sortKey === 'name' ? (
+                          sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                        ) : (
+                          <span className="text-slate-500">⇅</span>
+                        )}
                       </div>
                     </th>
                     <th

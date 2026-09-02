@@ -123,34 +123,21 @@ const ProductDetailsModal = ({
     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-slate-950/70 backdrop-blur-md"
+        className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm"
         onClick={onClose}
       />
 
       {/* Modal Container */}
-      <div className="relative bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/80 border border-white/15 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] z-10 animate-in zoom-in-95 duration-200 text-left">
-        {/* Header */}
-        <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-950/40 shrink-0">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg shrink-0 border border-blue-500/30">
-              <FiPackage />
-            </div>
-            <div className="min-w-0">
-              <h2 className="text-lg font-bold text-white truncate">Product Details</h2>
-              {product?.name && (
-                <p className="text-xs text-slate-400 truncate max-w-md">{product.name}</p>
-              )}
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-full transition-colors cursor-pointer shrink-0"
-            title="Close"
-          >
-            <FiX className="text-xl" />
-          </button>
-        </div>
+      <div className="relative bg-slate-950/25 border border-white/20 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] z-10 animate-in fade-in zoom-in-95 duration-200 text-left">
+        {/* Floating Close Button */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-3.5 right-3.5 z-30 p-2 text-slate-400 hover:text-white bg-slate-900/80 hover:bg-slate-800 border border-white/10 rounded-full transition-all shadow-lg cursor-pointer"
+          title="Close"
+        >
+          <FiX className="text-xl" />
+        </button>
 
         {/* Modal Body */}
         <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
@@ -167,7 +154,7 @@ const ProductDetailsModal = ({
           ) : product ? (
             <>
               {/* General Information */}
-              <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5">
+              <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="md:col-span-2 space-y-4">
                     <div>
@@ -216,7 +203,7 @@ const ProductDetailsModal = ({
                   {/* Main Product Image */}
                   <div className="flex flex-col items-center justify-start">
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 self-start">Product Image</p>
-                    <div className="w-full h-44 sm:h-52 md:h-full max-h-56 rounded-2xl border border-white/10 overflow-hidden bg-white p-2 flex items-center justify-center shadow-inner">
+                    <div className="w-full h-44 sm:h-52 md:h-full max-h-56 rounded-2xl border border-white/15 overflow-hidden bg-white p-2 flex items-center justify-center shadow-inner">
                       {(() => {
                         const firstImage = (product.images && product.images.length > 0 && product.images[0]) ||
                           (product.variants && product.variants.length > 0 && product.variants[0]?.images && product.variants[0]?.images[0]);
@@ -242,8 +229,8 @@ const ProductDetailsModal = ({
               </div>
 
               {/* Pricing & Inventory */}
-              <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-white/10 pb-2">
+              <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-white/15 pb-2">
                   <span className="w-1.5 h-4 bg-emerald-500 rounded-full"></span> Pricing & Inventory
                 </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-5">
@@ -290,8 +277,8 @@ const ProductDetailsModal = ({
               </div>
 
               {/* Extended Details & Policies */}
-              <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5 space-y-4">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-white/10 pb-2">
+              <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15 space-y-4">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-white/15 pb-2">
                   <span className="w-1.5 h-4 bg-amber-500 rounded-full"></span> Descriptions & Policies
                 </h3>
                 <div>
@@ -308,7 +295,7 @@ const ProductDetailsModal = ({
                     <p className="text-slate-300 text-sm whitespace-pre-wrap">{product.expertNotes || 'N/A'}</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-white/5 pt-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-white/15 pt-4">
                   <div>
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Warranty</p>
                     <p className="text-slate-300 text-sm">{product.warranty || 'N/A'}</p>
@@ -325,14 +312,14 @@ const ProductDetailsModal = ({
               </div>
 
               {/* Product Images */}
-              <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-white/10 pb-2">
+              <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-white/15 pb-2">
                   <span className="w-1.5 h-4 bg-purple-500 rounded-full"></span> Product Images
                 </h3>
                 {product.images && product.images.length > 0 ? (
                   <div className="flex flex-wrap gap-4">
                     {product.images.map((url, i) => (
-                      <div key={i} className="relative w-24 h-24 border border-white/10 rounded-xl overflow-hidden bg-slate-800 flex items-center justify-center">
+                      <div key={i} className="relative w-24 h-24 border border-white/15 rounded-xl overflow-hidden bg-slate-800 flex items-center justify-center">
                         <img
                           src={getImageUrl(url)}
                           alt={`Image ${i + 1}`}
@@ -352,7 +339,7 @@ const ProductDetailsModal = ({
                 <button
                   type="button"
                   onClick={() => setIsVariantsExpanded(!isVariantsExpanded)}
-                  className="w-full flex items-center justify-between px-5 py-4 bg-slate-950/30 border border-white/10 rounded-2xl hover:bg-slate-900/40 transition-colors cursor-pointer"
+                  className="w-full flex items-center justify-between px-5 py-4 bg-white/[0.03] border border-white/15 rounded-2xl hover:bg-slate-900/30 transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
                     <span className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-sm border border-blue-500/30">
@@ -367,8 +354,8 @@ const ProductDetailsModal = ({
                   <div className="mt-3 space-y-3">
                     {product.variants && product.variants.length > 0 ? (
                       product.variants.map((variant, idx) => (
-                        <div key={idx} className="p-5 bg-slate-950/30 border border-white/5 rounded-2xl space-y-4">
-                          <div className="flex justify-between items-center border-b border-white/5 pb-2 mb-3">
+                        <div key={idx} className="p-5 bg-white/[0.03] border border-white/15 rounded-2xl space-y-4">
+                          <div className="flex justify-between items-center border-b border-white/15 pb-2 mb-3">
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-bold text-white uppercase tracking-wider">Variant #{idx + 1}</span>
                               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${variant.isActive !== false ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
@@ -413,7 +400,7 @@ const ProductDetailsModal = ({
                               </div>
                             </div>
                           </div>
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 pt-3 border-t border-white/5">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 pt-3 border-t border-white/15">
                             <div>
                               <p className="text-xs text-slate-500 uppercase tracking-wider mb-1 font-bold">L1 Price</p>
                               <p className="text-sm text-blue-300 font-medium">₹{variant.l1Price || '0'}</p>
@@ -441,7 +428,7 @@ const ProductDetailsModal = ({
                           </div>
 
                           {/* Variant Images */}
-                          <div className="pt-3 border-t border-white/5">
+                          <div className="pt-3 border-t border-white/15">
                             {(() => {
                               let variantImgs = [];
                               if (Array.isArray(variant.images)) {
@@ -471,7 +458,7 @@ const ProductDetailsModal = ({
                                       {variantImgs.map((url, imgIdx) => (
                                         <div
                                           key={imgIdx}
-                                          className="relative w-16 h-16 sm:w-20 sm:h-20 border border-white/10 rounded-xl overflow-hidden bg-slate-800 flex items-center justify-center shrink-0 shadow-sm"
+                                          className="relative w-16 h-16 sm:w-20 sm:h-20 border border-white/15 rounded-xl overflow-hidden bg-slate-800 flex items-center justify-center shrink-0 shadow-sm"
                                         >
                                           <OptimizedImage
                                             src={url}
@@ -493,39 +480,30 @@ const ProductDetailsModal = ({
                         </div>
                       ))
                     ) : (
-                      <div className="p-6 text-center text-slate-400 bg-slate-800/30 rounded-2xl border border-white/5 text-xs">
+                      <div className="p-6 text-center text-slate-400 bg-slate-800/30 rounded-2xl border border-white/15 text-xs">
                         No variants added for this product.
                       </div>
                     )}
                   </div>
                 )}
               </div>
+              {showEditButton && product?._id && (
+                <div className="flex justify-end pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose?.();
+                      navigate(`/products/variants/${product._id}`);
+                    }}
+                    className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/30 cursor-pointer text-sm"
+                  >
+                    <FiEdit2 className="mr-2" />
+                    Edit Product & Variants
+                  </button>
+                </div>
+              )}
             </>
           ) : null}
-        </div>
-
-        {/* Footer */}
-        <div className="px-6 py-4 border-t border-white/10 bg-slate-950/40 flex justify-end items-center gap-3 shrink-0">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-6 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white font-bold rounded-xl transition-colors cursor-pointer text-sm border border-white/5"
-          >
-            Close
-          </button>
-          {showEditButton && product?._id && (
-            <button
-              type="button"
-              onClick={() => {
-                onClose?.();
-                navigate(`/products/variants/${product._id}`);
-              }}
-              className="flex items-center justify-center px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/30 cursor-pointer text-sm"
-            >
-              <FiEdit2 className="mr-2" />
-              Edit Product & Variants
-            </button>
-          )}
         </div>
       </div>
     </div>,
