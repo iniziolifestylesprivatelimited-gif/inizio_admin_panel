@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FiCopy, FiCheck } from 'react-icons/fi';
 
-const CopyButton = ({ text, className = "text-slate-600 hover:text-slate-300", size = 12 }) => {
+const CopyButton = ({ text, className = "text-slate-600 hover:text-slate-300", size = 12, title = "Copy ID" }) => {
   const [copied, setCopied] = useState(false);
   const handleCopy = (e) => {
     e.stopPropagation();
@@ -36,7 +36,7 @@ const CopyButton = ({ text, className = "text-slate-600 hover:text-slate-300", s
       onClick={handleCopy}
       type="button"
       className={`${className} p-0.5 rounded transition-colors shrink-0 flex items-center justify-center`}
-      title={copied ? "Copied!" : "Copy ID"}
+      title={copied ? "Copied!" : title}
     >
       {copied ? (
         <FiCheck className="text-emerald-400" size={size} />

@@ -1176,7 +1176,7 @@ const Chat = () => {
                                       isSelected ? 'bg-blue-600/20 border border-blue-500/40 text-white' : 'hover:bg-white/5 border border-transparent text-slate-200'
                                     }`}
                                   >
-                                    <div className="w-10 h-10 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden">
+                                    <div className="w-10 h-10 rounded-lg bg-white border border-white/10 flex items-center justify-center shrink-0 overflow-hidden">
                                       {imgUrl ? (
                                         <img src={getImageUrl(imgUrl)} alt={item.name} className="w-full h-full object-cover" />
                                       ) : (
@@ -1469,8 +1469,8 @@ const Chat = () => {
       {/* Delete Confirmation Modal */}
       {deleteConfirmOpen && messageToDelete && createPortal(
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setMessageToDelete(null); }}></div>
-          <div className="relative bg-slate-900 border border-red-500/20 rounded-2xl p-6 shadow-2xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-md animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setMessageToDelete(null); }}></div>
+          <div className="relative bg-slate-950/25 border border-rose-500/20 rounded-2xl p-6 shadow-2xl shadow-rose-500/20 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
               <FiAlertCircle className="text-red-500 animate-pulse" /> Confirm Deletion
             </h3>
@@ -1505,9 +1505,9 @@ const Chat = () => {
       {/* Send Preview Confirmation Modal */}
       {showSendPreview && createPortal(
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => setShowSendPreview(false)}></div>
-          <div className="relative bg-slate-900 border border-blue-500/20 rounded-2xl p-6 shadow-2xl w-full max-w-lg animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center mb-4 pb-2 border-b border-white/10">
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-md animate-fade-in" onClick={() => setShowSendPreview(false)}></div>
+          <div className="relative bg-slate-950/25 border border-blue-500/20 rounded-2xl p-6 shadow-2xl shadow-blue-500/20 w-full max-w-lg animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center mb-4 pb-2 border-b border-white/20">
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
                 <FiSend className="text-blue-400" /> Preview Outgoing Message
               </h3>
@@ -1570,8 +1570,8 @@ const Chat = () => {
       {/* Custom Alert Modal */}
       {alertOpen && createPortal(
         <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => setAlertOpen(false)}></div>
-          <div className="relative bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-md animate-fade-in" onClick={() => setAlertOpen(false)}></div>
+          <div className="relative bg-slate-950/25 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
               <FiInfo className="text-blue-400" /> Alert
             </h3>

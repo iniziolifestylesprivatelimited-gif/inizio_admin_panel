@@ -13,6 +13,7 @@ import { formatDateDDMMYYYY, formatDateTimeDDMMYYYY } from '../../../utils/dateU
 import { useOutletContext } from 'react-router-dom';
 import { getImageUrl } from '../../../utils/imageUtils';
 import OptimizedImage from '../../../Components/OptimizedImage';
+import GmailLink from '../../../Components/GmailLink';
 
 const Orders = ({ defaultStatus = 'all' }) => {
   const [orders, setOrders] = useState([]);
@@ -628,7 +629,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                               <td className="p-4 text-sm">
                                 <div className="flex flex-col">
                                   <span className="text-slate-200 font-medium capitalize">{ret.user?.name || 'N/A'}</span>
-                                  <span className="text-slate-500 text-xs mt-0.5">{ret.user?.email || 'N/A'}</span>
+                                  <GmailLink email={ret.user?.email} className="text-slate-500 text-xs mt-0.5 hover:text-blue-400" />
                                 </div>
                               </td>
                               <td className="p-4 text-sm text-slate-300 truncate max-w-50" title={returnReason}>
@@ -770,7 +771,9 @@ const Orders = ({ defaultStatus = 'all' }) => {
                     {selectedOrder.user?.email && (
                       <div>
                         <span className="block text-xs text-slate-500 mb-0.5">Email</span>
-                        <span className="font-medium text-white flex items-center gap-1.5"><FiMail className="text-slate-400" /> {selectedOrder.user.email}</span>
+                        <div className="font-medium text-white flex items-center gap-1.5">
+                          <GmailLink email={selectedOrder.user.email} showIcon={true} className="text-white hover:text-blue-400" />
+                        </div>
                       </div>
                     )}
                     <div>
@@ -1076,7 +1079,9 @@ const Orders = ({ defaultStatus = 'all' }) => {
                     </div>
                     <div>
                       <span className="block text-xs text-slate-500">Email</span>
-                      <span className="font-medium text-white">{selectedReturn.user?.email || 'N/A'}</span>
+                      <div className="font-medium text-white">
+                        <GmailLink email={selectedReturn.user?.email} className="text-white hover:text-blue-400" />
+                      </div>
                     </div>
                     {selectedReturn.user?.phone && (
                       <div>

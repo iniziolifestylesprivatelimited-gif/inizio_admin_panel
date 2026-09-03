@@ -14,6 +14,7 @@ import {
 } from 'react-icons/fi';
 import ProductDetailsModal from '../Components/ProductDetailsModal';
 import Card from '../Components/Card';
+import GmailLink from '../Components/GmailLink';
 import { BiRupee } from 'react-icons/bi';
 import { DiAndroid, DiApple } from 'react-icons/di';
 
@@ -1486,8 +1487,13 @@ const ActivityDetails = () => {
             </td>
             <td className="py-4 px-5">
               <div className="flex items-center gap-1.5 text-xs text-slate-300 font-medium select-all truncate max-w-[200px]" title={item.email}>
-                <FiMail className="text-slate-500 shrink-0" size={12} />
-                <span>{item.email || '-'}</span>
+                <GmailLink
+                  email={item.email}
+                  showIcon={true}
+                  iconSize={12}
+                  iconClassName="text-slate-500"
+                  className="text-slate-300 hover:text-blue-400"
+                />
               </div>
             </td>
             <td className="py-4 px-5">
@@ -1604,8 +1610,13 @@ const ActivityDetails = () => {
             {/* 3. Email Address */}
             <td className="py-6 px-3">
               <div className="flex items-center gap-1 text-xs text-slate-300 font-medium select-all truncate max-w-[140px]" title={item.email}>
-                <FiMail className="text-slate-500 shrink-0" size={11} />
-                {item.email}
+                <GmailLink
+                  email={item.email}
+                  showIcon={true}
+                  iconSize={11}
+                  iconClassName="text-slate-500"
+                  className="text-slate-300 hover:text-blue-400"
+                />
               </div>
             </td>
             

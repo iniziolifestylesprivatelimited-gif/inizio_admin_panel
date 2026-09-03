@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '../../../api/axios';
 import CustomDropdown from '../../../Components/CustomDropdown';
+import GmailLink from '../../../Components/GmailLink';
 import {
   FiCheck, FiLoader, FiAlertCircle, FiShield, FiUserPlus,
   FiUsers, FiLayers, FiMapPin, FiSettings, FiCheckSquare,
@@ -524,7 +525,9 @@ const RolesPermissions = () => {
                           }`}
                       >
                         <div className="font-bold text-sm truncate">{u.name}</div>
-                        <div className="text-xs text-slate-500 font-medium truncate font-mono mt-0.5">{u.email}</div>
+                        <div className="text-xs text-slate-500 font-medium truncate font-mono mt-0.5">
+                          <GmailLink email={u.email} className="text-slate-500 hover:text-blue-400" />
+                        </div>
                         {u.phone && <div className="text-[10px] text-slate-500 font-semibold font-mono mt-1">+{u.phone}</div>}
                       </div>
                     );
@@ -563,7 +566,7 @@ const RolesPermissions = () => {
                             {detailedUserInfo.role || 'customer'}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-400 font-medium font-mono mt-0.5">{detailedUserInfo.email}</p>
+                        <GmailLink email={detailedUserInfo.email} className="text-xs text-slate-400 font-medium font-mono mt-0.5 hover:text-blue-400" />
                       </div>
                     </div>
                     {detailedUserInfo.phone && (
@@ -601,7 +604,7 @@ const RolesPermissions = () => {
                         <div className="p-3 bg-white/[0.02] border border-white/5 rounded-xl text-xs space-y-1">
                           <div className="text-slate-500 font-bold uppercase text-[9px] tracking-wider">Reports To (Sales Head)</div>
                           <div className="font-extrabold text-white">{detailedUserInfo.salesHead.name || 'Sales Head'}</div>
-                          <div className="text-slate-400 font-medium truncate font-mono text-[10px]">{detailedUserInfo.salesHead.email || ''}</div>
+                          <GmailLink email={detailedUserInfo.salesHead.email} className="text-slate-400 font-medium truncate font-mono text-[10px] hover:text-blue-400" />
                         </div>
                       ) : detailedUserInfo.tsmCount !== undefined ? (
                         <div className="flex items-baseline gap-1 mt-1">

@@ -1,15 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   FiBell, FiBellOff, FiVolume2, FiVolumeX, FiCheckCircle, 
   FiAlertTriangle, FiSliders, FiShoppingCart, FiFileText, 
   FiUsers, FiMessageCircle, FiImage, FiSend, FiRefreshCw, FiExternalLink,
   FiServer, FiClock, FiZap, FiChevronDown, FiChevronUp, FiCopy, FiInfo,
-  FiShield, FiTerminal, FiHelpCircle, FiCheck
+  FiShield, FiTerminal, FiHelpCircle, FiCheck, FiSave, FiRotateCcw
 } from 'react-icons/fi';
 import PageHeader from '../../../Components/PageHeader';
 import Card from '../../../Components/Card';
 import CustomDropdown from '../../../Components/CustomDropdown';
 import CopyButton from '../../../Components/CopyButton';
+import { useConfirm } from '../../../Context/ConfirmationContext';
 import { 
   getNotificationSettings, 
   saveNotificationSettings, 
@@ -29,9 +30,11 @@ const TOAST_DURATION_OPTIONS = [
 ];
 
 const PanelSettings = () => {
+  const { confirm, showAlert } = useConfirm();
   const [settings, setSettings] = useState(() => getNotificationSettings());
+  const [savedSettings, setSavedSettings] = useState(() => getNotificationSettings());
+  const [isSaving, setIsSaving] = useState(false);
   const [browserPermission, setBrowserPermission] = useState(() => getNotificationPermission());
-  const [savedMessage, setSavedMessage] = useState('');
   const isSupported = isBrowserNotificationSupported();
   const isSecure = typeof window !== 'undefined' ? (window.isSecureContext ?? true) : true;
   const isHttp = typeof window !== 'undefined' ? (window.location.protocol === 'http:') : false;
@@ -39,6 +42,10 @@ const PanelSettings = () => {
   const currentOrigin = 'http://213.210.36.19:3002';
   const [showHttpGuide, setShowHttpGuide] = useState(true);
   const [selectedBrowserTab, setSelectedBrowserTab] = useState('chrome');
+
+  const hasChanges = useMemo(() => {
+    return JSON.stringify(settings) !== JSON.stringify(savedSettings);
+  }, [settings, savedSettings]);
 
   useEffect(() => {
     const updatePerm = () => {
@@ -67,10 +74,43 @@ const PanelSettings = () => {
   }, []);
 
   const handleUpdate = (partial) => {
-    const updated = saveNotificationSettings(partial);
-    setSettings(updated);
-    setSavedMessage('Settings updated successfully');
-    setTimeout(() => setSavedMessage(''), 2500);
+    setSettings(prev => ({
+      ...prev,
+      ...partial,
+      categories: {
+        ...(prev.categories || {}),
+        ...(partial.categories || {})
+      },
+      pollingIntervals: {
+        ...(prev.pollingIntervals || {}),
+        ...(partial.pollingIntervals || {})
+      }
+    }));
+  };
+
+  const handleSave = async () => {
+    const isConfirmed = await confirm('Are you sure you want to save these panel settings?');
+    if (!isConfirmed) return;
+
+    setIsSaving(true);
+    try {
+      const updated = saveNotificationSettings(settings);
+      setSettings(updated);
+      setSavedSettings(updated);
+      showAlert('Panel settings have been saved successfully.', 'success');
+    } catch (err) {
+      console.error('Failed to save settings:', err);
+      showAlert('Failed to save settings. Please try again.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDiscard = async () => {
+    if (!hasChanges) return;
+    const isConfirmed = await confirm('Discard all unsaved changes and reload previous settings?');
+    if (!isConfirmed) return;
+    setSettings(savedSettings);
   };
 
   const handleToggleCategory = (key) => {
@@ -291,12 +331,34 @@ const PanelSettings = () => {
         icon={FiSliders}
         description="Configure desktop push alerts, floating in-app toast banners, sound chimes, and background polling frequencies."
         action={
-          savedMessage ? (
-            <div className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 animate-in fade-in">
-              <FiCheckCircle size={14} />
-              {savedMessage}
-            </div>
-          ) : null
+          <div className="flex items-center gap-2.5">
+            {hasChanges && (
+              <button
+                type="button"
+                onClick={handleDiscard}
+                disabled={isSaving}
+                className="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
+              >
+                <FiRotateCcw size={13} /> Discard
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={!hasChanges || isSaving}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                hasChanges
+                  ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/30 border border-blue-400/40 active:scale-95'
+                  : 'bg-slate-800/80 text-slate-500 border border-white/5 cursor-not-allowed'
+              }`}
+            >
+              <FiSave size={14} />
+              <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
+              {hasChanges && !isSaving && (
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+              )}
+            </button>
+          </div>
         }
       />
 
@@ -810,6 +872,34 @@ const PanelSettings = () => {
         </Card>
 
       </div>
+
+      {/* Floating Save Bar on Unsaved Changes */}
+      {hasChanges && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-slate-950/85 backdrop-blur-md border border-blue-500/30 shadow-2xl shadow-blue-500/20 px-5 py-3 rounded-2xl flex items-center gap-4 animate-in slide-in-from-bottom-4 duration-200">
+          <div className="flex items-center gap-2 text-xs text-blue-300 font-bold">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+            <span>You have unsaved changes</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleDiscard}
+              disabled={isSaving}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
+            >
+              Discard
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={isSaving}
+              className="px-4 py-1.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-600/30 transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
+            >
+              <FiSave size={13} /> {isSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -423,9 +423,9 @@ export const Ledgers = () => {
       {/* Upload Modal */}
       {isModalOpen && createPortal(
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeModal}></div>
-          <div className="relative bg-linear-to-br from-slate-950 to-blue-950/65 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-5 py-3 border-b border-white/10 flex justify-between items-center bg-slate-950/30">
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-md" onClick={closeModal}></div>
+          <div className="relative bg-slate-950/15 border border-white/20 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-5 py-3 border-b border-white/10 flex justify-between items-center bg-white/[0.03]">
               <h3 className="font-bold text-white text-lg flex items-center gap-2">
                 <FiUpload className="text-blue-400" /> Upload New Ledger
               </h3>
@@ -460,7 +460,7 @@ export const Ledgers = () => {
                 {isUserSelectOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setIsUserSelectOpen(false)}></div>
-                    <div className="absolute z-50 w-full mt-2 bg-slate-950 border border-white/10 rounded-xl shadow-2xl p-3 space-y-2 animate-in fade-in duration-200">
+                    <div className="absolute z-50 w-full mt-2 bg-slate-950/25 backdrop-blur-sm border border-white/10 rounded-xl shadow-2xl p-3 space-y-2 animate-in fade-in duration-200">
                       <div className="relative">
                         <input
                           type="text"
@@ -586,7 +586,7 @@ export const Ledgers = () => {
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row justify-end gap-3">
+              <div className="pt-4 border-t border-white/20 flex flex-col sm:flex-row justify-end gap-3">
                 <button 
                   type="button"
                   onClick={closeModal}

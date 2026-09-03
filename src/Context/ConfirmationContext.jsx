@@ -85,14 +85,20 @@ export const ConfirmationProvider = ({ children }) => {
     return 'bg-blue-500/10';
   };
 
+  const getAlertShadowClass = () => {
+    if (modalState.alertType === 'success') return 'shadow-emerald-500/20';
+    if (modalState.alertType === 'error') return 'shadow-rose-500/20';
+    return 'shadow-blue-500/20';
+  };
+
   return (
     <ConfirmationContext.Provider value={{ confirm, showAlert }}>
       {children}
       {modalState.isOpen && createPortal(
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-950/25 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="relative w-full max-w-md bg-slate-950/15 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl p-6 overflow-hidden animate-in zoom-in-95 duration-200 text-left">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-md animate-in fade-in duration-200">
+          <div className={`relative w-full max-w-md bg-slate-950/25 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl ${getAlertShadowClass()} p-6 overflow-hidden animate-in zoom-in-95 duration-200 text-left`}>
             {/* Ambient indicator header */}
-            <div className={`absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r ${getAlertThemeClass()}`}></div>
+            <div className={`absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r ${getAlertThemeClass()} shadow-sm ${getAlertShadowClass()}`}></div>
 
             <div className="flex gap-4">
               <div className={`p-3 rounded-xl shrink-0 h-fit ${getAlertBgClass()}`}>
@@ -125,7 +131,7 @@ export const ConfirmationProvider = ({ children }) => {
               ) : (
                 <button
                   onClick={handleConfirm}
-                  className={`px-5 py-2 text-xs font-bold text-white bg-linear-to-r ${getAlertThemeClass()} rounded-xl transition-all cursor-pointer`}
+                  className={`px-5 py-2 text-xs font-bold text-white bg-linear-to-r ${getAlertThemeClass()} rounded-xl shadow-lg ${getAlertShadowClass()} transition-all cursor-pointer`}
                 >
                   OK
                 </button>

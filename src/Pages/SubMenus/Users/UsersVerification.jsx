@@ -7,6 +7,7 @@ import {
 } from 'react-icons/fi';
 import { useOutletContext } from 'react-router-dom';
 import { useConfirm } from '../../../Context/ConfirmationContext';
+import GmailLink from '../../../Components/GmailLink';
 
 const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuery, refreshParentCounts }) => {
   const { confirm, showAlert } = useConfirm();
@@ -228,7 +229,9 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
                     >
                       <td className="p-5 text-sm text-slate-400 font-medium">{index + 1}</td>
                       <td className="p-5 text-sm text-white font-medium">{user.name}</td>
-                      <td className="p-5 text-sm text-slate-300">{user.email}</td>
+                      <td className="p-5 text-sm text-slate-300">
+                        <GmailLink email={user.email} />
+                      </td>
                       <td className="p-5 text-sm text-slate-300">{user.phone || 'N/A'}</td>
                       <td className="p-5 text-sm">
                         <span className="bg-slate-700/50 border border-slate-600/50 text-slate-300 px-2.5 py-1 rounded-md text-xs font-bold">
@@ -299,7 +302,9 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Email Address</p>
-                    <p className="text-white font-medium">{selectedUser.email}</p>
+                    <div className="text-white font-medium">
+                      <GmailLink email={selectedUser.email} className="text-white hover:text-blue-400" />
+                    </div>
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Phone Number</p>

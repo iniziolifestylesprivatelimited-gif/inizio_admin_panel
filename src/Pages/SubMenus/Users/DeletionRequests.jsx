@@ -7,6 +7,7 @@ import {
 } from 'react-icons/fi';
 
 import { useConfirm } from '../../../Context/ConfirmationContext';
+import GmailLink from '../../../Components/GmailLink';
 
 const DeletionRequests = ({ hideHeader = false, searchQuery: externalSearchQuery, refreshParentCounts }) => {
   const { confirm, showAlert } = useConfirm();
@@ -155,7 +156,9 @@ const DeletionRequests = ({ hideHeader = false, searchQuery: externalSearchQuery
                         <td className="p-5 text-sm text-slate-400 font-medium">{index + 1}</td>
                         <td className="p-5 text-sm text-blue-300 font-mono font-medium">{userId}</td>
                         <td className="p-5 text-sm text-white font-medium capitalize">{user.name || 'N/A'}</td>
-                        <td className="p-5 text-sm text-slate-300">{user.email || 'N/A'}</td>
+                        <td className="p-5 text-sm text-slate-300">
+                          <GmailLink email={user.email} />
+                        </td>
                         <td className="p-5 text-sm text-slate-300">{user.phone || 'N/A'}</td>
                         <td className="p-5 text-sm">
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold uppercase tracking-wider">

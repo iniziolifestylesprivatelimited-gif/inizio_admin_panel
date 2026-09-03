@@ -9,10 +9,13 @@ import {
   FiArrowLeft, FiCheck, FiX, FiLoader, FiAlertCircle,
   FiUser, FiFileText, FiTrash2, FiUserMinus, FiEye, FiLayers,
   FiSmartphone, FiTablet, FiBell, FiBellOff, FiClock, FiActivity, FiTag, FiSearch,
-  FiRefreshCcw, FiCopy
+  FiRefreshCcw, FiCopy, FiShield, FiLock, FiUnlock, FiLogOut, FiCheckCircle, FiCalendar,
+  FiPhone, FiExternalLink, FiHash
 } from 'react-icons/fi';
+import { DiAndroid, DiApple } from 'react-icons/di';
 import { useConfirm } from '../../../Context/ConfirmationContext';
 import ProductDetailsModal from '../../../Components/ProductDetailsModal';
+import GmailLink from '../../../Components/GmailLink';
 
 const hasValidAppVersion = (appVersion) => {
   if (!appVersion) return false;
@@ -664,175 +667,324 @@ const UserDetails = () => {
   };
 
   return (
-    <div className="relative space-y-6 min-h-full z-0 isolate w-full pb-8">
+    <div className="relative space-y-6 min-h-full z-0 isolate w-full pb-10">
 
-
-      {/* Header & Back Button */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+      {/* Header & Back Navigation */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-2">
         <div>
           <button
             onClick={() => navigate('/users/list')}
-            className="flex items-center gap-2 text-slate-400 hover:text-white mb-2 text-sm font-semibold transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.03] hover:bg-white/10 text-slate-400 hover:text-white border border-white/10 text-xs font-bold transition-all cursor-pointer mb-2.5 active:scale-95"
           >
-            <FiArrowLeft /> Back to Users List
+            <FiArrowLeft size={14} /> Back to Users List
           </button>
-          <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-            <FiUser className="text-blue-400" />
-            User Profile
-          </h1>
-          <p className="text-slate-400 font-medium mt-1">Detailed information and device statuses for this user.</p>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-3">
+              <FiUser className="text-blue-400" />
+              <span>User Profile</span>
+            </h1>
+            {user && (
+              <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                user.deleteRequested
+                  ? 'bg-rose-500/15 text-rose-400 border-rose-500/30'
+                  : (user.isApproved || user.userId)
+                    ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                    : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+              }`}>
+                {user.deleteRequested ? 'Deleted' : (user.isApproved || user.userId) ? 'Active & Approved' : 'Pending KYC'}
+              </span>
+            )}
+          </div>
+          <p className="text-slate-400 text-xs sm:text-sm font-medium mt-1">Detailed customer information, app telemetry, devices, and browsing activity.</p>
         </div>
+
+        {user && (
+          <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap shrink-0">
+            <button
+              onClick={handleForceLogout}
+              disabled={isActionLoading}
+              className="px-3.5 py-2 rounded-xl text-xs font-bold text-amber-300 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm active:scale-95"
+              title="Force logout from all active sessions"
+            >
+              <FiLogOut size={14} /> Force Logout
+            </button>
+            {user.deleteRequested ? (
+              <button
+                onClick={handleReactivate}
+                disabled={isActionLoading}
+                className="px-3.5 py-2 rounded-xl text-xs font-bold text-emerald-300 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm active:scale-95"
+              >
+                <FiRefreshCcw size={14} /> Reactivate Account
+              </button>
+            ) : (
+              <button
+                onClick={() => setDeleteConfirmOpen(true)}
+                disabled={isActionLoading}
+                className="px-3.5 py-2 rounded-xl text-xs font-bold text-rose-300 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm active:scale-95"
+              >
+                <FiTrash2 size={14} /> Delete Account
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Loading & Error States */}
       {loading && !user ? (
-        <div className="h-64 flex flex-col justify-center items-center bg-slate-900/50 border border-white/10 rounded-3xl">
-          <FiLoader className="animate-spin text-3xl text-blue-400 mb-4" />
-          <p className="text-slate-400 font-medium">Loading user details...</p>
+        <div className="h-72 flex flex-col justify-center items-center bg-slate-950/20 border border-white/10 rounded-3xl shadow-xl">
+          <FiLoader className="animate-spin text-3xl text-blue-400 mb-3" />
+          <p className="text-slate-400 font-semibold text-sm">Loading user details...</p>
         </div>
       ) : error ? (
-        <div className="text-red-400 bg-red-900/20 p-6 rounded-2xl border border-red-500/30 flex items-center gap-3">
-          <FiAlertCircle className="text-2xl shrink-0" />
+        <div className="text-rose-400 bg-rose-500/10 p-6 rounded-3xl border border-rose-500/25 flex items-center gap-4 shadow-xl">
+          <FiAlertCircle className="text-2xl shrink-0 text-rose-400" />
           <div>
-            <p className="font-bold">Error</p>
-            <p className="text-sm">{error}</p>
+            <p className="font-bold text-base text-rose-300">Error Loading Profile</p>
+            <p className="text-xs text-rose-400/90 mt-0.5">{error}</p>
           </div>
         </div>
       ) : user ? (
-        <div className="space-y-6 max-w-6xl mx-auto w-full">
+        <div className="space-y-6 w-full">
 
-          {/* Core User Information */}
-          <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 relative overflow-hidden">
-            <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
+          {/* Core User Information Hero Card */}
+          <div className="relative bg-slate-950/25 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl overflow-hidden space-y-6">
+            <div className="absolute top-0 right-0 -mt-10 -mr-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-black/20 border border-white/5 p-4 rounded-2xl mb-6">
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Status</p>
-                {(user.isApproved || user.userId) ? (
-                  <span className="text-emerald-400 font-bold flex items-center gap-1.5"><FiCheck /> KYC Approved</span>
-                ) : (
-                  <span className="text-amber-400 font-bold flex items-center gap-1.5"><FiLoader className="animate-spin" /> Pending KYC</span>
-                )}
-              </div>
-              {(user.isApproved || user.userId) && user.userId && (
-                <div className="sm:text-right text-left">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Generated User ID</p>
-                  <p className="text-emerald-400 font-mono text-lg font-bold">{user.userId}</p>
+            {/* Profile Header Bar */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-white/10">
+              <div className="flex items-start sm:items-center gap-5">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-blue-600/30 via-indigo-600/20 to-purple-600/20 border border-blue-500/30 flex items-center justify-center text-2xl sm:text-3xl font-black text-blue-400 shadow-inner shrink-0 select-none">
+                  {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                 </div>
-              )}
-            </div>
 
-            <h4 className="text-sm font-bold text-white mb-4 uppercase tracking-wider border-b border-white/10 pb-2">Personal Information</h4>
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Full Name</p>
-                <p className="text-white font-medium text-base">{user.name}</p>
-              </div>
-              <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Email Address</p>
-                <p className="text-white font-medium text-base">{user.email}</p>
-              </div>
-              <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Phone Number</p>
-                <p className="text-white font-medium text-base">{user.phone || 'Not Provided'}</p>
-              </div>
-              <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Role</p>
-                <p className="text-white font-medium capitalize text-base">{user.role || 'customer'}</p>
-              </div>
-              <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Database User ID</p>
-                <div className="flex items-center gap-1.5 mt-1">
-                  <span className="text-white font-mono text-xs font-semibold select-all">{user._id}</span>
-                  <CopyButton text={user._id} className="text-slate-400 hover:text-white" size={10} />
-                </div>
-              </div>
-              <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Created At</p>
-                <p className="text-white font-medium text-base">{user.createdAt ? formatDateTimeDDMMYYYY(user.createdAt) : 'N/A'}</p>
-              </div>
-              <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Updated At</p>
-                <p className="text-white font-medium text-base">{user.updatedAt ? formatDateTimeDDMMYYYY(user.updatedAt) : 'N/A'}</p>
-              </div>
-            </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">{user.name || 'Anonymous User'}</h2>
+                    
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                      {user.role || 'customer'}
+                    </span>
 
-            {/* Business & KYC Details */}
-            <div className="mt-6 pt-4 border-t border-white/10">
-              <h4 className="text-sm font-bold text-white mb-4 uppercase tracking-wider border-b border-white/10 pb-2">Business & KYC Details</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 items-end">
-                <div>
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Business Type</p>
-                  <span className="bg-slate-700 border border-slate-600 text-slate-200 px-3 py-1 rounded-md text-xs font-bold shadow-sm">
-                    {user.businessType || 'L1'}
-                  </span>
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">GST Number</p>
-                  <p className="text-white font-medium font-mono text-base tracking-wide">{user.gstNumber || 'Not Provided'}</p>
-                </div>
-                <div className="sm:col-span-2">
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">GST Document</p>
-                  {user.gstDocument ? (
-                    <a
-                      href={getDocumentUrl(user.gstDocument)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-3 bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 text-blue-400 rounded-xl font-medium text-sm transition-all w-full justify-center sm:w-auto"
-                    >
-                      <FiFileText className="text-lg" /> View Uploaded Document
-                    </a>
-                  ) : (
-                    <div className="inline-flex items-center gap-2 px-4 py-3 bg-transparent border border-dashed border-white/10 text-slate-500 rounded-xl text-sm italic w-full justify-center sm:w-auto">
-                      <FiFileText className="text-lg" /> No document uploaded
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-slate-800 text-slate-300 border border-white/10">
+                      Tier: {user.businessType || 'L1'}
+                    </span>
+
+                    {user.isOnline ? (
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 inline-flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Online
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-800 text-slate-400 border border-white/5 inline-flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                        Offline
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-4 text-xs text-slate-400 flex-wrap">
+                    {/* Email with GmailLink & CopyButton */}
+                    <div className="flex items-center gap-1.5">
+                      <GmailLink email={user.email} showIcon={true} iconSize={13} className="text-slate-300 hover:text-blue-400 font-medium" />
                     </div>
-                  )}
+
+                    {user.phone && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-slate-600">•</span>
+                        <FiPhone size={12} className="text-slate-500" />
+                        <span className="text-slate-300 font-mono font-medium">{user.phone}</span>
+                        <CopyButton text={user.phone} size={11} className="text-slate-500 hover:text-white" title="Copy Phone" />
+                      </div>
+                    )}
+
+                    {user.createdAt && (
+                      <div className="flex items-center gap-1.5 text-slate-400">
+                        <span className="text-slate-600">•</span>
+                        <FiCalendar size={12} className="text-slate-500" />
+                        <span>Joined {formatDateDDMMYYYY(user.createdAt)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* ID summary chips */}
+              <div className="flex items-center gap-3 self-start lg:self-auto bg-white/[0.03] border border-white/10 rounded-2xl p-3.5">
+                {(user.isApproved || user.userId) && user.userId ? (
+                  <div className="pr-3 border-r border-white/10">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Generated User ID</span>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="font-mono text-emerald-400 font-black text-sm select-all">{user.userId}</span>
+                      <CopyButton text={user.userId} size={11} className="text-emerald-400 hover:text-emerald-300" title="Copy User ID" />
+                    </div>
+                  </div>
+                ) : null}
+                <div>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Database ID</span>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="font-mono text-slate-300 text-xs font-semibold select-all truncate max-w-[130px]" title={user._id}>{user._id}</span>
+                    <CopyButton text={user._id} size={11} className="text-slate-400 hover:text-white" title="Copy DB ID" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Core Details Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+              {/* Account Information */}
+              <div className="space-y-3.5">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                  <FiUser className="text-blue-400" /> Account Profile Details
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Full Name</span>
+                    <p className="text-white font-semibold text-sm mt-1">{user.name || 'N/A'}</p>
+                  </div>
+                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Role</span>
+                    <p className="text-white font-semibold text-sm mt-1 capitalize">{user.role || 'customer'}</p>
+                  </div>
+                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Phone Number</span>
+                    <p className="text-white font-semibold text-sm mt-1 font-mono">{user.phone || 'Not Provided'}</p>
+                  </div>
+                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Email Address</span>
+                    <div className="mt-1">
+                      <GmailLink email={user.email} className="text-white hover:text-blue-400 text-sm" />
+                    </div>
+                  </div>
+                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Account Created</span>
+                    <p className="text-slate-300 font-semibold text-xs mt-1 font-mono">{user.createdAt ? formatDateTimeDDMMYYYY(user.createdAt) : 'N/A'}</p>
+                  </div>
+                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Last Updated</span>
+                    <p className="text-slate-300 font-semibold text-xs mt-1 font-mono">{user.updatedAt ? formatDateTimeDDMMYYYY(user.updatedAt) : 'N/A'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Business & Verification */}
+              <div className="space-y-3.5">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                  <FiShield className="text-emerald-400" /> Business & KYC Verification
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Business Type</span>
+                    <div className="mt-1.5">
+                      <span className="bg-slate-800/90 border border-slate-700 text-slate-200 px-2.5 py-1 rounded-lg text-xs font-bold">
+                        {user.businessType || 'L1'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">KYC Status</span>
+                    <div className="mt-1.5">
+                      {(user.isApproved || user.userId) ? (
+                        <span className="text-emerald-400 text-xs font-bold inline-flex items-center gap-1.5">
+                          <FiCheckCircle className="text-emerald-400" /> Verified & Approved
+                        </span>
+                      ) : (
+                        <span className="text-amber-400 text-xs font-bold inline-flex items-center gap-1.5">
+                          <FiLoader className="animate-spin text-amber-400" /> Pending Review
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="col-span-2 p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">GST Number</span>
+                    <div className="flex items-center justify-between gap-2 mt-1">
+                      <span className="text-white font-mono font-bold text-sm tracking-wide select-all">
+                        {user.gstNumber || 'Not Provided'}
+                      </span>
+                      {user.gstNumber && (
+                        <CopyButton text={user.gstNumber} size={12} className="text-slate-400 hover:text-white" title="Copy GST Number" />
+                      )}
+                    </div>
+                  </div>
+                  <div className="col-span-2 p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
+                    <div>
+                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">GST Certificate / Document</span>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        {user.gstDocument ? 'Official document uploaded by customer' : 'No document uploaded yet'}
+                      </p>
+                    </div>
+                    {user.gstDocument ? (
+                      <a
+                        href={getDocumentUrl(user.gstDocument)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/15 border border-blue-500/30 hover:bg-blue-500/25 text-blue-300 rounded-xl font-bold text-xs transition-all shrink-0 active:scale-95 shadow-sm"
+                      >
+                        <FiFileText size={14} /> View Document
+                      </a>
+                    ) : (
+                      <span className="text-xs text-slate-500 italic bg-white/[0.02] px-3 py-1.5 rounded-xl border border-white/5">
+                        No Document
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Main Navigation Tabs */}
-          <div className="flex border-b border-white/10 gap-6 mb-6 overflow-x-auto scrollbar-none">
+          {/* Main Navigation Section Tabs */}
+          <div className="flex items-center gap-2 border-b border-white/10 pb-3 overflow-x-auto scrollbar-none">
             {[
-              { id: 'sessions', name: 'App Usage & Sessions', icon: <FiActivity /> },
-              { id: 'devices', name: 'Registered Devices', icon: <FiSmartphone /> },
-              { id: 'activity', name: 'Customer Browsing Activity', icon: <FiEye /> }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveSectionTab(tab.id)}
-                className={`pb-3 font-bold text-sm transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${activeSectionTab === tab.id
-                  ? 'text-blue-400 border-b-2 border-blue-400 font-extrabold'
-                  : 'text-slate-400 hover:text-slate-200'
+              { id: 'sessions', name: 'App Usage & Sessions', icon: FiActivity, badge: user.isOnline ? 'Online' : null },
+              { id: 'devices', name: 'Registered Devices', icon: FiSmartphone, badge: user.devices?.length || 0 },
+              { id: 'activity', name: 'Browsing Activity', icon: FiEye, badge: (userActivities.products.length + userActivities.brands.length) || null }
+            ].map(tab => {
+              const Icon = tab.icon;
+              const isActive = activeSectionTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveSectionTab(tab.id)}
+                  className={`px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap active:scale-95 ${
+                    isActive
+                      ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 shadow-lg shadow-blue-500/10'
+                      : 'bg-white/[0.02] hover:bg-white/[0.06] text-slate-400 hover:text-slate-200 border border-white/5'
                   }`}
-              >
-                {tab.icon}
-                {tab.name}
-              </button>
-            ))}
+                >
+                  <Icon size={15} />
+                  <span>{tab.name}</span>
+                  {tab.badge !== null && tab.badge !== undefined && (
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                      isActive ? 'bg-blue-500/25 text-blue-300' : 'bg-slate-800 text-slate-400'
+                    }`}>
+                      {tab.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
+          {/* 1. App Usage & Sessions Tab */}
           {activeSectionTab === 'sessions' && (
             <div className="space-y-6">
-              {/* 1. App Status & Security Overview */}
-              <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 relative overflow-hidden">
-                <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-                <h4 className="text-xs font-bold text-slate-400 mb-4 uppercase tracking-wider flex items-center gap-2 border-b border-white/10 pb-2">
+              {/* App Status & Security Overview */}
+              <div className="bg-slate-950/20 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl p-6 relative overflow-hidden space-y-4">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 border-b border-white/10 pb-3">
                   <FiSmartphone className="text-blue-400" /> App Status & Security Overview
-                </h4>
+                </h3>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3.5">
                   {/* Online Status */}
-                  <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl flex flex-col justify-between">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Connection</span>
-                    <div className="mt-2">
+                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col justify-between">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Connection</span>
+                    <div className="mt-2.5">
                       {user.isOnline ? (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 text-xs font-extrabold border border-emerald-500/30">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 text-xs font-extrabold border border-emerald-500/30">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Online
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-500/15 text-slate-400 text-xs font-semibold border border-white/5">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 text-xs font-semibold border border-white/5">
                           <span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span> Offline
                         </span>
                       )}
@@ -840,136 +992,135 @@ const UserDetails = () => {
                   </div>
 
                   {/* App Version */}
-                  <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl flex flex-col justify-between">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">App Version</span>
-                    <p className="text-xs font-black font-mono text-white mt-2">
+                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col justify-between">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">App Version</span>
+                    <p className="text-xs font-black font-mono text-white mt-2.5">
                       {hasValidAppVersion(user.appVersion) ? `v${user.appVersion}` : 'N/A'}
                     </p>
                   </div>
 
                   {/* App Installation */}
-                  <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl flex flex-col justify-between">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Installation</span>
-                    <div className="mt-2">
-                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border ${checkAppStatus(user) === 'uninstalled'
+                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col justify-between">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Installation</span>
+                    <div className="mt-2.5">
+                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border ${
+                        checkAppStatus(user) === 'uninstalled'
                           ? 'bg-rose-500/15 text-rose-400 border-rose-500/30'
                           : checkAppStatus(user) === 'installed'
                             ? 'bg-teal-500/15 text-teal-400 border-teal-500/30'
                             : 'bg-slate-800 text-slate-400 border-white/5'
-                        }`}>
+                      }`}>
                         {checkAppStatus(user) === 'uninstalled' ? 'Uninstalled' : checkAppStatus(user) === 'installed' ? 'Installed' : 'Pending'}
                       </span>
                     </div>
                   </div>
 
                   {/* App Lock */}
-                  <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl flex flex-col justify-between">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">App Lock</span>
-                    <p className={`text-xs font-extrabold mt-2 ${user.isAppLockEnabled ? 'text-teal-400' : 'text-slate-400'}`}>
+                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col justify-between">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">App Lock</span>
+                    <p className={`text-xs font-extrabold mt-2.5 ${user.isAppLockEnabled ? 'text-teal-400' : 'text-slate-400'}`}>
                       {user.isAppLockEnabled ? 'Secured' : 'Inactive'}
                     </p>
                   </div>
 
                   {/* Push Alerts */}
-                  <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl flex flex-col justify-between">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Push Alerts</span>
-                    <p className={`text-xs font-extrabold mt-2 ${user.notificationsEnabled ? 'text-emerald-400' : 'text-slate-400'}`}>
+                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col justify-between">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Push Alerts</span>
+                    <p className={`text-xs font-extrabold mt-2.5 ${user.notificationsEnabled ? 'text-emerald-400' : 'text-slate-400'}`}>
                       {user.notificationsEnabled ? 'Enabled' : 'Disabled'}
                     </p>
                   </div>
 
                   {/* Password Setup */}
-                  <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl flex flex-col justify-between">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Password</span>
-                    <p className="text-xs font-extrabold text-white mt-2 capitalize">
+                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col justify-between">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Password</span>
+                    <p className="text-xs font-extrabold text-white mt-2.5 capitalize truncate">
                       {user.passwordSetupStatus?.replace('_', ' ') || 'Not Sent'}
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* 2. Connection & Timestamps Card */}
-              <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 relative overflow-hidden">
-                <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-                <h4 className="text-xs font-bold text-slate-400 mb-4 uppercase tracking-wider flex items-center gap-2 border-b border-white/10 pb-2">
+              {/* Connection & Timestamps Card */}
+              <div className="bg-slate-950/20 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl p-6 relative overflow-hidden space-y-4">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 border-b border-white/10 pb-3">
                   <FiClock className="text-indigo-400" /> Connection & Session Timeline
-                </h4>
+                </h3>
 
-                <div className="flex flex-wrap justify-evenly gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
                   {/* Last Active Connection */}
-                  <div className="p-4 bg-slate-950/30 border border-white/5 rounded-2xl flex items-center justify-between gap-4">
-                    <div className="space-y-1">
-                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Last Active Connection</span>
+                  <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col justify-between gap-3">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Last Active Connection</span>
+                    <div className="flex items-center justify-between gap-2">
                       <p className="text-xs font-mono font-bold text-white select-all">
                         {isLastActiveValid(user.lastActive, user)
                           ? formatDateTimeDDMMYYYY(user.lastActive)
                           : 'Not Active'}
                       </p>
+                      {isLastActiveValid(user.lastActive, user) ? (
+                        <span className="text-[10px] bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-lg font-mono font-bold shrink-0">
+                          {formatRelativeTime(user.lastActive, user)}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] bg-slate-800 text-slate-500 border border-white/5 px-2 py-0.5 rounded-lg font-bold shrink-0">
+                          Offline
+                        </span>
+                      )}
                     </div>
-                    {isLastActiveValid(user.lastActive, user) ? (
-                      <span className="text-[10px] bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 px-2.5 py-1 rounded-lg font-mono font-bold shrink-0">
-                        {formatRelativeTime(user.lastActive, user)}
-                      </span>
-                    ) : (
-                      <span className="text-[10px] bg-slate-800 text-slate-500 border border-white/5 px-2.5 py-1 rounded-lg font-bold shrink-0">
-                        Not Active
-                      </span>
-                    )}
                   </div>
 
                   {/* Last Login Authorization */}
-                  <div className="p-4 bg-slate-950/30 border border-white/5 rounded-2xl flex items-center justify-between gap-4">
-                    <div className="space-y-1">
-                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Last Session Login</span>
+                  <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col justify-between gap-3">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Last Session Login</span>
+                    <div className="flex items-center justify-between gap-2">
                       <p className="text-xs font-mono font-bold text-white select-all">
                         {user.lastLoginAt ? formatDateTimeDDMMYYYY(user.lastLoginAt) : 'No recorded login'}
                       </p>
+                      {user.lastLoginMethod ? (
+                        <span className="text-[10px] bg-teal-500/15 text-teal-300 border border-teal-500/30 px-2 py-0.5 rounded-lg font-bold uppercase tracking-wider shrink-0">
+                          via {user.lastLoginMethod}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] bg-slate-800 text-slate-500 border border-white/5 px-2 py-0.5 rounded-lg font-bold shrink-0">
+                          {user.lastLoginAt ? 'Standard' : 'N/A'}
+                        </span>
+                      )}
                     </div>
-                    {user.lastLoginMethod ? (
-                      <span className="text-[10px] bg-teal-500/15 text-teal-300 border border-teal-500/30 px-2.5 py-1 rounded-lg font-bold uppercase tracking-wider shrink-0">
-                        via {user.lastLoginMethod}
-                      </span>
-                    ) : (
-                      <span className="text-[10px] bg-slate-800 text-slate-500 border border-white/5 px-2.5 py-1 rounded-lg font-bold shrink-0">
-                        {user.lastLoginAt ? 'Standard Login' : 'N/A'}
-                      </span>
-                    )}
                   </div>
 
                   {/* Installed At */}
                   {hasAppOrDevice(user) && user.isAppInstalled && user.installedAt && (
-                    <div className="p-4 bg-slate-950/30 border border-white/5 rounded-2xl flex items-center justify-between gap-4">
-                      <div className="space-y-1">
-                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">App Installed Date</span>
+                    <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col justify-between gap-3">
+                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">App Installed Date</span>
+                      <div className="flex items-center justify-between gap-2">
                         <p className="text-xs font-mono font-bold text-white select-all">{formatDateTimeDDMMYYYY(user.installedAt)}</p>
+                        <span className="text-[10px] bg-teal-500/15 text-teal-300 border border-teal-500/30 px-2 py-0.5 rounded-lg font-mono font-bold shrink-0">
+                          {formatRelativeTime(user.installedAt, user)}
+                        </span>
                       </div>
-                      <span className="text-[10px] bg-teal-500/15 text-teal-300 border border-teal-500/30 px-2.5 py-1 rounded-lg font-mono font-bold shrink-0">
-                        {formatRelativeTime(user.installedAt, user)}
-                      </span>
                     </div>
                   )}
 
                   {/* Uninstalled At */}
                   {user.uninstalledAt && (
-                    <div className="p-4 bg-slate-950/30 border border-white/5 rounded-2xl flex items-center justify-between gap-4">
-                      <div className="space-y-1">
-                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">App Uninstalled Date</span>
+                    <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col justify-between gap-3">
+                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">App Uninstalled Date</span>
+                      <div className="flex items-center justify-between gap-2">
                         <p className="text-xs font-mono font-bold text-white select-all">{formatDateTimeDDMMYYYY(user.uninstalledAt)}</p>
+                        <span className="text-[10px] bg-rose-500/15 text-rose-300 border border-rose-500/30 px-2 py-0.5 rounded-lg font-mono font-bold shrink-0">
+                          {formatRelativeTime(user.uninstalledAt)}
+                        </span>
                       </div>
-                      <span className="text-[10px] bg-rose-500/15 text-rose-300 border border-rose-500/30 px-2.5 py-1 rounded-lg font-mono font-bold shrink-0">
-                        {formatRelativeTime(user.uninstalledAt)}
-                      </span>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* 3. Usage & Engagement Metrics */}
-              <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 relative overflow-hidden">
-                <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-                <h4 className="text-xs font-bold text-slate-400 mb-4 uppercase tracking-wider flex items-center gap-2 border-b border-white/10 pb-2">
+              {/* Usage & Engagement Metrics */}
+              <div className="bg-slate-950/20 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl p-6 relative overflow-hidden space-y-4">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 border-b border-white/10 pb-3">
                   <FiActivity className="text-emerald-400" /> Usage & Engagement Metrics
-                </h4>
+                </h3>
 
                 {(() => {
                   const productViewsCount = user.activityStats?.productViews ?? userActivities.products.reduce((sum, item) => sum + (item.count || 0), 0);
@@ -980,41 +1131,35 @@ const UserDetails = () => {
                   const totalActionsCount = user.activityStats?.totalEngagement || user.activityStats?.totalActions || (totalLoginsCount + productViewsCount + brandViewsCount + categoryViewsCount + searchQueriesCount);
 
                   return (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                      {/* Login Count */}
-                      <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl text-center">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+                      <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl text-center">
                         <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Total Logins</span>
-                        <p className="text-lg font-extrabold text-white mt-1 font-mono">{totalLoginsCount}</p>
+                        <p className="text-xl font-black text-white mt-1.5 font-mono">{totalLoginsCount}</p>
                       </div>
 
-                      {/* Product Views */}
-                      <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl text-center">
+                      <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl text-center">
                         <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Product Views</span>
-                        <p className="text-lg font-extrabold text-blue-400 mt-1 font-mono">{productViewsCount}</p>
+                        <p className="text-xl font-black text-blue-400 mt-1.5 font-mono">{productViewsCount}</p>
                       </div>
 
-                      {/* Brand Views */}
-                      <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl text-center">
+                      <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl text-center">
                         <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Brand Views</span>
-                        <p className="text-lg font-extrabold text-indigo-400 mt-1 font-mono">{brandViewsCount}</p>
+                        <p className="text-xl font-black text-indigo-400 mt-1.5 font-mono">{brandViewsCount}</p>
                       </div>
 
-                      {/* Category Views */}
-                      <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl text-center">
+                      <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl text-center">
                         <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Category Views</span>
-                        <p className="text-lg font-extrabold text-purple-400 mt-1 font-mono">{categoryViewsCount}</p>
+                        <p className="text-xl font-black text-purple-400 mt-1.5 font-mono">{categoryViewsCount}</p>
                       </div>
 
-                      {/* Search Queries */}
-                      <div className="p-3.5 bg-slate-950/30 border border-white/5 rounded-2xl text-center">
+                      <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl text-center">
                         <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Search Queries</span>
-                        <p className="text-lg font-extrabold text-teal-400 mt-1 font-mono">{searchQueriesCount}</p>
+                        <p className="text-xl font-black text-teal-400 mt-1.5 font-mono">{searchQueriesCount}</p>
                       </div>
 
-                      {/* Total Engagement */}
-                      <div className="p-3.5 bg-black/20 border border-white/5 rounded-2xl text-center">
-                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Total Actions</span>
-                        <p className="text-lg font-extrabold text-emerald-400 mt-1 font-mono">{totalActionsCount}</p>
+                      <div className="p-4 bg-emerald-500/[0.05] border border-emerald-500/20 rounded-2xl text-center shadow-inner">
+                        <span className="text-[10px] text-emerald-400/90 font-bold uppercase tracking-wider block">Total Actions</span>
+                        <p className="text-xl font-black text-emerald-400 mt-1.5 font-mono">{totalActionsCount}</p>
                       </div>
                     </div>
                   );
@@ -1023,86 +1168,122 @@ const UserDetails = () => {
             </div>
           )}
 
+          {/* 2. Registered Devices Tab */}
           {activeSectionTab === 'devices' && (
-            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 relative overflow-hidden">
-              <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-              <h4 className="text-sm font-bold text-white mb-4 uppercase tracking-wider border-b border-white/10 pb-2">Registered Devices ({user.devices?.length || 0})</h4>
+            <div className="bg-slate-950/20 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl p-6 relative overflow-hidden space-y-4">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between border-b border-white/10 pb-3">
+                <span className="flex items-center gap-2">
+                  <FiSmartphone className="text-blue-400" /> Registered Devices
+                </span>
+                <span className="text-xs font-mono font-bold text-slate-400">Total: {user.devices?.length || 0}</span>
+              </h3>
 
               {!user.devices || user.devices.length === 0 ? (
-                <p className="text-slate-500 text-xs italic py-2">No registered devices found.</p>
+                <div className="py-12 flex flex-col items-center justify-center text-slate-500 text-center space-y-2">
+                  <FiSmartphone size={32} className="text-slate-600" />
+                  <p className="text-xs italic font-medium">No registered devices found for this account.</p>
+                </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {user.devices.map((device, idx) => (
-                    <div key={device._id || idx} className="p-4 bg-slate-950/20 border border-white/5 rounded-2xl space-y-2 text-xs">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-1">
+                  {user.devices.map((device, idx) => {
+                    const platform = device.devicePlatform?.toLowerCase();
+                    const isAndroid = platform === 'android';
+                    const isApple = platform === 'ios' || platform === 'apple';
 
-                      <div className="flex items-center gap-2 border-b border-white/5 pb-2 mb-2">
-                        <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400 shrink-0">
-                          {device.devicePlatform?.toLowerCase() === 'tablet' ? <FiTablet size={16} /> : <FiSmartphone size={16} />}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-white font-semibold truncate text-sm">{device.deviceModel || 'Unknown Device'}</p>
-                          <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">{device.devicePlatform || 'N/A'}</p>
-                        </div>
-                      </div>
+                    return (
+                      <div key={device._id || idx} className="p-4 bg-white/[0.02] hover:bg-white/[0.04] border border-white/5 hover:border-white/15 rounded-2xl space-y-3 transition-all shadow-sm">
+                        <div className="flex items-center justify-between border-b border-white/5 pb-2.5">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400 shrink-0">
+                              {isAndroid ? (
+                                <DiAndroid size={18} className="text-green-400" />
+                              ) : isApple ? (
+                                <DiApple size={18} className="text-slate-200" />
+                              ) : platform === 'tablet' ? (
+                                <FiTablet size={16} className="text-purple-400" />
+                              ) : (
+                                <FiSmartphone size={16} className="text-blue-400" />
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-white font-bold truncate text-sm">{device.deviceModel || 'Unknown Device'}</p>
+                              <p className="text-[10px] text-slate-500 uppercase tracking-wider font-extrabold">{device.devicePlatform || 'N/A'}</p>
+                            </div>
+                          </div>
 
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">App Version</p>
-                          <p className="text-white font-mono">v{device.appVersion || 'N/A'}</p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Notifications</p>
-                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${device.notificationsEnabled
-                            ? 'bg-emerald-500/10 text-emerald-400'
-                            : 'bg-slate-500/10 text-slate-400'
-                            }`}>
-                            {device.notificationsEnabled ? 'Enabled' : 'Disabled'}
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                            device.notificationsEnabled
+                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                              : 'bg-slate-800 text-slate-500 border border-white/5'
+                          }`}>
+                            {device.notificationsEnabled ? 'Push ON' : 'Push OFF'}
                           </span>
                         </div>
-                        <div className="col-span-2">
-                          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Device Token / ID</p>
-                          <p className="text-slate-400 font-mono text-[9px] truncate" title={device.deviceId || device.fcmToken}>{device.deviceId || device.fcmToken || 'N/A'}</p>
-                        </div>
-                        <div className="col-span-2 border-t border-white/5 pt-1.5 mt-0.5">
-                          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Last Active</p>
-                          <p className="text-slate-300 font-medium">{device.lastActive ? formatDateTimeDDMMYYYY(device.lastActive) : 'N/A'}</p>
+
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">App Version</span>
+                            <span className="text-white font-mono font-bold text-xs">v{device.appVersion || 'N/A'}</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Last Active</span>
+                            <span className="text-slate-300 font-medium text-xs truncate block">
+                              {device.lastActive ? formatRelativeTime(device.lastActive, user) : 'N/A'}
+                            </span>
+                          </div>
+
+                          <div className="col-span-2 pt-1 border-t border-white/5">
+                            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Device Token / ID</span>
+                            <div className="flex items-center justify-between gap-2 mt-0.5">
+                              <span className="text-slate-400 font-mono text-[10px] truncate" title={device.deviceId || device.fcmToken}>
+                                {device.deviceId || device.fcmToken || 'N/A'}
+                              </span>
+                              {(device.deviceId || device.fcmToken) && (
+                                <CopyButton text={device.deviceId || device.fcmToken} size={11} className="text-slate-500 hover:text-white" title="Copy Device Token" />
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
-
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
           )}
 
+          {/* 3. Customer Browsing Activity Tab */}
           {activeSectionTab === 'activity' && (
-            <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-4 sm:p-6 relative overflow-hidden space-y-6">
-              <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-
-              <div className="border-b border-white/10 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <h4 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                  <FiActivity className="text-blue-400" /> Customer Browsing Activity
-                </h4>
+            <div className="bg-slate-950/20 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl p-6 relative overflow-hidden space-y-5">
+              <div className="border-b border-white/10 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                  <FiEye className="text-blue-400" /> Customer Browsing Activity
+                </h3>
               </div>
 
-              {/* Tabs with smooth horizontal scroll on mobile & no redundant icon dots */}
-              <div className="flex border-b border-white/10 gap-4 sm:gap-6 overflow-x-auto scrollbar-none pb-px">
+              {/* Sub tabs for activity categories */}
+              <div className="flex border-b border-white/10 gap-2 overflow-x-auto scrollbar-none pb-2">
                 {[
-                  { id: 'products', name: 'Viewed Products' },
-                  { id: 'brands', name: 'Viewed Brands' },
-                  { id: 'categories', name: 'Viewed Categories' },
-                  { id: 'searches', name: 'Search Queries' }
+                  { id: 'products', name: 'Viewed Products', count: userActivities.products.length },
+                  { id: 'brands', name: 'Viewed Brands', count: userActivities.brands.length },
+                  { id: 'categories', name: 'Viewed Categories', count: userActivities.categories.length },
+                  { id: 'searches', name: 'Search Queries', count: userActivities.searches.length }
                 ].map(tab => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveActivityTab(tab.id)}
-                    className={`pb-3 font-bold text-xs sm:text-sm transition-all cursor-pointer whitespace-nowrap shrink-0 ${activeActivityTab === tab.id
-                      ? 'text-blue-400 border-b-2 border-blue-400 font-extrabold'
-                      : 'text-slate-400 hover:text-slate-200'
-                      }`}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1.5 active:scale-95 ${
+                      activeActivityTab === tab.id
+                        ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 shadow-md'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'
+                    }`}
                   >
-                    {tab.name}
+                    <span>{tab.name}</span>
+                    <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono font-black ${
+                      activeActivityTab === tab.id ? 'bg-blue-500/30 text-blue-300' : 'bg-slate-800 text-slate-400'
+                    }`}>
+                      {tab.count}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -1110,61 +1291,63 @@ const UserDetails = () => {
               {loadingActivities ? (
                 <div className="py-12 flex flex-col items-center justify-center text-slate-400">
                   <FiLoader className="animate-spin text-2xl text-blue-400 mb-2" />
-                  <span className="text-xs">Processing activity logs...</span>
+                  <span className="text-xs font-medium">Processing activity logs...</span>
                 </div>
               ) : (
-                <div className="max-h-[350px] overflow-y-auto overflow-x-auto custom-scrollbar rounded-2xl border border-white/10">
+                <div className="max-h-[380px] overflow-auto custom-scrollbar rounded-2xl border border-white/10 bg-slate-950/25">
                   {activeActivityTab === 'products' && (
                     <table className="w-full text-left border-collapse min-w-[500px]">
                       <thead>
                         <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                          <th className="p-3 text-left sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Product Name</th>
-                          <th className="p-3 text-left sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Brand</th>
-                          <th className="p-3 text-center sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Views Count</th>
-                          <th className="p-3 text-right sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Latest View</th>
+                          <th className="p-3.5 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Product</th>
+                          <th className="p-3.5 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Brand</th>
+                          <th className="p-3.5 text-center sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Views Count</th>
+                          <th className="p-3.5 text-right sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Latest View</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
                         {userActivities.products.length === 0 ? (
                           <tr>
-                            <td colSpan="4" className="p-6 text-center text-xs text-slate-500 italic">No products viewed by this user.</td>
+                            <td colSpan="4" className="p-8 text-center text-xs text-slate-500 italic">No products viewed by this user.</td>
                           </tr>
                         ) : (
                           userActivities.products.map(item => (
-                            <tr key={item.id} className="hover:bg-white/5 transition-colors">
-                              <td className="p-3">
+                            <tr key={item.id} className="hover:bg-white/[0.03] transition-colors">
+                              <td className="p-3.5">
                                 <div className="flex items-center gap-3">
                                   {item.image ? (
                                     <div 
-                                      onClick={() => {
-                                        if (item.id) {
-                                          setViewModalProductId(item.id);
-                                        }
-                                      }}
-                                      className={`w-9 h-9 rounded-lg overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center p-0.5 ${item.id ? 'cursor-pointer hover:scale-110 hover:border-blue-500/50 transition-all shadow-sm' : ''}`}
+                                      onClick={() => item.id && setViewModalProductId(item.id)}
+                                      className={`w-9 h-9 rounded-lg overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center p-0.5 ${item.id ? 'cursor-pointer hover:scale-105 hover:border-blue-500/50 transition-all shadow-sm' : ''}`}
                                       title={item.id ? "View Product Details" : undefined}
                                     >
                                       <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
                                     </div>
                                   ) : (
                                     <div 
-                                      onClick={() => {
-                                        if (item.id) {
-                                          setViewModalProductId(item.id);
-                                        }
-                                      }}
-                                      className={`w-9 h-9 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center text-slate-500 shrink-0 ${item.id ? 'cursor-pointer hover:scale-110 hover:border-blue-500/50 transition-all shadow-sm' : ''}`}
+                                      onClick={() => item.id && setViewModalProductId(item.id)}
+                                      className={`w-9 h-9 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center text-slate-500 shrink-0 ${item.id ? 'cursor-pointer hover:scale-105 hover:border-blue-500/50 transition-all shadow-sm' : ''}`}
                                       title={item.id ? "View Product Details" : undefined}
                                     >
                                       <FiFileText />
                                     </div>
                                   )}
-                                  <span className="font-semibold text-sm text-white line-clamp-1 max-w-[200px]" title={item.name}>{item.name}</span>
+                                  <span 
+                                    onClick={() => item.id && setViewModalProductId(item.id)}
+                                    className={`font-semibold text-sm text-white line-clamp-1 max-w-[240px] ${item.id ? 'cursor-pointer hover:text-blue-400 transition-colors' : ''}`}
+                                    title={item.name}
+                                  >
+                                    {item.name}
+                                  </span>
                                 </div>
                               </td>
-                              <td className="p-3 text-sm text-slate-300 font-medium">{item.brand}</td>
-                              <td className="p-3 text-center font-bold text-sm text-blue-400">{item.count}</td>
-                              <td className="p-3 text-right text-xs text-slate-400 font-medium">{formatDateTimeDDMMYYYY(item.latestView)}</td>
+                              <td className="p-3.5 text-sm text-slate-300 font-medium">{item.brand}</td>
+                              <td className="p-3.5 text-center">
+                                <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30">
+                                  {item.count}
+                                </span>
+                              </td>
+                              <td className="p-3.5 text-right text-xs text-slate-400 font-mono font-medium">{formatDateTimeDDMMYYYY(item.latestView)}</td>
                             </tr>
                           ))
                         )}
@@ -1176,20 +1359,20 @@ const UserDetails = () => {
                     <table className="w-full text-left border-collapse min-w-[500px]">
                       <thead>
                         <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                          <th className="p-3 text-left sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Brand Name</th>
-                          <th className="p-3 text-center sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Views Count</th>
-                          <th className="p-3 text-right sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Latest View</th>
+                          <th className="p-3.5 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Brand Name</th>
+                          <th className="p-3.5 text-center sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Views Count</th>
+                          <th className="p-3.5 text-right sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Latest View</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
                         {userActivities.brands.length === 0 ? (
                           <tr>
-                            <td colSpan="3" className="p-6 text-center text-xs text-slate-500 italic">No brands viewed by this user.</td>
+                            <td colSpan="3" className="p-8 text-center text-xs text-slate-500 italic">No brands viewed by this user.</td>
                           </tr>
                         ) : (
                           userActivities.brands.map(item => (
-                            <tr key={item.id} className="hover:bg-white/5 transition-colors">
-                              <td className="p-3">
+                            <tr key={item.id} className="hover:bg-white/[0.03] transition-colors">
+                              <td className="p-3.5">
                                 <div className="flex items-center gap-3">
                                   {item.logo ? (
                                     <div className="w-9 h-9 rounded-lg overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center p-0.5">
@@ -1203,8 +1386,12 @@ const UserDetails = () => {
                                   <span className="font-semibold text-sm text-white">{item.name}</span>
                                 </div>
                               </td>
-                              <td className="p-3 text-center font-bold text-sm text-blue-400">{item.count}</td>
-                              <td className="p-3 text-right text-xs text-slate-400 font-medium">{formatDateTimeDDMMYYYY(item.latestView)}</td>
+                              <td className="p-3.5 text-center">
+                                <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30">
+                                  {item.count}
+                                </span>
+                              </td>
+                              <td className="p-3.5 text-right text-xs text-slate-400 font-mono font-medium">{formatDateTimeDDMMYYYY(item.latestView)}</td>
                             </tr>
                           ))
                         )}
@@ -1216,20 +1403,20 @@ const UserDetails = () => {
                     <table className="w-full text-left border-collapse min-w-[500px]">
                       <thead>
                         <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                          <th className="p-3 text-left sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Category Name</th>
-                          <th className="p-3 text-center sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Views Count</th>
-                          <th className="p-3 text-right sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Latest View</th>
+                          <th className="p-3.5 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Category</th>
+                          <th className="p-3.5 text-center sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Views Count</th>
+                          <th className="p-3.5 text-right sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Latest View</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
                         {userActivities.categories.length === 0 ? (
                           <tr>
-                            <td colSpan="3" className="p-6 text-center text-xs text-slate-500 italic">No categories viewed by this user.</td>
+                            <td colSpan="3" className="p-8 text-center text-xs text-slate-500 italic">No categories viewed by this user.</td>
                           </tr>
                         ) : (
                           userActivities.categories.map(item => (
-                            <tr key={item.id} className="hover:bg-white/5 transition-colors">
-                              <td className="p-3">
+                            <tr key={item.id} className="hover:bg-white/[0.03] transition-colors">
+                              <td className="p-3.5">
                                 <div className="flex items-center gap-3">
                                   {item.image ? (
                                     <div className="w-9 h-9 rounded-lg overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center p-0.5">
@@ -1243,8 +1430,12 @@ const UserDetails = () => {
                                   <span className="font-semibold text-sm text-white">{item.name}</span>
                                 </div>
                               </td>
-                              <td className="p-3 text-center font-bold text-sm text-blue-400">{item.count}</td>
-                              <td className="p-3 text-right text-xs text-slate-400 font-medium">{formatDateTimeDDMMYYYY(item.latestView)}</td>
+                              <td className="p-3.5 text-center">
+                                <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30">
+                                  {item.count}
+                                </span>
+                              </td>
+                              <td className="p-3.5 text-right text-xs text-slate-400 font-mono font-medium">{formatDateTimeDDMMYYYY(item.latestView)}</td>
                             </tr>
                           ))
                         )}
@@ -1256,29 +1447,33 @@ const UserDetails = () => {
                     <table className="w-full text-left border-collapse min-w-[500px]">
                       <thead>
                         <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                          <th className="p-3 text-left sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Search Query</th>
-                          <th className="p-3 text-center sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Search Count</th>
-                          <th className="p-3 text-right sticky top-0 bg-slate-900/95 backdrop-blur-xs z-10 border-b border-white/10">Latest Search</th>
+                          <th className="p-3.5 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Search Query</th>
+                          <th className="p-3.5 text-center sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Search Count</th>
+                          <th className="p-3.5 text-right sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Latest Search</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
                         {userActivities.searches.length === 0 ? (
                           <tr>
-                            <td colSpan="3" className="p-6 text-center text-xs text-slate-500 italic">No search queries logged by this user.</td>
+                            <td colSpan="3" className="p-8 text-center text-xs text-slate-500 italic">No search queries logged by this user.</td>
                           </tr>
                         ) : (
                           userActivities.searches.map(item => (
-                            <tr key={item.id} className="hover:bg-white/5 transition-colors">
-                              <td className="p-3">
+                            <tr key={item.id} className="hover:bg-white/[0.03] transition-colors">
+                              <td className="p-3.5">
                                 <div className="flex items-center gap-3">
-                                  <div className="w-9 h-9 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center text-slate-500 shrink-0">
-                                    <FiSearch />
+                                  <div className="w-9 h-9 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center text-slate-400 shrink-0">
+                                    <FiSearch size={14} />
                                   </div>
-                                  <span className="font-semibold text-sm text-white">{item.query}</span>
+                                  <span className="font-semibold text-sm text-white font-mono">{item.query}</span>
                                 </div>
                               </td>
-                              <td className="p-3 text-center font-bold text-sm text-blue-400">{item.count}</td>
-                              <td className="p-3 text-right text-xs text-slate-400 font-medium">{formatDateTimeDDMMYYYY(item.latestSearch)}</td>
+                              <td className="p-3.5 text-center">
+                                <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30">
+                                  {item.count}
+                                </span>
+                              </td>
+                              <td className="p-3.5 text-right text-xs text-slate-400 font-mono font-medium">{formatDateTimeDDMMYYYY(item.latestSearch)}</td>
                             </tr>
                           ))
                         )}
@@ -1290,37 +1485,41 @@ const UserDetails = () => {
             </div>
           )}
 
-          {/* Profile Deletion Danger Zone */}
-          <div className="bg-red-500/5 border border-red-500/25 shadow-2xl rounded-3xl p-4 sm:p-6 relative overflow-hidden">
-            <h4 className="text-sm font-bold text-red-400 mb-2 uppercase tracking-wider">Danger Zone</h4>
-            <p className="text-slate-400 text-xs mb-4">Manage security and account status for this user.</p>
+          {/* Danger Zone */}
+          <div className="bg-slate-950/20 backdrop-blur-xl border border-rose-500/20 shadow-2xl rounded-3xl p-6 relative overflow-hidden space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
+              <div>
+                <h4 className="text-xs font-bold text-rose-400 uppercase tracking-wider flex items-center gap-2">
+                  <FiAlertCircle /> Account Security & Danger Zone
+                </h4>
+                <p className="text-slate-400 text-xs mt-1">Manage critical account actions, session revocation, and data removal.</p>
+              </div>
+            </div>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              {/* Force Logout Button */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
               <button
                 onClick={handleForceLogout}
                 disabled={isActionLoading}
-                className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 text-white font-bold rounded-xl transition-all cursor-pointer text-sm bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 shadow-md hover:shadow-amber-500/20 active:scale-[0.99]"
+                className="px-4 py-2.5 text-amber-300 font-bold rounded-xl text-xs bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95"
               >
-                <FiRefreshCcw className="mr-2 text-base shrink-0" /> Force Logout User
+                <FiLogOut size={14} /> Force Logout User
               </button>
 
-              {/* Delete / Reactivate Account Button */}
               {user?.deleteRequested ? (
                 <button
                   onClick={handleReactivate}
                   disabled={isActionLoading}
-                  className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 text-white font-bold rounded-xl transition-all cursor-pointer text-sm bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 shadow-md hover:shadow-emerald-500/20 active:scale-[0.99]"
+                  className="px-4 py-2.5 text-emerald-300 font-bold rounded-xl text-xs bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95"
                 >
-                  <FiRefreshCcw className="mr-2 text-base shrink-0" /> Reactivate User Account
+                  <FiRefreshCcw size={14} /> Reactivate Account
                 </button>
               ) : (
                 <button
                   onClick={() => setDeleteConfirmOpen(true)}
                   disabled={isActionLoading}
-                  className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 text-white font-bold rounded-xl transition-all cursor-pointer text-sm bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 shadow-md hover:shadow-rose-500/20 active:scale-[0.99]"
+                  className="px-4 py-2.5 text-rose-300 font-bold rounded-xl text-xs bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95"
                 >
-                  <FiTrash2 className="mr-2 text-base shrink-0" /> Delete User Account
+                  <FiTrash2 size={14} /> Delete User Account
                 </button>
               )}
             </div>
@@ -1332,26 +1531,26 @@ const UserDetails = () => {
       {/* Delete Confirmation Modal */}
       {deleteConfirmOpen && user && createPortal(
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setTypedConfirmName(''); }}></div>
-          <div className="relative bg-slate-900 border border-red-500/20 rounded-2xl p-6 shadow-2xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setTypedConfirmName(''); }}></div>
+          <div className="relative bg-slate-950/25 border border-red-500/20 rounded-2xl p-6 shadow-2xl shadow-red-500/25 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-              <FiAlertCircle className="text-red-500 animate-pulse" /> Confirm Deletion
+              <FiAlertCircle className="text-red-500 animate-pulse" /> Confirm Account Deletion
             </h3>
             <p className="text-slate-400 text-sm mb-4 leading-relaxed">
-              This action cannot be undone. To permanently delete the user account for <strong className="text-white">"{user.name}"</strong>, please type their name below to proceed:
+              This action cannot be undone. To permanently delete the user account for <strong className="text-white">"{user.name}"</strong>, please type their name below:
             </p>
             <input
               type="text"
               placeholder="Type user's name to confirm"
               value={typedConfirmName}
               onChange={(e) => setTypedConfirmName(e.target.value)}
-              className="w-full px-4 py-2.5 bg-black/20 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-sm font-medium mb-5"
+              className="w-full px-4 py-2.5 bg-black/40 border border-white/10 focus:border-red-500/50 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/30 text-sm font-medium mb-5"
             />
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => { setDeleteConfirmOpen(false); setTypedConfirmName(''); }}
-                className="flex-1 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors text-sm"
+                className="flex-1 py-2 bg-slate-900/75 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer border border-white/15"
               >
                 Cancel
               </button>
@@ -1363,7 +1562,7 @@ const UserDetails = () => {
                   setDeleteConfirmOpen(false);
                   setTypedConfirmName('');
                 }}
-                className="flex-1 px-4 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all text-sm bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700"
+                className="flex-1 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-lg shadow-red-600/30"
               >
                 Proceed Delete
               </button>
@@ -1376,10 +1575,10 @@ const UserDetails = () => {
       {/* Custom Alert Modal */}
       {alertOpen && createPortal(
         <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => setAlertOpen(false)}></div>
-          <div className="relative bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg animate-fade-in" onClick={() => setAlertOpen(false)}></div>
+          <div className="relative bg-slate-950/25 border border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-              <FiAlertCircle className="text-blue-400" /> Alert
+              <FiAlertCircle className="text-blue-400" /> Notification
             </h3>
             <p className="text-slate-300 text-sm mb-5 leading-relaxed">
               {alertMessage}
@@ -1387,7 +1586,7 @@ const UserDetails = () => {
             <button
               type="button"
               onClick={() => setAlertOpen(false)}
-              className="w-full px-4 py-2.5 text-white font-bold rounded-xl transition-colors text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+              className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-lg shadow-blue-600/25"
             >
               OK
             </button>

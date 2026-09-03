@@ -5,6 +5,7 @@ import {
 } from 'react-icons/fi';
 import Card from '../../../Components/Card';
 import CustomDropdown from '../../../Components/CustomDropdown';
+import GmailLink from '../../../Components/GmailLink';
 import { formatDateTimeDDMMYYYY } from '../../../utils/dateUtils';
 
 const checkAppStatus = (u) => {
@@ -627,7 +628,7 @@ const ActiveUsers = () => {
                         </div>
                       </td>
                       <td className="p-4 text-sm text-slate-300 text-left">
-                        {item.email}
+                        <GmailLink email={item.email} />
                       </td>
                       <td className="p-4 text-sm text-slate-300">
                         {item.phone || 'N/A'}

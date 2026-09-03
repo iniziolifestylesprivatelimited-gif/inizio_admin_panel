@@ -11,6 +11,7 @@ import Card from '../Components/Card';
 import CustomDropdown from '../Components/CustomDropdown';
 import ProductDetailsModal from '../Components/ProductDetailsModal';
 import OptimizedImage from '../Components/OptimizedImage';
+import GmailLink from '../Components/GmailLink';
 import { formatDateDDMMYYYY } from '../utils/dateUtils';
 
 // Simple Copy ID helper
@@ -443,7 +444,12 @@ const Quotes = () => {
                           <span className="font-bold text-white text-xs">{clientName}</span>
                           <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
                             {clientPhone && <span className="font-mono">{clientPhone}</span>}
-                            {clientEmail && <span className="text-slate-500 truncate max-w-[120px]">{clientEmail}</span>}
+                            {clientEmail && (
+                              <GmailLink
+                                email={clientEmail}
+                                className="text-slate-500 hover:text-blue-400 font-mono text-[11px] truncate max-w-[120px]"
+                              />
+                            )}
                           </div>
                         </div>
                       </td>
@@ -678,14 +684,13 @@ const Quotes = () => {
                       {clientEmail && (
                         <>
                           <span className="text-slate-600">•</span>
-                          <a
-                            href={`mailto:${clientEmail}`}
-                            className="flex items-center gap-1 hover:text-blue-400 transition-colors font-mono text-[11px] truncate max-w-[130px]"
-                            title={clientEmail}
-                          >
-                            <FiMail size={10} className="text-slate-500 shrink-0" />
-                            <span className="truncate">{clientEmail}</span>
-                          </a>
+                          <GmailLink
+                            email={clientEmail}
+                            showIcon={true}
+                            iconSize={10}
+                            iconClassName="text-slate-500"
+                            className="hover:text-blue-400 transition-colors font-mono text-[11px] truncate max-w-[130px] text-slate-300"
+                          />
                         </>
                       )}
                     </div>
@@ -868,8 +873,8 @@ const Quotes = () => {
       {/* Edit Status Modal */}
       {editModalOpen && selectedQuote && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setEditModalOpen(false)}></div>
-          <div className="bg-linear-to-br from-slate-950 to-blue-950/65 border border-white/15 rounded-3xl p-6 w-full max-w-md relative z-10 shadow-2xl animate-in fade-in zoom-in-95">
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-md" onClick={() => setEditModalOpen(false)}></div>
+          <div className="bg-slate-950/25 backdrop-blur-md border border-white/15 rounded-3xl p-6 w-full max-w-md relative z-10 shadow-2xl animate-in fade-in zoom-in-95">
             <button onClick={() => setEditModalOpen(false)} className="absolute right-4 top-4 p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
               <FiX size={20} />
             </button>
@@ -928,8 +933,8 @@ const Quotes = () => {
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && quoteToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setDeleteModalOpen(false)}></div>
-          <div className="bg-slate-900 border border-white/15 rounded-3xl p-6 w-full max-w-md relative z-10 shadow-2xl animate-in fade-in zoom-in-95 text-center">
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-md" onClick={() => setDeleteModalOpen(false)}></div>
+          <div className="bg-slate-950/25 backdrop-blur-sm border border-white/20 rounded-3xl p-6 w-full max-w-md relative z-10 shadow-2xl animate-in fade-in zoom-in-95 text-center">
 
             <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-400 flex items-center justify-center mx-auto mb-3">
               <FiTrash2 size={24} />
@@ -955,7 +960,7 @@ const Quotes = () => {
               <button
                 type="button"
                 onClick={() => setDeleteModalOpen(false)}
-                className="flex-1 py-2 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer border border-white/5"
+                className="flex-1 py-2 bg-slate-900/75 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer border border-white/15"
               >
                 Cancel
               </button>
@@ -974,8 +979,8 @@ const Quotes = () => {
       {/* Confirmation Status Modal */}
       {confirmStatusModalOpen && selectedQuote && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setConfirmStatusModalOpen(false)}></div>
-          <div className="bg-slate-900 border border-white/15 rounded-3xl p-6 w-full max-w-md relative z-10 shadow-2xl animate-in fade-in zoom-in-95 text-center">
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-md" onClick={() => setConfirmStatusModalOpen(false)}></div>
+          <div className="bg-slate-950/15 border border-white/20 rounded-3xl p-6 w-full max-w-md relative z-10 shadow-2xl animate-in fade-in zoom-in-95 text-center">
 
             <div className="w-12 h-12 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center mx-auto mb-3 animate-bounce">
               <FiAlertCircle size={24} />

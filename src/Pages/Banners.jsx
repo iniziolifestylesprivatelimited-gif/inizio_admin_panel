@@ -377,11 +377,11 @@ const Banners = () => {
       {/* ADD/EDIT MODAL */}
       {isModalOpen && createPortal(
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeModal}></div>
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-md" onClick={closeModal}></div>
           
-          <div className="relative bg-linear-to-br from-slate-950 to-blue-950/65 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-2xl overflow-hidden flex flex-col h-auto animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative bg-slate-950/25 backdrop-blur-md border border-white/20 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-2xl overflow-hidden flex flex-col h-auto animate-in fade-in zoom-in-95 duration-200">
             
-            <div className="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-slate-950/30">
+            <div className="px-6 py-4 border-b border-white/20 flex justify-between items-center bg-white/[0.03]">
               <h3 className="font-bold text-white text-lg">
                 {editingBanner ? 'Edit Promotional Banner' : 'Create New Banner'}
               </h3>
@@ -403,7 +403,7 @@ const Banners = () => {
                       required
                       value={formData.title}
                       onChange={(e) => setFormData({...formData, title: e.target.value})}
-                      className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500"
+                      className="w-full px-4 py-2.5 bg-black/20 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500"
                       placeholder="e.g., Summer Electronics Offer"
                     />
                   </div>
@@ -417,7 +417,7 @@ const Banners = () => {
                         required
                         value={formData.position}
                         onChange={(e) => setFormData({...formData, position: e.target.value})}
-                        className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white scheme-dark"
+                        className="w-full px-4 py-2.5 bg-black/20 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white scheme-dark"
                       />
                     </div>
 
@@ -459,13 +459,13 @@ const Banners = () => {
                         { value: 'brand', label: 'Link to Brand' },
                         { value: 'external', label: 'Link to External Website' }
                       ]}
-                      statusColor="bg-black/20 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md"
+                      statusColor="bg-black/20 border-white/20 text-white focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md"
                     />
                   </div>
 
                   {/* Dynamic Target Selection */}
                   {formData.clickAction !== 'none' && (
-                    <div className="p-4 bg-black/25 rounded-2xl border border-white/5 animate-in slide-in-from-bottom-2">
+                    <div className="p-4 bg-white/[0.03] rounded-2xl border border-white/15 animate-in slide-in-from-bottom-2">
                       {formData.clickAction === 'external' && (
                         <>
                           <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">External URL</label>
@@ -474,7 +474,7 @@ const Banners = () => {
                             required
                             value={formData.actionId}
                             onChange={(e) => setFormData({...formData, actionId: e.target.value})}
-                            className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500"
+                            className="w-full px-4 py-2.5 bg-black/20 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500"
                             placeholder="https://..."
                           />
                         </>

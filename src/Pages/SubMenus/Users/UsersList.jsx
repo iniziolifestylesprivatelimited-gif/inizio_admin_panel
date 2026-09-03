@@ -13,6 +13,7 @@ import { formatDateDDMMYYYY, formatDateTimeDDMMYYYY } from '../../../utils/dateU
 import { useConfirm } from '../../../Context/ConfirmationContext';
 import CopyButton from '../../../Components/CopyButton';
 import CustomDropdown from '../../../Components/CustomDropdown';
+import GmailLink from '../../../Components/GmailLink';
 import UsersVerification from './UsersVerification';
 
 const hasValidAppVersion = (appVersion) => {
@@ -960,7 +961,9 @@ const UsersList = () => {
                             )}
                           </div>
                         </td>
-                        <td className="p-4 text-sm text-slate-300">{user.email}</td>
+                        <td className="p-4 text-sm text-slate-300">
+                          <GmailLink email={user.email} />
+                        </td>
                         <td className="p-4 text-sm text-slate-300">{user.phone || 'N/A'}</td>
                         <td className="p-4 text-sm text-center">
                           <span className="bg-slate-700/50 border border-slate-600/50 text-slate-300 px-2.5 py-1 rounded-md text-xs font-bold">
@@ -1163,8 +1166,8 @@ const UsersList = () => {
       {/* Delete Confirmation Modal */}
       {deleteConfirmOpen && userToDelete && createPortal(
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/25 backdrop-blur-md animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setUserToDelete(null); setTypedConfirmName(''); }}></div>
-          <div className="relative bg-slate-950/15 backdrop-blur-md border border-red-500/20 rounded-2xl p-6 shadow-2xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-slate-950/25 backdrop-blur-lg animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setUserToDelete(null); setTypedConfirmName(''); }}></div>
+          <div className="relative bg-slate-950/15 border border-red-500/20 rounded-2xl p-6 shadow-2xl shadow-red-500/25 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
               <FiAlertCircle className="text-red-500 animate-pulse" /> Confirm Deletion
             </h3>
@@ -1209,10 +1212,10 @@ const UsersList = () => {
       {reactivateConfirmOpen && userToReactivate && createPortal(
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-slate-950/25 backdrop-blur-md animate-fade-in"
+            className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg animate-fade-in"
             onClick={() => { setReactivateConfirmOpen(false); setUserToReactivate(null); }}
           ></div>
-          <div className="relative bg-slate-950/15 backdrop-blur-md border border-emerald-500/20 rounded-2xl p-6 shadow-2xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative bg-slate-950/25 border border-emerald-500/20 rounded-2xl p-6 shadow-2xl shadow-emerald-500/25 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
               <FiRefreshCcw className="text-emerald-400" /> Confirm Reactivation
             </h3>
@@ -1249,8 +1252,8 @@ const UsersList = () => {
       {/* Custom Alert Modal */}
       {alertOpen && createPortal(
         <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/25 backdrop-blur-md animate-fade-in" onClick={() => setAlertOpen(false)}></div>
-          <div className="relative bg-slate-950/15 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg animate-fade-in" onClick={() => setAlertOpen(false)}></div>
+          <div className="relative bg-slate-950/25 border border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
               <FiAlertCircle className="text-blue-400" /> Alert
             </h3>
