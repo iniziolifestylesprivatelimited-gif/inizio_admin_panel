@@ -3,8 +3,8 @@ import { createPortal } from 'react-dom';
 import { formatDateDDMMYYYY } from '../utils/dateUtils';
 import { api, BASE_URL } from '../api/axios';
 import { useConfirm } from '../Context/ConfirmationContext';
-import { 
-  FiUpload, FiTrash2, FiFileText, FiLoader, 
+import {
+  FiUpload, FiTrash2, FiFileText, FiLoader,
   FiAlertCircle, FiX, FiDownloadCloud, FiEye, FiDownload,
   FiSearch, FiUser, FiMail
 } from 'react-icons/fi';
@@ -13,7 +13,7 @@ const getFileUrl = (path) => {
   if (!path) return '';
   if (path.startsWith('http') || path.startsWith('blob:')) return path;
   const cleanPath = path.replace(/\\/g, '/');
-  
+
   // Remove '/api' from BASE_URL if it exists, to point to the server root
   const serverUrl = BASE_URL.replace(/\/api\/?$/, '');
   return `${serverUrl}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
@@ -28,7 +28,7 @@ export const Ledgers = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  
+
   // Modal and Form State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -47,17 +47,17 @@ export const Ledgers = () => {
     try {
       const token = sessionStorage.getItem('accessToken');
       const headers = { Authorization: `Bearer ${token}` };
-      
+
       const [ledgersResponse, usersResponse] = await Promise.all([
         api.get('/ledger/all', { headers }),
         api.get('/admin/customers', { headers })
       ]);
 
       // Safely extract arrays from responses
-      const allLedgers = Array.isArray(ledgersResponse.data) 
-        ? ledgersResponse.data 
+      const allLedgers = Array.isArray(ledgersResponse.data)
+        ? ledgersResponse.data
         : ledgersResponse.data?.ledgers || [];
-        
+
       let allUsers = [];
       if (Array.isArray(usersResponse.data)) {
         allUsers = usersResponse.data;
@@ -67,7 +67,7 @@ export const Ledgers = () => {
 
       // Filter for approved users only for the dropdown
       const approvedUsers = allUsers.filter(user => user.isApproved === true || !!user.userId);
-      
+
       setLedgers(allLedgers.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
       setUsers(approvedUsers);
     } catch (err) {
@@ -114,7 +114,7 @@ export const Ledgers = () => {
   const confirmAndUploadLedger = async () => {
     if (!selectedUser || !title || !file) return;
     setIsSubmitting(true);
-    
+
     const formData = new FormData();
     formData.append('title', title);
     formData.append('ledger', file);
@@ -127,7 +127,7 @@ export const Ledgers = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      
+
       alert('Ledger uploaded successfully!');
       await fetchLedgersAndUsers(); // Refresh data
       closeModal();
@@ -144,7 +144,7 @@ export const Ledgers = () => {
   const handleDelete = async (id) => {
     const isConfirmed = await confirm('Are you sure you want to permanently delete this ledger?');
     if (!isConfirmed) return;
-    
+
     try {
       const token = sessionStorage.getItem('accessToken');
       await api.delete(`/ledger/${id}`, {
@@ -239,7 +239,7 @@ export const Ledgers = () => {
             )}
           </div>
 
-          <button 
+          <button
             onClick={openModal}
             className="flex items-center px-4 py-2.5 text-white font-bold rounded-xl transition-colors bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shrink-0 cursor-pointer shadow-lg shadow-blue-500/10 text-sm"
           >
@@ -311,26 +311,26 @@ export const Ledgers = () => {
                         </td>
                         <td className="p-5">
                           <div className="flex items-center justify-center gap-2">
-                            <button 
+                            <button
                               type="button"
-                              onClick={() => setPreviewPdfUrl(getFileUrl(ledger.fileUrl))} 
-                              className="p-2.5 text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all cursor-pointer hover:scale-105" 
+                              onClick={() => setPreviewPdfUrl(getFileUrl(ledger.fileUrl))}
+                              className="p-2.5 text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all cursor-pointer hover:scale-105"
                               title="Preview Ledger"
                             >
                               <FiEye size={15} />
                             </button>
-                            <a 
-                              href={getFileUrl(ledger.fileUrl)} 
-                              target="_blank" 
-                              rel="noopener noreferrer" 
-                              className="p-2.5 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg transition-all cursor-pointer hover:scale-105" 
+                            <a
+                              href={getFileUrl(ledger.fileUrl)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-2.5 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg transition-all cursor-pointer hover:scale-105"
                               title="Download Ledger"
                             >
                               <FiDownloadCloud size={15} />
                             </a>
-                            <button 
-                              onClick={() => handleDelete(ledger._id)} 
-                              className="p-2.5 text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg transition-all cursor-pointer hover:scale-105" 
+                            <button
+                              onClick={() => handleDelete(ledger._id)}
+                              className="p-2.5 text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg transition-all cursor-pointer hover:scale-105"
                               title="Delete Ledger"
                             >
                               <FiTrash2 size={15} />
@@ -394,13 +394,12 @@ export const Ledgers = () => {
                           if (page !== '...') setCurrentPage(page);
                         }}
                         disabled={page === '...'}
-                        className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${
-                          page === currentPage
+                        className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${page === currentPage
                             ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
                             : page === '...'
-                            ? 'bg-transparent text-slate-500 border-transparent cursor-default'
-                            : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
-                        }`}
+                              ? 'bg-transparent text-slate-500 border-transparent cursor-default'
+                              : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
+                          }`}
                       >
                         {page}
                       </button>
@@ -423,7 +422,7 @@ export const Ledgers = () => {
       {/* Upload Modal */}
       {isModalOpen && createPortal(
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-md" onClick={closeModal}></div>
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={closeModal}></div>
           <div className="relative bg-slate-950/15 border border-white/20 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
             <div className="px-5 py-3 border-b border-white/10 flex justify-between items-center bg-white/[0.03]">
               <h3 className="font-bold text-white text-lg flex items-center gap-2">
@@ -433,11 +432,11 @@ export const Ledgers = () => {
                 <FiX className="text-xl" />
               </button>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="overflow-y-auto custom-scrollbar p-6 space-y-5">
               <div className="relative">
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Customer</label>
-                
+
                 {/* Selected Trigger Button */}
                 <button
                   type="button"
@@ -445,11 +444,11 @@ export const Ledgers = () => {
                   className="w-full flex items-center justify-between px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner text-left text-white text-sm font-medium"
                 >
                   <span className="truncate">
-                    {selectedUser 
+                    {selectedUser
                       ? (() => {
-                          const u = users.find(user => user._id === selectedUser);
-                          return u ? `${u.name} (${u.email})` : 'Select a customer';
-                        })()
+                        const u = users.find(user => user._id === selectedUser);
+                        return u ? `${u.name} (${u.email})` : 'Select a customer';
+                      })()
                       : 'Select a customer'
                     }
                   </span>
@@ -480,14 +479,14 @@ export const Ledgers = () => {
                           </button>
                         )}
                       </div>
-                      
+
                       <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-1">
-                        {users.filter(user => 
-                          (user.name || '').toLowerCase().includes(userSearchTerm.toLowerCase()) || 
+                        {users.filter(user =>
+                          (user.name || '').toLowerCase().includes(userSearchTerm.toLowerCase()) ||
                           (user.email || '').toLowerCase().includes(userSearchTerm.toLowerCase())
                         ).length > 0 ? (
-                          users.filter(user => 
-                            (user.name || '').toLowerCase().includes(userSearchTerm.toLowerCase()) || 
+                          users.filter(user =>
+                            (user.name || '').toLowerCase().includes(userSearchTerm.toLowerCase()) ||
                             (user.email || '').toLowerCase().includes(userSearchTerm.toLowerCase())
                           ).map(user => (
                             <button
@@ -498,11 +497,10 @@ export const Ledgers = () => {
                                 setIsUserSelectOpen(false);
                                 setUserSearchTerm('');
                               }}
-                              className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
-                                selectedUser === user._id 
-                                  ? 'bg-blue-600 text-white' 
+                              className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors ${selectedUser === user._id
+                                  ? 'bg-blue-600 text-white'
                                   : 'text-slate-300 hover:bg-white/5 hover:text-white'
-                              }`}
+                                }`}
                             >
                               <span className="font-bold">{user.name}</span>
                               <span className={`block text-[10px] ${selectedUser === user._id ? 'text-blue-100' : 'text-slate-500'}`}>{user.email}</span>
@@ -532,7 +530,7 @@ export const Ledgers = () => {
               {/* Ledger File Upload Dropzone */}
               <div>
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Ledger File (PDF)</label>
-                <div 
+                <div
                   onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                   onDragLeave={() => setIsDragging(false)}
                   onDrop={(e) => {
@@ -546,22 +544,21 @@ export const Ledgers = () => {
                     }
                   }}
                   onClick={() => document.getElementById('ledger-file-input').click()}
-                  className={`w-full h-36 border-2 border-dashed rounded-2xl flex flex-col justify-center items-center gap-2 cursor-pointer transition-all duration-300 relative overflow-hidden group select-none ${
-                    isDragging 
-                      ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/20' 
+                  className={`w-full h-36 border-2 border-dashed rounded-2xl flex flex-col justify-center items-center gap-2 cursor-pointer transition-all duration-300 relative overflow-hidden group select-none ${isDragging
+                      ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/20'
                       : 'border-white/10 hover:border-blue-500/40 hover:bg-white/5'
-                  }`}
+                    }`}
                 >
-                  <input 
+                  <input
                     id="ledger-file-input"
-                    type="file" 
+                    type="file"
                     accept=".pdf,application/pdf"
                     onChange={handleFileChange}
                     className="hidden"
                   />
                   {file ? (
                     <>
-                      <button 
+                      <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -587,7 +584,7 @@ export const Ledgers = () => {
               </div>
 
               <div className="pt-4 border-t border-white/20 flex flex-col sm:flex-row justify-end gap-3">
-                <button 
+                <button
                   type="button"
                   onClick={closeModal}
                   disabled={isSubmitting}
@@ -607,7 +604,7 @@ export const Ledgers = () => {
             </form>
           </div>
         </div>
-      , document.body)}
+        , document.body)}
 
       {/* PDF Preview Modal */}
       {previewPdfUrl && createPortal(
@@ -626,27 +623,27 @@ export const Ledgers = () => {
                   {isPendingUpload ? 'Confirm Ledger PDF Before Uploading' : 'Ledger PDF Preview'}
                 </h3>
               </div>
-              <button 
+              <button
                 onClick={() => {
                   setPreviewPdfUrl(null);
                   setIsPendingUpload(false);
-                }} 
+                }}
                 disabled={isSubmitting}
                 className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors disabled:opacity-50"
               >
                 <FiX className="text-xl" />
               </button>
             </div>
-            
+
             <div className="p-4 bg-slate-950 flex-1 flex flex-col min-h-0">
-              <iframe 
+              <iframe
                 src={`${previewPdfUrl}#toolbar=0&navpanes=0&view=FitH`}
-                className="w-full h-[60vh] min-h-[450px] rounded-xl bg-slate-900 border border-white/5" 
-                title="Ledger PDF" 
+                className="w-full h-[60vh] min-h-[450px] rounded-xl bg-slate-900 border border-white/5"
+                title="Ledger PDF"
               />
               <div className="mt-3 text-center sm:text-left">
                 <p className="text-xs text-slate-500">
-                  {isPendingUpload 
+                  {isPendingUpload
                     ? 'Please review the ledger details. Click "Confirm & Upload" to save this ledger document.'
                     : 'Note: If the PDF does not display, you can download it directly using the button below.'}
                 </p>
@@ -686,8 +683,8 @@ export const Ledgers = () => {
                 </>
               ) : (
                 <>
-                  <a 
-                    href={previewPdfUrl} 
+                  <a
+                    href={previewPdfUrl}
                     download
                     target="_blank"
                     rel="noopener noreferrer"
@@ -695,7 +692,7 @@ export const Ledgers = () => {
                   >
                     <FiDownload /> Download PDF
                   </a>
-                  <button 
+                  <button
                     onClick={() => setPreviewPdfUrl(null)}
                     className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl transition-colors text-sm cursor-pointer"
                   >

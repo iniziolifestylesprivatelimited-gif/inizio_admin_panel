@@ -310,7 +310,7 @@ const Quotes = () => {
           </Card>
         ))}
       </div>
-      
+
       {/* Filter & View Mode Controls Bar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         {/* Status Quick Filters */}
@@ -328,11 +328,10 @@ const Quotes = () => {
                 setStatusFilter(tab.id);
                 setCurrentPage(1);
               }}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
-                statusFilter === tab.id
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
-              }`}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${statusFilter === tab.id
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
             >
               <span>{tab.label}</span>
               <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${statusFilter === tab.id ? 'bg-white/20 text-white' : 'bg-white/5 text-slate-400'}`}>
@@ -346,9 +345,8 @@ const Quotes = () => {
         <div className="flex items-center gap-1 bg-slate-900/80 border border-white/10 rounded-2xl p-1 shrink-0 self-end sm:self-auto">
           <button
             onClick={() => setViewMode('grid')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-              viewMode === 'grid' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
-            }`}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${viewMode === 'grid' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+              }`}
             title="Card Grid View"
           >
             <FiGrid size={14} />
@@ -356,9 +354,8 @@ const Quotes = () => {
           </button>
           <button
             onClick={() => setViewMode('table')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-              viewMode === 'table' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
-            }`}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${viewMode === 'table' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+              }`}
             title="Table View"
           >
             <FiList size={14} />
@@ -413,7 +410,7 @@ const Quotes = () => {
                   const totalExpectedValue = expected * quantity;
                   const productImage = q.product?.images?.[0] || '';
                   const prodId = q.product?._id || q.product || q.productId;
-                  
+
                   const getStatusConfig = (status) => {
                     switch (status?.toLowerCase()) {
                       case 'contacted':
@@ -557,13 +554,12 @@ const Quotes = () => {
                           if (page !== '...') setCurrentPage(page);
                         }}
                         disabled={page === '...'}
-                        className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${
-                          page === currentPage
-                            ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
-                            : page === '...'
+                        className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${page === currentPage
+                          ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
+                          : page === '...'
                             ? 'bg-transparent text-slate-500 border-transparent cursor-default'
                             : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
-                        }`}
+                          }`}
                       >
                         {page}
                       </button>
@@ -586,219 +582,219 @@ const Quotes = () => {
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 items-stretch">
             {currentQuotes.map((q) => {
-            const clientName = q.name || q.user?.name || 'Unknown Client';
-            const clientPhone = q.phone || q.user?.phone;
-            const clientEmail = q.user?.email || (q.email ? q.email : null);
-            const productName = q.productName || q.product?.name || 'Custom Product';
+              const clientName = q.name || q.user?.name || 'Unknown Client';
+              const clientPhone = q.phone || q.user?.phone;
+              const clientEmail = q.user?.email || (q.email ? q.email : null);
+              const productName = q.productName || q.product?.name || 'Custom Product';
 
-            const expected = Number(q.expectedPrice) || 0;
-            const quantity = Number(q.quantity) || 0;
-            const totalExpectedValue = expected * quantity;
+              const expected = Number(q.expectedPrice) || 0;
+              const quantity = Number(q.quantity) || 0;
+              const totalExpectedValue = expected * quantity;
 
-            const basePrice = q.product?.basePrice || 0;
-            const offerPrice = q.product?.offerPrice || 0;
-            const productImage = q.product?.images?.[0] || '';
-            const prodId = q.product?._id || q.product || q.productId;
+              const basePrice = q.product?.basePrice || 0;
+              const offerPrice = q.product?.offerPrice || 0;
+              const productImage = q.product?.images?.[0] || '';
+              const prodId = q.product?._id || q.product || q.productId;
 
-            const getStatusConfig = (status) => {
-              switch (status?.toLowerCase()) {
-                case 'contacted':
-                  return {
-                    label: 'Contacted',
-                    badgeClass: 'bg-sky-500/15 text-sky-400 border-sky-500/30',
-                    icon: FiPhone,
-                    accentBorder: 'hover:border-sky-500/40'
-                  };
-                case 'resolved':
-                  return {
-                    label: 'Resolved',
-                    badgeClass: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-                    icon: FiCheckCircle,
-                    accentBorder: 'hover:border-emerald-500/40'
-                  };
-                case 'rejected':
-                  return {
-                    label: 'Rejected',
-                    badgeClass: 'bg-rose-500/15 text-rose-400 border-rose-500/30',
-                    icon: FiXCircle,
-                    accentBorder: 'hover:border-rose-500/40'
-                  };
-                case 'pending':
-                default:
-                  return {
-                    label: 'Pending',
-                    badgeClass: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-                    icon: FiClock,
-                    accentBorder: 'hover:border-amber-500/40'
-                  };
-              }
-            };
+              const getStatusConfig = (status) => {
+                switch (status?.toLowerCase()) {
+                  case 'contacted':
+                    return {
+                      label: 'Contacted',
+                      badgeClass: 'bg-sky-500/15 text-sky-400 border-sky-500/30',
+                      icon: FiPhone,
+                      accentBorder: 'hover:border-sky-500/40'
+                    };
+                  case 'resolved':
+                    return {
+                      label: 'Resolved',
+                      badgeClass: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+                      icon: FiCheckCircle,
+                      accentBorder: 'hover:border-emerald-500/40'
+                    };
+                  case 'rejected':
+                    return {
+                      label: 'Rejected',
+                      badgeClass: 'bg-rose-500/15 text-rose-400 border-rose-500/30',
+                      icon: FiXCircle,
+                      accentBorder: 'hover:border-rose-500/40'
+                    };
+                  case 'pending':
+                  default:
+                    return {
+                      label: 'Pending',
+                      badgeClass: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+                      icon: FiClock,
+                      accentBorder: 'hover:border-amber-500/40'
+                    };
+                }
+              };
 
-            const statusConfig = getStatusConfig(q.status);
-            const StatusIcon = statusConfig.icon;
+              const statusConfig = getStatusConfig(q.status);
+              const StatusIcon = statusConfig.icon;
 
-            return (
-              <div
-                key={q._id}
-                className={`bg-linear-to-br from-transparent to-blue-950/65 border border-white/10 ${statusConfig.accentBorder} rounded-2xl p-4 flex flex-col justify-between transition-all duration-200 shadow-xl hover:shadow-2xl hover:shadow-black/50 group h-full space-y-3.5 relative`}
-              >
-                {/* Section 1: Header Row (Status & Date & Copy ID) */}
-                <div className="flex justify-between items-center pb-2.5 border-b border-white/10">
-                  <div className="flex items-center gap-2">
-                    <span className={`inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-lg border uppercase tracking-wider ${statusConfig.badgeClass}`}>
-                      <StatusIcon size={11} className="shrink-0" />
-                      {statusConfig.label}
-                    </span>
-                    {q.createdAt && (
-                      <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1">
-                        <FiCalendar size={11} className="text-slate-500" />
-                        {formatDateDDMMYYYY(q.createdAt)}
+              return (
+                <div
+                  key={q._id}
+                  className={`bg-linear-to-br from-transparent to-blue-950/65 border border-white/10 ${statusConfig.accentBorder} rounded-2xl p-4 flex flex-col justify-between transition-all duration-200 shadow-xl hover:shadow-2xl hover:shadow-black/50 group h-full space-y-3.5 relative`}
+                >
+                  {/* Section 1: Header Row (Status & Date & Copy ID) */}
+                  <div className="flex justify-between items-center pb-2.5 border-b border-white/10">
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-lg border uppercase tracking-wider ${statusConfig.badgeClass}`}>
+                        <StatusIcon size={11} className="shrink-0" />
+                        {statusConfig.label}
                       </span>
+                      {q.createdAt && (
+                        <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1">
+                          <FiCalendar size={11} className="text-slate-500" />
+                          {formatDateDDMMYYYY(q.createdAt)}
+                        </span>
+                      )}
+                    </div>
+                    <CopyIdBadge id={q._id} />
+                  </div>
+
+                  {/* Section 2: Customer / Requester Profile */}
+                  <div className="flex items-center gap-3 text-left">
+                    <div className="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-400 font-black flex items-center justify-center text-sm shrink-0 shadow-inner">
+                      {clientName.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-white text-sm font-bold truncate group-hover:text-blue-400 transition-colors" title={clientName}>
+                        {clientName}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
+                        {clientPhone ? (
+                          <a
+                            href={`tel:${clientPhone}`}
+                            className="flex items-center gap-1 hover:text-blue-400 transition-colors font-mono text-[11px]"
+                            title={`Call ${clientPhone}`}
+                          >
+                            <FiPhone size={10} className="text-slate-500" />
+                            <span>{clientPhone}</span>
+                          </a>
+                        ) : (
+                          <span className="text-slate-600 text-[11px]">No phone</span>
+                        )}
+                        {clientEmail && (
+                          <>
+                            <span className="text-slate-600">•</span>
+                            <GmailLink
+                              email={clientEmail}
+                              showIcon={true}
+                              iconSize={10}
+                              iconClassName="text-slate-500"
+                              className="hover:text-blue-400 transition-colors font-mono text-[11px] truncate max-w-[130px] text-slate-300"
+                            />
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 3: Product Info */}
+                  <div className="flex items-center gap-3 bg-slate-950/60 border border-white/5 rounded-xl p-2.5 text-left">
+                    {productImage ? (
+                      <div
+                        onClick={() => { if (prodId) setViewModalProductId(prodId); }}
+                        className={`w-10 h-10 bg-white rounded-lg overflow-hidden shrink-0 border border-white/10 p-0.5 ${prodId ? 'cursor-pointer hover:border-blue-500 hover:scale-105 transition-all' : ''}`}
+                        title={prodId ? "View Product Details" : undefined}
+                      >
+                        <OptimizedImage src={productImage} alt={productName} width={100} quality={65} className="w-full h-full object-contain" />
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => { if (prodId) setViewModalProductId(prodId); }}
+                        className={`w-10 h-10 rounded-lg bg-slate-800 text-slate-500 flex items-center justify-center shrink-0 border border-white/10 ${prodId ? 'cursor-pointer hover:border-blue-500 hover:scale-105 transition-all' : ''}`}
+                        title={prodId ? "View Product Details" : undefined}
+                      >
+                        <FiTag size={16} />
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <h4
+                        onClick={() => { if (prodId) setViewModalProductId(prodId); }}
+                        className={`text-xs font-bold text-white truncate ${prodId ? 'hover:text-blue-400 cursor-pointer' : ''}`}
+                        title={productName}
+                      >
+                        {productName}
+                      </h4>
+                      <div className="flex items-center gap-2 mt-0.5 text-[10px] text-slate-400">
+                        {offerPrice > 0 ? (
+                          <span>Offer: <strong className="text-slate-300 font-mono">₹{offerPrice.toLocaleString()}</strong></span>
+                        ) : null}
+                        {basePrice > 0 ? (
+                          <span>MRP: <strong className="text-slate-500 line-through font-mono">₹{basePrice.toLocaleString()}</strong></span>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 4: 3-Column Financial Metric Strip */}
+                  <div className="grid grid-cols-3 gap-1.5 bg-slate-950/80 border border-white/10 rounded-xl p-2.5 text-center">
+                    <div className="border-r border-white/5 pr-1">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Quantity</span>
+                      <span className="text-xs font-extrabold text-white font-mono mt-0.5 block">{quantity.toLocaleString()}</span>
+                    </div>
+                    <div className="border-r border-white/5 pr-1">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Target / Unit</span>
+                      <span className="text-xs font-extrabold text-amber-400 font-mono mt-0.5 block">₹{expected.toLocaleString()}</span>
+                    </div>
+                    <div className="pl-1">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total Deal</span>
+                      <span className="text-xs font-black text-emerald-400 font-mono mt-0.5 block">₹{totalExpectedValue.toLocaleString()}</span>
+                    </div>
+                  </div>
+
+                  {/* Section 5: Notes Container with Clean Fixed Layout */}
+                  <div className="min-h-[44px] flex flex-col justify-center bg-slate-950/40 border border-white/5 rounded-xl px-3 py-2 text-xs text-left">
+                    {q.message ? (
+                      <div className="flex items-start gap-2">
+                        <FiMessageSquare size={12} className="text-slate-400 shrink-0 mt-0.5" />
+                        <p className="text-[11px] italic text-slate-300 line-clamp-1" title={q.message}>
+                          "{q.message}"
+                        </p>
+                      </div>
+                    ) : q.adminNotes ? (
+                      <div className="flex items-start gap-2">
+                        <FiFileText size={12} className="text-blue-400 shrink-0 mt-0.5" />
+                        <p className="text-[11px] text-blue-300 line-clamp-1" title={q.adminNotes}>
+                          {q.adminNotes}
+                        </p>
+                      </div>
+                    ) : (
+                      <span className="text-[11px] text-slate-600 italic">No notes provided</span>
+                    )}
+                    {q.message && q.adminNotes && (
+                      <div className="flex items-start gap-2 mt-1 pt-1 border-t border-white/5">
+                        <FiFileText size={12} className="text-blue-400 shrink-0 mt-0.5" />
+                        <p className="text-[11px] text-blue-300 line-clamp-1" title={q.adminNotes}>
+                          {q.adminNotes}
+                        </p>
+                      </div>
                     )}
                   </div>
-                  <CopyIdBadge id={q._id} />
-                </div>
 
-                {/* Section 2: Customer / Requester Profile */}
-                <div className="flex items-center gap-3 text-left">
-                  <div className="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-400 font-black flex items-center justify-center text-sm shrink-0 shadow-inner">
-                    {clientName.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-white text-sm font-bold truncate group-hover:text-blue-400 transition-colors" title={clientName}>
-                      {clientName}
-                    </h3>
-                    <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
-                      {clientPhone ? (
-                        <a
-                          href={`tel:${clientPhone}`}
-                          className="flex items-center gap-1 hover:text-blue-400 transition-colors font-mono text-[11px]"
-                          title={`Call ${clientPhone}`}
-                        >
-                          <FiPhone size={10} className="text-slate-500" />
-                          <span>{clientPhone}</span>
-                        </a>
-                      ) : (
-                        <span className="text-slate-600 text-[11px]">No phone</span>
-                      )}
-                      {clientEmail && (
-                        <>
-                          <span className="text-slate-600">•</span>
-                          <GmailLink
-                            email={clientEmail}
-                            showIcon={true}
-                            iconSize={10}
-                            iconClassName="text-slate-500"
-                            className="hover:text-blue-400 transition-colors font-mono text-[11px] truncate max-w-[130px] text-slate-300"
-                          />
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Section 3: Product Info */}
-                <div className="flex items-center gap-3 bg-slate-950/60 border border-white/5 rounded-xl p-2.5 text-left">
-                  {productImage ? (
-                    <div
-                      onClick={() => { if (prodId) setViewModalProductId(prodId); }}
-                      className={`w-10 h-10 bg-white rounded-lg overflow-hidden shrink-0 border border-white/10 p-0.5 ${prodId ? 'cursor-pointer hover:border-blue-500 hover:scale-105 transition-all' : ''}`}
-                      title={prodId ? "View Product Details" : undefined}
+                  {/* Section 6: Action Footer */}
+                  <div className="flex items-center gap-2 pt-2 border-t border-white/10 mt-auto">
+                    <button
+                      onClick={() => openEditModal(q)}
+                      className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm shadow-blue-600/30 active:scale-95"
                     >
-                      <OptimizedImage src={productImage} alt={productName} width={100} quality={65} className="w-full h-full object-contain" />
-                    </div>
-                  ) : (
-                    <div
-                      onClick={() => { if (prodId) setViewModalProductId(prodId); }}
-                      className={`w-10 h-10 rounded-lg bg-slate-800 text-slate-500 flex items-center justify-center shrink-0 border border-white/10 ${prodId ? 'cursor-pointer hover:border-blue-500 hover:scale-105 transition-all' : ''}`}
-                      title={prodId ? "View Product Details" : undefined}
+                      <FiEdit2 size={12} /> Update Status
+                    </button>
+                    <button
+                      onClick={() => openDeleteModal(q)}
+                      className="p-2 bg-rose-500/10 hover:bg-rose-600 border border-rose-500/20 hover:border-rose-500 text-rose-400 hover:text-white rounded-xl transition-all cursor-pointer flex items-center justify-center active:scale-95"
+                      title="Delete Quote"
                     >
-                      <FiTag size={16} />
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <h4
-                      onClick={() => { if (prodId) setViewModalProductId(prodId); }}
-                      className={`text-xs font-bold text-white truncate ${prodId ? 'hover:text-blue-400 cursor-pointer' : ''}`}
-                      title={productName}
-                    >
-                      {productName}
-                    </h4>
-                    <div className="flex items-center gap-2 mt-0.5 text-[10px] text-slate-400">
-                      {offerPrice > 0 ? (
-                        <span>Offer: <strong className="text-slate-300 font-mono">₹{offerPrice.toLocaleString()}</strong></span>
-                      ) : null}
-                      {basePrice > 0 ? (
-                        <span>MRP: <strong className="text-slate-500 line-through font-mono">₹{basePrice.toLocaleString()}</strong></span>
-                      ) : null}
-                    </div>
+                      <FiTrash2 size={13} />
+                    </button>
                   </div>
                 </div>
-
-                {/* Section 4: 3-Column Financial Metric Strip */}
-                <div className="grid grid-cols-3 gap-1.5 bg-slate-950/80 border border-white/10 rounded-xl p-2.5 text-center">
-                  <div className="border-r border-white/5 pr-1">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Quantity</span>
-                    <span className="text-xs font-extrabold text-white font-mono mt-0.5 block">{quantity.toLocaleString()}</span>
-                  </div>
-                  <div className="border-r border-white/5 pr-1">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Target / Unit</span>
-                    <span className="text-xs font-extrabold text-amber-400 font-mono mt-0.5 block">₹{expected.toLocaleString()}</span>
-                  </div>
-                  <div className="pl-1">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total Deal</span>
-                    <span className="text-xs font-black text-emerald-400 font-mono mt-0.5 block">₹{totalExpectedValue.toLocaleString()}</span>
-                  </div>
-                </div>
-
-                {/* Section 5: Notes Container with Clean Fixed Layout */}
-                <div className="min-h-[44px] flex flex-col justify-center bg-slate-950/40 border border-white/5 rounded-xl px-3 py-2 text-xs text-left">
-                  {q.message ? (
-                    <div className="flex items-start gap-2">
-                      <FiMessageSquare size={12} className="text-slate-400 shrink-0 mt-0.5" />
-                      <p className="text-[11px] italic text-slate-300 line-clamp-1" title={q.message}>
-                        "{q.message}"
-                      </p>
-                    </div>
-                  ) : q.adminNotes ? (
-                    <div className="flex items-start gap-2">
-                      <FiFileText size={12} className="text-blue-400 shrink-0 mt-0.5" />
-                      <p className="text-[11px] text-blue-300 line-clamp-1" title={q.adminNotes}>
-                        {q.adminNotes}
-                      </p>
-                    </div>
-                  ) : (
-                    <span className="text-[11px] text-slate-600 italic">No notes provided</span>
-                  )}
-                  {q.message && q.adminNotes && (
-                    <div className="flex items-start gap-2 mt-1 pt-1 border-t border-white/5">
-                      <FiFileText size={12} className="text-blue-400 shrink-0 mt-0.5" />
-                      <p className="text-[11px] text-blue-300 line-clamp-1" title={q.adminNotes}>
-                        {q.adminNotes}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Section 6: Action Footer */}
-                <div className="flex items-center gap-2 pt-2 border-t border-white/10 mt-auto">
-                  <button
-                    onClick={() => openEditModal(q)}
-                    className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm shadow-blue-600/30 active:scale-95"
-                  >
-                    <FiEdit2 size={12} /> Update Status
-                  </button>
-                  <button
-                    onClick={() => openDeleteModal(q)}
-                    className="p-2 bg-rose-500/10 hover:bg-rose-600 border border-rose-500/20 hover:border-rose-500 text-rose-400 hover:text-white rounded-xl transition-all cursor-pointer flex items-center justify-center active:scale-95"
-                    title="Delete Quote"
-                  >
-                    <FiTrash2 size={13} />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
           </div>
 
           {/* Cards Pagination */}
@@ -844,13 +840,12 @@ const Quotes = () => {
                           if (page !== '...') setCurrentPage(page);
                         }}
                         disabled={page === '...'}
-                        className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${
-                          page === currentPage
-                            ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
-                            : page === '...'
+                        className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${page === currentPage
+                          ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
+                          : page === '...'
                             ? 'bg-transparent text-slate-500 border-transparent cursor-default'
                             : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
-                        }`}
+                          }`}
                       >
                         {page}
                       </button>
@@ -873,8 +868,8 @@ const Quotes = () => {
       {/* Edit Status Modal */}
       {editModalOpen && selectedQuote && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-md" onClick={() => setEditModalOpen(false)}></div>
-          <div className="bg-slate-950/25 backdrop-blur-md border border-white/15 rounded-3xl p-6 w-full max-w-md relative z-10 shadow-2xl animate-in fade-in zoom-in-95">
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={() => setEditModalOpen(false)}></div>
+          <div className="bg-slate-950/25 border border-white/15 rounded-3xl p-6 w-full max-w-md relative z-10 shadow-2xl animate-in fade-in zoom-in-95">
             <button onClick={() => setEditModalOpen(false)} className="absolute right-4 top-4 p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
               <FiX size={20} />
             </button>
@@ -933,8 +928,8 @@ const Quotes = () => {
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && quoteToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-md" onClick={() => setDeleteModalOpen(false)}></div>
-          <div className="bg-slate-950/25 backdrop-blur-sm border border-white/20 rounded-3xl p-6 w-full max-w-md relative z-10 shadow-2xl animate-in fade-in zoom-in-95 text-center">
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={() => setDeleteModalOpen(false)}></div>
+          <div className="bg-slate-950/25 border border-white/20 rounded-3xl p-6 w-full max-w-md relative z-10 shadow-2xl animate-in fade-in zoom-in-95 text-center">
 
             <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-400 flex items-center justify-center mx-auto mb-3">
               <FiTrash2 size={24} />
@@ -979,7 +974,7 @@ const Quotes = () => {
       {/* Confirmation Status Modal */}
       {confirmStatusModalOpen && selectedQuote && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-md" onClick={() => setConfirmStatusModalOpen(false)}></div>
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={() => setConfirmStatusModalOpen(false)}></div>
           <div className="bg-slate-950/15 border border-white/20 rounded-3xl p-6 w-full max-w-md relative z-10 shadow-2xl animate-in fade-in zoom-in-95 text-center">
 
             <div className="w-12 h-12 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center mx-auto mb-3 animate-bounce">
@@ -991,15 +986,15 @@ const Quotes = () => {
               <span>Are you sure you want to change the status of the quote request for <span className="text-white font-semibold">{(selectedQuote.name || selectedQuote.user?.name || 'this client')}</span>?</span>
               <span className="flex items-center gap-2 mt-2">
                 <span className={`text-[10px] font-black px-2 py-0.5 rounded border uppercase ${selectedQuote.status === 'pending' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
-                    selectedQuote.status === 'contacted' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                      selectedQuote.status === 'resolved' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                        'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                  selectedQuote.status === 'contacted' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                    selectedQuote.status === 'resolved' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                      'bg-rose-500/10 text-rose-400 border-rose-500/20'
                   }`}>{selectedQuote.status || 'pending'}</span>
                 <span className="text-slate-500">→</span>
                 <span className={`text-[10px] font-black px-2 py-0.5 rounded border uppercase ${editStatus === 'pending' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
-                    editStatus === 'contacted' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                      editStatus === 'resolved' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                        'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                  editStatus === 'contacted' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                    editStatus === 'resolved' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                      'bg-rose-500/10 text-rose-400 border-rose-500/20'
                   }`}>{editStatus}</span>
               </span>
             </p>

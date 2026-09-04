@@ -667,7 +667,7 @@ const UserDetails = () => {
   };
 
   return (
-    <div className="relative space-y-6 min-h-full z-0 isolate w-full pb-10">
+    <div className="relative space-y-2 min-h-full z-0 isolate w-full pb-10">
 
       {/* Header & Back Navigation */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-2">
@@ -678,7 +678,7 @@ const UserDetails = () => {
           >
             <FiArrowLeft size={14} /> Back to Users List
           </button>
-          <div className="flex items-center gap-3 flex-wrap">
+          {/* <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-3">
               <FiUser className="text-blue-400" />
               <span>User Profile</span>
@@ -695,10 +695,10 @@ const UserDetails = () => {
               </span>
             )}
           </div>
-          <p className="text-slate-400 text-xs sm:text-sm font-medium mt-1">Detailed customer information, app telemetry, devices, and browsing activity.</p>
+          <p className="text-slate-400 text-xs sm:text-sm font-medium mt-1">Detailed customer information, app telemetry, devices, and browsing activity.</p> */}
         </div>
 
-        {user && (
+        {/* {user && (
           <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap shrink-0">
             <button
               onClick={handleForceLogout}
@@ -726,7 +726,7 @@ const UserDetails = () => {
               </button>
             )}
           </div>
-        )}
+        )} */}
       </div>
 
       {/* Loading & Error States */}
@@ -747,11 +747,11 @@ const UserDetails = () => {
         <div className="space-y-6 w-full">
 
           {/* Core User Information Hero Card */}
-          <div className="relative bg-slate-950/25 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl overflow-hidden space-y-6">
-            <div className="absolute top-0 right-0 -mt-10 -mr-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="relative bg-slate-950/50 border border-white/20 rounded-3xl p-6 shadow-2xl overflow-hidden space-y-6">
+            <div className="absolute top-0 right-0 -mt-10 -mr-10 w-92 h-92 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
             {/* Profile Header Bar */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-white/10">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-white/20">
               <div className="flex items-start sm:items-center gap-5">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-blue-600/30 via-indigo-600/20 to-purple-600/20 border border-blue-500/30 flex items-center justify-center text-2xl sm:text-3xl font-black text-blue-400 shadow-inner shrink-0 select-none">
                   {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
@@ -837,29 +837,29 @@ const UserDetails = () => {
                   <FiUser className="text-blue-400" /> Account Profile Details
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl">
+                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Full Name</span>
                     <p className="text-white font-semibold text-sm mt-1">{user.name || 'N/A'}</p>
                   </div>
-                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl">
+                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Role</span>
                     <p className="text-white font-semibold text-sm mt-1 capitalize">{user.role || 'customer'}</p>
                   </div>
-                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl">
+                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Phone Number</span>
                     <p className="text-white font-semibold text-sm mt-1 font-mono">{user.phone || 'Not Provided'}</p>
                   </div>
-                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl">
+                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Email Address</span>
                     <div className="mt-1">
                       <GmailLink email={user.email} className="text-white hover:text-blue-400 text-sm" />
                     </div>
                   </div>
-                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl">
+                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Account Created</span>
                     <p className="text-slate-300 font-semibold text-xs mt-1 font-mono">{user.createdAt ? formatDateTimeDDMMYYYY(user.createdAt) : 'N/A'}</p>
                   </div>
-                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl">
+                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Last Updated</span>
                     <p className="text-slate-300 font-semibold text-xs mt-1 font-mono">{user.updatedAt ? formatDateTimeDDMMYYYY(user.updatedAt) : 'N/A'}</p>
                   </div>
@@ -872,7 +872,7 @@ const UserDetails = () => {
                   <FiShield className="text-emerald-400" /> Business & KYC Verification
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl">
+                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Business Type</span>
                     <div className="mt-1.5">
                       <span className="bg-slate-800/90 border border-slate-700 text-slate-200 px-2.5 py-1 rounded-lg text-xs font-bold">
@@ -880,7 +880,7 @@ const UserDetails = () => {
                       </span>
                     </div>
                   </div>
-                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl">
+                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">KYC Status</span>
                     <div className="mt-1.5">
                       {(user.isApproved || user.userId) ? (
@@ -894,7 +894,7 @@ const UserDetails = () => {
                       )}
                     </div>
                   </div>
-                  <div className="col-span-2 p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl">
+                  <div className="col-span-2 p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">GST Number</span>
                     <div className="flex items-center justify-between gap-2 mt-1">
                       <span className="text-white font-mono font-bold text-sm tracking-wide select-all">
@@ -905,7 +905,7 @@ const UserDetails = () => {
                       )}
                     </div>
                   </div>
-                  <div className="col-span-2 p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
+                  <div className="col-span-2 p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
                     <div>
                       <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">GST Certificate / Document</span>
                       <p className="text-xs text-slate-400 mt-0.5">
@@ -922,7 +922,7 @@ const UserDetails = () => {
                         <FiFileText size={14} /> View Document
                       </a>
                     ) : (
-                      <span className="text-xs text-slate-500 italic bg-white/[0.02] px-3 py-1.5 rounded-xl border border-white/5">
+                      <span className="text-xs text-slate-500 italic bg-white/[0.03] px-3 py-1.5 rounded-xl border border-white/10">
                         No Document
                       </span>
                     )}
@@ -933,7 +933,7 @@ const UserDetails = () => {
           </div>
 
           {/* Main Navigation Section Tabs */}
-          <div className="flex items-center gap-2 border-b border-white/10 pb-3 overflow-x-auto scrollbar-none">
+          <div className="flex items-center gap-2 border-b border-white/20 pb-3 overflow-x-auto scrollbar-none">
             {[
               { id: 'sessions', name: 'App Usage & Sessions', icon: FiActivity, badge: user.isOnline ? 'Online' : null },
               { id: 'devices', name: 'Registered Devices', icon: FiSmartphone, badge: user.devices?.length || 0 },
@@ -948,7 +948,7 @@ const UserDetails = () => {
                   className={`px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap active:scale-95 ${
                     isActive
                       ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 shadow-lg shadow-blue-500/10'
-                      : 'bg-white/[0.02] hover:bg-white/[0.06] text-slate-400 hover:text-slate-200 border border-white/5'
+                      : 'bg-white/[0.03] hover:bg-white/[0.08] text-slate-400 hover:text-slate-200 border border-white/10'
                   }`}
                 >
                   <Icon size={15} />
@@ -969,14 +969,14 @@ const UserDetails = () => {
           {activeSectionTab === 'sessions' && (
             <div className="space-y-6">
               {/* App Status & Security Overview */}
-              <div className="bg-slate-950/20 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl p-6 relative overflow-hidden space-y-4">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 border-b border-white/10 pb-3">
+              <div className="relative bg-slate-950/50 border border-white/20 shadow-2xl rounded-3xl p-6 overflow-hidden space-y-4">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 border-b border-white/20 pb-3">
                   <FiSmartphone className="text-blue-400" /> App Status & Security Overview
                 </h3>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3.5">
                   {/* Online Status */}
-                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col justify-between">
+                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl flex flex-col justify-between">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Connection</span>
                     <div className="mt-2.5">
                       {user.isOnline ? (
@@ -992,7 +992,7 @@ const UserDetails = () => {
                   </div>
 
                   {/* App Version */}
-                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col justify-between">
+                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl flex flex-col justify-between">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">App Version</span>
                     <p className="text-xs font-black font-mono text-white mt-2.5">
                       {hasValidAppVersion(user.appVersion) ? `v${user.appVersion}` : 'N/A'}
@@ -1000,7 +1000,7 @@ const UserDetails = () => {
                   </div>
 
                   {/* App Installation */}
-                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col justify-between">
+                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl flex flex-col justify-between">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Installation</span>
                     <div className="mt-2.5">
                       <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border ${
@@ -1016,7 +1016,7 @@ const UserDetails = () => {
                   </div>
 
                   {/* App Lock */}
-                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col justify-between">
+                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl flex flex-col justify-between">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">App Lock</span>
                     <p className={`text-xs font-extrabold mt-2.5 ${user.isAppLockEnabled ? 'text-teal-400' : 'text-slate-400'}`}>
                       {user.isAppLockEnabled ? 'Secured' : 'Inactive'}
@@ -1024,7 +1024,7 @@ const UserDetails = () => {
                   </div>
 
                   {/* Push Alerts */}
-                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col justify-between">
+                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl flex flex-col justify-between">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Push Alerts</span>
                     <p className={`text-xs font-extrabold mt-2.5 ${user.notificationsEnabled ? 'text-emerald-400' : 'text-slate-400'}`}>
                       {user.notificationsEnabled ? 'Enabled' : 'Disabled'}
@@ -1032,7 +1032,7 @@ const UserDetails = () => {
                   </div>
 
                   {/* Password Setup */}
-                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col justify-between">
+                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl flex flex-col justify-between">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Password</span>
                     <p className="text-xs font-extrabold text-white mt-2.5 capitalize truncate">
                       {user.passwordSetupStatus?.replace('_', ' ') || 'Not Sent'}
@@ -1042,14 +1042,14 @@ const UserDetails = () => {
               </div>
 
               {/* Connection & Timestamps Card */}
-              <div className="bg-slate-950/20 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl p-6 relative overflow-hidden space-y-4">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 border-b border-white/10 pb-3">
+              <div className="relative bg-slate-950/50 border border-white/20 shadow-2xl rounded-3xl p-6 overflow-hidden space-y-4">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 border-b border-white/20 pb-3">
                   <FiClock className="text-indigo-400" /> Connection & Session Timeline
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
                   {/* Last Active Connection */}
-                  <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col justify-between gap-3">
+                  <div className="p-4 bg-white/[0.03] border border-white/10 rounded-2xl flex flex-col justify-between gap-3">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Last Active Connection</span>
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-xs font-mono font-bold text-white select-all">
@@ -1070,7 +1070,7 @@ const UserDetails = () => {
                   </div>
 
                   {/* Last Login Authorization */}
-                  <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col justify-between gap-3">
+                  <div className="p-4 bg-white/[0.03] border border-white/10 rounded-2xl flex flex-col justify-between gap-3">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Last Session Login</span>
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-xs font-mono font-bold text-white select-all">
@@ -1090,7 +1090,7 @@ const UserDetails = () => {
 
                   {/* Installed At */}
                   {hasAppOrDevice(user) && user.isAppInstalled && user.installedAt && (
-                    <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col justify-between gap-3">
+                    <div className="p-4 bg-white/[0.03] border border-white/10 rounded-2xl flex flex-col justify-between gap-3">
                       <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">App Installed Date</span>
                       <div className="flex items-center justify-between gap-2">
                         <p className="text-xs font-mono font-bold text-white select-all">{formatDateTimeDDMMYYYY(user.installedAt)}</p>
@@ -1103,7 +1103,7 @@ const UserDetails = () => {
 
                   {/* Uninstalled At */}
                   {user.uninstalledAt && (
-                    <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col justify-between gap-3">
+                    <div className="p-4 bg-white/[0.03] border border-white/10 rounded-2xl flex flex-col justify-between gap-3">
                       <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">App Uninstalled Date</span>
                       <div className="flex items-center justify-between gap-2">
                         <p className="text-xs font-mono font-bold text-white select-all">{formatDateTimeDDMMYYYY(user.uninstalledAt)}</p>
@@ -1117,8 +1117,8 @@ const UserDetails = () => {
               </div>
 
               {/* Usage & Engagement Metrics */}
-              <div className="bg-slate-950/20 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl p-6 relative overflow-hidden space-y-4">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 border-b border-white/10 pb-3">
+              <div className="relative bg-slate-950/50 border border-white/20 shadow-2xl rounded-3xl p-6 overflow-hidden space-y-4">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 border-b border-white/20 pb-3">
                   <FiActivity className="text-emerald-400" /> Usage & Engagement Metrics
                 </h3>
 
@@ -1132,32 +1132,32 @@ const UserDetails = () => {
 
                   return (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
-                      <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl text-center">
+                      <div className="p-4 bg-white/[0.03] border border-white/10 rounded-2xl text-center">
                         <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Total Logins</span>
                         <p className="text-xl font-black text-white mt-1.5 font-mono">{totalLoginsCount}</p>
                       </div>
 
-                      <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl text-center">
+                      <div className="p-4 bg-white/[0.03] border border-white/10 rounded-2xl text-center">
                         <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Product Views</span>
                         <p className="text-xl font-black text-blue-400 mt-1.5 font-mono">{productViewsCount}</p>
                       </div>
 
-                      <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl text-center">
+                      <div className="p-4 bg-white/[0.03] border border-white/10 rounded-2xl text-center">
                         <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Brand Views</span>
                         <p className="text-xl font-black text-indigo-400 mt-1.5 font-mono">{brandViewsCount}</p>
                       </div>
 
-                      <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl text-center">
+                      <div className="p-4 bg-white/[0.03] border border-white/10 rounded-2xl text-center">
                         <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Category Views</span>
                         <p className="text-xl font-black text-purple-400 mt-1.5 font-mono">{categoryViewsCount}</p>
                       </div>
 
-                      <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl text-center">
+                      <div className="p-4 bg-white/[0.03] border border-white/10 rounded-2xl text-center">
                         <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Search Queries</span>
                         <p className="text-xl font-black text-teal-400 mt-1.5 font-mono">{searchQueriesCount}</p>
                       </div>
 
-                      <div className="p-4 bg-emerald-500/[0.05] border border-emerald-500/20 rounded-2xl text-center shadow-inner">
+                      <div className="p-4 bg-emerald-500/[0.08] border border-emerald-500/25 rounded-2xl text-center shadow-inner">
                         <span className="text-[10px] text-emerald-400/90 font-bold uppercase tracking-wider block">Total Actions</span>
                         <p className="text-xl font-black text-emerald-400 mt-1.5 font-mono">{totalActionsCount}</p>
                       </div>
@@ -1170,8 +1170,8 @@ const UserDetails = () => {
 
           {/* 2. Registered Devices Tab */}
           {activeSectionTab === 'devices' && (
-            <div className="bg-slate-950/20 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl p-6 relative overflow-hidden space-y-4">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between border-b border-white/10 pb-3">
+            <div className="relative bg-slate-950/50 border border-white/20 shadow-2xl rounded-3xl p-6 overflow-hidden space-y-4">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between border-b border-white/20 pb-3">
                 <span className="flex items-center gap-2">
                   <FiSmartphone className="text-blue-400" /> Registered Devices
                 </span>
@@ -1191,8 +1191,8 @@ const UserDetails = () => {
                     const isApple = platform === 'ios' || platform === 'apple';
 
                     return (
-                      <div key={device._id || idx} className="p-4 bg-white/[0.02] hover:bg-white/[0.04] border border-white/5 hover:border-white/15 rounded-2xl space-y-3 transition-all shadow-sm">
-                        <div className="flex items-center justify-between border-b border-white/5 pb-2.5">
+                      <div key={device._id || idx} className="p-4 bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 rounded-2xl space-y-3 transition-all shadow-sm">
+                        <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
                           <div className="flex items-center gap-2.5 min-w-0">
                             <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400 shrink-0">
                               {isAndroid ? (
@@ -1232,7 +1232,7 @@ const UserDetails = () => {
                             </span>
                           </div>
 
-                          <div className="col-span-2 pt-1 border-t border-white/5">
+                          <div className="col-span-2 pt-1 border-t border-white/10">
                             <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Device Token / ID</span>
                             <div className="flex items-center justify-between gap-2 mt-0.5">
                               <span className="text-slate-400 font-mono text-[10px] truncate" title={device.deviceId || device.fcmToken}>
@@ -1254,8 +1254,8 @@ const UserDetails = () => {
 
           {/* 3. Customer Browsing Activity Tab */}
           {activeSectionTab === 'activity' && (
-            <div className="bg-slate-950/20 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl p-6 relative overflow-hidden space-y-5">
-              <div className="border-b border-white/10 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="relative bg-slate-950/50 border border-white/20 shadow-2xl rounded-3xl p-6 overflow-hidden space-y-5">
+              <div className="border-b border-white/20 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                   <FiEye className="text-blue-400" /> Customer Browsing Activity
                 </h3>
@@ -1275,7 +1275,7 @@ const UserDetails = () => {
                     className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1.5 active:scale-95 ${
                       activeActivityTab === tab.id
                         ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 shadow-md'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'
+                        : 'bg-white/[0.03] hover:bg-white/[0.08] text-slate-400 hover:text-slate-200 border border-white/10'
                     }`}
                   >
                     <span>{tab.name}</span>
@@ -1294,7 +1294,7 @@ const UserDetails = () => {
                   <span className="text-xs font-medium">Processing activity logs...</span>
                 </div>
               ) : (
-                <div className="max-h-[380px] overflow-auto custom-scrollbar rounded-2xl border border-white/10 bg-slate-950/25">
+                <div className="max-h-[380px] overflow-auto custom-scrollbar rounded-2xl border border-white/10 bg-white/[0.02]">
                   {activeActivityTab === 'products' && (
                     <table className="w-full text-left border-collapse min-w-[500px]">
                       <thead>
@@ -1305,7 +1305,7 @@ const UserDetails = () => {
                           <th className="p-3.5 text-right sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Latest View</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/5">
+                      <tbody className="divide-y divide-white/10">
                         {userActivities.products.length === 0 ? (
                           <tr>
                             <td colSpan="4" className="p-8 text-center text-xs text-slate-500 italic">No products viewed by this user.</td>
@@ -1364,7 +1364,7 @@ const UserDetails = () => {
                           <th className="p-3.5 text-right sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Latest View</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/5">
+                      <tbody className="divide-y divide-white/10">
                         {userActivities.brands.length === 0 ? (
                           <tr>
                             <td colSpan="3" className="p-8 text-center text-xs text-slate-500 italic">No brands viewed by this user.</td>
@@ -1408,7 +1408,7 @@ const UserDetails = () => {
                           <th className="p-3.5 text-right sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Latest View</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/5">
+                      <tbody className="divide-y divide-white/10">
                         {userActivities.categories.length === 0 ? (
                           <tr>
                             <td colSpan="3" className="p-8 text-center text-xs text-slate-500 italic">No categories viewed by this user.</td>
@@ -1452,7 +1452,7 @@ const UserDetails = () => {
                           <th className="p-3.5 text-right sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Latest Search</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/5">
+                      <tbody className="divide-y divide-white/10">
                         {userActivities.searches.length === 0 ? (
                           <tr>
                             <td colSpan="3" className="p-8 text-center text-xs text-slate-500 italic">No search queries logged by this user.</td>
@@ -1486,8 +1486,8 @@ const UserDetails = () => {
           )}
 
           {/* Danger Zone */}
-          <div className="bg-slate-950/20 backdrop-blur-xl border border-rose-500/20 shadow-2xl rounded-3xl p-6 relative overflow-hidden space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
+          <div className="relative bg-slate-950/50 border border-rose-500/20 shadow-2xl rounded-3xl p-6 overflow-hidden space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
               <div>
                 <h4 className="text-xs font-bold text-rose-400 uppercase tracking-wider flex items-center gap-2">
                   <FiAlertCircle /> Account Security & Danger Zone

@@ -943,7 +943,7 @@ const Layout = () => {
     if (path === '/orders' || path === '/orders/all') return ordersUnreadCount;
     if (path === '/users/list') return usersUnreadCount + usersVerifyUnreadCount + usersDeletionUnreadCount;
     if (path === '/quotes') return quotesUnreadCount;
-    if (path === '/products/broken-images') return brokenImagesUnreadCount;
+    if (path === '/products/broken-images') return brokenImagesUnreadCount + (failedImageProductNames.length > 0 ? 1 : 0);
     return 0;
   };
 
@@ -1281,11 +1281,16 @@ const Layout = () => {
                   >
                     <div className="flex items-center min-w-0">
                       {Icon && (
-                        <Icon
-                          className={`shrink-0 transition-all duration-200 
-                            ${isChildActive ? 'text-blue-400 scale-110' : 'text-slate-400 group-hover:text-blue-400 group-hover:scale-110'} 
-                            ${isExpanded ? 'text-lg' : 'text-base lg:mr-0'}`}
-                        />
+                        <div className="relative shrink-0 flex items-center justify-center">
+                          <Icon
+                            className={`shrink-0 transition-all duration-200 
+                              ${isChildActive ? 'text-blue-400 scale-110' : 'text-slate-400 group-hover:text-blue-400 group-hover:scale-110'} 
+                              ${isExpanded ? 'text-lg' : 'text-base lg:mr-0'}`}
+                          />
+                          {!isExpanded && parentBadgeCount > 0 && (
+                            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-slate-900 shadow-sm animate-pulse pointer-events-none" />
+                          )}
+                        </div>
                       )}
                       <span className={`font-medium text-sm whitespace-nowrap transition-all duration-300 ease-in-out ${isExpanded ? 'opacity-100 max-w-[150px] ml-3' : 'opacity-0 max-w-0 overflow-hidden ml-0'
                         }`}>{menu.name}</span>
@@ -1374,11 +1379,16 @@ const Layout = () => {
               >
                 <div className="flex items-center min-w-0">
                   {Icon && (
-                    <Icon
-                      className={`shrink-0 transition-all duration-200 
-                        ${isActive ? 'scale-110 text-blue-400' : 'group-hover:scale-110 text-slate-400 group-hover:text-blue-400'} 
-                        ${isExpanded ? 'text-lg' : 'text-base lg:mr-0'}`}
-                    />
+                    <div className="relative shrink-0 flex items-center justify-center">
+                      <Icon
+                        className={`shrink-0 transition-all duration-200 
+                          ${isActive ? 'scale-110 text-blue-400' : 'group-hover:scale-110 text-slate-400 group-hover:text-blue-400'} 
+                          ${isExpanded ? 'text-lg' : 'text-base lg:mr-0'}`}
+                      />
+                      {!isExpanded && badgeCount > 0 && (
+                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-slate-900 shadow-sm animate-pulse pointer-events-none" />
+                      )}
+                    </div>
                   )}
                   <span className={`font-medium text-sm whitespace-nowrap transition-all duration-300 ease-in-out ${isExpanded ? 'opacity-100 max-w-[150px] ml-3' : 'opacity-0 max-w-0 overflow-hidden ml-0'
                     }`}>{menu.name}</span>

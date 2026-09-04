@@ -28,7 +28,7 @@ const Brands = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [brandToDelete, setBrandToDelete] = useState(null);
   const [typedConfirmName, setTypedConfirmName] = useState('');
-  
+
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
 
@@ -125,8 +125,8 @@ const Brands = () => {
 
   const handleEdit = (brand) => {
     setEditingId(brand._id);
-    setFormData({ 
-      name: brand.name, 
+    setFormData({
+      name: brand.name,
       description: brand.description || '',
       isActive: brand.isActive === true || brand.isActive === 'true',
       showOnHomeScreen: brand.showOnHomeScreen === true || brand.showOnHomeScreen === 'true'
@@ -179,9 +179,9 @@ const Brands = () => {
         </div>
         <div className="relative w-full sm:w-72 mt-4 sm:mt-0">
           <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 z-10" />
-          <input 
-            type="text" 
-            placeholder="Search brands..." 
+          <input
+            type="text"
+            placeholder="Search brands..."
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
@@ -205,7 +205,7 @@ const Brands = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        
+
         {/* Left Column: Add / Edit Form */}
         <div className="lg:col-span-1">
           <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 flex flex-col justify-between lg:h-[580px]">
@@ -222,8 +222,8 @@ const Brands = () => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Brand Name</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -233,8 +233,8 @@ const Brands = () => {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Description</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     placeholder="e.g. Smart accessories brand"
@@ -245,7 +245,7 @@ const Brands = () => {
                 {/* Brand Logo Upload Dropzone */}
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Brand Logo</label>
-                  <div 
+                  <div
                     onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                     onDragLeave={() => setIsDragging(false)}
                     onDrop={(e) => {
@@ -258,22 +258,21 @@ const Brands = () => {
                       }
                     }}
                     onClick={() => document.getElementById('brand-logo-input').click()}
-                    className={`w-full h-32 border-2 border-dashed rounded-2xl flex flex-col justify-center items-center gap-1.5 cursor-pointer transition-all duration-300 relative overflow-hidden group select-none ${
-                      isDragging 
-                        ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/20' 
-                        : 'border-white/10 hover:border-blue-500/40 hover:bg-white/5'
-                    }`}
+                    className={`w-full h-32 border-2 border-dashed rounded-2xl flex flex-col justify-center items-center gap-1.5 cursor-pointer transition-all duration-300 relative overflow-hidden group select-none ${isDragging
+                      ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/20'
+                      : 'border-white/10 hover:border-blue-500/40 hover:bg-white/5'
+                      }`}
                   >
-                    <input 
+                    <input
                       id="brand-logo-input"
-                      type="file" 
+                      type="file"
                       accept="image/*"
                       onChange={handleImageChange}
                       className="hidden"
                     />
                     {imagePreview ? (
                       <>
-                        <button 
+                        <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -306,11 +305,11 @@ const Brands = () => {
                   <div>
                     <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-2">Home Screen</label>
                     <label className="inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
+                      <input
+                        type="checkbox"
                         className="sr-only peer"
                         checked={formData.showOnHomeScreen}
-                        onChange={(e) => setFormData({...formData, showOnHomeScreen: e.target.checked})}
+                        onChange={(e) => setFormData({ ...formData, showOnHomeScreen: e.target.checked })}
                       />
                       <div className="relative w-9 h-5 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-500/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-white after:border-slate-400 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500"></div>
                       <span className="ms-2 text-xs font-bold text-slate-300">
@@ -323,11 +322,11 @@ const Brands = () => {
                     <div>
                       <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-2">Status</label>
                       <label className="inline-flex items-center cursor-pointer">
-                        <input 
-                          type="checkbox" 
+                        <input
+                          type="checkbox"
                           className="sr-only peer"
                           checked={formData.isActive}
-                          onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
+                          onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                         />
                         <div className="relative w-9 h-5 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-white after:border-slate-400 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
                         <span className="ms-2 text-xs font-bold text-slate-300">
@@ -342,7 +341,7 @@ const Brands = () => {
               </div>
 
               <div className="pt-3 flex gap-3">
-                <button 
+                <button
                   type="submit"
                   disabled={isSubmitting}
                   className="flex-1 flex items-center justify-center px-4 py-2.5 bg-blue-600/70 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
@@ -350,9 +349,9 @@ const Brands = () => {
                   {isSubmitting ? <FiLoader className="mr-2 animate-spin" /> : (editingId ? <FiSave className="mr-2" /> : <FiPlus className="mr-2" />)}
                   {isSubmitting ? 'Saving...' : (editingId ? 'Update Brand' : 'Add Brand')}
                 </button>
-                
+
                 {editingId && (
-                  <button 
+                  <button
                     type="button"
                     onClick={cancelEdit}
                     className="flex items-center justify-center px-4 py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl hover:bg-slate-700 transition-colors cursor-pointer"
@@ -395,32 +394,32 @@ const Brands = () => {
                         <td className="px-6 py-4">
                           <div className="flex items-center">
                             {brand.logo ? (
-                            <OptimizedImage src={brand.logo} alt={brand.name} width={80} quality={65} className="w-10 h-10 rounded-lg object-contain bg-white p-1 border border-white/10 mr-3 shrink-0" />
+                              <OptimizedImage src={brand.logo} alt={brand.name} width={80} quality={65} className="w-10 h-10 rounded-lg object-contain bg-white p-1 border border-white/10 mr-3 shrink-0" />
                             ) : (
-                            <div className="w-10 h-10 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center mr-3 text-slate-400 shrink-0">
+                              <div className="w-10 h-10 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center mr-3 text-slate-400 shrink-0">
                                 <FiTag />
                               </div>
                             )}
-                          <div className="flex flex-col">
-                            <span className="font-bold text-white">{brand.name}</span>
-                            <div className="flex items-center gap-1 mt-0.5">
-                              <span className="text-xs text-slate-600 font-bold font-mono">{brand._id}</span>
-                              <CopyButton text={brand._id} />
-                            </div>
-                            {brand.description && (
-                              <span className="text-slate-400 text-xs mt-0.5 line-clamp-1 max-w-[200px]" title={brand.description}>{brand.description}</span>
-                            )}
-                            <div className="flex gap-2 mt-1">
-                              <span className={`text-[9px] font-bold px-2 py-0.5 rounded border ${brand.isActive !== false ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>
-                                {brand.isActive !== false ? 'ACTIVE' : 'HIDDEN'}
-                              </span>
-                              {(brand.showOnHomeScreen === true || brand.showOnHomeScreen === 'true') && (
-                                <span className="text-[9px] font-bold px-2 py-0.5 rounded border bg-blue-500/10 text-blue-400 border-blue-500/20">
-                                  HOME SCREEN
-                                </span>
+                            <div className="flex flex-col">
+                              <span className="font-bold text-white">{brand.name}</span>
+                              <div className="flex items-center gap-1 mt-0.5">
+                                <span className="text-xs text-slate-600 font-bold font-mono">{brand._id}</span>
+                                <CopyButton text={brand._id} />
+                              </div>
+                              {brand.description && (
+                                <span className="text-slate-400 text-xs mt-0.5 line-clamp-1 max-w-[200px]" title={brand.description}>{brand.description}</span>
                               )}
+                              <div className="flex gap-2 mt-1">
+                                <span className={`text-[9px] font-bold px-2 py-0.5 rounded border ${brand.isActive !== false ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>
+                                  {brand.isActive !== false ? 'ACTIVE' : 'HIDDEN'}
+                                </span>
+                                {(brand.showOnHomeScreen === true || brand.showOnHomeScreen === 'true') && (
+                                  <span className="text-[9px] font-bold px-2 py-0.5 rounded border bg-blue-500/10 text-blue-400 border-blue-500/20">
+                                    HOME SCREEN
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                          </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm font-semibold text-slate-300 text-center">
@@ -457,7 +456,7 @@ const Brands = () => {
                 </tbody>
               </table>
             </div>
-            
+
             {/* Pagination */}
             {!loading && filteredBrands.length > 0 && (
               <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
@@ -465,7 +464,7 @@ const Brands = () => {
                   Showing <span className="font-bold text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastItem, filteredBrands.length)}</span> of <span className="font-bold text-white">{filteredBrands.length}</span> brands
                 </span>
                 <div className="flex space-x-2">
-                  <button 
+                  <button
                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
                     className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
@@ -503,20 +502,19 @@ const Brands = () => {
                             }
                           }}
                           disabled={page === '...'}
-                          className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${
-                            page === currentPage
-                              ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
-                              : page === '...'
+                          className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${page === currentPage
+                            ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
+                            : page === '...'
                               ? 'bg-transparent text-slate-500 border-transparent cursor-default'
                               : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
-                          }`}
+                            }`}
                         >
                           {page}
                         </button>
                       ));
                     })()}
                   </div>
-                  <button 
+                  <button
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages || totalPages === 0}
                     className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
@@ -534,8 +532,8 @@ const Brands = () => {
       {/* Delete Confirmation Modal */}
       {deleteConfirmOpen && brandToDelete && createPortal(
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/25 backdrop-blur-md animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setBrandToDelete(null); setTypedConfirmName(''); }}></div>
-          <div className="relative bg-slate-950/15 backdrop-blur-md border border-red-500/20 rounded-2xl p-6 shadow-2xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setBrandToDelete(null); setTypedConfirmName(''); }}></div>
+          <div className="relative bg-slate-950/25 border border-red-500/20 rounded-2xl p-6 shadow-red-500/20 shadow-2xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
               <FiAlertCircle className="text-red-500 animate-pulse" /> Confirm Deletion
             </h3>
@@ -579,7 +577,7 @@ const Brands = () => {
       {/* Custom Alert Modal */}
       {alertOpen && createPortal(
         <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/25 backdrop-blur-md animate-fade-in" onClick={() => setAlertOpen(false)}></div>
+          <div className="absolute inset-0 bg-slate-950/25 animate-fade-in" onClick={() => setAlertOpen(false)}></div>
           <div className="relative bg-slate-950/15 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
               <FiInfo className="text-blue-400" /> Alert

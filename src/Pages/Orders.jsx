@@ -2,9 +2,9 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { BASE_URL } from '../api/axios';
-import { 
-  FiBox, FiLoader, FiAlertCircle, FiChevronDown, FiCalendar, 
-  FiX, FiMapPin, FiCreditCard, FiUser, FiPhone, FiMail, 
+import {
+  FiBox, FiLoader, FiAlertCircle, FiChevronDown, FiCalendar,
+  FiX, FiMapPin, FiCreditCard, FiUser, FiPhone, FiMail,
   FiFileText, FiUpload, FiDownload, FiCheckCircle, FiTrash2, FiInfo, FiRefreshCcw, FiCheck,
   FiTruck, FiCopy, FiEye, FiSearch
 } from 'react-icons/fi';
@@ -47,7 +47,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updatingId, setUpdatingId] = useState(null);
-  
+
   // Modals state
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -73,7 +73,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
   // Delivered tab configuration
   const [activeDeliveredTab, setActiveDeliveredTab] = useState('orders'); // 'orders' or 'returns'
   const [paymentFilter, setPaymentFilter] = useState('all'); // 'all', 'paid', 'pending'
-  
+
   // Return requests state
   const [returnsList, setReturnsList] = useState([]);
   const [loadingReturns, setLoadingReturns] = useState(false);
@@ -101,7 +101,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
       const fetchedOrders = Array.isArray(response.data) ? response.data : response.data.orders || [];
       // Sort latest first
       setOrders(fetchedOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
-      
+
       if (setOrdersUnreadCount) {
         setOrdersUnreadCount(0);
       }
@@ -163,7 +163,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
     try {
       setUpdatingId(orderId);
       const token = sessionStorage.getItem('accessToken');
-      const payload = { 
+      const payload = {
         orderStatus: newStatus,
         ...shippingInfo
       };
@@ -202,7 +202,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
       if (newStatus === 'Rejected' && rejectionReason) {
         payload.rejectionReason = rejectionReason;
       }
-      
+
       const response = await axios.put(
         `${BASE_URL}/api/returns/${returnId}/status`,
         payload,
@@ -293,7 +293,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
             navigate(location.pathname + location.search, { replace: true, state: {} });
           }
         })
-        .catch(() => {});
+        .catch(() => { });
     }
 
     return () => {
@@ -355,7 +355,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
 
       // Update states
       setSelectedOrder({ ...selectedOrder, invoiceUrl: updatedInvoiceUrl });
-      setOrders(orders.map(order => 
+      setOrders(orders.map(order =>
         order._id === selectedOrder._id ? { ...order, invoiceUrl: updatedInvoiceUrl } : order
       ));
 
@@ -384,7 +384,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
       } else {
         if (order.orderStatus?.toLowerCase() !== defaultStatus.toLowerCase()) return false;
       }
-      
+
       // 2. Filter by paymentStatus
       if (paymentFilter === 'paid') {
         if (order.paymentStatus?.toLowerCase() !== 'paid') return false;
@@ -399,12 +399,12 @@ const Orders = ({ defaultStatus = 'all' }) => {
         const customerNameMatch = (order.user?.name || '').toLowerCase().includes(query) || (order.shippingAddress?.name || '').toLowerCase().includes(query);
         const customerEmailMatch = (order.user?.email || '').toLowerCase().includes(query);
         const customerPhoneMatch = (order.user?.phone || '').toLowerCase().includes(query) || (order.shippingAddress?.phone || '').toLowerCase().includes(query);
-        
+
         if (!orderIdMatch && !customerNameMatch && !customerEmailMatch && !customerPhoneMatch) {
           return false;
         }
       }
-      
+
       return true;
     });
   }, [orders, defaultStatus, statusFilter, paymentFilter, searchTerm]);
@@ -422,20 +422,20 @@ const Orders = ({ defaultStatus = 'all' }) => {
         // Default: sort latest first
         return new Date(b.createdAt) - new Date(a.createdAt);
       }
-      
+
       let valA = a[sortKey];
       let valB = b[sortKey];
-      
+
       if (sortKey === 'createdAt') {
         valA = new Date(valA || 0);
         valB = new Date(valB || 0);
       }
-      
+
       if (sortKey === 'totalAmount') {
         valA = parseFloat(valA || 0);
         valB = parseFloat(valB || 0);
       }
-      
+
       if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
       if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
       return 0;
@@ -467,7 +467,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-            <FiBox className="text-blue-400" /> 
+            <FiBox className="text-blue-400" />
             {defaultStatus === 'all' && 'All Orders'}
             {defaultStatus === 'processing' && 'Processing Orders'}
             {defaultStatus === 'shipped' && 'Shipped Orders'}
@@ -475,8 +475,8 @@ const Orders = ({ defaultStatus = 'all' }) => {
             {defaultStatus === 'delivered' && 'Delivered & Returns'}
           </h1>
           <p className="text-slate-400 font-medium mt-1">
-            {defaultStatus === 'delivered' 
-              ? 'Review finished customer orders and process user product return logs.' 
+            {defaultStatus === 'delivered'
+              ? 'Review finished customer orders and process user product return logs.'
               : 'View and manage customer order fulfillment statuses.'}
           </p>
         </div>
@@ -526,7 +526,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
 
       {!loading && !error && (
         <div className="border border-white/10 shadow-2xl shadow-black/50 rounded-2xl md:rounded-3xl overflow-hidden flex flex-col h-full">
-          
+
           {/* Delivered Tab Header Switching Section */}
           {defaultStatus === 'delivered' && (
             <div className="flex border-b border-white/10 px-6 py-4 bg-slate-900/40 gap-6">
@@ -557,7 +557,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                     <tr className="border-b border-white/10 text-xs font-bold text-slate-400 uppercase tracking-wider">
                       <th className="p-2 pl-6 w-16">S.No</th>
                       <th className="p-4">Order ID</th>
-                      <th 
+                      <th
                         onClick={() => handleSortChange('createdAt')}
                         className="p-4 cursor-pointer select-none hover:text-white transition-colors"
                       >
@@ -572,7 +572,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                       </th>
                       <th className="p-4">Customer</th>
                       <th className="p-4 text-center">Items</th>
-                      <th 
+                      <th
                         onClick={() => handleSortChange('totalAmount')}
                         className="p-4 cursor-pointer select-none hover:text-white transition-colors"
                       >
@@ -623,8 +623,8 @@ const Orders = ({ defaultStatus = 'all' }) => {
                   </thead>
                   <tbody className="divide-y divide-white/5">
                     {currentOrders.map((order, index) => (
-                      <tr 
-                        key={order._id} 
+                      <tr
+                        key={order._id}
                         onClick={() => handleViewDetails(order)}
                         className="hover:bg-white/[0.02] cursor-pointer transition-colors group align-middle"
                       >
@@ -762,13 +762,12 @@ const Orders = ({ defaultStatus = 'all' }) => {
                               if (page !== '...') setCurrentPage(page);
                             }}
                             disabled={page === '...'}
-                            className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${
-                              page === currentPage
-                                ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
-                                : page === '...'
+                            className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${page === currentPage
+                              ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
+                              : page === '...'
                                 ? 'bg-transparent text-slate-500 border-transparent cursor-default'
                                 : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
-                            }`}
+                              }`}
                           >
                             {page}
                           </button>
@@ -818,10 +817,10 @@ const Orders = ({ defaultStatus = 'all' }) => {
                           const returnId = ret._id || ret.id;
                           const orderId = ret.order?._id || ret.orderId || 'N/A';
                           const returnReason = ret.items?.[0]?.reason || ret.reason || 'No reason provided';
-                          
+
                           return (
-                            <tr 
-                              key={returnId} 
+                            <tr
+                              key={returnId}
                               onClick={() => { setSelectedReturn(ret); setIsReturnModalOpen(true); }}
                               className="hover:bg-white/[0.02] cursor-pointer transition-colors group align-middle"
                             >
@@ -939,13 +938,12 @@ const Orders = ({ defaultStatus = 'all' }) => {
                               if (page !== '...') setCurrentReturnsPage(page);
                             }}
                             disabled={page === '...'}
-                            className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${
-                              page === currentReturnsPage
-                                ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
-                                : page === '...'
+                            className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${page === currentReturnsPage
+                              ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
+                              : page === '...'
                                 ? 'bg-transparent text-slate-500 border-transparent cursor-default'
                                 : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
-                            }`}
+                              }`}
                           >
                             {page}
                           </button>
@@ -971,10 +969,10 @@ const Orders = ({ defaultStatus = 'all' }) => {
       {/* ORDER DETAILS MODAL */}
       {isModalOpen && selectedOrder && createPortal(
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm" onClick={closeModal}></div>
-          
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={closeModal}></div>
+
           <div className="relative bg-slate-950/25 border border-white/20 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-5xl h-[90vh] md:h-[85vh] max-h-[95vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            
+
             {/* Modal Header */}
             <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-white/20 flex justify-between items-center bg-white/[0.03] shrink-0">
               <div>
@@ -994,7 +992,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
 
             {/* Modal Body */}
             <div className="overflow-y-auto w-full flex-1 custom-scrollbar p-4 sm:p-6 space-y-6 bg-slate-950/25">
-              
+
               {/* Quick Info Badges */}
               <div className="flex flex-wrap gap-3">
                 <div className="px-4 py-2 bg-white/[0.03] border border-white/20 rounded-xl flex items-center gap-2 text-sm">
@@ -1095,7 +1093,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
               )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
+
                 {/* Customer Details */}
                 <div className="bg-white/[0.03] p-4 rounded-2xl border border-white/20 space-y-4">
                   <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
@@ -1116,7 +1114,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                     )}
                     <div>
                       <span className="block text-xs text-slate-500 mb-0.5">Phone</span>
-                      <span className="font-medium text-white flex items-center gap-1.5"><FiPhone className="text-slate-400"/> {selectedOrder.address?.phone || 'N/A'}</span>
+                      <span className="font-medium text-white flex items-center gap-1.5"><FiPhone className="text-slate-400" /> {selectedOrder.address?.phone || 'N/A'}</span>
                     </div>
                   </div>
                 </div>
@@ -1134,7 +1132,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                       <p>{selectedOrder.address?.country} - <span className="font-mono text-slate-400">{selectedOrder.address?.pincode}</span></p>
                     </div>
                   </div>
-                  
+
                   {(selectedOrder.awbNumber || selectedOrder.courierName) && (
                     <div className="border-t border-white/10 pt-3 mt-3 space-y-2">
                       <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -1162,7 +1160,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                   <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                     <FiTruck className="text-blue-400" /> Shipment Tracking Details
                   </h4>
-                  
+
                   {loadingTracking ? (
                     <div className="py-6 flex flex-col justify-center items-center">
                       <FiLoader className="animate-spin text-2xl text-blue-400 mb-2" />
@@ -1183,8 +1181,8 @@ const Orders = ({ defaultStatus = 'all' }) => {
                         <div>
                           <span className="block text-xs text-slate-500 mb-0.5">Expected Delivery</span>
                           <span className="font-bold text-white">
-                            {trackingData.expectedDeliveryDate 
-                              ? formatDateDDMMYYYY(trackingData.expectedDeliveryDate) 
+                            {trackingData.expectedDeliveryDate
+                              ? formatDateDDMMYYYY(trackingData.expectedDeliveryDate)
                               : 'Pending Courier Update'}
                           </span>
                         </div>
@@ -1243,14 +1241,14 @@ const Orders = ({ defaultStatus = 'all' }) => {
                         </div>
                         <div className="flex flex-wrap gap-2">
                           {(() => {
-                            const displayImages = item.variant?.images?.length > 0 
-                              ? item.variant.images 
-                              : item.product?.images?.length > 0 
-                                ? item.product.images 
-                                : item.image 
-                                  ? [item.image] 
+                            const displayImages = item.variant?.images?.length > 0
+                              ? item.variant.images
+                              : item.product?.images?.length > 0
+                                ? item.product.images
+                                : item.image
+                                  ? [item.image]
                                   : [];
-                            
+
                             const prodId = item.product?._id || item.product || item.productId;
                             return displayImages.length > 0 ? (
                               displayImages.map((img, imgIdx) => (
@@ -1320,9 +1318,9 @@ const Orders = ({ defaultStatus = 'all' }) => {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="w-full h-px md:w-px md:h-auto bg-white/20 shrink-0"></div>
-                  
+
                   <div className="flex-1 flex flex-col justify-center items-end bg-slate-950/45 p-4 rounded-xl border border-white/15">
                     <span className="text-sm text-slate-400 mb-1">Total Order Amount</span>
                     <span className="text-3xl font-black text-emerald-400">₹{(selectedOrder.totalAmount || 0).toLocaleString('en-IN')}</span>
@@ -1357,7 +1355,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="flex flex-wrap gap-3 items-center w-full md:w-auto justify-end">
                     {selectedOrder.invoiceUrl && (
                       <>
@@ -1378,12 +1376,11 @@ const Orders = ({ defaultStatus = 'all' }) => {
                         </a>
                       </>
                     )}
-                    
-                    <label className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer ${
-                      isUploadingInvoice 
-                        ? 'bg-slate-800 text-slate-500 border border-white/5 cursor-not-allowed'
-                        : 'bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-500/20 border border-blue-500'
-                    }`}>
+
+                    <label className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer ${isUploadingInvoice
+                      ? 'bg-slate-800 text-slate-500 border border-white/5 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-500/20 border border-blue-500'
+                      }`}>
                       {isUploadingInvoice ? (
                         <>
                           <FiLoader className="animate-spin" /> Uploading...
@@ -1408,15 +1405,15 @@ const Orders = ({ defaultStatus = 'all' }) => {
             </div>
           </div>
         </div>
-      , document.body)}
+        , document.body)}
 
       {/* RETURN DETAILS MODAL */}
       {isReturnModalOpen && selectedReturn && createPortal(
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm" onClick={closeReturnModal}></div>
-          
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={closeReturnModal}></div>
+
           <div className="relative bg-slate-950/15 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-4xl h-[90vh] md:h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            
+
             {/* Header */}
             <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-white/20 flex justify-between items-center bg-white/[0.03] shrink-0">
               <div>
@@ -1510,7 +1507,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                       const productName = item.product?.name || item.name || 'Unknown Product';
                       const productImg = item.product?.images?.[0] || item.image || '';
                       const prodId = item.product?._id || item.product || item.productId;
-                      
+
                       return (
                         <div key={idx} className="flex flex-col sm:flex-row gap-4 justify-between p-4 bg-slate-950/45 rounded-xl border border-white/10">
                           <div className="flex gap-4 items-start flex-1 min-w-0">
@@ -1590,7 +1587,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
 
             {/* Footer / Actions */}
             <div className="px-4 sm:px-6 py-4 border-t border-white/20 flex flex-wrap gap-2 justify-between bg-white/[0.03] shrink-0">
-              <button 
+              <button
                 onClick={closeReturnModal}
                 className="px-6 py-2.5 bg-slate-900/60 hover:bg-slate-800 border border-white/10 text-slate-300 font-bold rounded-xl transition-colors text-sm"
               >
@@ -1629,12 +1626,12 @@ const Orders = ({ defaultStatus = 'all' }) => {
 
           </div>
         </div>
-      , document.body)}
+        , document.body)}
 
       {/* PDF Preview Modal */}
       {previewPdfUrl && createPortal(
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm animate-fade-in" onClick={() => {
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg animate-fade-in" onClick={() => {
             if (!isUploadingInvoice) {
               setPreviewPdfUrl(null);
               setPendingInvoiceFile(null);
@@ -1649,28 +1646,28 @@ const Orders = ({ defaultStatus = 'all' }) => {
                   {isPendingUpload ? 'Confirm Invoice PDF Before Uploading' : 'Invoice PDF Preview'}
                 </h3>
               </div>
-              <button 
+              <button
                 onClick={() => {
                   setPreviewPdfUrl(null);
                   setPendingInvoiceFile(null);
                   setIsPendingUpload(false);
-                }} 
+                }}
                 disabled={isUploadingInvoice}
                 className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors disabled:opacity-50 cursor-pointer"
               >
                 <FiX className="text-xl" />
               </button>
             </div>
-            
+
             <div className="p-4 sm:p-6 bg-slate-950/25 flex-1 flex flex-col min-h-0 space-y-3">
-              <iframe 
+              <iframe
                 src={`${previewPdfUrl}#toolbar=0&navpanes=0&view=FitH`}
-                className="w-full h-[60vh] min-h-[450px] rounded-2xl bg-slate-950/60 border border-white/10" 
-                title="Invoice PDF" 
+                className="w-full h-[60vh] min-h-[450px] rounded-2xl bg-slate-950/60 border border-white/10"
+                title="Invoice PDF"
               />
               <div className="text-center sm:text-left">
                 <p className="text-xs text-slate-400">
-                  {isPendingUpload 
+                  {isPendingUpload
                     ? 'Please review the invoice details. Click "Confirm & Upload" to save the file and notify the customer.'
                     : 'Note: If the PDF does not display, you can download it directly using the button below.'}
                 </p>
@@ -1711,8 +1708,8 @@ const Orders = ({ defaultStatus = 'all' }) => {
                 </>
               ) : (
                 <>
-                  <a 
-                    href={previewPdfUrl} 
+                  <a
+                    href={previewPdfUrl}
                     download
                     target="_blank"
                     rel="noopener noreferrer"
@@ -1720,7 +1717,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
                   >
                     <FiDownload /> Download PDF
                   </a>
-                  <button 
+                  <button
                     onClick={() => setPreviewPdfUrl(null)}
                     className="px-5 py-2.5 bg-slate-900/60 hover:bg-slate-800 border border-white/10 text-white font-bold rounded-xl transition-colors text-sm cursor-pointer"
                   >
@@ -1737,8 +1734,8 @@ const Orders = ({ defaultStatus = 'all' }) => {
       {/* Status Change Confirmation Modal */}
       {statusConfirmOpen && statusConfirmData && createPortal(
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-          <div 
-            className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm animate-fade-in" 
+          <div
+            className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg animate-fade-in"
             onClick={() => setStatusConfirmOpen(false)}
           ></div>
           <div className="relative bg-slate-950/25 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
@@ -1747,14 +1744,14 @@ const Orders = ({ defaultStatus = 'all' }) => {
                 <FiAlertCircle className="text-amber-400 text-xl" />
                 <h3 className="text-lg font-bold text-white">Confirm Status Change</h3>
               </div>
-              <button 
-                onClick={() => setStatusConfirmOpen(false)} 
+              <button
+                onClick={() => setStatusConfirmOpen(false)}
                 className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors cursor-pointer"
               >
                 <FiX className="text-xl" />
               </button>
             </div>
-            
+
             <div className="p-6 bg-slate-950/25 text-slate-300 space-y-4">
               <p className="text-sm leading-relaxed">
                 Are you sure you want to change the status of this order to{' '}
@@ -1793,8 +1790,8 @@ const Orders = ({ defaultStatus = 'all' }) => {
                 type="button"
                 onClick={() => {
                   handleStatusChange(
-                    statusConfirmData.orderId, 
-                    statusConfirmData.newStatus, 
+                    statusConfirmData.orderId,
+                    statusConfirmData.newStatus,
                     statusConfirmData.shippingInfo
                   );
                   setStatusConfirmOpen(false);

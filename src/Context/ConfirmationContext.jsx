@@ -11,7 +11,7 @@ export const ConfirmationProvider = ({ children }) => {
     type: 'confirm', // 'confirm' or 'alert'
     alertType: 'info' // 'success', 'error', 'info'
   });
-  
+
   const resolverRef = useRef(null);
 
   const confirm = (msg) => {
@@ -95,8 +95,8 @@ export const ConfirmationProvider = ({ children }) => {
     <ConfirmationContext.Provider value={{ confirm, showAlert }}>
       {children}
       {modalState.isOpen && createPortal(
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-md animate-in fade-in duration-200">
-          <div className={`relative w-full max-w-md bg-slate-950/25 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl ${getAlertShadowClass()} p-6 overflow-hidden animate-in zoom-in-95 duration-200 text-left`}>
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-lg animate-in fade-in duration-200">
+          <div className={`relative w-full max-w-md bg-slate-950/25 border border-white/10 rounded-2xl shadow-2xl ${getAlertShadowClass()} p-6 overflow-hidden animate-in zoom-in-95 duration-200 text-left`}>
             {/* Ambient indicator header */}
             <div className={`absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r ${getAlertThemeClass()} shadow-sm ${getAlertShadowClass()}`}></div>
 

@@ -1829,6 +1829,9 @@ const ProductList = () => {
       if (sortKey === 'name') {
         aVal = (aVal || '').toLowerCase();
         bVal = (bVal || '').toLowerCase();
+      } else if (sortKey === 'variants') {
+        aVal = Array.isArray(a.variants) && a.variants.length > 1 ? a.variants.length : 0;
+        bVal = Array.isArray(b.variants) && b.variants.length > 1 ? b.variants.length : 0;
       } else {
         aVal = Number(aVal) || 0;
         bVal = Number(bVal) || 0;
@@ -1910,7 +1913,7 @@ const ProductList = () => {
           <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
             Total Items (incl. Variants): <strong className="text-white">{metricsSummary.totalItems}</strong>
           </span>
-          {(searchTerm || selectedBrand || selectedCategory || selectedStockStatus) && (
+          {(searchTerm || selectedBrand || selectedCategory || selectedStockStatus || qtyVal) && (
             <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full">
               Found: <strong className="text-white">{filteredProducts.length}</strong> (incl. Variants: <strong className="text-white">{filteredItemsCount}</strong>)
             </span>
@@ -2140,7 +2143,19 @@ const ProductList = () => {
                     onClear={handleQtyFilterClear}
                   />
                 </th>
-                <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs text-center">Variants</th>
+                <th
+                  onClick={() => handleSortChange('variants')}
+                  className="px-4 py-3 font-medium uppercase tracking-wider text-xs cursor-pointer select-none hover:text-white transition-colors text-center"
+                >
+                  <div className="flex items-center justify-center gap-1">
+                    <span className={sortKey === 'variants' ? 'text-blue-400 font-extrabold' : ''}>Variants</span>
+                    {sortKey === 'variants' ? (
+                      sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                    ) : (
+                      <span className="text-slate-500">⇅</span>
+                    )}
+                  </div>
+                </th>
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs text-center">Date Info</th>
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs text-center">
                   <div className="flex items-center justify-center gap-1">
@@ -2191,25 +2206,37 @@ const ProductList = () => {
                       <td className="px-4 py-3 text-sm text-white font-bold">
                         <div className="flex items-center gap-3">
                           {(() => {
-                            let thumb = (product.images && product.images.length > 0 && product.images[0]) || '';
-                            let totalImgs = product.images?.length || 0;
-                            if (!thumb && product.variants && Array.isArray(product.variants)) {
-                              const vWithImg = product.variants.find(v => (Array.isArray(v.images) && v.images.length > 0) || (typeof v.images === 'string' && v.images) || v.image_urls || v.image);
-                              if (vWithImg) {
-                                if (Array.isArray(vWithImg.images) && vWithImg.images[0]) thumb = vWithImg.images[0];
-                                else if (typeof vWithImg.images === 'string') thumb = vWithImg.images.split(',')[0].trim();
-                                else if (typeof vWithImg.image_urls === 'string') thumb = vWithImg.image_urls.split(',')[0].trim();
-                                else if (vWithImg.image) thumb = vWithImg.image;
-                              }
-                            }
+                            let variantImages = [];
                             if (product.variants && Array.isArray(product.variants)) {
                               product.variants.forEach(v => {
-                                if (Array.isArray(v.images)) totalImgs += v.images.length;
-                                else if (typeof v.images === 'string') totalImgs += v.images.split(',').filter(Boolean).length;
-                                else if (typeof v.image_urls === 'string') totalImgs += v.image_urls.split(',').filter(Boolean).length;
-                                else if (v.image) totalImgs += 1;
+                                if (Array.isArray(v.images)) {
+                                  variantImages.push(...v.images.filter(Boolean));
+                                } else if (typeof v.images === 'string' && v.images.trim()) {
+                                  variantImages.push(...v.images.split(',').map(s => s.trim()).filter(Boolean));
+                                } else if (Array.isArray(v.image_urls)) {
+                                  variantImages.push(...v.image_urls.filter(Boolean));
+                                } else if (typeof v.image_urls === 'string' && v.image_urls.trim()) {
+                                  variantImages.push(...v.image_urls.split(',').map(s => s.trim()).filter(Boolean));
+                                } else if (v.image) {
+                                  variantImages.push(v.image);
+                                }
                               });
                             }
+
+                            let normalImages = [];
+                            if (Array.isArray(product.images)) {
+                              normalImages.push(...product.images.filter(Boolean));
+                            } else if (typeof product.images === 'string' && product.images.trim()) {
+                              normalImages.push(...product.images.split(',').map(s => s.trim()).filter(Boolean));
+                            } else if (Array.isArray(product.image_urls)) {
+                              normalImages.push(...product.image_urls.filter(Boolean));
+                            } else if (typeof product.image_urls === 'string' && product.image_urls.trim()) {
+                              normalImages.push(...product.image_urls.split(',').map(s => s.trim()).filter(Boolean));
+                            }
+
+                            const hasVariantImages = variantImages.length > 0;
+                            const totalImgs = hasVariantImages ? variantImages.length : normalImages.length;
+                            const thumb = (hasVariantImages ? variantImages[0] : normalImages[0]) || normalImages[0] || variantImages[0] || '';
 
                             return thumb ? (
                               <div
@@ -2414,7 +2441,7 @@ const ProductList = () => {
       {/* Product Details Modal */}
       {isDetailsModalOpen && currentProductForView && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm" onClick={() => setIsDetailsModalOpen(false)}></div>
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={() => setIsDetailsModalOpen(false)}></div>
           <div className="relative bg-slate-950/25 border border-white/20 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
             {/* Floating Close Button */}
             <button
@@ -2793,10 +2820,10 @@ const ProductList = () => {
       {/* Add Product Modal */}
       {isAddModalOpen && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-md" onClick={closeAddModal}></div>
-          <div className="relative bg-slate-950/25 border border-white/10 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={closeAddModal}></div>
+          <div className="relative bg-slate-950/25 border border-white/20 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
 
-            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-white/[0.03]">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-white/20 bg-white/[0.03]">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-900/50 text-blue-400 flex items-center justify-center text-lg">
                   <FiPlus />
@@ -3136,9 +3163,9 @@ const ProductList = () => {
       {/* Deactivate Products Conditions Modal */}
       {isDeactivateModalOpen && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-md" onClick={() => !isBulkUpdating && setIsDeactivateModalOpen(false)}></div>
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={() => !isBulkUpdating && setIsDeactivateModalOpen(false)}></div>
 
-          <div className="relative bg-slate-950/25 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative bg-slate-950/25 border border-white/20 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-white/[0.03]">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-red-900/50 text-red-400 flex items-center justify-center text-lg">
@@ -3299,9 +3326,9 @@ const ProductList = () => {
       {/* Activate Products Conditions Modal */}
       {isActivateModalOpen && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-md" onClick={() => !isBulkUpdating && setIsActivateModalOpen(false)}></div>
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={() => !isBulkUpdating && setIsActivateModalOpen(false)}></div>
 
-          <div className="relative bg-slate-950/25 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative bg-slate-950/25 border border-white/20 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-white/[0.03]">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-emerald-900/50 text-emerald-400 flex items-center justify-center text-lg">
@@ -3462,7 +3489,7 @@ const ProductList = () => {
       {/* Image View Modal */}
       {isImageViewOpen && currentProductForView && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-md" onClick={() => setIsImageViewOpen(false)}></div>
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={() => setIsImageViewOpen(false)}></div>
           <div className="relative bg-slate-950/25 border border-white/20 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
             {/* Floating Close Button */}
             <button
@@ -3622,8 +3649,8 @@ const ProductList = () => {
       {/* Delete Confirmation Modal */}
       {deleteConfirmOpen && productToDelete && createPortal(
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-md animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setProductToDelete(null); setTypedConfirmName(''); }}></div>
-          <div className="relative bg-slate-950/25 border border-red-500/20 rounded-2xl p-6 shadow-2xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setProductToDelete(null); setTypedConfirmName(''); }}></div>
+          <div className="relative bg-slate-950/25 border border-red-500/20 rounded-2xl p-6 shadow-red-500/20 shadow-2xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
               <FiAlertCircle className="text-red-500 animate-pulse" /> Confirm Deletion
             </h3>
@@ -3667,8 +3694,8 @@ const ProductList = () => {
       {/* Custom Alert Modal */}
       {alertOpen && createPortal(
         <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-md animate-fade-in" onClick={() => setAlertOpen(false)}></div>
-          <div className="relative bg-slate-950/25 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg animate-fade-in" onClick={() => setAlertOpen(false)}></div>
+          <div className="relative bg-slate-950/25 border border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
               <FiInfo className="text-blue-400" /> Alert
             </h3>

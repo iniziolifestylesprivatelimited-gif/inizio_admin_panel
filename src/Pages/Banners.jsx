@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
-import { 
-  FiPlus, FiEdit2, FiTrash2, FiImage, 
+import {
+  FiPlus, FiEdit2, FiTrash2, FiImage,
   FiX, FiCheck, FiLoader, FiAlertCircle, FiLink
 } from 'react-icons/fi';
 import { api, BASE_URL } from '../api/axios';
@@ -77,13 +77,13 @@ const Banners = () => {
       try {
         const token = sessionStorage.getItem('accessToken');
         const headers = { Authorization: `Bearer ${token}` };
-        
+
         const [prodRes, catRes, brandRes] = await Promise.all([
           axios.get(`${BASE_URL}/api/products/`, { headers }).catch(() => ({ data: [] })),
           axios.get(`${BASE_URL}/api/categories/`, { headers }).catch(() => ({ data: [] })),
           axios.get(`${BASE_URL}/api/brands/`, { headers }).catch(() => ({ data: [] }))
         ]);
-        
+
         setProducts(Array.isArray(prodRes.data) ? prodRes.data : []);
         setCategories(Array.isArray(catRes.data) ? catRes.data : []);
         setBrands(Array.isArray(brandRes.data) ? brandRes.data : []);
@@ -91,7 +91,7 @@ const Banners = () => {
         console.error("Failed to load selection data for banners", err);
       }
     };
-    
+
     fetchSelectionData();
   }, []);
 
@@ -181,7 +181,7 @@ const Banners = () => {
 
     try {
       const token = sessionStorage.getItem('accessToken');
-      
+
       // We MUST use FormData because we are uploading a file (multipart/form-data)
       const data = new FormData();
       data.append('title', formData.title);
@@ -198,7 +198,7 @@ const Banners = () => {
       }
 
       const config = {
-        headers: { 
+        headers: {
           Authorization: `Bearer ${token}`,
         }
       };
@@ -215,13 +215,13 @@ const Banners = () => {
       closeModal();
     } catch (err) {
       console.error("Submission failed", err.response?.data || err);
-      
+
       // Extract the exact error message sent by the backend
       const backendError = err.response?.data?.message || err.response?.data?.error;
-      const errorMessage = backendError 
-        ? (Array.isArray(backendError) ? backendError.join('\n') : backendError) 
+      const errorMessage = backendError
+        ? (Array.isArray(backendError) ? backendError.join('\n') : backendError)
         : 'Failed to save banner. Please check all fields and try again.';
-        
+
       alert(`Backend Error:\n${typeof errorMessage === 'object' ? JSON.stringify(errorMessage) : errorMessage}`);
     } finally {
       setIsSubmitting(false);
@@ -232,7 +232,7 @@ const Banners = () => {
   const handleDelete = async (id) => {
     const isConfirmed = await confirm('Are you sure you want to delete this banner?');
     if (!isConfirmed) return;
-    
+
     try {
       const token = sessionStorage.getItem('accessToken');
       await axios.delete(`${BASE_URL}/api/banners/${id}`, {
@@ -267,15 +267,15 @@ const Banners = () => {
   return (
     <div className="relative space-y-4 min-h-full z-0">
 
-      
+
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
         <div>
           <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3"><FiImage className="text-blue-400" />Banners</h1>
           <p className="text-slate-400 font-medium mt-1">Manage homepage carousel banners and promotions.</p>
         </div>
-        
-        <button 
+
+        <button
           onClick={() => openModal()}
           className="flex items-center px-4 py-2.5 text-white font-bold rounded-xl transition-colors bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
         >
@@ -289,7 +289,7 @@ const Banners = () => {
           <p className="text-slate-400">Loading banners...</p>
         </div>
       )}
-      
+
       {error && (
         <div className="text-red-400 bg-red-900/20 p-4 rounded-xl border border-red-500/30 flex items-center">
           <FiAlertCircle className="mr-2 text-lg" /> {error}
@@ -301,19 +301,19 @@ const Banners = () => {
         <div className="flex flex-wrap gap-6">
           {banners.map((banner) => (
             <div key={banner._id} className="bg-linear-to-br from-transparent to-blue-950/65 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-xl overflow-hidden group flex flex-col">
-              
+
               {/* Image Header */}
               <div className="relative h-48 bg-slate-800 flex items-center justify-center overflow-hidden border-b border-white/10">
                 {banner.image ? (
-                  <img 
-                    src={getImageUrl(banner.image)} 
-                    alt={banner.title} 
+                  <img
+                    src={getImageUrl(banner.image)}
+                    alt={banner.title}
                     className="w-full h-full object-contain bg-white group-hover:scale-105 transition-transform duration-500"
                   />
                 ) : (
                   <FiImage className="text-4xl text-slate-500" />
                 )}
-                
+
                 {/* Status Badge */}
                 <div className="absolute top-3 right-3">
                   <span className={`px-2.5 py-1 text-[10px] font-bold rounded-md shadow-sm backdrop-blur-md ${banner.isActive ? 'bg-emerald-500/90 text-white' : 'bg-slate-700/80 text-white'}`}>
@@ -330,9 +330,9 @@ const Banners = () => {
                     Pos: {banner.position}
                   </span>
                 </div>
-                
+
                 <div className="text-xs font-medium text-slate-400 flex items-center mt-1">
-                  <FiLink className="mr-1.5" /> 
+                  <FiLink className="mr-1.5" />
                   Action: <span className="ml-1 font-bold uppercase text-slate-300">{banner.clickAction}</span>
                 </div>
 
@@ -347,13 +347,13 @@ const Banners = () => {
 
                 {/* Card Actions (Pushed to bottom) */}
                 <div className="mt-auto pt-4 flex gap-2">
-                  <button 
+                  <button
                     onClick={() => openModal(banner)}
                     className="flex-1 flex items-center justify-center px-3 py-2 bg-slate-800 text-slate-300 hover:bg-blue-900/30 hover:text-blue-400 rounded-lg transition-colors text-sm font-bold border border-white/10"
                   >
                     <FiEdit2 className="mr-1.5" /> Edit
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleDelete(banner._id)}
                     className="flex-none flex items-center justify-center px-3 py-2 bg-slate-800 text-slate-400 hover:bg-red-900/30 hover:text-red-400 rounded-lg transition-colors text-sm border border-white/10"
                     title="Delete Banner"
@@ -377,10 +377,10 @@ const Banners = () => {
       {/* ADD/EDIT MODAL */}
       {isModalOpen && createPortal(
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-md" onClick={closeModal}></div>
-          
-          <div className="relative bg-slate-950/25 backdrop-blur-md border border-white/20 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-2xl overflow-hidden flex flex-col h-auto animate-in fade-in zoom-in-95 duration-200">
-            
+          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={closeModal}></div>
+
+          <div className="relative bg-slate-950/25 border border-white/20 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-2xl overflow-hidden flex flex-col h-auto animate-in fade-in zoom-in-95 duration-200">
+
             <div className="px-6 py-4 border-b border-white/20 flex justify-between items-center bg-white/[0.03]">
               <h3 className="font-bold text-white text-lg">
                 {editingBanner ? 'Edit Promotional Banner' : 'Create New Banner'}
@@ -392,17 +392,17 @@ const Banners = () => {
 
             <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar p-6">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                
+
                 {/* Left Column: Form Controls */}
                 <div className="lg:col-span-7 space-y-4">
                   {/* Title */}
                   <div>
                     <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Banner Title</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       required
                       value={formData.title}
-                      onChange={(e) => setFormData({...formData, title: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                       className="w-full px-4 py-2.5 bg-black/20 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500"
                       placeholder="e.g., Summer Electronics Offer"
                     />
@@ -412,11 +412,11 @@ const Banners = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Display Position</label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         required
                         value={formData.position}
-                        onChange={(e) => setFormData({...formData, position: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, position: e.target.value })}
                         className="w-full px-4 py-2.5 bg-black/20 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white scheme-dark"
                       />
                     </div>
@@ -424,11 +424,11 @@ const Banners = () => {
                     <div>
                       <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Banner Status</label>
                       <label className="inline-flex items-center cursor-pointer mt-1">
-                        <input 
-                          type="checkbox" 
+                        <input
+                          type="checkbox"
                           className="sr-only peer"
                           checked={formData.isActive}
-                          onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
+                          onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                         />
                         <div className="relative w-11 h-6 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/30 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-white after:border-slate-400 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                         <span className="ms-3 text-sm font-bold text-slate-300">
@@ -445,7 +445,7 @@ const Banners = () => {
                       value={formData.clickAction}
                       onChange={(val) => {
                         setFormData({
-                          ...formData, 
+                          ...formData,
                           clickAction: val,
                           actionId: ''
                         });
@@ -469,11 +469,11 @@ const Banners = () => {
                       {formData.clickAction === 'external' && (
                         <>
                           <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">External URL</label>
-                          <input 
-                            type="url" 
+                          <input
+                            type="url"
                             required
                             value={formData.actionId}
-                            onChange={(e) => setFormData({...formData, actionId: e.target.value})}
+                            onChange={(e) => setFormData({ ...formData, actionId: e.target.value })}
                             className="w-full px-4 py-2.5 bg-black/20 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500"
                             placeholder="https://..."
                           />
@@ -485,7 +485,7 @@ const Banners = () => {
                           <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Select Category</label>
                           <select
                             value={formData.actionId}
-                            onChange={(e) => setFormData({...formData, actionId: e.target.value})}
+                            onChange={(e) => setFormData({ ...formData, actionId: e.target.value })}
                             required
                             className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white font-medium"
                           >
@@ -502,7 +502,7 @@ const Banners = () => {
                           <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Select Brand</label>
                           <select
                             value={formData.actionId}
-                            onChange={(e) => setFormData({...formData, actionId: e.target.value})}
+                            onChange={(e) => setFormData({ ...formData, actionId: e.target.value })}
                             required
                             className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white font-medium"
                           >
@@ -517,14 +517,14 @@ const Banners = () => {
                       {formData.clickAction === 'product' && (
                         <div className="relative">
                           <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Select Product</label>
-                          
-                          <div 
+
+                          <div
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                             className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl focus-within:ring-2 focus-within:ring-blue-500/50 cursor-pointer flex justify-between items-center shadow-inner backdrop-blur-md text-white"
                           >
                             <span className={formData.actionId ? "text-white font-medium truncate" : "text-slate-500"}>
-                              {formData.actionId 
-                                ? (products.find(p => p._id === formData.actionId)?.name || 'Select a Product') 
+                              {formData.actionId
+                                ? (products.find(p => p._id === formData.actionId)?.name || 'Select a Product')
                                 : 'Select a Product'}
                             </span>
                             <span className="text-slate-400 text-xs">▼</span>
@@ -539,11 +539,11 @@ const Banners = () => {
                                   onChange={(e) => setSearchTerm(e.target.value)}
                                   placeholder="Type to search product..."
                                   className="w-full px-3 py-1.5 bg-black/40 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-slate-500"
-                                  onClick={(e) => e.stopPropagation()} 
+                                  onClick={(e) => e.stopPropagation()}
                                   autoFocus
                                 />
                               </div>
-                              
+
                               <div className="overflow-y-auto max-h-48 custom-scrollbar">
                                 {products.filter(p => p.name?.toLowerCase().includes(searchTerm.toLowerCase())).length > 0 ? (
                                   products
@@ -552,7 +552,7 @@ const Banners = () => {
                                       <div
                                         key={prod._id}
                                         onClick={() => {
-                                          setFormData({...formData, actionId: prod._id});
+                                          setFormData({ ...formData, actionId: prod._id });
                                           setIsDropdownOpen(false);
                                           setSearchTerm('');
                                         }}
@@ -576,10 +576,10 @@ const Banners = () => {
                 {/* Right Column: Image Upload Area */}
                 <div className="lg:col-span-5 flex flex-col justify-start">
                   <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Banner Image</label>
-                  
-                  <div 
+
+                  <div
                     onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                    onDragLeave={() => setIsDragging(false)}                     onDrop={(e) => {
+                    onDragLeave={() => setIsDragging(false)} onDrop={(e) => {
                       e.preventDefault();
                       setIsDragging(false);
                       const file = e.dataTransfer.files[0];
@@ -591,22 +591,21 @@ const Banners = () => {
                       }
                     }}
                     onClick={() => document.getElementById('banner-image-input').click()}
-                    className={`w-full h-56 border-2 border-dashed rounded-2xl flex flex-col justify-center items-center gap-2 cursor-pointer transition-all duration-300 relative overflow-hidden group select-none ${
-                      isDragging 
-                        ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/20' 
-                        : 'border-white/10 hover:border-blue-500/40 hover:bg-white/5'
-                    }`}
+                    className={`w-full h-56 border-2 border-dashed rounded-2xl flex flex-col justify-center items-center gap-2 cursor-pointer transition-all duration-300 relative overflow-hidden group select-none ${isDragging
+                      ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/20'
+                      : 'border-white/10 hover:border-blue-500/40 hover:bg-white/5'
+                      }`}
                   >
-                    <input 
+                    <input
                       id="banner-image-input"
-                      type="file" 
+                      type="file"
                       accept="image/*"
                       onChange={handleImageChange}
                       className="hidden"
                     />
                     {imagePreview ? (
                       <>
-                        <button 
+                        <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -633,7 +632,7 @@ const Banners = () => {
                       </>
                     )}
                   </div>
-                  
+
                   {imageDetails && (
                     <div className="mt-2.5 flex flex-col gap-1.5 text-[10px] text-slate-400 bg-black/35 px-4 py-2.5 rounded-xl border border-white/5 shadow-inner">
                       <div className="flex justify-between items-center">
@@ -657,14 +656,14 @@ const Banners = () => {
 
               {/* Submit Buttons */}
               <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row justify-end gap-3 shrink-0">
-                <button 
+                <button
                   type="button"
                   onClick={closeModal}
                   className="w-full sm:w-auto px-6 py-2.5 bg-transparent border border-white/10 text-slate-300 font-bold rounded-xl hover:bg-slate-800 transition-colors"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   type="submit"
                   disabled={isSubmitting || (!editingBanner && !imageFile)}
                   className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 text-white font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
@@ -677,7 +676,7 @@ const Banners = () => {
             </form>
           </div>
         </div>
-      , document.body)}
+        , document.body)}
     </div>
   );
 };
