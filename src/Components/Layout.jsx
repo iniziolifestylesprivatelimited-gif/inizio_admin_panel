@@ -1211,7 +1211,7 @@ const Layout = () => {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={`
-          fixed inset-y-0 left-0 z-50 bg-transparent backdrop-blur-2xl border-r border-white/10 flex flex-col shadow-2xl shadow-black/50
+          fixed inset-y-0 left-0 z-50 bg-slate-950/50 backdrop-blur-2xl border-r border-white/10 flex flex-col shadow-2xl shadow-black/50
           transform transition-all duration-300 ease-in-out lg:translate-x-0 overflow-hidden
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
           ${isExpanded ? 'w-72' : 'lg:w-20 w-72'}

@@ -7,6 +7,7 @@ import {
   FiCheckCircle, FiInfo, FiLoader, FiPlayCircle, FiCopy,
   FiChevronDown, FiSliders, FiUsers
 } from 'react-icons/fi';
+import CustomDropdown from '../Components/CustomDropdown';
 
 const Coupons = () => {
   const { confirm } = useConfirm();
@@ -581,18 +582,15 @@ const Coupons = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-950/20 p-6 rounded-2xl border border-white/5">
                   <div className="space-y-1.5">
                     <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Discount Type</label>
-                    <div className="relative">
-                      <select
-                        name="discountType"
-                        value={form.discountType}
-                        onChange={handleFormChange}
-                        className="w-full pl-4 pr-10 py-3 bg-slate-950/40 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 text-white cursor-pointer appearance-none text-sm font-medium hover:border-white/20 transition-all"
-                      >
-                        <option value="flat" className="bg-slate-900 text-white">Flat Amount (₹)</option>
-                        <option value="percentage" className="bg-slate-900 text-white">Percentage (%)</option>
-                      </select>
-                      <FiChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm" />
-                    </div>
+                    <CustomDropdown
+                      value={form.discountType}
+                      onChange={(val) => setForm(prev => ({ ...prev, discountType: val }))}
+                      options={[
+                        { value: 'flat', label: 'Flat Amount (₹)' },
+                        { value: 'percentage', label: 'Percentage (%)' }
+                      ]}
+                      statusColor="bg-slate-950/40 border-white/10 text-white hover:border-white/20 focus:ring-2 focus:ring-blue-500/30 rounded-xl py-3 px-4 text-sm"
+                    />
                   </div>
 
                   <div className="space-y-1.5">
@@ -658,19 +656,17 @@ const Coupons = () => {
 
                   <div className="space-y-1.5">
                     <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Quantity Matching Scope</label>
-                    <div className="relative">
-                      <select
-                        name="quantityMatching"
-                        value={form.quantityMatching}
-                        onChange={handleFormChange}
-                        className="w-full pl-4 pr-10 py-3 bg-slate-950/40 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 text-white cursor-pointer appearance-none text-sm font-medium hover:border-white/20 transition-all"
-                      >
-                        <option value="" className="bg-slate-900 text-white">None / Cart Total</option>
-                        <option value="per_category" className="bg-slate-900 text-white">Per Category (Category volume)</option>
-                        <option value="per_product" className="bg-slate-900 text-white">Per Product (Product volume)</option>
-                      </select>
-                      <FiChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm" />
-                    </div>
+                    <CustomDropdown
+                      value={form.quantityMatching}
+                      onChange={(val) => setForm(prev => ({ ...prev, quantityMatching: val }))}
+                      options={[
+                        { value: '', label: 'None / Cart Total' },
+                        { value: 'per_category', label: 'Per Category (Category volume)' },
+                        { value: 'per_product', label: 'Per Product (Product volume)' }
+                      ]}
+                      defaultLabel="None / Cart Total"
+                      statusColor="bg-slate-950/40 border-white/10 text-white hover:border-white/20 focus:ring-2 focus:ring-blue-500/30 rounded-xl py-3 px-4 text-sm"
+                    />
                   </div>
 
                   <div className="space-y-1.5">
@@ -695,50 +691,41 @@ const Coupons = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-950/20 p-6 rounded-2xl border border-white/5">
                   <div className="space-y-1.5">
                     <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Applicability Scope</label>
-                    <div className="relative">
-                      <select
-                        name="applicability"
-                        value={form.applicability}
-                        onChange={handleFormChange}
-                        className="w-full pl-4 pr-10 py-3 bg-slate-950/40 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 text-white cursor-pointer appearance-none text-sm font-medium hover:border-white/20 transition-all"
-                      >
-                        <option value="global" className="bg-slate-900 text-white">Global (All items)</option>
-                        <option value="category" className="bg-slate-900 text-white">Category-specific</option>
-                        <option value="product" className="bg-slate-900 text-white">Product-specific</option>
-                      </select>
-                      <FiChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm" />
-                    </div>
+                    <CustomDropdown
+                      value={form.applicability}
+                      onChange={(val) => setForm(prev => ({ ...prev, applicability: val }))}
+                      options={[
+                        { value: 'global', label: 'Global (All items)' },
+                        { value: 'category', label: 'Category-specific' },
+                        { value: 'product', label: 'Product-specific' }
+                      ]}
+                      statusColor="bg-slate-950/40 border-white/10 text-white hover:border-white/20 focus:ring-2 focus:ring-blue-500/30 rounded-xl py-3 px-4 text-sm"
+                    />
                   </div>
 
                   <div className="space-y-1.5">
                     <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Apply Discount To</label>
-                    <div className="relative">
-                      <select
-                        name="discountApplyTo"
-                        value={form.discountApplyTo}
-                        onChange={handleFormChange}
-                        className="w-full pl-4 pr-10 py-3 bg-slate-950/40 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 text-white cursor-pointer appearance-none text-sm font-medium hover:border-white/20 transition-all"
-                      >
-                        <option value="entire_cart" className="bg-slate-900 text-white">Entire Cart</option>
-                        <option value="matching_items" className="bg-slate-900 text-white">Matching Items Only</option>
-                      </select>
-                      <FiChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm" />
-                    </div>
+                    <CustomDropdown
+                      value={form.discountApplyTo}
+                      onChange={(val) => setForm(prev => ({ ...prev, discountApplyTo: val }))}
+                      options={[
+                        { value: 'entire_cart', label: 'Entire Cart' },
+                        { value: 'matching_items', label: 'Matching Items Only' }
+                      ]}
+                      statusColor="bg-slate-950/40 border-white/10 text-white hover:border-white/20 focus:ring-2 focus:ring-blue-500/30 rounded-xl py-3 px-4 text-sm"
+                    />
                   </div>
 
                   <div className="space-y-1.5">
                     <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Customer Eligibility</label>
-                    <div className="relative">
-                      <select
-                        name="customerEligibility"
-                        value={form.customerEligibility}
-                        onChange={handleFormChange}
-                        className="w-full pl-4 pr-10 py-3 bg-slate-950/40 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 text-white cursor-pointer appearance-none text-sm font-medium hover:border-white/20 transition-all"
-                      >
-                        <option value="all" className="bg-slate-900 text-white">All Customers</option>
-                      </select>
-                      <FiChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm" />
-                    </div>
+                    <CustomDropdown
+                      value={form.customerEligibility}
+                      onChange={(val) => setForm(prev => ({ ...prev, customerEligibility: val }))}
+                      options={[
+                        { value: 'all', label: 'All Customers' }
+                      ]}
+                      statusColor="bg-slate-950/40 border-white/10 text-white hover:border-white/20 focus:ring-2 focus:ring-blue-500/30 rounded-xl py-3 px-4 text-sm"
+                    />
                   </div>
                 </div>
               </div>
@@ -913,40 +900,34 @@ const Coupons = () => {
                   
                   <div className="space-y-1.5 md:col-span-2">
                     <label className="block text-xs font-semibold text-slate-300">Select Product</label>
-                    <div className="relative">
-                      <select
-                        value={selectedTestProduct}
-                        onChange={(e) => {
-                          setSelectedTestProduct(e.target.value);
-                          setSelectedTestVariant('');
-                        }}
-                        className="w-full pl-3 pr-8 py-2 bg-slate-950 border border-white/10 rounded-xl focus:outline-none text-white text-xs cursor-pointer appearance-none"
-                      >
-                        <option value="">-- Choose Product --</option>
-                        {products.map(p => (
-                          <option key={p._id} value={p._id} className="bg-slate-900">{p.name}</option>
-                        ))}
-                      </select>
-                      <FiChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs" />
-                    </div>
+                    <CustomDropdown
+                      value={selectedTestProduct}
+                      onChange={(val) => {
+                        setSelectedTestProduct(val);
+                        setSelectedTestVariant('');
+                      }}
+                      options={[
+                        { value: '', label: '-- Choose Product --' },
+                        ...products.map(p => ({ value: p._id, label: p.name }))
+                      ]}
+                      defaultLabel="-- Choose Product --"
+                      statusColor="bg-slate-950 border-white/10 text-white text-xs rounded-xl py-2 px-3"
+                    />
                   </div>
 
                   {selectedTestProductObj?.variants && selectedTestProductObj.variants.length > 0 ? (
                     <div className="space-y-1.5">
                       <label className="block text-xs font-semibold text-slate-300">Select Variant</label>
-                      <div className="relative">
-                        <select
-                          value={selectedTestVariant}
-                          onChange={(e) => setSelectedTestVariant(e.target.value)}
-                          className="w-full pl-3 pr-8 py-2 bg-slate-950 border border-white/10 rounded-xl focus:outline-none text-white text-xs cursor-pointer appearance-none"
-                        >
-                          <option value="">-- Default --</option>
-                          {selectedTestProductObj.variants.map(v => (
-                            <option key={v._id} value={v._id} className="bg-slate-900">{v.name}</option>
-                          ))}
-                        </select>
-                        <FiChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs" />
-                      </div>
+                      <CustomDropdown
+                        value={selectedTestVariant}
+                        onChange={(val) => setSelectedTestVariant(val)}
+                        options={[
+                          { value: '', label: '-- Default --' },
+                          ...selectedTestProductObj.variants.map(v => ({ value: v._id, label: v.name }))
+                        ]}
+                        defaultLabel="-- Default --"
+                        statusColor="bg-slate-950 border-white/10 text-white text-xs rounded-xl py-2 px-3"
+                      />
                     </div>
                   ) : (
                     <div className="space-y-1.5 text-slate-500 text-xs italic pb-2">

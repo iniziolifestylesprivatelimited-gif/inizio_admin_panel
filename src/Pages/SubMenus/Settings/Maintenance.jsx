@@ -437,7 +437,7 @@ const Maintenance = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
         {/* SECTION 1: Configure Downtime */}
-        <div className="bg-slate-950/30 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl p-6 sm:p-8">
+        <div className="bg-white/[0.01] border border-white/10 shadow-2xl rounded-3xl p-6 sm:p-8">
           <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
             <FiClock className="text-blue-400" /> Configure Downtime
           </h2>
@@ -580,7 +580,7 @@ const Maintenance = () => {
         </div>
 
         {/* SECTION 2: Maintenance History */}
-        <div className="bg-slate-950/30 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl p-6 sm:p-8 flex flex-col h-full">
+        <div className="bg-white/[0.01] backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl p-6 sm:p-8 flex flex-col h-full">
           <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2 shrink-0">
             <FiCalendar className="text-blue-400" /> Maintenance Logs
           </h2>
@@ -627,7 +627,7 @@ const Maintenance = () => {
       </div>
 
       {/* SECTION 3: App Version & Updates (Platform Split) */}
-      <form onSubmit={handleSaveAppVersion} className="bg-slate-950/30 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl p-6 sm:p-8 mt-8">
+      <form onSubmit={handleSaveAppVersion} className="bg-slate-950/50 border border-white/10 shadow-2xl rounded-3xl p-6 sm:p-8 mt-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <FiSmartphone className="text-blue-400" /> App Version & Updates
@@ -644,7 +644,7 @@ const Maintenance = () => {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
 
           {/* ANDROID CONFIG */}
-          <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5">
+          <div className="bg-white/[0.01] p-5 rounded-2xl border border-white/5 shadow-md shadow-emerald-800/50">
             <h3 className="text-lg font-bold text-green-400 mb-5 flex items-center gap-2">
               <FaAndroid size={20} /> Android Configuration
             </h3>
@@ -711,7 +711,7 @@ const Maintenance = () => {
           </div>
 
           {/* IOS CONFIG */}
-          <div className="bg-slate-950/30 p-5 rounded-2xl border border-white/5">
+          <div className="bg-white/[0.01] p-5 rounded-2xl border border-white/5 shadow-md shadow-blue-800/50">
             <h3 className="text-lg font-bold text-blue-400 mb-5 flex items-center gap-2">
               <FaApple size={22} className="mb-0.5" /> iOS Configuration
             </h3>

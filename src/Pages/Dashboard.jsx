@@ -60,7 +60,7 @@ const checkAppStatus = (u) => {
 const SalesRevenueCard = ({ salesData, chartLabels, onOpenDetails }) => {
   return (
     <Card 
-      className="w-full h-[390px] flex flex-col relative group cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-6"
+      className="w-full h-[400px] sm:h-[390px] flex flex-col relative group cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-4 sm:!p-6"
     >
       <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
       <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
@@ -76,7 +76,7 @@ const SalesRevenueCard = ({ salesData, chartLabels, onOpenDetails }) => {
           <FiExternalLink size={12} className="text-slate-400 group-hover/btn:text-white transition-colors" />
         </button>
       </div>
-      <div className="flex-1 w-full relative z-10">
+      <div className="flex-1 w-full min-h-[260px] relative z-10">
         <VisxAreaChart labels={chartLabels} data={salesData} color="#3b82f6" valuePrefix="₹" />
       </div>
     </Card>
@@ -86,7 +86,7 @@ const SalesRevenueCard = ({ salesData, chartLabels, onOpenDetails }) => {
 const OrderVolumeCard = ({ deliveredCountData, processingCountData, cancelledCountData, chartLabels, ordersChartConfig, onOpenDetails }) => {
   return (
     <Card 
-      className="w-full h-[390px] flex flex-col relative group cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-6"
+      className="w-full h-[400px] sm:h-[390px] flex flex-col relative group cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-4 sm:!p-6"
     >
       <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
       <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
@@ -102,7 +102,7 @@ const OrderVolumeCard = ({ deliveredCountData, processingCountData, cancelledCou
           <FiExternalLink size={12} className="text-slate-400 group-hover/btn:text-white transition-colors" />
         </button>
       </div>
-      <div className="flex-1 w-full relative z-10">
+      <div className="flex-1 w-full min-h-[260px] relative z-10">
         <VisxStackedBarChart labels={chartLabels} series={ordersChartConfig.series} />
       </div>
     </Card>
@@ -112,7 +112,7 @@ const OrderVolumeCard = ({ deliveredCountData, processingCountData, cancelledCou
 const BrandShareCard = ({ brandShare, onOpenDetails }) => {
   return (
     <Card 
-      className="w-full h-[390px] flex flex-col relative group cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-6"
+      className="w-full h-[400px] sm:h-[390px] flex flex-col relative group cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-4 sm:!p-6"
     >
       <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
       <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
@@ -128,7 +128,7 @@ const BrandShareCard = ({ brandShare, onOpenDetails }) => {
           <FiExternalLink size={12} className="text-slate-400 group-hover/btn:text-white transition-colors" />
         </button>
       </div>
-      <div className="flex-1 w-full relative z-10 flex items-center justify-center">
+      <div className="flex-1 w-full min-h-[260px] relative z-10 flex items-center justify-center">
         <VisxDonutChart data={brandShare} centerLabel="Products" />
       </div>
     </Card>
@@ -219,7 +219,7 @@ const AppVersionCard = ({ activityStats, users = [], onOpenDetails }) => {
 
   return (
     <Card
-      className="w-full h-[390px] flex flex-col relative group cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-6"
+      className="w-full h-[400px] sm:h-[390px] flex flex-col relative group cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-4 sm:!p-6"
     >
       <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
       <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
@@ -235,7 +235,7 @@ const AppVersionCard = ({ activityStats, users = [], onOpenDetails }) => {
           <FiExternalLink size={12} className="text-slate-400 group-hover/btn:text-white transition-colors" />
         </button>
       </div>
-      <div className="flex-1 w-full relative z-10">
+      <div className="flex-1 w-full min-h-[260px] relative z-10">
         <VisxAppVersionsChart data={versions} />
       </div>
     </Card>
@@ -245,7 +245,7 @@ const AppVersionCard = ({ activityStats, users = [], onOpenDetails }) => {
 const NotificationsCard = ({ notificationsMetrics, onOpenDetails, setSelectedNotificationsSegment, setIsNotificationsModalOpen }) => {
   return (
     <Card
-      className="w-full h-[390px] flex flex-col relative group cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-6"
+      className="w-full h-[400px] sm:h-[390px] flex flex-col relative group cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-4 sm:!p-6"
     >
       <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
       <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
@@ -261,7 +261,7 @@ const NotificationsCard = ({ notificationsMetrics, onOpenDetails, setSelectedNot
           <FiExternalLink size={12} className="text-slate-400 group-hover/btn:text-white transition-colors" />
         </button>
       </div>
-      <div className="flex-1 w-full relative z-10 flex items-center justify-center">
+      <div className="flex-1 w-full min-h-[260px] relative z-10 flex items-center justify-center">
         <VisxNotificationsDonutChart
           enabled={notificationsMetrics.enabled}
           disabled={notificationsMetrics.disabled}
@@ -278,7 +278,7 @@ const NotificationsCard = ({ notificationsMetrics, onOpenDetails, setSelectedNot
 const PriceTierCard = ({ priceTierEngagementData, onOpenDetails }) => {
   return (
     <Card
-      className="w-full h-[390px] flex flex-col relative group cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-6"
+      className="w-full h-[400px] sm:h-[390px] flex flex-col relative group cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-4 sm:!p-6"
     >
       <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
       <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
@@ -296,7 +296,7 @@ const PriceTierCard = ({ priceTierEngagementData, onOpenDetails }) => {
           <FiExternalLink size={12} className="text-slate-400 group-hover/btn:text-white transition-colors" />
         </button>
       </div>
-      <div className="flex-1 w-full relative z-10">
+      <div className="flex-1 w-full min-h-[260px] relative z-10">
         <VisxPriceTierGroupedBarChart
           categories={priceTierEngagementData.categories}
           views={priceTierEngagementData.views}
@@ -479,7 +479,7 @@ const ChartDetailsModal = ({
         {/* Modal Body */}
         <div className="flex flex-col lg:flex-row gap-8 flex-1 overflow-y-auto custom-scrollbar pr-1">
           {/* Left Chart Area */}
-          <div className="w-full lg:w-[60%] h-[320px] lg:h-[400px] relative bg-slate-950/30 border border-white/5 rounded-2xl p-4 flex items-center justify-center">
+          <div className="w-full lg:w-[60%] h-[340px] sm:h-[380px] lg:h-[420px] min-h-[320px] relative bg-slate-950/30 border border-white/5 rounded-2xl p-3 sm:p-4 flex items-center justify-center">
             {activeChartModal === 'revenue' && (
               <VisxAreaChart labels={chartLabels} data={salesData} color="#3b82f6" valuePrefix="₹" />
             )}
@@ -2304,20 +2304,14 @@ const Dashboard = () => {
       {!loading && activityStats && activityStats.trends && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 z-10 relative mt-6">
           {/* Trends Area Chart */}
-          <Card className="lg:col-span-2 !p-5 overflow-hidden flex flex-col h-[320px]">
+          <Card className="lg:col-span-2 !p-4 sm:!p-5 overflow-hidden flex flex-col min-h-[360px] sm:min-h-[340px] h-auto">
             <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none" />
-            <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
+            <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full animate-pulse bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"></span>
                   User Engagement Analytics
                 </h3>
-                {/* <p className="text-[10px] text-slate-400 mt-0.5 font-medium">
-                  {trendsRange === '1d' ? 'Hourly activity intervals for the day' :
-                    trendsRange === '1m' ? 'Daily activity counts for the last 30 days' :
-                      trendsRange === '1y' ? 'Monthly aggregate activity counts' :
-                        'Daily aggregate activity and query counts'}
-                </p> */}
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex bg-slate-950/40 p-1 rounded-xl border border-white/5">
@@ -2334,12 +2328,11 @@ const Dashboard = () => {
                     </button>
                   ))}
                 </div>
-                {/* <span className="hidden sm:inline text-[10px] text-slate-500 font-bold uppercase">live insights</span> */}
               </div>
             </div>
 
             <div
-              className="relative w-full h-[220px] z-10 transition-all duration-200 ease-in-out"
+              className="relative w-full flex-1 min-h-[240px] h-[260px] sm:h-[240px] z-10 transition-all duration-200 ease-in-out"
               style={{ opacity: chartOpacity, transform: `scale(${chartOpacity === 0 ? 0.98 : 1})` }}
             >
               <VisxAreaChart labels={activeLabels} data={activeValues} breakdowns={activeBreakdowns} color="#3b82f6" valueSuffix=" actions" />
@@ -2347,7 +2340,7 @@ const Dashboard = () => {
           </Card>
 
           {/* Top Trending List */}
-          <Card className="!p-5 overflow-hidden flex flex-col h-[320px]">
+          <Card className="!p-4 sm:!p-5 overflow-hidden flex flex-col min-h-[360px] sm:min-h-[340px] h-auto">
             <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/5 to-transparent pointer-events-none" />
             <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
               <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">

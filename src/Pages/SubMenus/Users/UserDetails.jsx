@@ -10,7 +10,7 @@ import {
   FiUser, FiFileText, FiTrash2, FiUserMinus, FiEye, FiLayers,
   FiSmartphone, FiTablet, FiBell, FiBellOff, FiClock, FiActivity, FiTag, FiSearch,
   FiRefreshCcw, FiCopy, FiShield, FiLock, FiUnlock, FiLogOut, FiCheckCircle, FiCalendar,
-  FiPhone, FiExternalLink, FiHash
+  FiPhone, FiExternalLink, FiHash, FiShoppingBag, FiBox
 } from 'react-icons/fi';
 import { DiAndroid, DiApple } from 'react-icons/di';
 import { useConfirm } from '../../../Context/ConfirmationContext';
@@ -94,6 +94,16 @@ const checkAppStatus = (u) => {
   return 'pending';
 };
 
+const getOrderStatusColor = (status) => {
+  switch (status?.toLowerCase()) {
+    case 'delivered': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+    case 'shipped': return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
+    case 'processing': return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+    case 'cancelled': return 'bg-red-500/20 text-red-400 border-red-500/30';
+    default: return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
+  }
+};
+
 const UserDetails = () => {
   const { confirm, showAlert: showGlobalAlert } = useConfirm();
   const { id } = useParams();
@@ -123,6 +133,7 @@ const UserDetails = () => {
 
   // Browsing Activities State
   const [userActivities, setUserActivities] = useState({ products: [], brands: [], categories: [], searches: [] });
+  const [customerOrders, setCustomerOrders] = useState([]);
   const [loadingActivities, setLoadingActivities] = useState(false);
   const [activeActivityTab, setActiveActivityTab] = useState('products');
   const [activeSectionTab, setActiveSectionTab] = useState('sessions');
@@ -154,11 +165,11 @@ const UserDetails = () => {
         const allOrders = Array.isArray(ordersRes.data) ? ordersRes.data : ordersRes.data?.orders || [];
 
         // Flexible User Matching Helper
-        const isTargetUser = (uObj) => {
-          if (!uObj) return false;
-          const uId = typeof uObj === 'string' ? uObj : (uObj._id || uObj.userId || uObj.id);
-          const uEmail = typeof uObj === 'object' ? (uObj.email || '') : '';
-          const uPhone = typeof uObj === 'object' ? (uObj.phone || '') : '';
+        const isTargetUser = (uObj, o = null) => {
+          if (!uObj && !o) return false;
+          const uId = typeof uObj === 'string' ? uObj : (uObj?._id || uObj?.userId || uObj?.id);
+          const uEmail = typeof uObj === 'object' ? (uObj?.email || '') : '';
+          const uPhone = typeof uObj === 'object' ? (uObj?.phone || '') : '';
 
           const targetId = user?._id || user?.userId || id;
           const targetEmail = user?.email || '';
@@ -171,6 +182,22 @@ const UserDetails = () => {
             const clean2 = String(targetPhone).replace(/\D/g, '');
             if (clean1 && clean2 && (clean1 === clean2 || clean1.endsWith(clean2) || clean2.endsWith(clean1))) return true;
           }
+
+          if (o) {
+            const oUserId = o.userId || o.user?._id || (typeof o.user === 'string' ? o.user : null);
+            if (oUserId && targetId && String(oUserId) === String(targetId)) return true;
+
+            const oEmail = o.email || o.shippingAddress?.email || o.address?.email || o.user?.email || '';
+            if (oEmail && targetEmail && oEmail.toLowerCase().trim() === targetEmail.toLowerCase().trim()) return true;
+
+            const oPhone = o.phone || o.shippingAddress?.phone || o.address?.phone || o.user?.phone || '';
+            if (oPhone && targetPhone) {
+              const cleanO = String(oPhone).replace(/\D/g, '');
+              const cleanT = String(targetPhone).replace(/\D/g, '');
+              if (cleanO && cleanT && (cleanO === cleanT || cleanO.endsWith(cleanT) || cleanT.endsWith(cleanO))) return true;
+            }
+          }
+
           return false;
         };
 
@@ -181,7 +208,11 @@ const UserDetails = () => {
         ];
 
         // Filter user orders
-        const userOrders = allOrders.filter(o => isTargetUser(o.user || o.customer || o));
+        const matchedOrders = allOrders
+          .filter(o => isTargetUser(o.user || o.customer, o))
+          .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        setCustomerOrders(matchedOrders);
+        const userOrders = matchedOrders;
 
         // Helper to match user in pre-aggregated viewers arrays
         const findUserViewer = (viewers) => {
@@ -498,7 +529,7 @@ const UserDetails = () => {
     }, 30000);
 
     return () => clearInterval(intervalId);
-  }, [user?._id, user?.email]);
+  }, [user?._id, user?.email, user?.phone]);
 
   const fetchUserDetails = async (isPoll = false) => {
     if (!isPoll) setLoading(true);
@@ -937,7 +968,8 @@ const UserDetails = () => {
             {[
               { id: 'sessions', name: 'App Usage & Sessions', icon: FiActivity, badge: user.isOnline ? 'Online' : null },
               { id: 'devices', name: 'Registered Devices', icon: FiSmartphone, badge: user.devices?.length || 0 },
-              { id: 'activity', name: 'Browsing Activity', icon: FiEye, badge: (userActivities.products.length + userActivities.brands.length) || null }
+              { id: 'activity', name: 'Browsing Activity', icon: FiEye, badge: (userActivities.products.length + userActivities.brands.length) || null },
+              { id: 'orders', name: 'Orders', icon: FiShoppingBag, badge: customerOrders.length }
             ].map(tab => {
               const Icon = tab.icon;
               const isActive = activeSectionTab === tab.id;
@@ -1480,6 +1512,203 @@ const UserDetails = () => {
                       </tbody>
                     </table>
                   )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 4. Customer Orders Tab */}
+          {activeSectionTab === 'orders' && (
+            <div className="relative bg-slate-950/50 border border-white/20 shadow-2xl rounded-3xl p-6 overflow-hidden space-y-5">
+              <div className="border-b border-white/20 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400 shrink-0">
+                    <FiShoppingBag size={18} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                      Customer Orders
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                        {customerOrders.length}
+                      </span>
+                    </h3>
+                    <p className="text-slate-400 text-xs mt-0.5">Order fulfillment history and transaction records for this customer.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => navigate('/orders/all')}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white border border-white/10 rounded-xl text-xs font-semibold transition-all cursor-pointer active:scale-95"
+                  >
+                    <span>All Orders Panel</span>
+                    <FiExternalLink size={12} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Summary stat cards */}
+              {customerOrders.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Total Orders</span>
+                    <p className="text-lg font-black text-white mt-1 font-mono">{customerOrders.length}</p>
+                  </div>
+                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Total Spent</span>
+                    <p className="text-lg font-black text-emerald-400 mt-1 font-mono">
+                      ₹{customerOrders.reduce((sum, o) => sum + (Number(o.totalAmount) || 0), 0).toLocaleString('en-IN')}
+                    </p>
+                  </div>
+                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Delivered Orders</span>
+                    <p className="text-lg font-black text-teal-400 mt-1 font-mono">
+                      {customerOrders.filter(o => (o.orderStatus || '').toLowerCase() === 'delivered').length}
+                    </p>
+                  </div>
+                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Latest Order Date</span>
+                    <p className="text-xs font-bold text-slate-300 mt-2 font-mono">
+                      {customerOrders[0]?.createdAt ? formatDateDDMMYYYY(customerOrders[0].createdAt) : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {loadingActivities ? (
+                <div className="py-12 flex flex-col items-center justify-center text-slate-400">
+                  <FiLoader className="animate-spin text-2xl text-blue-400 mb-2" />
+                  <span className="text-xs font-medium">Loading customer orders...</span>
+                </div>
+              ) : customerOrders.length === 0 ? (
+                <div className="py-12 flex flex-col items-center justify-center text-slate-500 text-center space-y-2">
+                  <FiShoppingBag size={32} className="text-slate-600" />
+                  <p className="text-xs italic font-medium">No orders found for this user account.</p>
+                </div>
+              ) : (
+                <div className="max-h-[440px] overflow-auto custom-scrollbar rounded-2xl border border-white/10 bg-white/[0.02]">
+                  <table className="w-full text-left border-collapse min-w-[760px]">
+                    <thead>
+                      <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                        <th className="p-3.5 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">#</th>
+                        <th className="p-3.5 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Order ID</th>
+                        <th className="p-3.5 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Date</th>
+                        <th className="p-3.5 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Items</th>
+                        <th className="p-3.5 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Total Amount</th>
+                        <th className="p-3.5 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Payment</th>
+                        <th className="p-3.5 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Status</th>
+                        <th className="p-3.5 text-right sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/10">
+                      {customerOrders.map((order, index) => {
+                        const firstItem = order.items?.[0] || order.orderItems?.[0] || order.products?.[0];
+                        const prodId = firstItem?.product?._id || firstItem?.product || firstItem?.productId;
+                        const itemImg = firstItem?.image || firstItem?.variant?.images?.[0] || firstItem?.product?.images?.[0];
+                        const itemName = firstItem?.product?.name || firstItem?.name || 'Product';
+                        const itemsCount = order.items?.length || order.orderItems?.length || 1;
+
+                        return (
+                          <tr
+                            key={order._id || index}
+                            onClick={() => navigate(`/orders/all?viewOrderId=${order._id}`, { state: { viewOrderId: order._id } })}
+                            className="hover:bg-white/[0.03] transition-colors cursor-pointer group"
+                          >
+                            <td className="p-3.5 text-xs text-slate-400 font-mono">
+                              {index + 1}
+                            </td>
+                            <td className="p-3.5 font-mono text-xs text-blue-300 font-medium">
+                              <div className="flex flex-col">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="truncate max-w-[120px]" title={order._id}>{order._id}</span>
+                                  <CopyButton text={order._id} className="text-blue-400/60 hover:text-blue-300 shrink-0" size={10} />
+                                </div>
+                                {order.invoiceUrl && (
+                                  <span className="text-[9px] text-emerald-400 font-sans mt-0.5 flex items-center gap-1">
+                                    <FiFileText className="shrink-0" size={9} /> Invoiced
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="p-3.5 text-xs text-slate-300 whitespace-nowrap">
+                              <div className="flex items-center gap-1.5 font-mono">
+                                <FiCalendar className="text-slate-500 shrink-0" size={12} />
+                                <span>{formatDateDDMMYYYY(order.createdAt)}</span>
+                              </div>
+                            </td>
+                            <td className="p-3.5">
+                              <div className="flex items-center gap-2.5">
+                                {itemImg ? (
+                                  <div
+                                    onClick={(e) => {
+                                      if (prodId) {
+                                        e.stopPropagation();
+                                        setViewModalProductId(prodId);
+                                      }
+                                    }}
+                                    className={`w-9 h-9 rounded-lg overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center p-0.5 ${
+                                      prodId ? 'hover:scale-105 hover:border-blue-500/50 transition-all shadow-sm' : ''
+                                    }`}
+                                    title={prodId ? "View Product Details" : undefined}
+                                  >
+                                    <img src={itemImg} alt={itemName} className="w-full h-full object-contain" />
+                                  </div>
+                                ) : (
+                                  <div className="w-9 h-9 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center text-slate-500 shrink-0">
+                                    <FiBox size={14} />
+                                  </div>
+                                )}
+                                <div className="flex flex-col min-w-0 max-w-[180px]">
+                                  <span className="text-white text-xs font-semibold truncate" title={itemName}>
+                                    {itemName}
+                                  </span>
+                                  {firstItem?.variant?.name && (
+                                    <span className="text-amber-400 text-[10px] truncate" title={firstItem.variant.name}>
+                                      {firstItem.variant.name}
+                                    </span>
+                                  )}
+                                  <span className="text-[10px] text-slate-400">
+                                    {itemsCount > 1 ? `+${itemsCount - 1} more item(s)` : `Qty: ${firstItem?.quantity || 1}`}
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="p-3.5 text-xs font-bold text-emerald-400 font-mono">
+                              ₹{order.totalAmount?.toLocaleString('en-IN') || 0}
+                            </td>
+                            <td className="p-3.5 text-xs">
+                              <div className="flex flex-col items-start gap-1">
+                                <span className="text-slate-300 font-medium text-[11px]">{order.paymentMethod || 'N/A'}</span>
+                                <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-bold uppercase tracking-wider border ${
+                                  order.paymentStatus === 'Paid' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                                }`}>
+                                  {order.paymentStatus || 'Pending'}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="p-3.5">
+                              <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${getOrderStatusColor(order.orderStatus)}`}>
+                                {order.orderStatus || 'Pending'}
+                              </span>
+                            </td>
+                            <td className="p-3.5 text-right">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/orders/all?viewOrderId=${order._id}`, { state: { viewOrderId: order._id } });
+                                }}
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-blue-500/15 hover:bg-blue-500/25 border border-blue-500/30 text-blue-300 hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-sm"
+                                title="View in Orders"
+                              >
+                                <span>View</span>
+                                <FiExternalLink size={12} />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>

@@ -483,34 +483,32 @@ const Banners = () => {
                       {formData.clickAction === 'category' && (
                         <>
                           <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Select Category</label>
-                          <select
+                          <CustomDropdown
                             value={formData.actionId}
-                            onChange={(e) => setFormData({ ...formData, actionId: e.target.value })}
-                            required
-                            className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white font-medium"
-                          >
-                            <option value="" className="bg-slate-800">-- Select Category --</option>
-                            {categories.map(cat => (
-                              <option key={cat._id} value={cat._id} className="bg-slate-800">{cat.name}</option>
-                            ))}
-                          </select>
+                            onChange={(val) => setFormData({ ...formData, actionId: val })}
+                            options={[
+                              { value: '', label: '-- Select Category --' },
+                              ...categories.map(cat => ({ value: cat._id, label: cat.name }))
+                            ]}
+                            defaultLabel="-- Select Category --"
+                            statusColor="bg-black/20 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50 shadow-inner backdrop-blur-md"
+                          />
                         </>
                       )}
 
                       {formData.clickAction === 'brand' && (
                         <>
                           <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Select Brand</label>
-                          <select
+                          <CustomDropdown
                             value={formData.actionId}
-                            onChange={(e) => setFormData({ ...formData, actionId: e.target.value })}
-                            required
-                            className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white font-medium"
-                          >
-                            <option value="" className="bg-slate-800">-- Select Brand --</option>
-                            {brands.map(brand => (
-                              <option key={brand._id} value={brand._id} className="bg-slate-800">{brand.name}</option>
-                            ))}
-                          </select>
+                            onChange={(val) => setFormData({ ...formData, actionId: val })}
+                            options={[
+                              { value: '', label: '-- Select Brand --' },
+                              ...brands.map(brand => ({ value: brand._id, label: brand.name }))
+                            ]}
+                            defaultLabel="-- Select Brand --"
+                            statusColor="bg-black/20 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50 shadow-inner backdrop-blur-md"
+                          />
                         </>
                       )}
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { FiEdit2, FiTrash2, FiInfo, FiPlus, FiAlertCircle, FiLoader, FiSearch, FiUpload, FiX, FiSave, FiImage, FiPackage, FiChevronDown, FiChevronUp, FiArrowUp, FiArrowDown, FiCopy, FiDownload, FiFileText, FiCheck } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiInfo, FiPlus, FiAlertCircle, FiLoader, FiSearch, FiUpload, FiX, FiSave, FiImage, FiPackage, FiChevronDown, FiChevronUp, FiArrowUp, FiArrowDown, FiCopy, FiDownload, FiFileText, FiCheck, FiGrid, FiList, FiEye } from 'react-icons/fi';
 import { api, BASE_URL } from '../../../api/axios';
 import { useConfirm } from '../../../Context/ConfirmationContext';
 import CustomDropdown from '../../../Components/CustomDropdown';
@@ -395,6 +395,22 @@ const ProductList = () => {
     return () => clearTimeout(delayDebounce);
   }, [searchInput, searchParams, setSearchParams]);
   const itemsPerPage = 10;
+  const [viewMode, setViewMode] = useState(() => {
+    try {
+      return localStorage.getItem('product_view_mode') || 'grid';
+    } catch {
+      return 'grid';
+    }
+  });
+
+  const handleViewModeChange = (mode) => {
+    setViewMode(mode);
+    try {
+      localStorage.setItem('product_view_mode', mode);
+    } catch (e) {
+      console.error('Failed to save view mode', e);
+    }
+  };
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -1680,6 +1696,89 @@ const ProductList = () => {
     );
   };
 
+  const getProductImageInfo = (product) => {
+    let variantImages = [];
+    if (product.variants && Array.isArray(product.variants)) {
+      product.variants.forEach(v => {
+        if (Array.isArray(v.images)) {
+          variantImages.push(...v.images.filter(Boolean));
+        } else if (typeof v.images === 'string' && v.images.trim()) {
+          variantImages.push(...v.images.split(',').map(s => s.trim()).filter(Boolean));
+        } else if (Array.isArray(v.image_urls)) {
+          variantImages.push(...v.image_urls.filter(Boolean));
+        } else if (typeof v.image_urls === 'string' && v.image_urls.trim()) {
+          variantImages.push(...v.image_urls.split(',').map(s => s.trim()).filter(Boolean));
+        } else if (v.image) {
+          variantImages.push(v.image);
+        }
+      });
+    }
+
+    let normalImages = [];
+    if (Array.isArray(product.images)) {
+      normalImages.push(...product.images.filter(Boolean));
+    } else if (typeof product.images === 'string' && product.images.trim()) {
+      normalImages.push(...product.images.split(',').map(s => s.trim()).filter(Boolean));
+    } else if (Array.isArray(product.image_urls)) {
+      normalImages.push(...product.image_urls.filter(Boolean));
+    } else if (typeof product.image_urls === 'string' && product.image_urls.trim()) {
+      normalImages.push(...product.image_urls.split(',').map(s => s.trim()).filter(Boolean));
+    }
+
+    const hasVariantImages = variantImages.length > 0;
+    const totalImgs = hasVariantImages ? variantImages.length : normalImages.length;
+    const thumb = (hasVariantImages ? variantImages[0] : normalImages[0]) || normalImages[0] || variantImages[0] || '';
+
+    return { thumb, totalImgs };
+  };
+
+  const getGridQuantityBadge = (product) => {
+    if (product.variants && product.variants.length > 0) {
+      const totalQty = product.variants.reduce((sum, v) => sum + (Number(v.quantity) || 0), 0);
+      let colorClass = '';
+      if (totalQty <= 0) {
+        colorClass = 'bg-rose-500/10 text-rose-400 border border-rose-500/20';
+      } else if (totalQty <= 10) {
+        colorClass = 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+      } else {
+        colorClass = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+      }
+
+      const tooltipText = product.variants.map(v => `${v.name || 'Variant'}: ${v.quantity ?? 0}`).join('\n');
+
+      return (
+        <span
+          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${colorClass}`}
+          title={tooltipText}
+        >
+          {totalQty}
+        </span>
+      );
+    }
+
+    const qty = product.totalQuantity !== undefined && product.totalQuantity !== null && product.totalQuantity !== ''
+      ? Number(product.totalQuantity)
+      : (product.quantity !== undefined ? Number(product.quantity) : null);
+
+    if (qty === null) {
+      return <span className="text-slate-500 font-bold">-</span>;
+    }
+
+    let colorClass = '';
+    if (qty <= 0) {
+      colorClass = 'bg-rose-500/10 text-rose-400 border border-rose-500/20';
+    } else if (qty <= 10) {
+      colorClass = 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+    } else {
+      colorClass = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+    }
+    return (
+      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${colorClass}`}>
+        {qty}
+      </span>
+    );
+  };
+
   // Summary Metrics Memoization to prevent multiple O(N) traversals on every render
   const metricsSummary = useMemo(() => {
     const totalProducts = products.length;
@@ -2014,8 +2113,8 @@ const ProductList = () => {
         </div>
       </div>
 
-      {/* Catalog Tabs */}
-      <div className="flex border-b border-white/10 justify-between items-center mb-2 flex-wrap gap-4">
+      {/* Catalog Tabs & View Switcher */}
+      <div className="flex border-b border-white/10 justify-between items-center mb-4 flex-wrap gap-4">
         <div className="flex gap-6">
           <button
             onClick={() => { setCatalogTab('active'); setSearchParams(prev => { prev.set('page', '1'); return prev; }); }}
@@ -2037,6 +2136,37 @@ const ProductList = () => {
           </button>
         </div>
 
+        {/* View Mode Switcher */}
+        <div className="flex items-center pb-2">
+          <div className="flex items-center bg-black/40 p-1 rounded-xl border border-white/10 shadow-inner backdrop-blur-md">
+            <button
+              type="button"
+              onClick={() => handleViewModeChange('grid')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                viewMode === 'grid'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+              title="App-style Grid View"
+            >
+              <FiGrid size={14} />
+              <span>Grid</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleViewModeChange('table')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                viewMode === 'table'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+              title="Table View"
+            >
+              <FiList size={14} />
+              <span>Table</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       {brokenImages.length > 0 && (
@@ -2055,10 +2185,11 @@ const ProductList = () => {
         </div>
       )}
 
-      {/* Table Section */}
-      <div key="list-view-table-wrapper" className="border border-white/10 shadow-2xl shadow-black/50 rounded-2xl md:rounded-3xl overflow-hidden flex flex-col h-full animate-in fade-in duration-200">
-        <div className="overflow-auto custom-scrollbar max-h-[70vh]">
-          <table className="w-full text-left border-collapse whitespace-nowrap">
+      {/* Products Display Section */}
+      <div key={`product-view-wrapper-${viewMode}`} className="border border-white/10 shadow-2xl shadow-black/50 rounded-2xl md:rounded-3xl overflow-hidden flex flex-col h-full animate-in fade-in duration-200">
+        {viewMode === 'table' ? (
+          <div className="overflow-auto custom-scrollbar max-h-[70vh]">
+            <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead className="sticky top-0 z-20 bg-white/[0.03] backdrop-blur-md border-b border-white/10 text-slate-300 text-sm shadow-md">
               <tr className="align-middle">
                 {isDeleteMode && (
@@ -2355,6 +2486,329 @@ const ProductList = () => {
             </tbody>
           </table>
         </div>
+      ) : (
+        <div className="flex flex-col h-full">
+          {/* Grid View Filter Bar */}
+          <div className="p-3 sm:p-4 bg-white/[0.02] border-b border-white/10 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2.5">
+              {/* Brand Filter */}
+              <div className="w-36 sm:w-44">
+                <CustomDropdown
+                  value={selectedBrand}
+                  onChange={(val) => handleFilterChange('brand', val)}
+                  options={[
+                    { value: '', label: 'All Brands' },
+                    ...brands.map(b => ({ value: b._id, label: b.name }))
+                  ]}
+                  defaultLabel="Brand"
+                  statusColor={`bg-slate-900/90 border-white/10 text-xs font-semibold py-2 px-3 rounded-xl hover:bg-slate-800 transition-colors ${
+                    selectedBrand ? 'text-blue-400 font-extrabold border-blue-500/40' : 'text-slate-300'
+                  }`}
+                />
+              </div>
+
+              {/* Category Filter */}
+              <div className="w-36 sm:w-44">
+                <CustomDropdown
+                  value={selectedCategory}
+                  onChange={(val) => handleFilterChange('category', val)}
+                  options={[
+                    { value: '', label: 'All Categories' },
+                    ...categories.map(c => ({ value: c._id, label: c.name }))
+                  ]}
+                  defaultLabel="Category"
+                  statusColor={`bg-slate-900/90 border-white/10 text-xs font-semibold py-2 px-3 rounded-xl hover:bg-slate-800 transition-colors ${
+                    selectedCategory ? 'text-blue-400 font-extrabold border-blue-500/40' : 'text-slate-300'
+                  }`}
+                />
+              </div>
+
+              {/* Quantity Filter */}
+              <div className="flex items-center">
+                <QuantityFilterDropdown
+                  qtyOp={qtyOp}
+                  qtyVal={qtyVal}
+                  onApply={handleQtyFilterApply}
+                  onClear={handleQtyFilterClear}
+                />
+              </div>
+
+              {/* Sort Filter */}
+              <div className="w-44 sm:w-52">
+                <CustomDropdown
+                  value={sortKey ? `${sortKey}_${sortOrder}` : ''}
+                  onChange={(val) => {
+                    if (!val) {
+                      setSearchParams(prev => {
+                        prev.delete('sortKey');
+                        prev.delete('sortOrder');
+                        prev.set('page', '1');
+                        return prev;
+                      });
+                    } else {
+                      const [key, order] = val.split('_');
+                      setSearchParams(prev => {
+                        prev.set('sortKey', key);
+                        prev.set('sortOrder', order);
+                        prev.set('page', '1');
+                        return prev;
+                      });
+                    }
+                  }}
+                  options={[
+                    { value: '', label: 'Sort: Default' },
+                    { value: 'name_asc', label: 'Name (A to Z)' },
+                    { value: 'name_desc', label: 'Name (Z to A)' },
+                    { value: 'offerPrice_asc', label: 'Price: Low to High' },
+                    { value: 'offerPrice_desc', label: 'Price: High to Low' },
+                    { value: 'basePrice_asc', label: 'Base Price: Low to High' },
+                    { value: 'basePrice_desc', label: 'Base Price: High to Low' },
+                    { value: 'variants_desc', label: 'Variants: Most First' },
+                    { value: 'variants_asc', label: 'Variants: Fewest First' }
+                  ]}
+                  defaultLabel="Sort: Default"
+                  statusColor={`bg-slate-900/90 border-white/10 text-xs font-semibold py-2 px-3 rounded-xl hover:bg-slate-800 transition-colors ${
+                    sortKey ? 'text-blue-400 font-extrabold border-blue-500/40' : 'text-slate-300'
+                  }`}
+                />
+              </div>
+
+              {/* Reset Filters */}
+              {(selectedBrand || selectedCategory || selectedStockStatus || qtyVal || sortKey) && (
+                <button
+                  type="button"
+                  onClick={handleClearFilters}
+                  className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-rose-400 hover:text-rose-300 text-xs font-bold rounded-xl border border-rose-500/20 transition-all cursor-pointer flex items-center gap-1.5 shrink-0 shadow-sm"
+                  title="Clear All Filters"
+                >
+                  <FiX size={13} />
+                  <span>Reset Filters</span>
+                </button>
+              )}
+            </div>
+
+            {/* In Delete Mode, Select All toggle */}
+            {isDeleteMode && (
+              <button
+                type="button"
+                onClick={handleSelectAll}
+                className="px-3 py-2 bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white text-xs font-bold rounded-xl border border-blue-500/30 transition-all cursor-pointer"
+              >
+                {currentProducts.length > 0 && currentProducts.every(p => selectedProducts.includes(p._id))
+                  ? 'Deselect Page'
+                  : 'Select Page'}
+              </button>
+            )}
+          </div>
+
+          <div className="overflow-y-auto custom-scrollbar max-h-auto p-4 sm:p-5 md:p-6">
+          {loading ? (
+            <div className="py-24 text-center text-slate-400 font-medium">
+              <FiLoader className="animate-spin text-3xl mx-auto mb-3 text-blue-400" />
+              Loading products...
+            </div>
+          ) : currentProducts.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
+              {currentProducts.map((product, index) => {
+                const { thumb, totalImgs } = getProductImageInfo(product);
+                const base = Number(product.basePrice);
+                const offer = Number(product.offerPrice);
+                const hasDiscount = base > 0 && offer > 0 && base > offer;
+                const discountPercent = hasDiscount ? Math.round(((base - offer) / base) * 100) : 0;
+                const isInactive = product.isActive === false;
+                const inactiveVariantsCount = product.variants?.filter(v => v.isActive === false).length || 0;
+                const validSlabs = (product.quantityPricing || []).filter(qp => Number(qp.minQty) > 0 && Number(qp.price) > 0);
+
+                return (
+                  <div
+                    key={product._id || index}
+                    onClick={() => openDetailsView(product)}
+                    className={`group relative flex flex-col bg-slate-900/60 hover:bg-slate-800/80 border rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer transform hover:-translate-y-1 ${
+                      isDeleteMode && selectedProducts.includes(product._id)
+                        ? 'border-blue-500 ring-2 ring-blue-500/30'
+                        : 'border-white/10 hover:border-blue-500/40'
+                    }`}
+                  >
+                    {/* Delete mode checkbox overlay */}
+                    {isDeleteMode && (
+                      <div
+                        className="absolute top-2.5 left-2.5 z-20"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <input
+                          type="checkbox"
+                          className="w-5 h-5 rounded border-slate-500 bg-slate-800 text-blue-500 focus:ring-blue-500/50 cursor-pointer accent-blue-500 scheme-dark shadow-md"
+                          checked={selectedProducts.includes(product._id)}
+                          onChange={() => handleSelectProduct(product._id)}
+                        />
+                      </div>
+                    )}
+
+                    {/* Product Image Area */}
+                    <div className="relative aspect-square w-full bg-white overflow-hidden flex items-center justify-center border-b border-white/5">
+                      {thumb ? (
+                        <ProgressiveImage
+                          src={getImageUrl(thumb, { width: 400, quality: 75 })}
+                          alt={product.name}
+                          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-slate-600 bg-slate-950/40">
+                          <FiImage size={36} />
+                          <span className="text-[10px] mt-1.5 font-semibold text-slate-500">No Image</span>
+                        </div>
+                      )}
+
+                      {/* Top Floating Badges */}
+                      <div className="absolute top-2.5 right-2.5 flex flex-col items-end gap-1.5 z-10 pointer-events-none">
+                        {hasDiscount && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500 text-white shadow-lg shadow-rose-500/30 tracking-wide">
+                            {discountPercent}% OFF
+                          </span>
+                        )}
+                        {isInactive && (
+                          <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-rose-950/90 text-rose-300 border border-rose-500/30 shadow">
+                            Deactivated
+                          </span>
+                        )}
+                        {!isInactive && inactiveVariantsCount > 0 && (
+                          <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-amber-950/90 text-amber-300 border border-amber-500/30 shadow">
+                            {inactiveVariantsCount} Variant{inactiveVariantsCount > 1 ? 's' : ''} Off
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Multi-image chip & quick image view */}
+                      <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between pointer-events-none">
+                        {totalImgs > 1 ? (
+                          <span className="bg-slate-950/80 backdrop-blur-md border border-white/10 text-[10px] font-bold text-white px-2 py-0.5 rounded-md shadow flex items-center gap-1">
+                            <FiImage size={11} className="text-blue-400" />
+                            {totalImgs} photos
+                          </span>
+                        ) : <span />}
+
+                        {thumb && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openImageView(product);
+                            }}
+                            className="pointer-events-auto p-1.5 rounded-lg bg-slate-900/80 hover:bg-blue-600 text-white border border-white/15 transition-all shadow-md cursor-pointer hover:scale-105"
+                            title="View all images"
+                          >
+                            <FiEye size={13} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Card Content Area */}
+                    <div className="p-3.5 flex flex-col flex-1 justify-between gap-3">
+                      <div className="space-y-1.5">
+                        {/* Brand & Category */}
+                        <div className="flex items-center justify-between text-[11px] gap-2">
+                          <span className="text-blue-400 font-bold uppercase tracking-wider truncate">
+                            {getBrandName(product.brand) || 'Brand'}
+                          </span>
+                          <span className="text-slate-400 font-medium truncate text-right">
+                            {getCategoryName(product.category) || 'Category'}
+                          </span>
+                        </div>
+
+                        {/* Product Name */}
+                        <h3
+                          className="text-sm font-bold text-white leading-snug line-clamp-2 group-hover:text-blue-300 transition-colors"
+                          title={product.name}
+                        >
+                          {product.name || 'Untitled Product'}
+                        </h3>
+
+                        {/* Product ID */}
+                        <div className="flex items-center gap-1 text-[10px] text-slate-500 font-mono" onClick={(e) => e.stopPropagation()}>
+                          <span className="truncate">{product._id}</span>
+                          <CopyButton text={product._id} />
+                        </div>
+                      </div>
+
+                      {/* Pricing & Slabs */}
+                      <div className="space-y-2 pt-1 border-t border-white/5">
+                        <div className="flex items-baseline gap-2 flex-wrap">
+                          <span className="text-base font-black text-emerald-400 tracking-tight">
+                            ₹{product.offerPrice ?? '-'}
+                          </span>
+                          {product.basePrice && product.basePrice !== product.offerPrice && (
+                            <span className="text-xs font-semibold text-slate-500 line-through">
+                              ₹{product.basePrice}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Stock & Slabs badges */}
+                        <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {/* Quantity Badge: display count only */}
+                            {getGridQuantityBadge(product)}
+
+                            {validSlabs.length > 0 && (
+                              <span
+                                className="inline-flex items-center gap-1 text-[9px] font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.5 rounded"
+                                title={validSlabs.map(qp => `Qty: ${qp.minQty}+ → ₹${qp.price}`).join('\n')}
+                              >
+                                {validSlabs.length} Slab{validSlabs.length > 1 ? 's' : ''}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Variant count */}
+                          {product.variants && product.variants.length > 0 && (
+                            <span className="text-[10px] text-slate-400 font-bold bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
+                              {product.variants.length} var{product.variants.length > 1 ? 's' : ''}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Card Actions Footer */}
+                      <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2 text-xs">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openDetailsView(product);
+                          }}
+                          className="flex-1 py-1.5 px-2.5 bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white rounded-lg font-bold text-xs transition-all text-center cursor-pointer flex items-center justify-center gap-1.5"
+                        >
+                          <FiEdit2 size={12} />
+                          <span>Manage</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setProductToDelete(product);
+                            setDeleteConfirmOpen(true);
+                          }}
+                          className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-rose-500/20"
+                          title="Delete Product"
+                        >
+                          <FiTrash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="py-24 text-center text-slate-400 font-medium">
+              {searchTerm ? 'No products matching your search.' : 'No products found. Add your first product.'}
+            </div>
+          )}
+        </div>
+      </div>
+    )}
 
         {/* Pagination */}
         {!loading && filteredProducts.length > 0 && (
@@ -2442,7 +2896,7 @@ const ProductList = () => {
       {isDetailsModalOpen && currentProductForView && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={() => setIsDetailsModalOpen(false)}></div>
-          <div className="relative bg-slate-950/25 border border-white/20 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative bg-slate-950/50 border border-white/20 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
             {/* Floating Close Button */}
             <button
               type="button"
@@ -3164,8 +3618,7 @@ const ProductList = () => {
       {isDeactivateModalOpen && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={() => !isBulkUpdating && setIsDeactivateModalOpen(false)}></div>
-
-          <div className="relative bg-slate-950/25 border border-white/20 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative bg-slate-950/50 border border-white/20 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-white/[0.03]">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-red-900/50 text-red-400 flex items-center justify-center text-lg">
@@ -3185,36 +3638,36 @@ const ProductList = () => {
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Condition</label>
-                <select
+                <CustomDropdown
                   value={deactivateCondition}
-                  onChange={(e) => setDeactivateCondition(e.target.value)}
-                  disabled={isBulkUpdating}
-                  className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium"
-                >
-                  <option value="quantity" className="bg-slate-800">By Product/Variant Quantity</option>
-                  <option value="brand" className="bg-slate-800">Specific Brand</option>
-                  <option value="category" className="bg-slate-800">Specific Category</option>
-                  <option value="all" className="bg-slate-800">All Products</option>
-                </select>
+                  onChange={(val) => setDeactivateCondition(val)}
+                  options={[
+                    { value: 'quantity', label: 'By Product/Variant Quantity' },
+                    { value: 'brand', label: 'Specific Brand' },
+                    { value: 'category', label: 'Specific Category' },
+                    { value: 'all', label: 'All Products' }
+                  ]}
+                  statusColor="bg-slate-900/50 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50"
+                />
               </div>
 
               {deactivateCondition === 'quantity' && (
                 <div className="space-y-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Quantity Condition</label>
-                    <select
+                    <CustomDropdown
                       value={deactivateQuantityOperator}
-                      onChange={(e) => setDeactivateQuantityOperator(e.target.value)}
-                      disabled={isBulkUpdating}
-                      className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium"
-                    >
-                      <option value="gt" className="bg-slate-800">Greater than</option>
-                      <option value="gte" className="bg-slate-800">Greater than or equal to</option>
-                      <option value="lt" className="bg-slate-800">Less than</option>
-                      <option value="lte" className="bg-slate-800">Less than or equal to</option>
-                      <option value="eq" className="bg-slate-800">Is equal to</option>
-                      <option value="neq" className="bg-slate-800">Is not equal to</option>
-                    </select>
+                      onChange={(val) => setDeactivateQuantityOperator(val)}
+                      options={[
+                        { value: 'gt', label: 'Greater than' },
+                        { value: 'gte', label: 'Greater than or equal to' },
+                        { value: 'lt', label: 'Less than' },
+                        { value: 'lte', label: 'Less than or equal to' },
+                        { value: 'eq', label: 'Is equal to' },
+                        { value: 'neq', label: 'Is not equal to' }
+                      ]}
+                      statusColor="bg-slate-900/50 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50"
+                    />
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Quantity Threshold</label>
@@ -3263,32 +3716,32 @@ const ProductList = () => {
               {deactivateCondition === 'brand' && (
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Brand</label>
-                  <select
+                  <CustomDropdown
                     value={selectedDeactivateBrand}
-                    onChange={(e) => setSelectedDeactivateBrand(e.target.value)}
-                    disabled={isBulkUpdating}
-                    required
-                    className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium"
-                  >
-                    <option value="" className="bg-slate-800">Choose a Brand</option>
-                    {brands.map(b => <option key={b._id} value={b._id} className="bg-slate-800">{b.name}</option>)}
-                  </select>
+                    onChange={(val) => setSelectedDeactivateBrand(val)}
+                    options={[
+                      { value: '', label: 'Choose a Brand' },
+                      ...brands.map(b => ({ value: b._id, label: b.name }))
+                    ]}
+                    defaultLabel="Choose a Brand"
+                    statusColor="bg-slate-900/50 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50"
+                  />
                 </div>
               )}
 
               {deactivateCondition === 'category' && (
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Category</label>
-                  <select
+                  <CustomDropdown
                     value={selectedDeactivateCategory}
-                    onChange={(e) => setSelectedDeactivateCategory(e.target.value)}
-                    disabled={isBulkUpdating}
-                    required
-                    className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium"
-                  >
-                    <option value="" className="bg-slate-800">Choose a Category</option>
-                    {categories.map(c => <option key={c._id} value={c._id} className="bg-slate-800">{c.name}</option>)}
-                  </select>
+                    onChange={(val) => setSelectedDeactivateCategory(val)}
+                    options={[
+                      { value: '', label: 'Choose a Category' },
+                      ...categories.map(c => ({ value: c._id, label: c.name }))
+                    ]}
+                    defaultLabel="Choose a Category"
+                    statusColor="bg-slate-900/50 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50"
+                  />
                 </div>
               )}
             </div>
@@ -3328,7 +3781,7 @@ const ProductList = () => {
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={() => !isBulkUpdating && setIsActivateModalOpen(false)}></div>
 
-          <div className="relative bg-slate-950/25 border border-white/20 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative bg-slate-950/50 border border-white/20 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-white/[0.03]">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-emerald-900/50 text-emerald-400 flex items-center justify-center text-lg">
@@ -3348,36 +3801,36 @@ const ProductList = () => {
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Condition</label>
-                <select
+                <CustomDropdown
                   value={activateCondition}
-                  onChange={(e) => setActivateCondition(e.target.value)}
-                  disabled={isBulkUpdating}
-                  className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium"
-                >
-                  <option value="quantity" className="bg-slate-800">By Product/Variant Quantity</option>
-                  <option value="brand" className="bg-slate-800">Specific Brand</option>
-                  <option value="category" className="bg-slate-800">Specific Category</option>
-                  <option value="all" className="bg-slate-800">All Products</option>
-                </select>
+                  onChange={(val) => setActivateCondition(val)}
+                  options={[
+                    { value: 'quantity', label: 'By Product/Variant Quantity' },
+                    { value: 'brand', label: 'Specific Brand' },
+                    { value: 'category', label: 'Specific Category' },
+                    { value: 'all', label: 'All Products' }
+                  ]}
+                  statusColor="bg-slate-900/50 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50"
+                />
               </div>
 
               {activateCondition === 'quantity' && (
                 <div className="space-y-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Quantity Condition</label>
-                    <select
+                    <CustomDropdown
                       value={activateQuantityOperator}
-                      onChange={(e) => setActivateQuantityOperator(e.target.value)}
-                      disabled={isBulkUpdating}
-                      className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium"
-                    >
-                      <option value="gt" className="bg-slate-800">Greater than</option>
-                      <option value="gte" className="bg-slate-800">Greater than or equal to</option>
-                      <option value="lt" className="bg-slate-800">Less than</option>
-                      <option value="lte" className="bg-slate-800">Less than or equal to</option>
-                      <option value="eq" className="bg-slate-800">Is equal to</option>
-                      <option value="neq" className="bg-slate-800">Is not equal to</option>
-                    </select>
+                      onChange={(val) => setActivateQuantityOperator(val)}
+                      options={[
+                        { value: 'gt', label: 'Greater than' },
+                        { value: 'gte', label: 'Greater than or equal to' },
+                        { value: 'lt', label: 'Less than' },
+                        { value: 'lte', label: 'Less than or equal to' },
+                        { value: 'eq', label: 'Is equal to' },
+                        { value: 'neq', label: 'Is not equal to' }
+                      ]}
+                      statusColor="bg-slate-900/50 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50"
+                    />
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Quantity Threshold</label>
@@ -3426,32 +3879,32 @@ const ProductList = () => {
               {activateCondition === 'brand' && (
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Brand</label>
-                  <select
+                  <CustomDropdown
                     value={selectedActivateBrand}
-                    onChange={(e) => setSelectedActivateBrand(e.target.value)}
-                    disabled={isBulkUpdating}
-                    required
-                    className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium"
-                  >
-                    <option value="" className="bg-slate-800">Choose a Brand</option>
-                    {brands.map(b => <option key={b._id} value={b._id} className="bg-slate-800">{b.name}</option>)}
-                  </select>
+                    onChange={(val) => setSelectedActivateBrand(val)}
+                    options={[
+                      { value: '', label: 'Choose a Brand' },
+                      ...brands.map(b => ({ value: b._id, label: b.name }))
+                    ]}
+                    defaultLabel="Choose a Brand"
+                    statusColor="bg-slate-900/50 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50"
+                  />
                 </div>
               )}
 
               {activateCondition === 'category' && (
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Category</label>
-                  <select
+                  <CustomDropdown
                     value={selectedActivateCategory}
-                    onChange={(e) => setSelectedActivateCategory(e.target.value)}
-                    disabled={isBulkUpdating}
-                    required
-                    className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium"
-                  >
-                    <option value="" className="bg-slate-800">Choose a Category</option>
-                    {categories.map(c => <option key={c._id} value={c._id} className="bg-slate-800">{c.name}</option>)}
-                  </select>
+                    onChange={(val) => setSelectedActivateCategory(val)}
+                    options={[
+                      { value: '', label: 'Choose a Category' },
+                      ...categories.map(c => ({ value: c._id, label: c.name }))
+                    ]}
+                    defaultLabel="Choose a Category"
+                    statusColor="bg-slate-900/50 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50"
+                  />
                 </div>
               )}
             </div>

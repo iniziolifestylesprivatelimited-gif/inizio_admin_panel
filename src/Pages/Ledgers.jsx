@@ -26,6 +26,7 @@ export const Ledgers = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortOrder, setSortOrder] = useState('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -181,16 +182,24 @@ export const Ledgers = () => {
   };
 
   const filteredLedgers = useMemo(() => {
-    if (!searchQuery.trim()) return ledgers;
-    const q = searchQuery.toLowerCase().trim();
-    return ledgers.filter(ledger => {
-      const titleMatch = (ledger.title || '').toLowerCase().includes(q);
-      const user = getUserDetails(ledger.user);
-      const nameMatch = user.name.toLowerCase().includes(q);
-      const emailMatch = (user.email || '').toLowerCase().includes(q);
-      return titleMatch || nameMatch || emailMatch;
+    let result = ledgers;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter(ledger => {
+        const titleMatch = (ledger.title || '').toLowerCase().includes(q);
+        const user = getUserDetails(ledger.user);
+        const nameMatch = user.name.toLowerCase().includes(q);
+        const emailMatch = (user.email || '').toLowerCase().includes(q);
+        return titleMatch || nameMatch || emailMatch;
+      });
+    }
+
+    return [...result].sort((a, b) => {
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
     });
-  }, [ledgers, searchQuery, users]);
+  }, [ledgers, searchQuery, users, sortOrder]);
 
   const totalPages = Math.ceil(filteredLedgers.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -267,7 +276,21 @@ export const Ledgers = () => {
                   <th className="p-5 font-bold w-16">S.No</th>
                   <th className="p-5 font-bold">Title</th>
                   <th className="p-5 font-bold">Customer</th>
-                  <th className="p-5 font-bold">Uploaded Date</th>
+                  <th
+                    onClick={() => {
+                      setSortOrder(prev => (prev === 'desc' ? 'asc' : 'desc'));
+                      setCurrentPage(1);
+                    }}
+                    className="p-5 font-bold cursor-pointer select-none hover:text-white transition-colors"
+                    title={`Sorted: ${sortOrder === 'desc' ? 'Newest First' : 'Oldest First'}. Click to toggle.`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-blue-400 font-extrabold">Uploaded Date</span>
+                      <span className="text-blue-400 text-xs">
+                        {sortOrder === 'asc' ? '▲' : '▼'}
+                      </span>
+                    </div>
+                  </th>
                   <th className="p-5 font-bold text-center">Actions</th>
                 </tr>
               </thead>

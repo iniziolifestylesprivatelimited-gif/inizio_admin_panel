@@ -245,9 +245,13 @@ function AppVersionsHorizontalChart({ data, width, height }) {
     scroll: true
   });
 
-  const margin = { top: 15, right: 40, bottom: 45, left: 75 };
+  const isMobile = width < 480;
+  const margin = isMobile 
+    ? { top: 12, right: 30, bottom: 42, left: 55 }
+    : { top: 15, right: 40, bottom: 45, left: 75 };
+  const effectiveHeight = Math.max(height, isMobile ? 240 : 260);
   const xMax = Math.max(0, width - margin.left - margin.right);
-  const yMax = Math.max(0, height - margin.top - margin.bottom);
+  const yMax = Math.max(0, effectiveHeight - margin.top - margin.bottom);
 
   const formatVerLabel = (ver) => {
     const s = String(ver || '').trim();
@@ -281,8 +285,8 @@ function AppVersionsHorizontalChart({ data, width, height }) {
   if (width < 10 || height < 10) return null;
 
   return (
-    <div ref={containerRef} className="relative w-full h-full">
-      <svg width={width} height={height}>
+    <div ref={containerRef} className="relative w-full h-full min-h-[240px]">
+      <svg width={width} height={effectiveHeight}>
         {/* Soft Blue Gradient for Android */}
         <LinearGradient id="visx-app-android-grad" from="#3b82f6" to="#2563eb" fromOpacity={0.9} toOpacity={0.55} />
         {/* Soft Emerald Gradient for iOS */}
@@ -381,10 +385,10 @@ function AppVersionsHorizontalChart({ data, width, height }) {
             tickStroke="transparent"
             tickLabelProps={{
               fill: '#94a3b8',
-              fontSize: 11,
+              fontSize: isMobile ? 9 : 11,
               fontWeight: 700,
               textAnchor: 'end',
-              dx: -4,
+              dx: -3,
               dy: 3
             }}
           />
@@ -392,13 +396,13 @@ function AppVersionsHorizontalChart({ data, width, height }) {
       </svg>
 
       {/* Bottom Platform Colors Legend */}
-      <div className="absolute bottom-1 left-0 right-0 flex justify-center items-center gap-6 text-xs font-bold">
-        <div className="flex items-center gap-2 px-3 py-1 rounded-lg backdrop-blur-md border border-white/10 bg-slate-900/60 shadow-lg">
+      <div className="absolute bottom-1 left-0 right-0 flex justify-center items-center gap-2 sm:gap-6 text-[10px] sm:text-xs font-bold px-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 rounded-lg backdrop-blur-md border border-white/10 bg-slate-900/60 shadow-lg">
           <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-xs shadow-blue-500/50"></span>
           <span className="text-slate-300">Android</span>
           {totalAndroid > 0 && <span className="font-mono text-blue-400 font-bold">({totalAndroid})</span>}
         </div>
-        <div className="flex items-center gap-2 px-3 py-1 rounded-lg backdrop-blur-md border border-white/10 bg-slate-900/60 shadow-lg">
+        <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 rounded-lg backdrop-blur-md border border-white/10 bg-slate-900/60 shadow-lg">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs shadow-emerald-500/50"></span>
           <span className="text-slate-300">iOS</span>
           {totalIos > 0 && <span className="font-mono text-emerald-400 font-bold">({totalIos})</span>}
@@ -459,7 +463,7 @@ export function VisxAppVersionsChart({ data = [] }) {
   }
 
   return (
-    <ParentSize>
+    <ParentSize className="w-full h-full min-h-[240px]">
       {({ width, height }) => (
         <AppVersionsHorizontalChart data={data} width={width} height={height} />
       )}
@@ -502,11 +506,14 @@ function NotificationsDonutChart({ enabled, disabled, width, height, onClick }) 
   ];
 
   const total = enabled + disabled;
-  const margin = 25;
-  const radius = Math.min(width, height) / 2 - margin;
-  const innerRadius = radius * 0.65;
+  const isMobile = width < 480;
+  const effectiveHeight = Math.max(height, isMobile ? 240 : 270);
+  const margin = isMobile ? 12 : 20;
+  const availableHeight = effectiveHeight - 38;
+  const radius = Math.max(50, Math.min(width, availableHeight) / 2 - margin);
+  const innerRadius = radius * (isMobile ? 0.60 : 0.65);
   const centerX = width / 2;
-  const centerY = height / 2 - 10;
+  const centerY = availableHeight / 2 + 5;
 
   if (width < 10 || height < 10) return null;
 
@@ -524,8 +531,8 @@ function NotificationsDonutChart({ enabled, disabled, width, height, onClick }) 
   };
 
   return (
-    <div ref={containerRef} className="relative w-full h-full">
-      <svg width={width} height={height}>
+    <div ref={containerRef} className="relative w-full h-full min-h-[240px]">
+      <svg width={width} height={effectiveHeight}>
         <LinearGradient id="grad-enabled" from="#10b981" to="#059669" fromOpacity={0.9} toOpacity={0.55} />
         <LinearGradient id="grad-disabled" from="#f43f5e" to="#e11d48" fromOpacity={0.9} toOpacity={0.55} />
         <Group top={centerY} left={centerX}>
@@ -619,19 +626,19 @@ function NotificationsDonutChart({ enabled, disabled, width, height, onClick }) 
       </svg>
 
       {/* Custom Bottom Glassmorphic Legend */}
-      <div className="absolute bottom-1 left-0 right-0 flex justify-center gap-6 text-xs font-bold">
+      <div className="absolute bottom-0.5 left-0 right-0 flex flex-wrap justify-center gap-2 sm:gap-6 text-[10px] sm:text-xs font-bold px-2">
         <div
           onClick={() => setSelectedSegment(selectedSegment === 'Enabled' ? null : 'Enabled')}
-          className={`flex items-center gap-2 cursor-pointer px-2 py-1 rounded-lg backdrop-blur-md border border-white/10 shadow-lg transition-all duration-200 ${selectedSegment === 'Enabled' ? 'bg-emerald-500/20 ring-1 ring-emerald-500 font-bold' : 'bg-slate-900/50 hover:bg-slate-800/60'}`}
+          className={`flex items-center gap-1.5 sm:gap-2 cursor-pointer px-2 py-0.5 sm:py-1 rounded-lg backdrop-blur-md border border-white/10 shadow-lg transition-all duration-200 ${selectedSegment === 'Enabled' ? 'bg-emerald-500/20 ring-1 ring-emerald-500 font-bold' : 'bg-slate-900/50 hover:bg-slate-800/60'}`}
         >
-          <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-xs shadow-emerald-500/50"></span>
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs shadow-emerald-500/50"></span>
           <span className="text-slate-300">Enabled ({total > 0 ? Math.round((enabled / total) * 100) : 0}%)</span>
         </div>
         <div
           onClick={() => setSelectedSegment(selectedSegment === 'Disabled' ? null : 'Disabled')}
-          className={`flex items-center gap-2 cursor-pointer px-2 py-1 rounded-lg backdrop-blur-md border border-white/10 shadow-lg transition-all duration-200 ${selectedSegment === 'Disabled' ? 'bg-rose-500/20 ring-1 ring-rose-500 font-bold' : 'bg-slate-900/50 hover:bg-slate-800/60'}`}
+          className={`flex items-center gap-1.5 sm:gap-2 cursor-pointer px-2 py-0.5 sm:py-1 rounded-lg backdrop-blur-md border border-white/10 shadow-lg transition-all duration-200 ${selectedSegment === 'Disabled' ? 'bg-rose-500/20 ring-1 ring-rose-500 font-bold' : 'bg-slate-900/50 hover:bg-slate-800/60'}`}
         >
-          <span className="w-3 h-3 rounded-full bg-rose-500 shadow-xs shadow-rose-500/50"></span>
+          <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-xs shadow-rose-500/50"></span>
           <span className="text-slate-300">Disabled ({total > 0 ? Math.round((disabled / total) * 100) : 0}%)</span>
         </div>
       </div>
@@ -663,7 +670,7 @@ export function VisxNotificationsDonutChart({ enabled = 0, disabled = 0, onClick
   }
 
   return (
-    <ParentSize>
+    <ParentSize className="w-full h-full min-h-[240px]">
       {({ width, height }) => (
         <NotificationsDonutChart enabled={enabled} disabled={disabled} width={width} height={height} onClick={onClick} />
       )}
@@ -696,9 +703,13 @@ function PriceTierGroupedChart({ categories, views, cartAdds, width, height }) {
     cartAdds: cartAdds[i] || 0
   }));
 
-  const margin = { top: 35, right: 20, bottom: 45, left: 45 };
+  const isMobile = width < 480;
+  const margin = isMobile 
+    ? { top: 32, right: 12, bottom: 35, left: 38 }
+    : { top: 30, right: 20, bottom: 45, left: 45 };
+  const effectiveHeight = Math.max(height, isMobile ? 240 : 270);
   const xMax = Math.max(0, width - margin.left - margin.right);
-  const yMax = Math.max(0, height - margin.top - margin.bottom);
+  const yMax = Math.max(0, effectiveHeight - margin.top - margin.bottom);
 
   const x0Scale = scaleBand({
     domain: categories,
@@ -727,22 +738,22 @@ function PriceTierGroupedChart({ categories, views, cartAdds, width, height }) {
   if (width < 10 || height < 10) return null;
 
   return (
-    <div ref={containerRef} className="relative w-full h-full">
-      <svg width={width} height={height}>
+    <div ref={containerRef} className="relative w-full h-full min-h-[240px]">
+      {/* Legend in Header / Overlay */}
+      <div className="absolute top-1 left-0 right-0 flex flex-wrap justify-center sm:justify-end gap-x-4 gap-y-1 px-3 text-[10px] sm:text-xs font-bold pointer-events-none">
+        <div className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-xs bg-blue-500 shrink-0"></span>
+          <span className="text-slate-400">Total Views</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-xs bg-emerald-500 shrink-0"></span>
+          <span className="text-slate-400">Cart Additions</span>
+        </div>
+      </div>
+
+      <svg width={width} height={effectiveHeight}>
         <LinearGradient id="visx-blue-grad" from="#3b82f6" to="#2563eb" fromOpacity={0.9} toOpacity={0.55} />
         <LinearGradient id="visx-emerald-grad" from="#10b981" to="#059669" fromOpacity={0.9} toOpacity={0.55} />
-
-        {/* Legend in Header */}
-        <Group top={8} left={width - margin.right - 220}>
-          <g transform="translate(0, 0)">
-            <rect width={10} height={10} rx={3} fill="url(#visx-blue-grad)" />
-            <text x={15} y={9} fill="#94a3b8" fontSize={11} fontWeight={700}>Total Views</text>
-          </g>
-          <g transform="translate(110, 0)">
-            <rect width={10} height={10} rx={3} fill="url(#visx-emerald-grad)" />
-            <text x={15} y={9} fill="#94a3b8" fontSize={11} fontWeight={700}>Cart Additions</text>
-          </g>
-        </Group>
 
         <Group left={margin.left} top={margin.top}>
           <GridRows scale={yScale} width={xMax} stroke="rgba(255, 255, 255, 0.05)" strokeDasharray="3 3" pointerEvents="none" />
@@ -804,6 +815,13 @@ function PriceTierGroupedChart({ categories, views, cartAdds, width, height }) {
             stroke="rgba(255,255,255,0.1)"
             tickStroke="transparent"
             tickFormat={(val) => {
+              if (isMobile) {
+                if (val.includes('Budget')) return '<₹1k';
+                if (val.includes('Mid')) return '₹1k-10k';
+                if (val.includes('Premium')) return '₹10k-20k';
+                if (val.includes('Luxury')) return '>₹20k';
+                return val;
+              }
               if (val.includes('Budget')) return 'Budget (<₹1k)';
               if (val.includes('Mid')) return 'Mid (₹1k-10k)';
               if (val.includes('Premium')) return 'Premium (₹10k-20k)';
@@ -811,7 +829,7 @@ function PriceTierGroupedChart({ categories, views, cartAdds, width, height }) {
             }}
             tickLabelProps={{
               fill: '#94a3b8',
-              fontSize: 9,
+              fontSize: isMobile ? 8.5 : 9,
               fontWeight: 700,
               textAnchor: 'middle',
               dy: 4
@@ -825,10 +843,10 @@ function PriceTierGroupedChart({ categories, views, cartAdds, width, height }) {
             tickFormat={(v) => formatCompactNumber(v)}
             tickLabelProps={{
               fill: '#94a3b8',
-              fontSize: 10,
+              fontSize: isMobile ? 9 : 10,
               fontWeight: 600,
               textAnchor: 'end',
-              dx: -4,
+              dx: -3,
               dy: 3
             }}
           />
@@ -861,7 +879,7 @@ export function VisxPriceTierGroupedBarChart({ categories = [], views = [], cart
   }
 
   return (
-    <ParentSize>
+    <ParentSize className="w-full h-full min-h-[240px]">
       {({ width, height }) => (
         <PriceTierGroupedChart
           categories={categories}
@@ -892,9 +910,13 @@ function InnerAreaChart({ labels, data, breakdowns = [], color, valuePrefix, val
     config: { tension: 120, friction: 14 }
   });
 
-  const margin = { top: 25, right: 25, bottom: 45, left: 55 };
+  const isMobile = width < 480;
+  const margin = isMobile 
+    ? { top: 15, right: 12, bottom: 35, left: 40 }
+    : { top: 25, right: 25, bottom: 45, left: 55 };
+  const effectiveHeight = Math.max(height, isMobile ? 220 : 250);
   const xMax = Math.max(0, width - margin.left - margin.right);
-  const yMax = Math.max(0, height - margin.top - margin.bottom);
+  const yMax = Math.max(0, effectiveHeight - margin.top - margin.bottom);
 
   const chartData = labels.map((label, idx) => ({
     label,
@@ -917,12 +939,13 @@ function InnerAreaChart({ labels, data, breakdowns = [], color, valuePrefix, val
   });
 
   const tickValues = React.useMemo(() => {
-    if (labels.length > 15) {
-      const step = Math.ceil(labels.length / 6);
+    const maxTicks = isMobile ? 5 : (labels.length > 15 ? 7 : labels.length);
+    if (labels.length > maxTicks) {
+      const step = Math.ceil(labels.length / (maxTicks - 1));
       return labels.filter((_, i) => i % step === 0 || i === labels.length - 1);
     }
     return undefined;
-  }, [labels]);
+  }, [labels, isMobile]);
 
   if (width < 10 || height < 10) return null;
 
@@ -963,8 +986,8 @@ function InnerAreaChart({ labels, data, breakdowns = [], color, valuePrefix, val
   const gradId = `visx-area-grad-${color.replace(/[^a-zA-Z0-9]/g, '')}`;
 
   return (
-    <div ref={containerRef} className="relative w-full h-full">
-      <svg width={width} height={height}>
+    <div ref={containerRef} className="relative w-full h-full min-h-[220px]">
+      <svg width={width} height={effectiveHeight}>
         <LinearGradient id={gradId} from={color} to={color} fromOpacity={0.45} toOpacity={0.02} />
         <Group left={margin.left} top={margin.top}>
           <GridRows scale={yScale} width={xMax} stroke="rgba(255, 255, 255, 0.05)" strokeDasharray="3 3" pointerEvents="none" />
@@ -1038,9 +1061,14 @@ function InnerAreaChart({ labels, data, breakdowns = [], color, valuePrefix, val
             tickValues={tickValues}
             stroke="rgba(255,255,255,0.1)"
             tickStroke="transparent"
+            tickFormat={(val) => {
+              if (!val) return '';
+              if (isMobile && String(val).length > 5) return String(val).slice(0, 4);
+              return val;
+            }}
             tickLabelProps={{
               fill: '#94a3b8',
-              fontSize: 10,
+              fontSize: isMobile ? 9 : 10,
               fontWeight: 600,
               textAnchor: 'middle',
               dy: 4
@@ -1053,10 +1081,10 @@ function InnerAreaChart({ labels, data, breakdowns = [], color, valuePrefix, val
             tickFormat={(v) => formatCompactNumber(v, valuePrefix)}
             tickLabelProps={{
               fill: '#94a3b8',
-              fontSize: 10,
+              fontSize: isMobile ? 9 : 10,
               fontWeight: 600,
               textAnchor: 'end',
-              dx: -4,
+              dx: -3,
               dy: 3
             }}
           />
@@ -1103,7 +1131,7 @@ export function VisxAreaChart({ labels = [], data = [], breakdowns = [], color =
   }
 
   return (
-    <ParentSize>
+    <ParentSize className="w-full h-full min-h-[220px]">
       {({ width, height }) => (
         <InnerAreaChart
           labels={labels}
@@ -1147,9 +1175,13 @@ function InnerStackedBarChart({ labels, series, width, height }) {
     return row;
   });
 
-  const margin = { top: 35, right: 20, bottom: 40, left: 45 };
+  const isMobile = width < 480;
+  const margin = isMobile 
+    ? { top: 32, right: 12, bottom: 35, left: 38 }
+    : { top: 35, right: 20, bottom: 40, left: 45 };
+  const effectiveHeight = Math.max(height, isMobile ? 240 : 270);
   const xMax = Math.max(0, width - margin.left - margin.right);
-  const yMax = Math.max(0, height - margin.top - margin.bottom);
+  const yMax = Math.max(0, effectiveHeight - margin.top - margin.bottom);
 
   const xScale = scaleBand({
     domain: labels,
@@ -1175,17 +1207,18 @@ function InnerStackedBarChart({ labels, series, width, height }) {
   if (width < 10 || height < 10) return null;
 
   return (
-    <div ref={containerRef} className="relative w-full h-full">
-      <svg width={width} height={height}>
-        {/* Top Legend */}
-        <Group top={8} left={width - margin.right - (keys.length * 90)}>
-          {keys.map((key, idx) => (
-            <g key={`stack-legend-${key}-${idx}`} transform={`translate(${idx * 90}, 0)`}>
-              <rect width={10} height={10} rx={3} fill={colorMap[key] || '#8b5cf6'} />
-              <text x={15} y={9} fill="#94a3b8" fontSize={11} fontWeight={700}>{key}</text>
-            </g>
-          ))}
-        </Group>
+    <div ref={containerRef} className="relative w-full h-full min-h-[240px]">
+      {/* Top Legend */}
+      <div className="absolute top-1 left-0 right-0 flex flex-wrap justify-center sm:justify-end gap-x-3 gap-y-1 px-3 text-[10px] font-bold pointer-events-none">
+        {keys.map((key) => (
+          <div key={`stack-legend-${key}`} className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-xs shrink-0" style={{ backgroundColor: colorMap[key] || '#8b5cf6' }}></span>
+            <span className="text-slate-400">{key}</span>
+          </div>
+        ))}
+      </div>
+
+      <svg width={width} height={effectiveHeight}>
 
         <Group left={margin.left} top={margin.top}>
           <GridRows scale={yScale} width={xMax} stroke="rgba(255, 255, 255, 0.05)" strokeDasharray="3 3" pointerEvents="none" />
@@ -1240,9 +1273,14 @@ function InnerStackedBarChart({ labels, series, width, height }) {
             scale={xScale}
             stroke="rgba(255,255,255,0.1)"
             tickStroke="transparent"
+            tickFormat={(val) => {
+              if (!val) return '';
+              if (isMobile && String(val).length > 5) return String(val).slice(0, 4);
+              return val;
+            }}
             tickLabelProps={{
               fill: '#94a3b8',
-              fontSize: 10,
+              fontSize: isMobile ? 9 : 10,
               fontWeight: 600,
               textAnchor: 'middle',
               dy: 4
@@ -1256,10 +1294,10 @@ function InnerStackedBarChart({ labels, series, width, height }) {
             tickFormat={(v) => formatCompactNumber(v)}
             tickLabelProps={{
               fill: '#94a3b8',
-              fontSize: 10,
+              fontSize: isMobile ? 9 : 10,
               fontWeight: 600,
               textAnchor: 'end',
-              dx: -4,
+              dx: -3,
               dy: 3
             }}
           />
@@ -1291,7 +1329,7 @@ export function VisxStackedBarChart({ labels = [], series = [] }) {
   }
 
   return (
-    <ParentSize>
+    <ParentSize className="w-full h-full min-h-[240px]">
       {({ width, height }) => (
         <InnerStackedBarChart labels={labels} series={series} width={width} height={height} />
       )}
@@ -1315,11 +1353,14 @@ function InnerDonutChart({ data, centerLabel, width, height }) {
   const total = data.reduce((sum, d) => sum + (d.value || 0), 0);
   const palette = ['#3b82f6', '#10b981', '#6366f1', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#f43f5e'];
 
-  const margin = 25;
-  const radius = Math.min(width, height) / 2 - margin - 15;
-  const innerRadius = radius * 0.65;
+  const isMobile = width < 480;
+  const effectiveHeight = Math.max(height, isMobile ? 240 : 270);
+  const margin = isMobile ? 12 : 20;
+  const availableHeight = effectiveHeight - 40;
+  const radius = Math.max(50, Math.min(width, availableHeight) / 2 - margin);
+  const innerRadius = radius * (isMobile ? 0.60 : 0.65);
   const centerX = width / 2;
-  const centerY = height / 2 - 20;
+  const centerY = availableHeight / 2 + 5;
 
   if (width < 10 || height < 10) return null;
 
@@ -1330,8 +1371,8 @@ function InnerDonutChart({ data, centerLabel, width, height }) {
   const selectedItem = data.find(d => d.label === selectedSegment);
 
   return (
-    <div ref={containerRef} className="relative w-full h-full">
-      <svg width={width} height={height}>
+    <div ref={containerRef} className="relative w-full h-full min-h-[240px]">
+      <svg width={width} height={effectiveHeight}>
         <Group top={centerY} left={centerX}>
           <Pie
             data={filteredData}
@@ -1390,7 +1431,7 @@ function InnerDonutChart({ data, centerLabel, width, height }) {
       </svg>
 
       {/* Bottom Glassmorphic Legend for Donut Slices */}
-      <div className="absolute bottom-1 left-0 right-0 flex flex-wrap justify-center gap-2 px-2 text-[10px] font-semibold max-h-12 overflow-y-auto custom-scrollbar">
+      <div className="absolute bottom-0.5 left-0 right-0 flex flex-wrap justify-center gap-1.5 px-2 text-[9px] sm:text-[10px] font-semibold max-h-14 overflow-y-auto custom-scrollbar">
         {data.map((d, idx) => {
           const color = palette[idx % palette.length];
           const pct = total > 0 ? Math.round((d.value / total) * 100) : 0;
@@ -1442,7 +1483,7 @@ export function VisxDonutChart({ data = [], centerLabel = 'Items' }) {
   }
 
   return (
-    <ParentSize>
+    <ParentSize className="w-full h-full min-h-[240px]">
       {({ width, height }) => (
         <InnerDonutChart data={normalizedData} centerLabel={centerLabel} width={width} height={height} />
       )}
