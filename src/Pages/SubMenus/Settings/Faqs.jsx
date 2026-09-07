@@ -146,16 +146,16 @@ const Faqs = () => {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-            <FiHelpCircle className="text-blue-400" />
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+            <FiHelpCircle className="text-blue-600 dark:text-blue-400" />
             Frequently Asked Questions
           </h1>
-          <p className="text-slate-400 font-medium mt-1">Create, edit, and manage the FAQs displayed to users.</p>
+          <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Create, edit, and manage the FAQs displayed to users.</p>
         </div>
         {!isAdding && (
           <button
             onClick={() => setIsAdding(true)}
-            className="flex items-center px-4 py-2 text-white font-bold rounded-xl transition-all gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            className="flex items-center px-4 py-2 text-white font-bold rounded-xl transition-all gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md shadow-blue-500/20"
           >
             <FiPlus size={20} /> Add FAQ
           </button>
@@ -166,46 +166,46 @@ const Faqs = () => {
         
         {/* Add FAQ Form */}
         {isAdding && (
-          <div className="lg:col-span-1 bg-transparent backdrop-blur-xl border border-white/20 shadow-2xl rounded-3xl p-6 sm:p-8 h-fit animate-fade-in-up">
-            <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-              <FiPlus className="text-blue-400" /> Create New FAQ
+          <div className="lg:col-span-1 bg-white/40 dark:bg-transparent backdrop-blur-xl border border-slate-200/80 dark:border-white/20 shadow-xl shadow-slate-900/5 dark:shadow-2xl rounded-3xl p-6 sm:p-8 h-fit animate-fade-in-up">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+              <FiPlus className="text-blue-600 dark:text-blue-400" /> Create New FAQ
             </h2>
             <form onSubmit={handleAddFaq} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Question</label>
+                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Question</label>
                 <input
                   type="text"
                   value={newQuestion}
                   onChange={(e) => setNewQuestion(e.target.value)}
                   placeholder="Enter the question..."
                   autoFocus
-                  className="w-full px-4 py-3 bg-transparent border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-slate-500 transition-all text-sm font-medium"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-transparent border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all text-sm font-medium"
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Answer</label>
+                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Answer</label>
                 <textarea
                   value={newAnswer}
                   onChange={(e) => setNewAnswer(e.target.value)}
                   placeholder="Enter the answer..."
                   rows="4"
-                  className="w-full px-4 py-3 bg-transparent border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-slate-500 transition-all text-sm font-medium resize-none"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-transparent border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all text-sm font-medium resize-none"
                 ></textarea>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Video (Optional)</label>
+                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Video (Optional)</label>
                 <input
                   type="file"
                   accept="video/*"
                   onChange={(e) => setNewVideo(e.target.files[0])}
-                  className="block w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-900/50 file:text-blue-400 hover:file:bg-blue-800/50 transition-colors cursor-pointer"
+                  className="block w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-100 dark:file:bg-blue-900/50 file:text-blue-600 dark:file:text-blue-400 hover:file:bg-blue-200 dark:hover:file:bg-blue-800/50 transition-colors cursor-pointer"
                 />
               </div>
               <div className="flex gap-3 pt-2">
                 <button
                   type="submit"
                   disabled={isActionLoading}
-                  className="flex-1 text-white font-bold py-3 px-4 rounded-xl transition-all flex justify-center items-center gap-2 disabled:opacity-50 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                  className="flex-1 text-white font-bold py-3 px-4 rounded-xl transition-all flex justify-center items-center gap-2 disabled:opacity-50 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md shadow-blue-500/20"
                 >
                   {isActionLoading ? <FiLoader className="animate-spin" /> : <FiSave />} Save
                 </button>
@@ -213,7 +213,7 @@ const Faqs = () => {
                   type="button"
                   onClick={() => { setIsAdding(false); setNewQuestion(''); setNewAnswer(''); setNewVideo(null); }}
                   disabled={isActionLoading}
-                  className="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-4 rounded-xl transition-all flex justify-center items-center gap-2 disabled:opacity-50"
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white border border-slate-200 dark:border-transparent font-bold py-3 px-4 rounded-xl transition-all flex justify-center items-center gap-2 disabled:opacity-50"
                 >
                   <FiX /> Cancel
                 </button>
@@ -223,22 +223,22 @@ const Faqs = () => {
         )}
 
         {/* FAQs List Section */}
-        <div className={`${isAdding ? 'lg:col-span-2' : 'lg:col-span-3'} bg-transparent backdrop-blur-xl border border-white/20 shadow-2xl rounded-3xl p-6 sm:p-8 flex flex-col transition-all duration-300`}>
+        <div className={`${isAdding ? 'lg:col-span-2' : 'lg:col-span-3'} bg-white/20 dark:bg-transparent backdrop-blur-xl border border-slate-200/80 dark:border-white/20 shadow-xl shadow-slate-900/5 dark:shadow-2xl rounded-3xl p-6 sm:p-8 flex flex-col transition-all duration-300`}>
           <div className="space-y-3">
             {loading ? (
               <div className="flex flex-col items-center justify-center py-12">
-                <FiLoader className="animate-spin text-4xl text-blue-400 mb-4" />
-                <p className="text-slate-400 font-medium">Loading FAQs...</p>
+                <FiLoader className="animate-spin text-4xl text-blue-600 dark:text-blue-400 mb-4" />
+                <p className="text-slate-500 dark:text-slate-400 font-medium">Loading FAQs...</p>
               </div>
             ) : faqs.length === 0 ? (
-              <p className="text-slate-400 italic text-center py-12">No FAQs available. Click "Add FAQ" to get started.</p>
+              <p className="text-slate-500 dark:text-slate-400 italic text-center py-12">No FAQs available. Click "Add FAQ" to get started.</p>
             ) : (
               faqs.map((faq) => (
-                <div key={faq._id} className="border border-white/10 rounded-2xl bg-transparent hover:bg-white/5 transition-all overflow-hidden">
+                <div key={faq._id} className="border border-white/20 dark:border-white/10 rounded-2xl bg-slate-50/50 dark:bg-transparent hover:bg-slate-100/50 dark:hover:bg-white/5 transition-all overflow-hidden">
                   
                   {/* FAQ Header (Question) */}
                   <div 
-                    className={`p-3 flex justify-between items-center cursor-pointer select-none transition-colors ${expandedId === faq._id ? 'bg-transparent border-b border-white/5' : ''}`}
+                    className={`p-3 flex justify-between items-center cursor-pointer select-none transition-colors ${expandedId === faq._id ? 'bg-slate-100/60 dark:bg-transparent border-b border-slate-200/80 dark:border-white/5' : ''}`}
                     onClick={() => toggleExpand(faq._id)}
                   >
                     {editingId === faq._id ? (
@@ -246,11 +246,11 @@ const Faqs = () => {
                         type="text"
                         value={editQuestion}
                         onChange={(e) => setEditQuestion(e.target.value)}
-                        className="w-full px-4 py-2 bg-slate-900/50 border border-blue-500/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white transition-all text-sm font-medium mr-4"
+                        className="w-full px-4 py-2 bg-white dark:bg-slate-900/50 border border-blue-500/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white transition-all text-sm font-medium mr-4"
                         onClick={(e) => e.stopPropagation()}
                       />
                     ) : (
-                      <h3 className="font-bold text-white tracking-tight text-lg pr-4">{faq.question}</h3>
+                      <h3 className="font-bold text-slate-900 dark:text-white tracking-tight text-lg pr-4">{faq.question}</h3>
                     )}
                     
                     {editingId !== faq._id && (
@@ -264,36 +264,36 @@ const Faqs = () => {
                   <div 
                     className={`transition-all duration-300 ease-in-out ${expandedId === faq._id ? 'max-h-375 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}
                   >
-                    <div className="p-5 bg-black/20">
+                    <div className="p-5 bg-white/5dark:bg-black/20">
                       {editingId === faq._id ? (
                         <div className="space-y-4 animate-fade-in-up">
                           <textarea
                             value={editAnswer}
                             onChange={(e) => setEditAnswer(e.target.value)}
                             rows="3"
-                            className="w-full px-4 py-3 bg-slate-900/50 border border-blue-500/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white transition-all text-sm font-medium resize-none"
+                            className="w-full px-4 py-3 bg-white dark:bg-slate-900/50 border border-blue-500/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white transition-all text-sm font-medium resize-none"
                           ></textarea>
                           <div>
-                            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Video (Optional)</label>
+                            <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Video (Optional)</label>
                             <input
                               type="file"
                               accept="video/*"
                               onChange={(e) => setEditVideo(e.target.files[0])}
-                              className="block w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-900/50 file:text-blue-400 hover:file:bg-blue-800/50 transition-colors cursor-pointer"
+                              className="block w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-100 dark:file:bg-blue-900/50 file:text-blue-600 dark:file:text-blue-400 hover:file:bg-blue-200 dark:hover:file:bg-blue-800/50 transition-colors cursor-pointer"
                             />
                           </div>
                           <div className="flex gap-3">
                             <button
                               onClick={handleSaveEdit}
                               disabled={isActionLoading}
-                              className="text-white text-sm font-bold py-2.5 px-4 rounded-lg transition-all flex items-center gap-2 disabled:opacity-50 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
+                              className="text-white text-sm font-bold py-2.5 px-4 rounded-lg transition-all flex items-center gap-2 disabled:opacity-50 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 shadow-md shadow-emerald-500/20"
                             >
                               {isActionLoading ? <FiLoader className="animate-spin" /> : <FiSave />} Save Changes
                             </button>
                             <button
                               onClick={handleCancelEdit}
                               disabled={isActionLoading}
-                              className="bg-slate-700 hover:bg-slate-600 text-white text-sm font-bold py-2.5 px-4 rounded-lg transition-all flex items-center gap-2 disabled:opacity-50"
+                              className="bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white border border-slate-300 dark:border-transparent text-sm font-bold py-2.5 px-4 rounded-lg transition-all flex items-center gap-2 disabled:opacity-50"
                             >
                               <FiX /> Cancel
                             </button>
@@ -301,20 +301,20 @@ const Faqs = () => {
                         </div>
                       ) : (
                         <div>
-                          <p className="text-slate-300 leading-relaxed whitespace-pre-wrap">{faq.answer}</p>
+                          <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">{faq.answer}</p>
                           {faq.video && (
-                            <video controls src={getFileUrl(faq.video)} className="mt-4 w-full max-h-80 rounded-xl bg-black border border-white/10" />
+                            <video controls src={getFileUrl(faq.video)} className="mt-4 w-full max-h-80 rounded-xl bg-black border border-slate-200 dark:border-white/10" />
                           )}
-                          <div className="mt-6 flex justify-end gap-3 border-t border-white/10 pt-4">
+                          <div className="mt-6 flex justify-end gap-3 border-t border-slate-200/80 dark:border-white/10 pt-4">
                             <button
                               onClick={(e) => { e.stopPropagation(); handleEditClick(faq); }}
-                              className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 px-3 py-2 rounded-lg transition-all flex items-center gap-2 text-sm font-bold"
+                              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-500/20 px-3 py-2 rounded-lg transition-all flex items-center gap-2 text-sm font-bold"
                             >
                               <FiEdit2 size={16} /> Edit
                             </button>
                             <button
                               onClick={(e) => { e.stopPropagation(); handleDelete(faq._id); }}
-                              className="text-red-400 hover:text-red-300 hover:bg-red-500/20 px-3 py-2 rounded-lg transition-all flex items-center gap-2 text-sm font-bold"
+                              className="text-rose-600 dark:text-red-400 hover:text-rose-700 dark:hover:text-red-300 hover:bg-rose-50 dark:hover:bg-red-500/20 px-3 py-2 rounded-lg transition-all flex items-center gap-2 text-sm font-bold"
                             >
                               <FiTrash2 size={16} /> Delete
                             </button>

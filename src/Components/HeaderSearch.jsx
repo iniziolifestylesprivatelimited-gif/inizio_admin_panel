@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
+import { useTheme } from '../Context/ThemeContext';
 import { 
   FiSearch, FiX, FiLoader, FiFileText, FiPackage, FiTag, FiGrid, FiUser, FiSend, FiShoppingBag
 } from 'react-icons/fi';
@@ -9,6 +10,7 @@ import { api } from '../api/axios';
 
 const HeaderSearch = () => {
   const { user } = useAuth();
+  const { isDark } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   
@@ -218,20 +220,28 @@ const HeaderSearch = () => {
   return (
     <div className="flex-1 max-w-md" ref={searchRef}>
       <form onSubmit={handleSearchSubmit} className="relative group">
-        <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors z-10" />
+        <FiSearch className={`absolute left-3 top-1/2 transform -translate-y-1/2 transition-colors z-10 ${
+          isDark ? 'text-slate-400 group-focus-within:text-blue-500' : 'text-slate-400 group-focus-within:text-blue-600'
+        }`} />
         <input 
           type="text" 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onFocus={() => searchQuery.trim() && setShowSuggestions(true)}
           placeholder="Search products, brands, categories, users, campaigns, orders..." 
-          className="w-full pl-10 pr-10 py-2 bg-transparent border border-white/10 focus:border-blue-500/50 focus:bg-blue-950/10 rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all text-sm text-white placeholder-slate-400"
+          className={`w-full pl-10 pr-10 py-2 border rounded-xl focus:outline-none focus:ring-4 transition-all text-sm shadow-xs ${
+            isDark 
+              ? 'bg-transparent border-white/10 focus:border-blue-500/50 focus:bg-blue-950/10 focus:ring-blue-500/10 text-white placeholder-slate-400' 
+              : 'bg-white/70 hover:bg-white/90 border-slate-200/80 focus:border-blue-500 focus:bg-white focus:ring-blue-500/15 text-slate-800 placeholder-slate-400'
+          }`}
         />
         {searchQuery && (
           <button
             type="button"
             onClick={() => { setSearchQuery(''); setShowSuggestions(false); }}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+            className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-colors ${
+              isDark ? 'text-slate-400 hover:text-white' : 'text-slate-400 hover:text-slate-700'
+            }`}
           >
             <FiX />
           </button>
@@ -239,10 +249,14 @@ const HeaderSearch = () => {
 
         {/* Search Suggestions Dropdown */}
         {showSuggestions && searchQuery.trim() && (
-          <div className="absolute top-full left-0 right-0 mt-2 bg-linear-to-br from-slate-950 to-blue-950/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-lg overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+          <div className={`absolute top-full left-0 right-0 mt-2 backdrop-blur-xl border rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 ${
+            isDark 
+              ? 'bg-linear-to-br from-slate-950 to-blue-950/90 border-white/10 shadow-black/50' 
+              : 'bg-white/98 border-slate-200 shadow-slate-900/10'
+          }`}>
             {isSearching ? (
               <div className="p-4 text-center text-slate-400 flex items-center justify-center text-sm font-medium">
-                <FiLoader className="animate-spin mr-2 text-blue-400 text-lg" /> Searching...
+                <FiLoader className="animate-spin mr-2 text-blue-500 text-lg" /> Searching...
               </div>
             ) : searchResults.length > 0 ? (
               <ul className="max-h-80 overflow-y-auto custom-scrollbar">
@@ -264,17 +278,23 @@ const HeaderSearch = () => {
                           setShowSuggestions(false);
                           setSearchQuery('');
                         }}
-                        className="flex items-center gap-3 p-3 hover:bg-blue-950/65 transition-colors border-b border-white/10 last:border-0"
+                        className={`flex items-center gap-3 p-3 transition-colors border-b last:border-0 ${
+                          isDark 
+                            ? 'hover:bg-blue-950/65 border-white/10' 
+                            : 'hover:bg-blue-50/70 border-slate-100'
+                        }`}
                       >
-                        <div className="w-10 h-10 shrink-0 bg-white/10 rounded-lg flex items-center justify-center text-slate-300">
+                        <div className={`w-10 h-10 shrink-0 rounded-lg flex items-center justify-center ${
+                          isDark ? 'bg-white/10 text-slate-300' : 'bg-slate-100 text-slate-600'
+                        }`}>
                           <Icon />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-center mb-0.5">
-                            <p className="text-sm font-bold text-white truncate">{item.title}</p>
-                            <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded-md ml-2 shrink-0">{item.type}</span>
+                            <p className={`text-sm font-bold truncate ${isDark ? 'text-white' : 'text-slate-800'}`}>{item.title}</p>
+                            <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-500/20 text-blue-600 rounded-md ml-2 shrink-0">{item.type}</span>
                           </div>
-                          <p className="text-xs text-slate-400 truncate">{item.subtitle}</p>
+                          <p className={`text-xs truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{item.subtitle}</p>
                         </div>
                       </Link>
                     </li>

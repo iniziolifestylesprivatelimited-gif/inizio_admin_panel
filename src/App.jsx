@@ -4,6 +4,7 @@ import { AuthProvider } from './Context/AuthContext';
 import ProtectedRoute from './Components/ProtectedRoute';
 import Layout from './Components/Layout';
 import { ConfirmationProvider } from './Context/ConfirmationContext';
+import { ThemeProvider } from './Context/ThemeContext';
 
 // Lazy Loaded Pages
 const Login = lazy(() => import('./Pages/Auth/Login'));
@@ -40,8 +41,9 @@ const Quotes = lazy(() => import('./Pages/Quotes'));
 
 function App() {
   return (
-    <AuthProvider>
-      <ConfirmationProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <ConfirmationProvider>
         <BrowserRouter>
           <Suspense fallback={
             <div className="h-screen w-screen flex flex-col justify-center items-center bg-slate-950">
@@ -105,6 +107,7 @@ function App() {
         </BrowserRouter>
       </ConfirmationProvider>
     </AuthProvider>
+  </ThemeProvider>
   );
 }
 

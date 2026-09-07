@@ -1327,25 +1327,25 @@ const ActivityDetails = () => {
 
     if (type === 'revenue') {
       return currentItems.map((item, index) => (
-        <tr key={item._id} className="hover:bg-transparent transition-colors">
+        <tr key={item._id} className="hover:bg-slate-50/80 dark:hover:bg-transparent transition-colors">
           {/* {console.log(item)} */}
           <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-          <td className="py-4 px-5 text-xs font-mono text-blue-400 select-all font-semibold">#{item._id}</td>
-          <td className="py-4 px-5 text-sm font-bold text-white">{item.address.name || 'Walk-in Customer'}</td>
-          <td className="py-4 px-5 text-sm text-slate-300 font-medium">{formatDateTime(item.createdAt)}</td>
-          <td className="py-4 px-5 text-sm text-emerald-400 font-extrabold">₹{(item.totalAmount || 0).toLocaleString('en-IN')}</td>
+          <td className="py-4 px-5 text-xs font-mono text-blue-500 dark:text-blue-400 select-all font-semibold">#{item._id}</td>
+          <td className="py-4 px-5 text-sm font-bold text-slate-900 dark:text-white">{item.address.name || 'Walk-in Customer'}</td>
+          <td className="py-4 px-5 text-sm text-slate-700 dark:text-slate-300 font-medium">{formatDateTime(item.createdAt)}</td>
+          <td className="py-4 px-5 text-sm text-emerald-600 dark:text-emerald-400 font-extrabold">₹{(item.totalAmount || 0).toLocaleString('en-IN')}</td>
           <td className="py-4 px-5 text-xs">
-            <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${item.status === 'delivered' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-              item.status === 'processing' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
-                item.status === 'cancelled' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' :
-                  'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+            <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${item.status === 'delivered' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' :
+              item.status === 'processing' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20' :
+                item.status === 'cancelled' ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20' :
+                  'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
               }`}>
               {item.status || 'pending'}
             </span>
           </td>
           <td className="py-4 px-5 text-xs">
-            <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${item.paymentStatus === 'paid' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-              'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+            <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${item.paymentStatus === 'paid' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' :
+              'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
               }`}>
               {item.paymentStatus || 'unpaid'}
             </span>
@@ -1359,21 +1359,21 @@ const ActivityDetails = () => {
         const cleanPath = (item.logo || '').replace(/\\/g, '/');
         const logoUrl = item.logo ? `${BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}` : '';
         return (
-          <tr key={item._id} className="hover:bg-white/[0.02] transition-colors">
+          <tr key={item._id} className="hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors">
             <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td className="py-4 px-5 text-xs font-mono text-slate-500">#{item._id}</td>
             <td className="py-4 px-5">
               {item.logo ? (
-                <img src={logoUrl} alt={item.name} className="w-10 h-10 object-contain rounded-xl bg-white border border-white/10 p-1" />
+                <img src={logoUrl} alt={item.name} className="w-10 h-10 object-contain rounded-xl bg-white border border-slate-200/80 dark:border-white/10 p-1" />
               ) : (
-                <div className="w-10 h-10 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center text-slate-500 text-xs font-bold font-mono">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-slate-500 text-xs font-bold font-mono">
                   {item.name?.substring(0, 2).toUpperCase()}
                 </div>
               )}
             </td>
-            <td className="py-4 px-5 text-sm font-bold text-white">{item.name}</td>
+            <td className="py-4 px-5 text-sm font-bold text-slate-900 dark:text-white">{item.name}</td>
             <td className="py-4 px-5 text-xs">
-              <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${item.isActive !== false ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+              <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${item.isActive !== false ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
                 }`}>
                 {item.isActive !== false ? 'active' : 'inactive'}
               </span>
@@ -1391,19 +1391,19 @@ const ActivityDetails = () => {
         const hasOffer = offerP > 0 && offerP < baseP;
         const displayP = offerP > 0 ? offerP : baseP;
         return (
-          <tr key={item._id} className="hover:bg-transparent transition-colors">
+          <tr key={item._id} className="hover:bg-slate-50/80 dark:hover:bg-transparent transition-colors">
             <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td className="py-4 px-5 text-xs font-mono text-slate-500">#{item._id}</td>
-            <td className="py-4 px-5 text-sm font-bold text-white truncate max-w-[200px]" title={item.name}>{item.name}</td>
+            <td className="py-4 px-5 text-sm font-bold text-slate-900 dark:text-white truncate max-w-[200px]" title={item.name}>{item.name}</td>
             <td className="py-4 px-5 text-sm font-mono">
-              <span className="text-emerald-400 font-extrabold">₹{displayP.toLocaleString('en-IN')}</span>
+              <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">₹{displayP.toLocaleString('en-IN')}</span>
               {hasOffer && (
-                <span className="ml-1.5 text-xs text-slate-500 line-through font-medium">₹{baseP.toLocaleString('en-IN')}</span>
+                <span className="ml-1.5 text-xs text-slate-400 dark:text-slate-500 line-through font-medium">₹{baseP.toLocaleString('en-IN')}</span>
               )}
             </td>
-            <td className="py-4 px-5 text-sm text-slate-300 font-bold">{variantCount}</td>
+            <td className="py-4 px-5 text-sm text-slate-700 dark:text-slate-300 font-bold">{variantCount}</td>
             <td className="py-4 px-5 text-xs">
-              <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${item.isActive !== false ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+              <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${item.isActive !== false ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
                 }`}>
                 {item.isActive !== false ? 'active' : 'inactive'}
               </span>
@@ -1420,19 +1420,19 @@ const ActivityDetails = () => {
         const hasOffer = offerP > 0 && offerP < baseP;
         const displayP = offerP > 0 ? offerP : baseP;
         return (
-          <tr key={item._id} className="hover:bg-white/[0.02] transition-colors">
+          <tr key={item._id} className="hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors">
             <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td className="py-4 px-5 text-xs font-mono text-slate-500">#{item.productId}</td>
-            <td className="py-4 px-5 text-sm font-bold text-white truncate max-w-[200px]" title={item.productName}>{item.productName}</td>
-            <td className="py-4 px-5 text-sm text-blue-400 font-bold">{item.name}</td>
+            <td className="py-4 px-5 text-sm font-bold text-slate-900 dark:text-white truncate max-w-[200px]" title={item.productName}>{item.productName}</td>
+            <td className="py-4 px-5 text-sm text-blue-600 dark:text-blue-400 font-bold">{item.name}</td>
             <td className="py-4 px-5 text-sm font-mono">
-              <span className="text-emerald-400 font-extrabold">₹{displayP.toLocaleString('en-IN')}</span>
+              <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">₹{displayP.toLocaleString('en-IN')}</span>
               {hasOffer && (
-                <span className="ml-1.5 text-xs text-slate-500 line-through font-medium">₹{baseP.toLocaleString('en-IN')}</span>
+                <span className="ml-1.5 text-xs text-slate-400 dark:text-slate-500 line-through font-medium">₹{baseP.toLocaleString('en-IN')}</span>
               )}
             </td>
             <td className="py-4 px-5 text-xs">
-              <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${item.isActive !== false ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+              <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${item.isActive !== false ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
                 }`}>
                 {item.isActive !== false ? 'active' : 'inactive'}
               </span>
@@ -1450,35 +1450,35 @@ const ActivityDetails = () => {
           <tr
             key={userId || index}
             onClick={() => userId && navigate(`/users/list/${userId}`)}
-            className="hover:bg-white/[0.04] transition-colors cursor-pointer group"
+            className="hover:bg-slate-50/80 dark:hover:bg-white/[0.04] transition-colors cursor-pointer group"
           >
             <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td className="py-4 px-5">
               <div className="flex items-center gap-3">
                 <div className="relative shrink-0">
-                  <div className="w-9 h-9 rounded-xl border border-blue-500/30 bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 text-indigo-300 flex items-center justify-center font-extrabold text-xs tracking-wider shadow-inner">
+                  <div className="w-9 h-9 rounded-xl border border-blue-500/30 bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 text-indigo-700 dark:text-indigo-300 flex items-center justify-center font-extrabold text-xs tracking-wider shadow-inner">
                     {initials}
                   </div>
-                  <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-slate-950 ${item.isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-600'}`} title={item.isOnline ? 'Online' : 'Offline'}></div>
+                  <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-slate-950 ${item.isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400 dark:bg-slate-600'}`} title={item.isOnline ? 'Online' : 'Offline'}></div>
                 </div>
                 <div>
-                  <div className="text-sm font-bold text-white group-hover:text-blue-400 transition-colors flex items-center gap-1.5">
+                  <div className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors flex items-center gap-1.5">
                     {item.name || 'Unknown User'}
                     {item.deleteRequested && (
-                      <span className="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 text-[9px] font-extrabold border border-rose-500/20 shrink-0">
+                      <span className="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[9px] font-extrabold border border-rose-500/20 shrink-0">
                         Deleted
                       </span>
                     )}
                   </div>
                   {item.phone && (
-                    <div className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1 font-mono">
-                      <FiPhone className="text-slate-500 text-[9px]" />
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1 font-mono">
+                      <FiPhone className="text-slate-400 dark:text-slate-500 text-[9px]" />
                       <span>{item.phone}</span>
                     </div>
                   )}
                  {item.ipAddress && (
-                    <div className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1 font-mono">
-                      <FiMapPin className="text-slate-500 text-[9px]" />
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1 font-mono">
+                      <FiMapPin className="text-slate-400 dark:text-slate-500 text-[9px]" />
                       <span>{item.ipAddress}</span>
                     </div>
                   )}
@@ -1486,13 +1486,13 @@ const ActivityDetails = () => {
               </div>
             </td>
             <td className="py-4 px-5">
-              <div className="flex items-center gap-1.5 text-xs text-slate-300 font-medium select-all truncate max-w-[200px]" title={item.email}>
+              <div className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 font-medium select-all truncate max-w-[200px]" title={item.email}>
                 <GmailLink
                   email={item.email}
                   showIcon={true}
                   iconSize={12}
-                  iconClassName="text-slate-500"
-                  className="text-slate-300 hover:text-blue-400"
+                  iconClassName="text-slate-400 dark:text-slate-500"
+                  className="text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400"
                 />
               </div>
             </td>
@@ -1500,10 +1500,10 @@ const ActivityDetails = () => {
               <div className="flex flex-col gap-2 justify-center">
                 {item.platformList?.map((p, idx) => (
                   <div key={idx} className="flex items-center h-[26px]">
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-bold font-mono">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-xs font-bold font-mono">
                       {p.platform && p.platform !== 'unknown' && (
-                        <span className="text-[10px] text-slate-400 font-semibold lowercase">
-                          {p.platform==='android'?<DiAndroid className='text-xs text-green-300'/>:<DiApple className='text-xs text-white'/>}
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold lowercase">
+                          {p.platform==='android'?<DiAndroid className='text-xs text-green-600 dark:text-green-300'/>:<DiApple className='text-xs text-slate-700 dark:text-white'/>}
                         </span>
                       )}
                       {p.appVersion || 'unknown'}
@@ -1519,13 +1519,13 @@ const ActivityDetails = () => {
                   return (
                     <div key={idx} className="flex items-center h-[26px]">
                       {isPlatOnline ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span>
                           Online Now
                         </span>
                       ) : (
-                        <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
-                          <FiClock className="text-slate-500 shrink-0" size={12} />
+                        <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
+                          <FiClock className="text-slate-400 dark:text-slate-500 shrink-0" size={12} />
                           <span>{p.appVersion !== 'unknown/legacy' && p.lastActive ? formatDateTime(p.lastActive) : 'Not Active'}</span>
                         </div>
                       )}
@@ -1536,19 +1536,19 @@ const ActivityDetails = () => {
             </td>
             <td className="py-4 px-5">
               <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${item.notificationsEnabled
-                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                : 'bg-slate-800/80 text-slate-500 border border-white/5'
+                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                : 'bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-500 border border-slate-200 dark:border-white/5'
                 }`}>
-                <FiBell className={item.notificationsEnabled ? 'text-emerald-400' : 'text-slate-500'} size={11} />
+                <FiBell className={item.notificationsEnabled ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'} size={11} />
                 {item.notificationsEnabled ? 'Enabled' : 'Disabled'}
               </span>
             </td>
             <td className="py-4 px-5">
               <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${item.isAppLockEnabled
-                ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20'
-                : 'bg-slate-800/80 text-slate-500 border border-white/5'
+                ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20'
+                : 'bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-500 border border-slate-200 dark:border-white/5'
                 }`}>
-                <FiShield className={item.isAppLockEnabled ? 'text-teal-400' : 'text-slate-500'} size={11} />
+                <FiShield className={item.isAppLockEnabled ? 'text-teal-600 dark:text-teal-400' : 'text-slate-400 dark:text-slate-500'} size={11} />
                 {item.isAppLockEnabled ? 'Secured' : 'Inactive'}
               </span>
             </td>
@@ -1565,7 +1565,7 @@ const ActivityDetails = () => {
           <tr
             key={userId || index}
             onClick={() => userId && navigate(`/users/list/${userId}`)}
-            className="hover:bg-white/[0.04] transition-colors cursor-pointer group"
+            className="hover:bg-slate-50/80 dark:hover:bg-white/[0.04] transition-colors cursor-pointer group"
           >
             {/* 1. S.No. */}
             <td className="py-6 px-3 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
@@ -1575,31 +1575,31 @@ const ActivityDetails = () => {
               <div className="flex items-center gap-2">
                 <div className="relative">
                   <div className={`w-8 h-8 rounded-lg border flex items-center justify-center font-bold text-xs tracking-wider shadow-inner ${type === 'installed'
-                    ? 'bg-gradient-to-tr from-emerald-500/20 to-teal-500/20 border-emerald-500/30 text-emerald-300'
-                    : 'bg-gradient-to-tr from-rose-500/20 to-orange-500/20 border-rose-500/30 text-rose-300'
+                    ? 'bg-gradient-to-tr from-emerald-500/20 to-teal-500/20 border-emerald-500/30 text-emerald-700 dark:text-emerald-300'
+                    : 'bg-gradient-to-tr from-rose-500/20 to-orange-500/20 border-rose-500/30 text-rose-700 dark:text-rose-300'
                     }`}>
                     {initials}
                   </div>
                   {type === 'installed' && (
-                    <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-slate-950 ${item.isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-600'}`} title={item.isOnline ? 'Online' : 'Offline'}></div>
+                    <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-slate-950 ${item.isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400 dark:bg-slate-600'}`} title={item.isOnline ? 'Online' : 'Offline'}></div>
                   )}
                   {(type === 'uninstalled' || type === 'deleted') && (
-                    <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-slate-950 bg-slate-600" title="Offline"></div>
+                    <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-slate-950 bg-slate-400 dark:bg-slate-600" title="Offline"></div>
                   )}
                 </div>
                 <div>
-                  <div className={`text-xs font-bold text-white transition-colors flex items-center gap-1 ${type === 'installed' ? 'group-hover:text-emerald-400' : 'group-hover:text-rose-400'
+                  <div className={`text-xs font-bold text-slate-900 dark:text-white transition-colors flex items-center gap-1 ${type === 'installed' ? 'group-hover:text-emerald-600 dark:group-hover:text-emerald-400' : 'group-hover:text-rose-600 dark:group-hover:text-rose-400'
                     }`}>
                     {item.name || 'Unknown User'}
                     {item.deleteRequested && (
-                      <span className="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 text-[9px] font-extrabold border border-rose-500/20 shrink-0">
+                      <span className="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[9px] font-extrabold border border-rose-500/20 shrink-0">
                         Deleted
                       </span>
                     )}
                   </div>
                   {item.phone && (
-                    <div className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1">
-                      <FiPhone className="text-slate-500 text-[8px]" />
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
+                      <FiPhone className="text-slate-400 dark:text-slate-500 text-[8px]" />
                       <span>{item.phone}</span>
                     </div>
                   )}
@@ -1609,13 +1609,13 @@ const ActivityDetails = () => {
             
             {/* 3. Email Address */}
             <td className="py-6 px-3">
-              <div className="flex items-center gap-1 text-xs text-slate-300 font-medium select-all truncate max-w-[140px]" title={item.email}>
+              <div className="flex items-center gap-1 text-xs text-slate-700 dark:text-slate-300 font-medium select-all truncate max-w-[140px]" title={item.email}>
                 <GmailLink
                   email={item.email}
                   showIcon={true}
                   iconSize={11}
-                  iconClassName="text-slate-500"
-                  className="text-slate-300 hover:text-blue-400"
+                  iconClassName="text-slate-400 dark:text-slate-500"
+                  className="text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400"
                 />
               </div>
             </td>
@@ -1624,11 +1624,11 @@ const ActivityDetails = () => {
             <td className="py-6 px-3">
               <div className="flex flex-col gap-1.5 justify-center">
                 {item.platformList?.map((p, idx) => (
-                  <span key={idx} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-bold font-mono w-fit">
-                    <FiSmartphone className="text-blue-400/80 text-[9px]" />
+                  <span key={idx} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[10px] font-bold font-mono w-fit">
+                    <FiSmartphone className="text-blue-500 dark:text-blue-400/80 text-[9px]" />
                     {p.appVersion || 'v0.0.0'}
                     {p.platform && p.platform !== 'unknown' && (
-                      <span className="text-[9px] text-slate-400 font-semibold lowercase">
+                      <span className="text-[9px] text-slate-500 dark:text-slate-400 font-semibold lowercase">
                         ({p.platform})
                       </span>
                     )}
@@ -1639,8 +1639,8 @@ const ActivityDetails = () => {
             
             {/* 5. Last Active */}
             <td className="py-6 px-3">
-              <div className="flex items-center gap-1 text-xs text-slate-400 font-medium">
-                <FiClock className="text-slate-500" size={12} />
+              <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 font-medium">
+                <FiClock className="text-slate-400 dark:text-slate-500" size={12} />
                 {item.lastActive ? formatDateTime(item.lastActive) : 'Not Active'}
               </div>
             </td>
@@ -1648,10 +1648,10 @@ const ActivityDetails = () => {
             {/* 6. Notifications */}
             <td className="py-6 px-3">
               <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${type === 'installed' && item.notificationsEnabled
-                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                : 'bg-slate-800 text-slate-500 border border-white/5'
+                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-500 border border-slate-200 dark:border-white/5'
                 }`}>
-                <FiBell className={type === 'installed' && item.notificationsEnabled ? 'text-emerald-400' : 'text-slate-500'} size={10} />
+                <FiBell className={type === 'installed' && item.notificationsEnabled ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'} size={10} />
                 {type === 'installed' && item.notificationsEnabled ? 'Enabled' : 'Disabled'}
               </span>
             </td>
@@ -1659,10 +1659,10 @@ const ActivityDetails = () => {
             {/* 7. App Lock */}
             <td className="py-6 px-3">
               <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${type === 'installed' && item.isAppLockEnabled
-                ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20'
-                : 'bg-slate-800 text-slate-500 border border-white/5'
+                ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-500 border border-slate-200 dark:border-white/5'
                 }`}>
-                <FiShield className={type === 'installed' && item.isAppLockEnabled ? 'text-teal-400' : 'text-slate-500'} size={10} />
+                <FiShield className={type === 'installed' && item.isAppLockEnabled ? 'text-teal-600 dark:text-teal-400' : 'text-slate-400 dark:text-slate-500'} size={10} />
                 {type === 'installed' && item.isAppLockEnabled ? 'Secured' : 'Inactive'}
               </span>
             </td>
@@ -1670,7 +1670,7 @@ const ActivityDetails = () => {
             {/* 8. Installed At / Uninstalled At / Deleted At */}
             {type === 'installed' && (
               <td className="py-6 px-3">
-                <div className="flex items-center gap-1 text-xs text-emerald-400 font-semibold">
+                <div className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
                   <FiCalendar className="text-emerald-500/70" size={12} />
                   {formatDateTime(item.installedAt)}
                 </div>
@@ -1678,7 +1678,7 @@ const ActivityDetails = () => {
             )}
             {type === 'uninstalled' && (
               <td className="py-6 px-3">
-                <div className="flex items-center gap-1 text-xs text-rose-400 font-semibold">
+                <div className="flex items-center gap-1 text-xs text-rose-600 dark:text-rose-400 font-semibold">
                   <FiCalendar className="text-rose-500/70" size={12} />
                   {formatDateTime(item.uninstalledAt)}
                 </div>
@@ -1686,7 +1686,7 @@ const ActivityDetails = () => {
             )}
             {type === 'deleted' && (
               <td className="py-6 px-3">
-                <div className="flex items-center gap-1 text-xs text-rose-400 font-semibold">
+                <div className="flex items-center gap-1 text-xs text-rose-600 dark:text-rose-400 font-semibold">
                   <FiCalendar className="text-rose-500/70" size={12} />
                   {formatDateTime(item.deletedAt || item.updatedAt)}
                 </div>
@@ -1694,7 +1694,7 @@ const ActivityDetails = () => {
             )}
             
             {/* 9. IP Address */}
-            <td className="py-6 px-3 text-xs font-mono text-slate-400 select-all">
+            <td className="py-6 px-3 text-xs font-mono text-slate-500 dark:text-slate-400 select-all">
               {item.ipAddress || '-'}
             </td>
           </tr>
@@ -1706,22 +1706,22 @@ const ActivityDetails = () => {
       return currentItems.map((item, index) => (
         <tr
           key={item._id}
-          className="hover:bg-white/[0.02] transition-colors group/row"
+          className="hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors group/row"
         >
           <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-          <td className="py-4 px-5 text-sm font-bold text-white">
+          <td className="py-4 px-5 text-sm font-bold text-slate-900 dark:text-white">
             <div className="flex items-center gap-2">
               {item.user?.name || 'Unknown User'}
             </div>
           </td>
-          <td className="py-4 px-5 text-sm text-slate-300 select-all font-medium">{item.user?.email || '-'}</td>
-          <td className="py-4 px-5 text-xs font-extrabold text-emerald-400 font-mono tracking-wider">LOGIN</td>
+          <td className="py-4 px-5 text-sm text-slate-700 dark:text-slate-300 select-all font-medium">{item.user?.email || '-'}</td>
+          <td className="py-4 px-5 text-xs font-extrabold text-emerald-600 dark:text-emerald-400 font-mono tracking-wider">LOGIN</td>
           <td className="py-4 px-5">
-            <span className="px-3 py-1 rounded-full font-bold text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span className="px-3 py-1 rounded-full font-bold text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
               {item.details?.method || 'N/A'}
             </span>
           </td>
-          <td className="py-4 px-5 text-sm text-slate-400 font-medium">{formatDateTime(item.createdAt || item.timestamp)}</td>
+          <td className="py-4 px-5 text-sm text-slate-500 dark:text-slate-400 font-medium">{formatDateTime(item.createdAt || item.timestamp)}</td>
         </tr>
       ));
     }
@@ -1730,22 +1730,22 @@ const ActivityDetails = () => {
       return currentItems.map((item, index) => (
         <tr
           key={item._id}
-          className="hover:bg-white/[0.02] transition-colors group/row"
+          className="hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors group/row"
         >
           <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-          <td className="py-4 px-5 text-sm font-bold text-white">
+          <td className="py-4 px-5 text-sm font-bold text-slate-900 dark:text-white">
             <div className="flex items-center gap-2">
               {item.user?.name || 'Unknown User'}
             </div>
           </td>
-          <td className="py-4 px-5 text-sm text-slate-300 select-all font-medium">{item.user?.email || '-'}</td>
-          <td className="py-4 px-5 text-xs font-extrabold text-rose-400 font-mono tracking-wider">LOGOUT</td>
+          <td className="py-4 px-5 text-sm text-slate-700 dark:text-slate-300 select-all font-medium">{item.user?.email || '-'}</td>
+          <td className="py-4 px-5 text-xs font-extrabold text-rose-600 dark:text-rose-400 font-mono tracking-wider">LOGOUT</td>
           <td className="py-4 px-5">
-            <span className="px-3 py-1 rounded-full font-bold text-xs bg-rose-500/10 text-rose-400 border border-rose-500/20">
+            <span className="px-3 py-1 rounded-full font-bold text-xs bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
               {item.details?.method || 'N/A'}
             </span>
           </td>
-          <td className="py-4 px-5 text-sm text-slate-400 font-medium">{formatDateTime(item.createdAt || item.timestamp)}</td>
+          <td className="py-4 px-5 text-sm text-slate-500 dark:text-slate-400 font-medium">{formatDateTime(item.createdAt || item.timestamp)}</td>
         </tr>
       ));
     }
@@ -1757,40 +1757,40 @@ const ActivityDetails = () => {
         return (
           <tr
             key={item._id || index}
-            className="hover:bg-white/[0.02] transition-colors group/row"
+            className="hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors group/row"
           >
             <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td className="py-4 px-5 text-xs font-mono text-slate-500">#{item._id}</td>
             <td className="py-4 px-5">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg border bg-gradient-to-tr from-amber-500/20 to-yellow-500/20 border-amber-500/30 text-amber-300 flex items-center justify-center font-bold text-xs tracking-wider shadow-inner shrink-0">
+                <div className="w-8 h-8 rounded-lg border bg-gradient-to-tr from-amber-500/20 to-yellow-500/20 border-amber-500/30 text-amber-700 dark:text-amber-300 flex items-center justify-center font-bold text-xs tracking-wider shadow-inner shrink-0">
                   {initials}
                 </div>
                 <div>
-                  <span className="text-sm font-bold text-white block">
+                  <span className="text-sm font-bold text-slate-900 dark:text-white block">
                     {item.user?.name || 'Unknown User'}
                   </span>
                   {item.user?.phone && (
-                    <span className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1">
-                      <FiPhone className="text-slate-500 text-[8px]" />
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
+                      <FiPhone className="text-slate-400 dark:text-slate-500 text-[8px]" />
                       <span>{item.user.phone}</span>
                     </span>
                   )}
                 </div>
               </div>
             </td>
-            <td className="py-4 px-5 text-sm text-slate-300 font-mono select-all font-medium">{item.user?.email || '-'}</td>
-            <td className="py-4 px-5 text-xs font-extrabold text-amber-400 font-mono tracking-wider">
-              <span className="px-2.5 py-1 rounded-full font-bold text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <td className="py-4 px-5 text-sm text-slate-700 dark:text-slate-300 font-mono select-all font-medium">{item.user?.email || '-'}</td>
+            <td className="py-4 px-5 text-xs font-extrabold text-amber-600 dark:text-amber-400 font-mono tracking-wider">
+              <span className="px-2.5 py-1 rounded-full font-bold text-xs bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
                 SEARCH
               </span>
             </td>
             <td className="py-4 px-5">
-              <code className="text-sm font-bold text-amber-300 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20 font-mono">
+              <code className="text-sm font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-200 dark:border-amber-500/20 font-mono">
                 {queryText}
               </code>
             </td>
-            <td className="py-4 px-5 text-sm text-slate-400 font-medium">{formatDateTime(item.createdAt || item.timestamp)}</td>
+            <td className="py-4 px-5 text-sm text-slate-500 dark:text-slate-400 font-medium">{formatDateTime(item.createdAt || item.timestamp)}</td>
           </tr>
         );
       });
@@ -1814,65 +1814,49 @@ const ActivityDetails = () => {
                     });
                     setIsModalOpen(true);
                   }}
-            className="hover:bg-white/[0.02] transition-colors cursor-pointer">
+            className="hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors cursor-pointer">
             <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td className="py-4 px-5">
               <div className="flex items-center gap-2">
                 <div className={`w-8 h-8 rounded-lg border flex items-center justify-center font-bold text-xs tracking-wider shadow-inner ${isSuperAdmin
-                  ? 'bg-gradient-to-tr from-amber-500/20 to-orange-500/20 border-amber-500/30 text-amber-300'
+                  ? 'bg-gradient-to-tr from-amber-500/20 to-orange-500/20 border-amber-500/30 text-amber-700 dark:text-amber-300'
                   : item.user
-                    ? 'bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 border-blue-500/30 text-blue-300'
-                    : 'bg-gradient-to-tr from-slate-500/20 to-slate-600/20 border-white/10 text-slate-400'
+                    ? 'bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 border-blue-500/30 text-blue-700 dark:text-blue-300'
+                    : 'bg-gradient-to-tr from-slate-200/50 to-slate-300/50 dark:from-slate-500/20 dark:to-slate-600/20 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400'
                   }`}>
                   {initials}
                 </div>
                 <div>
-                  <span className="text-sm font-bold text-white block">
+                  <span className="text-sm font-bold text-slate-900 dark:text-white block">
                     {item.user?.name || 'Guest / Unauthenticated'}
                   </span>
                   {item.user?.phone && (
                     <span className="text-[10px] text-slate-500 mt-0.5 block flex items-center gap-1">
-                      <FiPhone className="text-slate-500 text-[8px]" /> {item.user.phone}
+                      <FiPhone className="text-slate-400 dark:text-slate-500 text-[8px]" /> {item.user.phone}
                     </span>
                   )}
                 </div>
               </div>
             </td>
-            <td className="py-4 px-5 text-sm text-slate-300 font-medium select-all">
+            <td className="py-4 px-5 text-sm text-slate-700 dark:text-slate-300 font-medium select-all">
               {item.user?.email || 'N/A'}
             </td>
             <td className="py-4 px-5">
               <span className={`px-2.5 py-1 rounded-full font-bold text-xs border ${displayCount > 10000 && !isSuperAdmin
-                ? 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
                 : displayCount > 5000
-                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                  : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                  ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20'
+                  : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20'
                 }`}>
                 {displayCount.toLocaleString()} requests
               </span>
             </td>
-            <td className="py-4 px-5 text-xs font-mono text-slate-400 select-all max-w-[150px] truncate" title={displayIP}>
+            <td className="py-4 px-5 text-xs font-mono text-slate-500 dark:text-slate-400 select-all max-w-[150px] truncate" title={displayIP}>
               {displayIP}
             </td>
-            <td className="py-4 px-5 text-sm text-slate-400 font-medium">
+            <td className="py-4 px-5 text-sm text-slate-500 dark:text-slate-400 font-medium">
               {formatDateTime(item.lastRequestAt)}
             </td>
-            {/* <td className="py-4 px-5 text-center">
-              <button
-                onClick={() => {
-                  setSelectedRowLogins({
-                    action: 'API_REQUESTS',
-                    user: item.user || { name: 'Guest / Unauthenticated', email: item.ip },
-                    count: displayCount,
-                    endpointStats: item.endpointStats
-                  });
-                  setIsModalOpen(true);
-                }}
-                className="px-3 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 hover:border-blue-500/30 text-blue-400 hover:text-blue-300 rounded-lg text-xs font-bold transition-all cursor-pointer"
-              >
-                View Breakdown
-              </button>
-            </td> */}
           </tr>
         );
       });
@@ -1885,10 +1869,10 @@ const ActivityDetails = () => {
         const isPayment = eventType === 'INITIATED_PAYMENT' || eventType === 'INITIATE_PAYMENT' || eventType.includes('PAY') || eventType.includes('CHECKOUT');
         
         const badgeColor =
-          eventType === 'ADD_TO_CART' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-            eventType === 'REMOVE_FROM_CART' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' :
-              isPayment ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
-                'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+          eventType === 'ADD_TO_CART' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' :
+            eventType === 'REMOVE_FROM_CART' ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20' :
+              isPayment ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20' :
+                'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20';
 
         // Context details from latest activity (newest action at index 0)
         const lastAct = item.activities?.[0] || {};
@@ -1905,31 +1889,31 @@ const ActivityDetails = () => {
           <tr
             key={item.userId || index}
             onClick={() => setSelectedUserAnalytics(item)}
-            className="hover:bg-white/[0.02] transition-colors cursor-pointer group/row"
+            className="hover:bg-white/50 dark:hover:bg-white/[0.02] transition-colors cursor-pointer group/row"
           >
             <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td className="py-4 px-5">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl border bg-gradient-to-tr from-indigo-500/20 to-blue-500/20 border-indigo-500/30 text-indigo-300 flex items-center justify-center font-bold text-xs tracking-wider shadow-inner shrink-0">
+                <div className="w-8 h-8 rounded-xl border bg-gradient-to-tr from-indigo-500/20 to-blue-500/20 border-indigo-500/30 text-indigo-700 dark:text-indigo-300 flex items-center justify-center font-bold text-xs tracking-wider shadow-inner shrink-0">
                   {initials}
                 </div>
                 <div className="min-w-0">
-                  <span className="text-sm font-bold text-white group-hover/row:text-indigo-400 transition-colors block truncate">
+                  <span className="text-sm font-bold text-slate-900 dark:text-white group-hover/row:text-indigo-600 dark:group-hover/row:text-indigo-400 transition-colors block truncate">
                     {item.name || 'Guest / Unauthenticated'}
                   </span>
                   {item.phone && (
-                    <span className="text-[10px] text-slate-400 font-mono flex items-center gap-1 mt-0.5">
-                      <FiPhone size={9} className="text-slate-500" />
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1 mt-0.5">
+                      <FiPhone size={9} className="text-slate-400 dark:text-slate-500" />
                       <span>{item.phone}</span>
                     </span>
                   )}
                 </div>
               </div>
             </td>
-            <td className="py-4 px-5 text-sm text-slate-300 font-medium select-all font-mono">{item.email || 'N/A'}</td>
-            <td className="py-4 px-5 text-sm text-slate-300 font-medium font-mono">{item.phone || 'N/A'}</td>
+            <td className="py-4 px-5 text-sm text-slate-700 dark:text-slate-300 font-medium select-all font-mono">{item.email || 'N/A'}</td>
+            <td className="py-4 px-5 text-sm text-slate-700 dark:text-slate-300 font-medium font-mono">{item.phone || 'N/A'}</td>
             <td className="py-4 px-5 text-sm text-center">
-              <span className="px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-bold font-mono">
+              <span className="px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-700 dark:text-indigo-300 text-xs font-bold font-mono">
                 {item.totalActions} Action{item.totalActions !== 1 ? 's' : ''}
               </span>
             </td>
@@ -1939,13 +1923,13 @@ const ActivityDetails = () => {
                   {eventType.replace(/_/g, ' ')}
                 </span>
                 {contextText && (
-                  <span className="text-[11px] text-slate-400 font-semibold truncate max-w-[180px]" title={contextText}>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold truncate max-w-[180px]" title={contextText}>
                     {contextText}
                   </span>
                 )}
               </div>
             </td>
-            <td className="py-4 px-5 text-sm text-slate-400 font-medium font-mono">{formatDateTime(item.lastActiveAt)}</td>
+            <td className="py-4 px-5 text-sm text-slate-500 dark:text-slate-400 font-medium font-mono">{formatDateTime(item.lastActiveAt)}</td>
           </tr>
         );
       });
@@ -1957,20 +1941,20 @@ const ActivityDetails = () => {
         const displayProductLogo = firstImg ? (firstImg.startsWith('http') || firstImg.startsWith('blob:') ? firstImg : `${BASE_URL}${firstImg.startsWith('/') ? '' : '/'}${firstImg.replace(/\\/g, '/')}`) : '';
 
         return (
-          <tr key={item._id || index} className="bg-transparent hover:bg-white/[0.02] transition-colors">
+          <tr key={item._id || index} className="bg-transparent hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors">
             <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td className="py-4 px-5">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg border bg-gradient-to-tr from-cyan-500/20 to-blue-500/20 border-cyan-500/30 text-cyan-300 flex items-center justify-center font-bold text-xs tracking-wider shadow-inner">
+                <div className="w-8 h-8 rounded-lg border bg-gradient-to-tr from-cyan-500/20 to-blue-500/20 border-cyan-500/30 text-cyan-700 dark:text-cyan-300 flex items-center justify-center font-bold text-xs tracking-wider shadow-inner">
                   {initials}
                 </div>
                 <div>
-                  <span className="text-sm font-bold text-white block">
+                  <span className="text-sm font-bold text-slate-900 dark:text-white block">
                     {item.user?.name || 'Guest / Unauthenticated'}
                   </span>
                   {item.user?.phone && (
                     <span className="text-[10px] text-slate-500 mt-0.5 block flex items-center gap-1">
-                      <FiPhone className="text-slate-500 text-[8px]" /> {item.user.phone}
+                      <FiPhone className="text-slate-400 dark:text-slate-500 text-[8px]" /> {item.user.phone}
                     </span>
                   )}
                 </div>
@@ -1979,31 +1963,31 @@ const ActivityDetails = () => {
             <td className="py-4 px-5">
               <div className="flex items-center gap-2">
                 {displayProductLogo ? (
-                  <div className="w-10 h-10 rounded-lg overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center p-0.5">
+                  <div className="w-10 h-10 rounded-lg overflow-hidden bg-white shrink-0 border border-slate-200/80 dark:border-white/10 flex items-center justify-center p-0.5">
                     <img src={displayProductLogo} alt={item.product?.name} className="w-full h-full object-contain" />
                   </div>
                 ) : (
-                  <div className="w-10 h-10 rounded-lg bg-slate-800 shrink-0 flex items-center justify-center text-slate-500 border border-white/5">
+                  <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 shrink-0 flex items-center justify-center text-slate-500 border border-slate-200 dark:border-white/5">
                     <FiBox size={16} />
                   </div>
                 )}
-                <span className="text-sm font-bold text-white truncate max-w-[200px]" title={item.product?.name}>
+                <span className="text-sm font-bold text-slate-900 dark:text-white truncate max-w-[200px]" title={item.product?.name}>
                   {item.product?.name || 'Unknown Product'}
                 </span>
               </div>
             </td>
-            <td className="py-4 px-5 text-xs font-bold text-blue-400 font-mono">
+            <td className="py-4 px-5 text-xs font-bold text-blue-600 dark:text-blue-400 font-mono">
               {item.variantName || 'Default'}
             </td>
             <td className="py-4 px-5 text-xs">
               <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${item.notified
-                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20'
                 }`}>
                 {item.notified ? 'notified' : 'pending alert'}
               </span>
             </td>
-            <td className="py-4 px-5 text-sm text-slate-400 font-medium">
+            <td className="py-4 px-5 text-sm text-slate-500 dark:text-slate-400 font-medium">
               {formatDateTime(item.createdAt)}
             </td>
           </tr>
@@ -2017,8 +2001,8 @@ const ActivityDetails = () => {
         const globalIndex = (currentPage - 1) * itemsPerPage + index;
         const cleanLogo = (item.brand?.logo || '').replace(/\\/g, '/');
         const logoUrl = cleanLogo ? (cleanLogo.startsWith('http') || cleanLogo.startsWith('blob:') ? cleanLogo : `${BASE_URL}${cleanLogo.startsWith('/') ? '' : '/'}${cleanLogo}`) : '';
-        const rankColors = ['text-amber-400', 'text-slate-300', 'text-orange-400'];
-        const rankBadgeBg = ['bg-amber-500/15 border-amber-500/30', 'bg-slate-500/15 border-slate-400/30', 'bg-orange-500/15 border-orange-500/30'];
+        const rankColors = ['text-amber-600 dark:text-amber-400', 'text-slate-700 dark:text-slate-300', 'text-orange-600 dark:text-orange-400'];
+        const rankBadgeBg = ['bg-amber-500/15 border-amber-500/30', 'bg-slate-200 dark:bg-slate-500/15 border-slate-300 dark:border-slate-400/30', 'bg-orange-500/15 border-orange-500/30'];
         const viewerCount = Array.isArray(item.viewers) ? item.viewers.length : 0;
         const rowKey = item.brand?._id || item.brand?.name || `brand-${globalIndex}`;
 
@@ -2046,35 +2030,35 @@ const ActivityDetails = () => {
                 brandObj: item.brand
               });
             }}
-            className="bg-transparent hover:bg-white/[0.02] transition-colors cursor-pointer group/row"
+            className="bg-transparent hover:bg-white/50 dark:hover:bg-white/[0.02] transition-colors cursor-pointer group/row"
           >
             <td className="py-4 px-5">
-              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${globalIndex < 3 ? rankBadgeBg[globalIndex] : 'bg-slate-800/60 border-white/10 text-slate-400'} ${globalIndex < 3 ? rankColors[globalIndex] : ''}`}>
+              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${globalIndex < 3 ? rankBadgeBg[globalIndex] : 'bg-slate-100 dark:bg-slate-800/60 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400'} ${globalIndex < 3 ? rankColors[globalIndex] : ''}`}>
                 {globalIndex + 1}
               </span>
             </td>
             <td className="py-4 px-5">
               {logoUrl ? (
-                <img src={logoUrl} alt={item.brand?.name} className="w-10 h-10 object-contain rounded-xl bg-white border border-white/10 p-1" />
+                <img src={logoUrl} alt={item.brand?.name} className="w-10 h-10 object-contain rounded-xl bg-white border border-slate-200/80 dark:border-white/10 p-1 shadow-xs" />
               ) : (
-                <div className="w-10 h-10 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center text-slate-400 text-xs font-bold">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 text-xs font-bold">
                   {(item.brand?.name || '?').substring(0, 2).toUpperCase()}
                 </div>
               )}
             </td>
-            <td className="py-4 px-5 text-sm font-bold text-white group-hover/row:text-indigo-400 transition-colors">{item.brand?.name || 'Unknown Brand'}</td>
-            <td className="py-4 px-5 text-sm text-slate-300 font-bold">{brandProductsCount} product(s)</td>
+            <td className="py-4 px-5 text-sm font-bold text-slate-900 dark:text-white group-hover/row:text-indigo-600 dark:group-hover/row:text-indigo-400 transition-colors">{item.brand?.name || 'Unknown Brand'}</td>
+            <td className="py-4 px-5 text-sm text-slate-700 dark:text-slate-300 font-bold">{brandProductsCount} product(s)</td>
             <td className="py-4 px-5 text-xs">
-              <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider text-[10px] ${isBrandActive ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
+              <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider text-[10px] ${isBrandActive ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'}`}>
                 {isBrandActive ? 'active' : 'inactive'}
               </span>
             </td>
             <td className="py-4 px-5">
               <div className="flex items-center gap-3">
-                <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden max-w-[120px]">
+                <div className="flex-1 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden max-w-[120px]">
                   <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${Math.round((item.searches / maxSearches) * 100)}%` }} />
                 </div>
-                <span className="text-indigo-400 font-extrabold text-sm">{item.searches || 0} views</span>
+                <span className="text-indigo-600 dark:text-indigo-400 font-extrabold text-sm">{item.searches || 0} views</span>
               </div>
             </td>
             {/* <td className="py-4 px-5 text-center">
@@ -2132,29 +2116,31 @@ const ActivityDetails = () => {
                 categoryObj: item.category
               });
             }}
-            className="bg-transparent hover:bg-white/[0.02] transition-colors cursor-pointer group/row"
+            className="bg-transparent hover:bg-white/50 dark:hover:bg-white/[0.02] transition-colors cursor-pointer group/row"
           >
             <td className="py-4 px-5">
-              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${globalIndex === 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' :
-                globalIndex === 1 ? 'bg-slate-500/15 border-slate-400/30 text-slate-300' :
-                  globalIndex === 2 ? 'bg-orange-500/15 border-orange-500/30 text-orange-400' :
-                    'bg-slate-800/60 border-white/10 text-slate-400'}`}>
+              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${
+                globalIndex === 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-400' :
+                globalIndex === 1 ? 'bg-slate-200 dark:bg-slate-500/15 border-slate-300 dark:border-slate-400/30 text-slate-700 dark:text-slate-300' :
+                globalIndex === 2 ? 'bg-orange-500/15 border-orange-500/30 text-orange-600 dark:text-orange-400' :
+                'bg-slate-100 dark:bg-slate-800/60 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400'
+              }`}>
                 {globalIndex + 1}
               </span>
             </td>
-            <td className="py-4 px-5 text-sm font-bold text-white group-hover/row:text-purple-400 transition-colors">{item.category?.name || 'Unknown Category'}</td>
-            <td className="py-4 px-5 text-sm text-slate-300 font-bold">{catProductsCount} product(s)</td>
+            <td className="py-4 px-5 text-sm font-bold text-slate-900 dark:text-white group-hover/row:text-purple-600 dark:group-hover/row:text-purple-400 transition-colors">{item.category?.name || 'Unknown Category'}</td>
+            <td className="py-4 px-5 text-sm text-slate-700 dark:text-slate-300 font-bold">{catProductsCount} product(s)</td>
             <td className="py-4 px-5 text-xs">
-              <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider text-[10px] ${isCatActive ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
+              <span className={`px-2.5 py-1 rounded-full font-bold uppercase tracking-wider text-[10px] ${isCatActive ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'}`}>
                 {isCatActive ? 'active' : 'inactive'}
               </span>
             </td>
             <td className="py-4 px-5">
               <div className="flex items-center gap-3">
-                <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden max-w-[120px]">
+                <div className="flex-1 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden max-w-[120px]">
                   <div className="h-full bg-purple-500 rounded-full" style={{ width: `${Math.round((item.searches / maxSearches) * 100)}%` }} />
                 </div>
-                <span className="text-purple-400 font-extrabold text-sm">{item.searches || 0} views</span>
+                <span className="text-purple-600 dark:text-purple-400 font-extrabold text-sm">{item.searches || 0} views</span>
               </div>
             </td>
             {/* <td className="py-4 px-5 text-center">
@@ -2183,26 +2169,28 @@ const ActivityDetails = () => {
       return currentItems.map((item, index) => {
         const globalIndex = (currentPage - 1) * itemsPerPage + index;
         return (
-          <tr key={item._id || item.query || globalIndex} className="bg-transparent hover:bg-white/[0.02] transition-colors">
+          <tr key={item._id || item.query || globalIndex} className="bg-transparent hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors">
             <td className="py-4 px-5">
-              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${globalIndex === 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' :
-                globalIndex === 1 ? 'bg-slate-500/15 border-slate-400/30 text-slate-300' :
-                  globalIndex === 2 ? 'bg-orange-500/15 border-orange-500/30 text-orange-400' :
-                    'bg-slate-800/60 border-white/10 text-slate-400'}`}>
+              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${
+                globalIndex === 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-400' :
+                globalIndex === 1 ? 'bg-slate-200 dark:bg-slate-500/15 border-slate-300 dark:border-slate-400/30 text-slate-700 dark:text-slate-300' :
+                globalIndex === 2 ? 'bg-orange-500/15 border-orange-500/30 text-orange-600 dark:text-orange-400' :
+                'bg-slate-100 dark:bg-slate-800/60 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400'
+              }`}>
                 {globalIndex + 1}
               </span>
             </td>
             <td className="py-4 px-5">
-              <code className="text-sm font-bold text-amber-300 bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-500/20 font-mono">
+              <code className="text-sm font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-200 dark:border-amber-500/20 font-mono">
                 {item.query}
               </code>
             </td>
             <td className="py-4 px-5">
               <div className="flex items-center gap-3">
-                <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden max-w-[120px]">
+                <div className="flex-1 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden max-w-[120px]">
                   <div className="h-full rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600" style={{ width: `${Math.round((item.count / maxCount) * 100)}%` }} />
                 </div>
-                <span className="text-amber-400 font-extrabold text-sm">{item.count} searches</span>
+                <span className="text-amber-600 dark:text-amber-400 font-extrabold text-sm">{item.count} searches</span>
               </div>
             </td>
           </tr>
@@ -2251,64 +2239,66 @@ const ActivityDetails = () => {
                 categoryName
               });
             }}
-            className="bg-transparent hover:bg-white/[0.02] transition-colors cursor-pointer group/row"
+            className="bg-transparent hover:bg-white/50 dark:hover:bg-white/[0.02] transition-colors cursor-pointer group/row"
           >
             <td className="py-4 px-5">
-              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${globalIndex === 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' :
-                globalIndex === 1 ? 'bg-slate-500/15 border-slate-400/30 text-slate-300' :
-                  globalIndex === 2 ? 'bg-orange-500/15 border-orange-500/30 text-orange-400' :
-                    'bg-slate-800/60 border-white/10 text-slate-400'}`}>
+              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black ${
+                globalIndex === 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-400' :
+                globalIndex === 1 ? 'bg-slate-200 dark:bg-slate-500/15 border-slate-300 dark:border-slate-400/30 text-slate-700 dark:text-slate-300' :
+                globalIndex === 2 ? 'bg-orange-500/15 border-orange-500/30 text-orange-600 dark:text-orange-400' :
+                'bg-slate-100 dark:bg-slate-800/60 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400'
+              }`}>
                 {globalIndex + 1}
               </span>
             </td>
             <td className="py-4 px-5">
               {imgUrl ? (
-                <div className="w-12 h-12 rounded-xl overflow-hidden bg-white border border-white/10 flex items-center justify-center p-0.5">
+                <div className="w-12 h-12 rounded-xl overflow-hidden bg-white border border-slate-200/80 dark:border-white/10 flex items-center justify-center p-0.5 shadow-xs">
                   <img src={imgUrl} alt={item.product?.name} className="w-full h-full object-contain" />
                 </div>
               ) : (
-                <div className="w-12 h-12 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center text-slate-500">
+                <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-slate-500">
                   <FiBox size={18} />
                 </div>
               )}
             </td>
-            <td className="py-4 px-5 text-sm font-bold text-white group-hover/row:text-blue-400 transition-colors truncate max-w-[200px]" title={item.product?.name}>
+            <td className="py-4 px-5 text-sm font-bold text-slate-900 dark:text-white group-hover/row:text-blue-600 dark:group-hover/row:text-blue-400 transition-colors truncate max-w-[200px]" title={item.product?.name}>
               {item.product?.name || 'Unknown Product'}
             </td>
             <td className="py-4 px-5 text-sm font-medium">
               {brandName !== 'N/A' ? (
-                <span className="px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 text-xs font-bold">
+                <span className="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/20 text-xs font-bold">
                   {brandName}
                 </span>
               ) : (
-                <span className="text-slate-500 font-medium text-xs">-</span>
+                <span className="text-slate-400 dark:text-slate-500 font-medium text-xs">-</span>
               )}
             </td>
             <td className="py-4 px-5 text-sm font-medium">
               {categoryName !== 'N/A' ? (
-                <span className="px-2.5 py-1 rounded-lg bg-purple-500/10 text-purple-300 border border-purple-500/20 text-xs font-bold">
+                <span className="px-2.5 py-1 rounded-lg bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/20 text-xs font-bold">
                   {categoryName}
                 </span>
               ) : (
-                <span className="text-slate-500 font-medium text-xs">-</span>
+                <span className="text-slate-400 dark:text-slate-500 font-medium text-xs">-</span>
               )}
             </td>
             <td className="py-4 px-5 text-sm font-mono">
-              <span className="text-emerald-400 font-extrabold">
+              <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">
                 ₹{(item.product?.offerPrice && Number(item.product.offerPrice) > 0 ? Number(item.product.offerPrice) : Number(item.product?.basePrice || 0)).toLocaleString('en-IN')}
               </span>
               {item.product?.offerPrice && Number(item.product.offerPrice) > 0 && Number(item.product.offerPrice) < Number(item.product?.basePrice || 0) && (
-                <span className="ml-1.5 text-xs text-slate-500 line-through font-medium">
+                <span className="ml-1.5 text-xs text-slate-400 dark:text-slate-500 line-through font-medium">
                   ₹{(item.product?.basePrice || 0).toLocaleString('en-IN')}
                 </span>
               )}
             </td>
             <td className="py-4 px-5">
               <div className="flex items-center gap-3">
-                <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden max-w-[120px]">
+                <div className="flex-1 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden max-w-[120px]">
                   <div className="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" style={{ width: `${Math.round(((item.views || 0) / maxViews) * 100)}%` }} />
                 </div>
-                <span className="text-blue-400 font-extrabold text-sm">{item.views || 0} views</span>
+                <span className="text-blue-600 dark:text-blue-400 font-extrabold text-sm">{item.views || 0} views</span>
               </div>
             </td>
             {/* <td className="py-4 px-5 text-center">
@@ -2389,14 +2379,14 @@ const ActivityDetails = () => {
       }
 
       return (
-        <tr key={item._id} className="hover:bg-white/[0.02] transition-colors">
-          <td className="py-4 px-5 text-sm text-slate-500 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-          <td className="py-4 px-5 text-xs font-mono text-slate-500">#{item._id}</td>
-          <td className="py-4 px-5 text-sm font-bold text-white">{item.user?.name || 'Unknown User'}</td>
-          <td className="py-4 px-5 text-sm text-slate-300 font-mono select-all font-medium">{item.user?.email || '-'}</td>
-          <td className="py-4 px-5 text-xs font-extrabold text-blue-400 font-mono tracking-wider">{item.action}</td>
-          <td className="py-4 px-5 text-xs font-semibold text-slate-300 max-w-xs truncate" title={resolvedText}>{resolvedText}</td>
-          <td className="py-4 px-5 text-sm text-slate-400 font-medium">{formatDateTime(item.createdAt || item.timestamp)}</td>
+        <tr key={item._id} className="hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors">
+          <td className="py-4 px-5 text-sm text-slate-500 dark:text-slate-400 font-bold font-mono">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+          <td className="py-4 px-5 text-xs font-mono text-slate-500 dark:text-slate-400">#{item._id}</td>
+          <td className="py-4 px-5 text-sm font-bold text-slate-900 dark:text-white">{item.user?.name || 'Unknown User'}</td>
+          <td className="py-4 px-5 text-sm text-slate-600 dark:text-slate-300 font-mono select-all font-medium">{item.user?.email || '-'}</td>
+          <td className="py-4 px-5 text-xs font-extrabold text-blue-600 dark:text-blue-400 font-mono tracking-wider">{item.action}</td>
+          <td className="py-4 px-5 text-xs font-semibold text-slate-700 dark:text-slate-300 max-w-xs truncate" title={resolvedText}>{resolvedText}</td>
+          <td className="py-4 px-5 text-sm text-slate-500 dark:text-slate-400 font-medium">{formatDateTime(item.createdAt || item.timestamp)}</td>
         </tr>
       );
     });
@@ -2406,72 +2396,72 @@ const ActivityDetails = () => {
     if (type === 'revenue') {
       return (
         <>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Order ID</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Customer Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Order Date</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Amount</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Fulfillment</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Payment</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Order ID</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Customer Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Order Date</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Amount</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Fulfillment</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Payment</th>
         </>
       );
     }
     if (type === 'brands') {
       return (
         <>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Brand ID</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Logo</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Brand Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Brand ID</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Logo</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Brand Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Status</th>
         </>
       );
     }
     if (type === 'products') {
       return (
         <>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Product ID</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Product Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Price / Offer Price</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">No. of Variants</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Product ID</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Product Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Price / Offer Price</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">No. of Variants</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Status</th>
         </>
       );
     }
     if (type === 'variants') {
       return (
         <>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Product ID</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Product Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Variant Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Price</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Product ID</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Product Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Variant Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Price</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Status</th>
         </>
       );
     }
     if (type === 'users' || type === 'users-status' || type === 'installed' || type === 'uninstalled' || type === 'deleted') {
       return (
         <>
-          <th className="py-3 px-2 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Email Address</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">App Version</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Last Active</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Notifications</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">App Lock</th>
+          <th className="py-3 px-2 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Email Address</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider font-mono">App Version</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Last Active</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Notifications</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">App Lock</th>
           {type === 'installed' && (
-            <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Installed At</th>
+            <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Installed At</th>
           )}
           {type === 'uninstalled' && (
-            <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Uninstalled At</th>
+            <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Uninstalled At</th>
           )}
           {type === 'deleted' && (
-            <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Deleted At</th>
+            <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Deleted At</th>
           )}
           {(type === 'installed' || type === 'uninstalled' || type === 'deleted') && (
-            <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">IP Address</th>
+            <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider font-mono">IP Address</th>
           )}
         </>
       );
@@ -2479,12 +2469,12 @@ const ActivityDetails = () => {
     if (type === 'logins') {
       return (
         <>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Email</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Action</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Method</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Timestamp</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">User Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">User Email</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Action</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Method</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Timestamp</th>
         </>
       );
     }
@@ -2492,12 +2482,12 @@ const ActivityDetails = () => {
     if (type === 'logouts') {
       return (
         <>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Email</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Action</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Method</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Timestamp</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">User Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">User Email</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Action</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Method</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Timestamp</th>
         </>
       );
     }
@@ -2505,14 +2495,13 @@ const ActivityDetails = () => {
     if (type === 'product-views' || type === 'most-viewed-products') {
       return (
         <>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Image</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Product Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Brand</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Category</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Price / Offer Price</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Product Views</th>
-          {/* <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Viewer Breakdown</th> */}
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Image</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Product Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Brand</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Category</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Price / Offer Price</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Total Product Views</th>
         </>
       );
     }
@@ -2520,119 +2509,116 @@ const ActivityDetails = () => {
     if (type === 'brand-views' || type === 'most-searched-brands') {
       return (
         <>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Logo</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Brand Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Products</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Brand Views</th>
-          {/* <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Viewer Breakdown</th> */}
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Logo</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Brand Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Total Products</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Status</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Total Brand Views</th>
         </>
       );
     }
     if (type === 'category-views' || type === 'most-searched-categories') {
       return (
         <>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Category Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Products</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Category Views</th>
-          {/* <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Viewer Breakdown</th> */}
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Category Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Total Products</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Status</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Total Category Views</th>
         </>
       );
     }
     if (type === 'request-stats') {
       return (
         <>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Email Address</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Requests</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">IP Address</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Last Request At</th>
-          {/* <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Actions</th> */}
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">User Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Email Address</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Total Requests</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider font-mono">IP Address</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Last Request At</th>
         </>
       );
     }
     if (type === 'analytics') {
       return (
         <>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Email</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Phone</th>
-          <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Total Actions</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Last Action</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Last Active At</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">User Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">User Email</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Phone</th>
+          <th className="py-3 px-5 text-center text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Total Actions</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Last Action</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Last Active At</th>
         </>
       );
     }
     if (type === 'product-subscriptions') {
       return (
         <>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Product Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Variant</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Notified Status</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Subscribed At</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">User Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Product Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Variant</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Notified Status</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Subscribed At</th>
         </>
       );
     }
     if (type === 'most-searched-brands') {
       return (
         <>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Logo</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Brand Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Views</th>
-          <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Actions</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Logo</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Brand Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Total Views</th>
+          <th className="py-3 px-5 text-center text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Actions</th>
         </>
       );
     }
     if (type === 'most-searched-categories') {
       return (
         <>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Category Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Views</th>
-          <th className="py-3 px-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Actions</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Category Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Total Views</th>
+          <th className="py-3 px-5 text-center text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Actions</th>
         </>
       );
     }
     if (type === 'search-queries') {
       return (
         <>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">Log ID</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Email</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Action</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Search Query</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Timestamp</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider font-mono">Log ID</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">User Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">User Email</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Action</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Search Query</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Timestamp</th>
         </>
       );
     }
     if (type === 'most-searched') {
       return (
         <>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Search Query</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Searches</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Search Query</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Total Searches</th>
         </>
       );
     }
     if (type === 'most-viewed-products') {
       return (
         <>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Product Image</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Product Name</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Brand</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Category</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Base Price</th>
-          <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Total Views</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider w-[60px]">Rank</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Product Image</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Product Name</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Brand</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Category</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Base Price</th>
+          <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Total Views</th>
         </>
       );
     }
@@ -2640,13 +2626,13 @@ const ActivityDetails = () => {
     // Activity logs
     return (
       <>
-        <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
-        <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">Log ID</th>
-        <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Name</th>
-        <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">User Email</th>
-        <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Action Type</th>
-        <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Action Description</th>
-        <th className="py-3 px-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Timestamp</th>
+        <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider w-[60px]">S.No.</th>
+        <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider font-mono">Log ID</th>
+        <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">User Name</th>
+        <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">User Email</th>
+        <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Action Type</th>
+        <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Action Description</th>
+        <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Timestamp</th>
       </>
     );
   };
@@ -2655,15 +2641,15 @@ const ActivityDetails = () => {
     return (
       <div className="h-[80vh] flex flex-col justify-center items-center relative z-10 w-full">
         <div className="absolute top-1/4 left-1/3 w-64 h-64 bg-blue-500/10 rounded-full filter blur-[80px] pointer-events-none -z-10 animate-pulse"></div>
-        <div className="p-6 rounded-3xl bg-slate-900/40 border border-white/5 backdrop-blur-xl flex flex-col items-center gap-4 max-w-sm text-center shadow-2xl">
+        <div className="p-6 rounded-3xl bg-white/80 dark:bg-slate-900/40 border border-slate-200/80 dark:border-white/5 backdrop-blur-xl flex flex-col items-center gap-4 max-w-sm text-center shadow-xl dark:shadow-2xl">
           <div className="relative w-16 h-16 flex items-center justify-center">
             <div className="absolute inset-0 rounded-full border-4 border-blue-500/20 animate-pulse"></div>
             <div className="absolute inset-0 rounded-full border-4 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
             <FiActivity className="text-blue-400 text-2xl animate-pulse" />
           </div>
           <div>
-            <h3 className="text-white font-extrabold text-base tracking-tight font-sans">Accessing Logs</h3>
-            <p className="text-xs text-slate-400 mt-1.5 leading-relaxed font-sans">Retrieving detailed metrics, catalog indexes, and activity entries...</p>
+            <h3 className="text-slate-900 dark:text-white font-extrabold text-base tracking-tight font-sans">Accessing Logs</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed font-sans">Retrieving detailed metrics, catalog indexes, and activity entries...</p>
           </div>
         </div>
       </div>
@@ -2678,12 +2664,12 @@ const ActivityDetails = () => {
             <FiX size={24} className="animate-bounce" />
           </div>
           <div>
-            <h3 className="text-white font-extrabold text-lg tracking-tight">Records Load Error</h3>
-            <p className="text-sm text-slate-400 mt-2 leading-relaxed">{error}</p>
+            <h3 className="text-slate-900 dark:text-white font-extrabold text-lg tracking-tight">Records Load Error</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">{error}</p>
           </div>
           <button
             onClick={() => window.location.reload()}
-            className="px-5 py-2.5 bg-rose-600/20 hover:bg-rose-600/35 border border-rose-500/30 text-rose-300 font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md"
+            className="px-5 py-2.5 bg-rose-600/20 hover:bg-rose-600/35 border border-rose-500/30 text-rose-600 dark:text-rose-300 font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md"
           >
             Retry Fetch
           </button>
@@ -2701,14 +2687,14 @@ const ActivityDetails = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate(-1)}
-            className="p-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-2xl shadow-md transition-all cursor-pointer flex items-center justify-center shrink-0 hover:scale-105"
+            className="p-3 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-white border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-xs dark:shadow-md transition-all cursor-pointer flex items-center justify-center shrink-0 hover:scale-105"
             title="Back"
           >
             <FiArrowLeft size={18} />
           </button>
           <div>
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight flex items-center gap-3">
+              <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
                 <div className={`p-2 rounded-xl ${header.bg}`}>
                   <header.icon className={`${header.color} text-xl`} />
                 </div>
@@ -2716,8 +2702,8 @@ const ActivityDetails = () => {
               </h1>
 
               {/* Selected Date / Interval Badge */}
-              <div className="px-3 py-1.5 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-300 text-xs font-bold flex items-center gap-2 shadow-sm">
-                <FiCalendar size={14} className="text-blue-400 shrink-0" />
+              <div className="px-3 py-1.5 rounded-xl bg-blue-500/10 dark:bg-blue-500/15 border border-blue-500/20 dark:border-blue-500/30 text-blue-600 dark:text-blue-300 text-xs font-bold flex items-center gap-2 shadow-xs dark:shadow-sm">
+                <FiCalendar size={14} className="text-blue-500 dark:text-blue-400 shrink-0" />
                 <span>
                   {queryBreakdown === 'true' && queryBreakdownInterval === 'day' ? 'Daily Breakdown' :
                     queryBreakdown === 'true' && queryBreakdownInterval === 'month' ? 'Monthly Breakdown' :
@@ -2726,7 +2712,7 @@ const ActivityDetails = () => {
                 </span>
               </div>
             </div>
-            <p className="text-xs md:text-sm text-slate-400 mt-1.5 font-medium leading-relaxed max-w-2xl">
+            <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 mt-1.5 font-medium leading-relaxed max-w-2xl">
               {header.desc}
             </p>
           </div>
@@ -2743,7 +2729,7 @@ const ActivityDetails = () => {
               setSearchQuery(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full pl-11 pr-11 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 text-sm font-medium transition-all"
+            className="w-full pl-11 pr-11 py-2.5 bg-white dark:bg-black/20 border border-slate-200/80 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-black/40 shadow-xs dark:shadow-inner backdrop-blur-md text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm font-medium transition-all"
           />
           {searchQuery && (
             <button
@@ -2752,7 +2738,7 @@ const ActivityDetails = () => {
                 setSearchQuery('');
                 setCurrentPage(1);
               }}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
             >
               <FiX className="w-4 h-4" />
             </button>
@@ -2795,21 +2781,21 @@ const ActivityDetails = () => {
               <div className={`absolute inset-0 bg-linear-to-b ${isSearch ? 'from-amber-500/25' : 'from-blue-500/25'} to-transparent pointer-events-none`}></div>
               <div className="relative flex items-center justify-between gap-4 z-10">
                 <div className="min-w-0 flex-1">
-                  <h3 className={`${isSearch ? 'text-amber-400' : 'text-blue-400'} text-xs sm:text-sm font-bold tracking-wide truncate`}>
+                  <h3 className={`${isSearch ? 'text-amber-500 dark:text-amber-400' : 'text-blue-500 dark:text-blue-400'} text-xs sm:text-sm font-bold tracking-wide truncate`}>
                     {cardTitle}
                   </h3>
-                  <p className="text-xl sm:text-2xl xl:text-3xl font-extrabold text-white mt-1 tracking-tight truncate">
+                  <p className="text-xl sm:text-2xl xl:text-3xl font-extrabold text-slate-900 dark:text-white mt-1 tracking-tight truncate">
                     {cardCount.toLocaleString()}{' '}
-                    <span className="text-sm font-semibold text-slate-400">
+                    <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
                       {isSearch ? 'Searches' : 'Views'}
                     </span>
                   </p>
                 </div>
                 <div className={`p-3 sm:p-3.5 rounded-xl ${isSearch ? 'bg-amber-500/20' : 'bg-blue-500/20'} shrink-0`}>
                   {isSearch ? (
-                    <FiSearch className="text-lg sm:text-xl text-amber-400" />
+                    <FiSearch className="text-lg sm:text-xl text-amber-500 dark:text-amber-400" />
                   ) : (
-                    <FiEye className="text-lg sm:text-xl text-blue-400" />
+                    <FiEye className="text-lg sm:text-xl text-blue-500 dark:text-blue-400" />
                   )}
                 </div>
               </div>
@@ -2826,7 +2812,7 @@ const ActivityDetails = () => {
               title: "Total Registered Users",
               value: data.length,
               icon: FiUsers,
-              color: "text-blue-400",
+              color: "text-blue-500 dark:text-blue-400",
               bg: "bg-blue-500/20",
               fromColor: "from-blue-500/25",
               hoverBorder: "hover:border-blue-500/30"
@@ -2835,7 +2821,7 @@ const ActivityDetails = () => {
               title: "Online Now",
               value: `${data.filter(u => u.isOnline).length} Active`,
               icon: FiActivity,
-              color: "text-emerald-400",
+              color: "text-emerald-500 dark:text-emerald-400",
               bg: "bg-emerald-500/20",
               fromColor: "from-emerald-500/25",
               hoverBorder: "hover:border-emerald-500/30"
@@ -2844,7 +2830,7 @@ const ActivityDetails = () => {
               title: "Notifications Enabled",
               value: `${data.filter(u => u.notificationsEnabled).length} Users`,
               icon: FiBell,
-              color: "text-purple-400",
+              color: "text-purple-500 dark:text-purple-400",
               bg: "bg-purple-500/20",
               fromColor: "from-purple-500/25",
               hoverBorder: "hover:border-purple-500/30"
@@ -2853,7 +2839,7 @@ const ActivityDetails = () => {
               title: "App Lock Secured",
               value: `${data.filter(u => u.isAppLockEnabled).length} Users`,
               icon: FiShield,
-              color: "text-rose-400",
+              color: "text-rose-500 dark:text-rose-400",
               bg: "bg-rose-500/20",
               fromColor: "from-rose-500/25",
               hoverBorder: "hover:border-rose-500/30"
@@ -2871,7 +2857,7 @@ const ActivityDetails = () => {
                     {metric.title}
                   </h3>
                   <p
-                    className="text-xl sm:text-2xl xl:text-3xl font-extrabold text-white mt-1 tracking-tight truncate"
+                    className="text-xl sm:text-2xl xl:text-3xl font-extrabold text-slate-900 dark:text-white mt-1 tracking-tight truncate"
                     title={metric.value ? metric.value.toString() : ''}
                   >
                     {metric.value}
@@ -2895,7 +2881,7 @@ const ActivityDetails = () => {
                 title: "Active Carts",
                 value: extraData.cartMetrics?.activeCartsCount || 0,
                 icon: FiShoppingBag,
-                color: "text-amber-400",
+                color: "text-amber-500 dark:text-amber-400",
                 bg: "bg-amber-500/20",
                 fromColor: "from-amber-500/25",
                 hoverBorder: "hover:!border-amber-500/30"
@@ -2904,7 +2890,7 @@ const ActivityDetails = () => {
                 title: "Cart Items",
                 value: extraData.cartMetrics?.totalQuantitiesInCarts || 0,
                 icon: FiLayers,
-                color: "text-blue-400",
+                color: "text-blue-500 dark:text-blue-400",
                 bg: "bg-blue-500/20",
                 fromColor: "from-blue-500/25",
                 hoverBorder: "hover:border-blue-500/30"
@@ -2913,7 +2899,7 @@ const ActivityDetails = () => {
                 title: "Cart Adds",
                 value: extraData.funnel?.cartAdds || 0,
                 icon: FiBox,
-                color: "text-emerald-400",
+                color: "text-emerald-500 dark:text-emerald-400",
                 bg: "bg-emerald-500/20",
                 fromColor: "from-emerald-500/25",
                 hoverBorder: "hover:border-emerald-500/30"
@@ -2922,7 +2908,7 @@ const ActivityDetails = () => {
                 title: "Checkouts",
                 value: extraData.funnel?.checkoutInitiations || 0,
                 icon: FiTrendingUp,
-                color: "text-indigo-400",
+                color: "text-indigo-500 dark:text-indigo-400",
                 bg: "bg-indigo-500/20",
                 fromColor: "from-indigo-500/25",
                 hoverBorder: "hover:border-indigo-500/30"
@@ -2931,7 +2917,7 @@ const ActivityDetails = () => {
                 title: "Purchases",
                 value: extraData.funnel?.checkoutSuccesses || 0,
                 icon: FiCheck,
-                color: "text-purple-400",
+                color: "text-purple-500 dark:text-purple-400",
                 bg: "bg-purple-500/20",
                 fromColor: "from-purple-500/25",
                 hoverBorder: "hover:border-purple-500/30"
@@ -2949,7 +2935,7 @@ const ActivityDetails = () => {
                       {metric.title}
                     </h3>
                     <p
-                      className="text-lg sm:text-xl font-black text-white mt-1 tracking-tight truncate"
+                      className="text-lg sm:text-xl font-black text-slate-900 dark:text-white mt-1 tracking-tight truncate"
                       title={metric.value ? metric.value.toString() : ''}
                     >
                       {metric.value}
@@ -2966,20 +2952,20 @@ const ActivityDetails = () => {
           {/* Funnel Graph Section & Manager Performance */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
             {/* Funnel Chart/Visual */}
-            <div className="lg:col-span-1 bg-white/[0.02] backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl p-5 sm:p-6 flex flex-col justify-between relative overflow-hidden">
+            <div className="lg:col-span-1 bg-white/40 dark:bg-white/[0.02] backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 shadow-xl dark:shadow-2xl rounded-3xl p-5 sm:p-6 flex flex-col justify-between relative overflow-hidden">
               <div className="absolute inset-0 bg-linear-to-b from-blue-500/5 to-transparent pointer-events-none" />
               
               <div>
-                <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
+                <div className="flex items-center justify-between mb-4 border-b border-slate-200/80 dark:border-white/10 pb-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                    <div className="w-7 h-7 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 dark:text-blue-400">
                       <FiActivity size={14} />
                     </div>
                     <div>
-                      <h3 className="text-xs font-black text-white uppercase tracking-wider">
+                      <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
                         Conversion Funnel
                       </h3>
-                      <span className="text-[10px] text-slate-400 font-medium block">
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium block">
                         Customer buying journey stages
                       </span>
                     </div>
@@ -2989,28 +2975,28 @@ const ActivityDetails = () => {
                 <div className="space-y-4">
                   {/* 1. Cart Adds */}
                   <div>
-                    <div className="flex justify-between text-xs font-bold text-slate-300 mb-1.5">
+                    <div className="flex justify-between text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                       <span className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 inline-block" />
                         1. Cart Adds
                       </span>
-                      <span className="text-white font-mono">{extraData.funnel?.cartAdds || 0}</span>
+                      <span className="text-slate-900 dark:text-white font-mono">{extraData.funnel?.cartAdds || 0}</span>
                     </div>
-                    <div className="h-3 bg-slate-900 rounded-full overflow-hidden border border-white/5 p-0.5">
+                    <div className="h-3 bg-slate-200 dark:bg-slate-900 rounded-full overflow-hidden border border-slate-300/60 dark:border-white/5 p-0.5">
                       <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500" style={{ width: '100%' }} />
                     </div>
                   </div>
 
                   {/* 2. Checkout Initiations */}
                   <div>
-                    <div className="flex justify-between text-xs font-bold text-slate-300 mb-1.5">
+                    <div className="flex justify-between text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                       <span className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-indigo-400 inline-block" />
+                        <span className="w-2 h-2 rounded-full bg-indigo-500 dark:bg-indigo-400 inline-block" />
                         2. Checkout Initiations
                       </span>
-                      <span className="text-white font-mono">{extraData.funnel?.checkoutInitiations || 0}</span>
+                      <span className="text-slate-900 dark:text-white font-mono">{extraData.funnel?.checkoutInitiations || 0}</span>
                     </div>
-                    <div className="h-3 bg-slate-900 rounded-full overflow-hidden border border-white/5 p-0.5">
+                    <div className="h-3 bg-slate-200 dark:bg-slate-900 rounded-full overflow-hidden border border-slate-300/60 dark:border-white/5 p-0.5">
                       <div 
                         className="h-full bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full transition-all duration-500" 
                         style={{ width: `${extraData.funnel?.cartAdds ? Math.max(5, Math.round(((extraData.funnel?.checkoutInitiations || 0) / extraData.funnel.cartAdds) * 100)) : 0}%` }} 
@@ -3020,14 +3006,14 @@ const ActivityDetails = () => {
 
                   {/* 3. Purchases */}
                   <div>
-                    <div className="flex justify-between text-xs font-bold text-slate-300 mb-1.5">
+                    <div className="flex justify-between text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                       <span className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-purple-400 inline-block" />
+                        <span className="w-2 h-2 rounded-full bg-purple-500 dark:bg-purple-400 inline-block" />
                         3. Successful Purchases
                       </span>
-                      <span className="text-white font-mono">{extraData.funnel?.checkoutSuccesses || 0}</span>
+                      <span className="text-slate-900 dark:text-white font-mono">{extraData.funnel?.checkoutSuccesses || 0}</span>
                     </div>
-                    <div className="h-3 bg-slate-900 rounded-full overflow-hidden border border-white/5 p-0.5">
+                    <div className="h-3 bg-slate-200 dark:bg-slate-900 rounded-full overflow-hidden border border-slate-300/60 dark:border-white/5 p-0.5">
                       <div 
                         className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500" 
                         style={{ width: `${extraData.funnel?.cartAdds ? Math.max(5, Math.round(((extraData.funnel?.checkoutSuccesses || 0) / extraData.funnel.cartAdds) * 100)) : 0}%` }} 
@@ -3038,32 +3024,32 @@ const ActivityDetails = () => {
               </div>
 
               {/* Conversion Rates Sub-Grid */}
-              <div className="mt-5 pt-3.5 border-t border-white/10 grid grid-cols-2 gap-2.5 text-center">
-                <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-2.5 flex flex-col justify-between">
-                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Cart to Checkout</span>
-                  <span className="text-sm font-black text-indigo-400 mt-1 font-mono">{extraData.funnel?.conversionRates?.cartToCheckout || '0.0%'}</span>
+              <div className="mt-5 pt-3.5 border-t border-slate-200/80 dark:border-white/10 grid grid-cols-2 gap-2.5 text-center">
+                <div className="bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 rounded-2xl p-2.5 flex flex-col justify-between">
+                  <span className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Cart to Checkout</span>
+                  <span className="text-sm font-black text-indigo-600 dark:text-indigo-400 mt-1 font-mono">{extraData.funnel?.conversionRates?.cartToCheckout || '0.0%'}</span>
                 </div>
-                <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-2.5 flex flex-col justify-between">
-                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Checkout to Purchase</span>
-                  <span className="text-sm font-black text-cyan-400 mt-1 font-mono">{extraData.funnel?.conversionRates?.checkoutToPurchase || '0.0%'}</span>
+                <div className="bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 rounded-2xl p-2.5 flex flex-col justify-between">
+                  <span className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Checkout to Purchase</span>
+                  <span className="text-sm font-black text-cyan-600 dark:text-cyan-400 mt-1 font-mono">{extraData.funnel?.conversionRates?.checkoutToPurchase || '0.0%'}</span>
                 </div>
               </div>
             </div>
 
             {/* Manager Performance table */}
-            <div className="lg:col-span-2 bg-white/[0.02] backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl p-5 sm:p-6 flex flex-col justify-between relative overflow-hidden">
+            <div className="lg:col-span-2 bg-white/40 dark:bg-white/[0.02] backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 shadow-xl dark:shadow-2xl rounded-3xl p-5 sm:p-6 flex flex-col justify-between relative overflow-hidden">
               <div className="absolute inset-0 bg-linear-to-b from-indigo-500/5 to-transparent pointer-events-none" />
               
-              <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
+              <div className="flex items-center justify-between mb-4 border-b border-slate-200/80 dark:border-white/10 pb-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                  <div className="w-7 h-7 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500 dark:text-indigo-400">
                     <FiUsers size={14} />
                   </div>
                   <div>
-                    <h3 className="text-xs font-black text-white uppercase tracking-wider">
+                    <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
                       Manager Sales Performance
                     </h3>
-                    <span className="text-[10px] text-slate-400 font-medium block">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium block">
                       State Sales Heads and Territory Managers
                     </span>
                   </div>
@@ -3074,30 +3060,30 @@ const ActivityDetails = () => {
                 {/* State Sales Heads */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">State Sales Heads</span>
+                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">State Sales Heads</span>
                     <span className="text-[10px] font-mono text-slate-500 font-bold">{extraData.managerPerformance?.salesHeads?.length || 0} active</span>
                   </div>
                   
                   {!extraData.managerPerformance?.salesHeads || extraData.managerPerformance.salesHeads.length === 0 ? (
-                    <div className="text-xs text-slate-500 italic py-3 text-center bg-white/[0.01] rounded-xl border border-white/5">No Sales Heads registered.</div>
+                    <div className="text-xs text-slate-500 italic py-3 text-center bg-slate-50 dark:bg-white/[0.01] rounded-xl border border-slate-200/80 dark:border-white/5">No Sales Heads registered.</div>
                   ) : (
                     <div className="space-y-2">
                       {extraData.managerPerformance.salesHeads.map(sh => (
-                        <div key={sh._id} className="bg-white/[0.02] border border-white/5 hover:border-white/15 p-3 rounded-2xl transition-all">
+                        <div key={sh._id} className="bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/15 p-3 rounded-2xl transition-all">
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0 flex-1">
-                              <span className="text-xs font-bold text-white block truncate">{sh.name}</span>
-                              <span className="text-[10px] text-slate-400 block font-mono truncate">{sh.email}</span>
+                              <span className="text-xs font-bold text-slate-900 dark:text-white block truncate">{sh.name}</span>
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-mono truncate">{sh.email}</span>
                             </div>
                             <div className="text-right shrink-0">
-                              <span className="text-xs font-black text-emerald-400 font-mono block">₹{(sh.totalSales || 0).toLocaleString('en-IN')}</span>
+                              <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 font-mono block">₹{(sh.totalSales || 0).toLocaleString('en-IN')}</span>
                               <span className="text-[9px] text-slate-500 font-semibold">{sh.orderCount || 0} orders</span>
                             </div>
                           </div>
                           {Array.isArray(sh.states) && sh.states.length > 0 && (
                             <div className="mt-2 flex flex-wrap gap-1">
                               {sh.states.map((st, i) => (
-                                <span key={i} className="px-1.5 py-0.2 text-[9px] font-bold rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                                <span key={i} className="px-1.5 py-0.2 text-[9px] font-bold rounded bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20">
                                   {st}
                                 </span>
                               ))}
@@ -3112,30 +3098,30 @@ const ActivityDetails = () => {
                 {/* Territory Sales Managers */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Territory Sales Managers</span>
+                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Territory Sales Managers</span>
                     <span className="text-[10px] font-mono text-slate-500 font-bold">{extraData.managerPerformance?.territorySalesManagers?.length || 0} active</span>
                   </div>
 
                   {!extraData.managerPerformance?.territorySalesManagers || extraData.managerPerformance.territorySalesManagers.length === 0 ? (
-                    <div className="text-xs text-slate-500 italic py-3 text-center bg-white/[0.01] rounded-xl border border-white/5">No TSMs registered.</div>
+                    <div className="text-xs text-slate-500 italic py-3 text-center bg-slate-50 dark:bg-white/[0.01] rounded-xl border border-slate-200/80 dark:border-white/5">No TSMs registered.</div>
                   ) : (
                     <div className="space-y-2">
                       {extraData.managerPerformance.territorySalesManagers.map(tsm => (
-                        <div key={tsm._id} className="bg-white/[0.02] border border-white/5 hover:border-white/15 p-3 rounded-2xl transition-all">
+                        <div key={tsm._id} className="bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/15 p-3 rounded-2xl transition-all">
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0 flex-1">
-                              <span className="text-xs font-bold text-white block truncate">{tsm.name}</span>
-                              <span className="text-[10px] text-slate-400 block font-mono truncate">{tsm.email}</span>
+                              <span className="text-xs font-bold text-slate-900 dark:text-white block truncate">{tsm.name}</span>
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-mono truncate">{tsm.email}</span>
                             </div>
                             <div className="text-right shrink-0">
-                              <span className="text-xs font-black text-emerald-400 font-mono block">₹{(tsm.totalSales || 0).toLocaleString('en-IN')}</span>
+                              <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 font-mono block">₹{(tsm.totalSales || 0).toLocaleString('en-IN')}</span>
                               <span className="text-[9px] text-slate-500 font-semibold">{tsm.orderCount || 0} orders</span>
                             </div>
                           </div>
                           {Array.isArray(tsm.territories) && tsm.territories.length > 0 && (
                             <div className="mt-2 flex flex-wrap gap-1">
                               {tsm.territories.map((t, i) => (
-                                <span key={i} className="px-1.5 py-0.2 text-[9px] font-bold rounded bg-blue-500/10 text-blue-300 border border-blue-500/20">
+                                <span key={i} className="px-1.5 py-0.2 text-[9px] font-bold rounded bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">
                                   {t}
                                 </span>
                               ))}
@@ -3153,7 +3139,7 @@ const ActivityDetails = () => {
       )}
 
       {/* Main Table Card */}
-      <div className="border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden z-10 relative flex flex-col h-full">
+      <div className="border border-slate-200/80 dark:border-white/10 bg-white/30 dark:bg-transparent backdrop-blur-2xl shadow-xl dark:shadow-2xl shadow-slate-200/50 dark:shadow-black/50 rounded-3xl overflow-hidden z-10 relative flex flex-col h-full">
 
         {/* Admin Analytics Table Filter Toolbar */}
         {type === 'analytics' && (() => {
@@ -3162,43 +3148,43 @@ const ActivityDetails = () => {
               id: 'ALL',
               label: 'All Activity Streams',
               count: getUserBasedAnalytics(data, 'ALL').length,
-              activeStyle: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40 shadow-[0_0_15px_rgba(99,102,241,0.2)]'
+              activeStyle: 'bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border-indigo-500/40 shadow-[0_0_15px_rgba(99,102,241,0.2)]'
             },
             {
               id: 'ADD_TO_CART',
               label: 'Add to Cart',
               count: getUserBasedAnalytics(data, 'ADD_TO_CART').length,
-              activeStyle: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.2)]'
+              activeStyle: 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.2)]'
             },
             {
               id: 'REMOVE_FROM_CART',
               label: 'Remove from Cart',
               count: getUserBasedAnalytics(data, 'REMOVE_FROM_CART').length,
-              activeStyle: 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-[0_0_15px_rgba(244,63,94,0.2)]'
+              activeStyle: 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/40 shadow-[0_0_15px_rgba(244,63,94,0.2)]'
             },
             {
               id: 'UPDATE_CART',
               label: 'Cart & Qty Updates',
               count: getUserBasedAnalytics(data, 'UPDATE_CART').length,
-              activeStyle: 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.2)]'
+              activeStyle: 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.2)]'
             },
             {
               id: 'INITIATED_PAYMENT',
               label: 'Initiated Payment',
               count: getUserBasedAnalytics(data, 'INITIATED_PAYMENT').length,
-              activeStyle: 'bg-blue-500/20 text-blue-300 border-blue-500/40 shadow-[0_0_15px_rgba(59,130,246,0.2)]'
+              activeStyle: 'bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/40 shadow-[0_0_15px_rgba(59,130,246,0.2)]'
             }
           ];
 
           return (
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-6 py-4 border-b border-white/10 bg-white/[0.01] relative z-10">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-6 py-4 border-b border-slate-200/80 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.01] relative z-10">
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                <div className="w-7 h-7 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-500 dark:text-indigo-400">
                   <FiFilter size={14} />
                 </div>
                 <div>
-                  <span className="text-xs font-black text-white uppercase tracking-wider block">Segregate User Activity</span>
-                  <span className="text-[10px] text-slate-400 font-semibold block">Filter table records by cart event types</span>
+                  <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider block">Segregate User Activity</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block">Filter table records by cart event types</span>
                 </div>
               </div>
 
@@ -3211,12 +3197,12 @@ const ActivityDetails = () => {
                       setCurrentPage(1);
                     }}
                     className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 border ${analyticsFilter === opt.id
-                      ? `${opt.activeStyle} ring-1 ring-white/20 scale-[1.02]`
-                      : 'bg-slate-900/60 hover:bg-white/10 text-slate-400 border-white/10 hover:text-white'
+                      ? `${opt.activeStyle} ring-1 ring-black/10 dark:ring-white/20 scale-[1.02]`
+                      : 'bg-white dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400 border-slate-200/80 dark:border-white/10 hover:text-slate-900 dark:hover:text-white shadow-xs dark:shadow-none'
                       }`}
                   >
                     <span>{opt.label}</span>
-                    <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-mono font-black ${analyticsFilter === opt.id ? 'bg-black/50 text-white' : 'bg-white/5 text-slate-400'
+                    <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-mono font-black ${analyticsFilter === opt.id ? 'bg-black/10 dark:bg-black/50 text-indigo-950 dark:text-white' : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400'
                       }`}>
                       {opt.count}
                     </span>
@@ -3228,13 +3214,13 @@ const ActivityDetails = () => {
         })()}
 
         <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-left border-collapse whitespace-nowrap divide-x divide-white/10">
-            <thead className="sticky top-0 z-20 bg-white/[0.03] backdrop-blur-md border-b border-white/10 text-slate-300 text-sm shadow-md">
-              <tr className="divide-x divide-white/10">
+          <table className="w-full text-left border-collapse whitespace-nowrap divide-x divide-slate-200/80 dark:divide-white/10">
+            <thead className="sticky top-0 z-20 bg-slate-100/90 dark:bg-white/[0.03] backdrop-blur-md border-b border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 text-sm shadow-xs dark:shadow-md">
+              <tr className="divide-x divide-slate-200/80 dark:divide-white/10">
                 {getTableHeaders()}
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/10 divide-x divide-white/10 bg-transparent">
+            <tbody className="divide-y divide-slate-200/80 dark:divide-white/10 divide-x divide-slate-200/80 dark:divide-white/10 bg-transparent">
               {renderTableContent()}
             </tbody>
           </table>
@@ -3242,15 +3228,15 @@ const ActivityDetails = () => {
 
         {/* Pagination Controls */}
         {!loading && filtered.length > 0 && (
-          <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
-            <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
-              Showing <span className="font-bold text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastItem, filtered.length)}</span> of <span className="font-bold text-white">{filtered.length}</span> entries
+          <div className="p-4 border-t border-slate-200/80 dark:border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50 dark:bg-white/[0.02] backdrop-blur-md">
+            <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 text-center sm:text-left">
+              Showing <span className="font-bold text-slate-800 dark:text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-slate-800 dark:text-white">{Math.min(indexOfLastItem, filtered.length)}</span> of <span className="font-bold text-slate-800 dark:text-white">{filtered.length}</span> entries
             </span>
             <div className="flex space-x-2">
               <button
                 onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
                 disabled={currentPage === 1}
-                className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                className="px-3 sm:px-4 py-2 bg-white dark:bg-slate-950/20 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200/80 dark:border-white/10 shadow-xs dark:shadow-none transform-gpu cursor-pointer"
               >
                 &larr;
               </button>
@@ -3287,8 +3273,8 @@ const ActivityDetails = () => {
                         page === currentPage
                           ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
                           : page === '...'
-                          ? 'bg-transparent text-slate-500 border-transparent cursor-default'
-                          : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
+                          ? 'bg-transparent text-slate-400 dark:text-slate-500 border-transparent cursor-default'
+                          : 'bg-white dark:bg-slate-950/20 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white shadow-xs dark:shadow-none cursor-pointer'
                       }`}
                     >
                       {page}
@@ -3299,7 +3285,7 @@ const ActivityDetails = () => {
               <button
                 onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
                 disabled={currentPage === totalPages || totalPages === 0}
-                className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                className="px-3 sm:px-4 py-2 bg-white dark:bg-slate-950/20 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200/80 dark:border-white/10 shadow-xs dark:shadow-none transform-gpu cursor-pointer"
               >
                 &rarr;
               </button>
@@ -3314,33 +3300,33 @@ const ActivityDetails = () => {
         const ModalIcon = modalConfig.icon;
 
         return createPortal(
-          <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
-            <div className="bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 shadow-2xl rounded-3xl p-6 max-w-md w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
-              <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+          <div className="fixed inset-0 bg-slate-900/40 dark:bg-slate-950/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
+            <div className="bg-white dark:bg-linear-to-br dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/95 border border-slate-200/80 dark:border-white/10 shadow-2xl rounded-3xl p-6 max-w-md w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
+              <div className="absolute inset-0 bg-gradient-to-b from-slate-100/50 to-transparent dark:from-white/5 dark:to-transparent pointer-events-none"></div>
 
               <div className="flex justify-between items-start mb-5 relative z-1000">
                 <div>
-                  <h3 className="text-lg font-black text-white flex items-center gap-2">
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
                     <ModalIcon className={modalConfig.color} /> {modalConfig.title}
                   </h3>
-                  <p className="text-xs text-slate-400 mt-1 font-semibold">{selectedRowLogins.user?.name || 'Unknown User'}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">{selectedRowLogins.user?.name || 'Unknown User'}</p>
                 </div>
                 <button
                   onClick={() => {
                     setIsModalOpen(false);
                     setSelectedRowLogins(null);
                   }}
-                  className="p-1.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer"
+                  className="p-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-xl transition-all cursor-pointer"
                 >
                   <FiX size={16} />
                 </button>
               </div>
 
               {/* User Meta Card */}
-              <div className="bg-transparent backdrop-blur-2xl border border-white/10 rounded-2xl p-4 mb-5 space-y-2 text-xs relative z-10">
+              <div className="bg-slate-50/80 dark:bg-transparent backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 mb-5 space-y-2 text-xs relative z-10">
                 <div className="flex justify-between items-center">
                   <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px]">Email Address</span>
-                  <span className="text-slate-200 font-bold select-all font-mono">{selectedRowLogins.user?.email || '-'}</span>
+                  <span className="text-slate-800 dark:text-slate-200 font-bold select-all font-mono">{selectedRowLogins.user?.email || '-'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px]">
@@ -3362,15 +3348,15 @@ const ActivityDetails = () => {
                     Object.entries(selectedRowLogins.endpointStats || {}).map(([endpoint, count], idx) => (
                       <div
                         key={idx}
-                        className="flex justify-between items-center bg-transparent backdrop-blur-2xl border border-white/10 p-3 rounded-xl hover:border-white/20 transition-colors animate-in fade-in duration-150 font-mono text-xs"
+                        className="flex justify-between items-center bg-slate-50/80 dark:bg-transparent backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 p-3 rounded-xl hover:border-slate-300 dark:hover:border-white/20 transition-colors animate-in fade-in duration-150 font-mono text-xs"
                       >
                         <div className="text-left flex-1 min-w-0 pr-2">
                           <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider font-sans">Endpoint Path</span>
-                          <span className="text-xs text-white font-bold mt-0.5 block truncate select-all" title={endpoint}>{endpoint}</span>
+                          <span className="text-xs text-slate-900 dark:text-white font-bold mt-0.5 block truncate select-all" title={endpoint}>{endpoint}</span>
                         </div>
                         <div className="text-right shrink-0">
                           <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider font-sans">Hits</span>
-                          <span className="text-xs text-blue-400 font-extrabold mt-0.5 block font-sans">{count.toLocaleString()}</span>
+                          <span className="text-xs text-blue-600 dark:text-blue-400 font-extrabold mt-0.5 block font-sans">{count.toLocaleString()}</span>
                         </div>
                       </div>
                     ))
@@ -3378,15 +3364,15 @@ const ActivityDetails = () => {
                     selectedRowLogins.views?.map((view, index) => (
                       <div
                         key={view._id || index}
-                        className="flex justify-between items-center bg-transparent backdrop-blur-2xl border border-white/10 p-3 rounded-xl hover:border-white/20 transition-colors animate-in fade-in duration-150"
+                        className="flex justify-between items-center bg-slate-50/80 dark:bg-transparent backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 p-3 rounded-xl hover:border-slate-300 dark:hover:border-white/20 transition-colors animate-in fade-in duration-150"
                       >
                         <div className="text-left flex-1 min-w-0 pr-2">
                           <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider">{modalConfig.viewHeader}</span>
-                          <span className="text-xs text-white font-bold mt-0.5 block truncate" title={view.productName || view.name}>{view.productName || view.name}</span>
+                          <span className="text-xs text-slate-900 dark:text-white font-bold mt-0.5 block truncate" title={view.productName || view.name}>{view.productName || view.name}</span>
                         </div>
                         <div className="text-right shrink-0">
                           <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider">Viewed At</span>
-                          <span className="text-xs text-slate-300 font-medium font-mono mt-0.5 block">{formatDateTime(view.createdAt)}</span>
+                          <span className="text-xs text-slate-600 dark:text-slate-300 font-medium font-mono mt-0.5 block">{formatDateTime(view.createdAt)}</span>
                         </div>
                       </div>
                     ))
@@ -3398,15 +3384,15 @@ const ActivityDetails = () => {
                   {selectedRowLogins.logins?.map((login, index) => (
                     <div
                       key={login._id || index}
-                      className="flex justify-between items-center bg-transparent backdrop-blur-2xl border border-white/10 p-3 rounded-xl hover:border-white/20 transition-colors"
+                      className="flex justify-between items-center bg-slate-50/80 dark:bg-transparent backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 p-3 rounded-xl hover:border-slate-300 dark:hover:border-white/20 transition-colors"
                     >
                       <div className="text-left">
                         <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider">Method</span>
-                        <span className="text-xs text-white font-bold capitalize mt-0.5 block">{login.method}</span>
+                        <span className="text-xs text-slate-900 dark:text-white font-bold capitalize mt-0.5 block">{login.method}</span>
                       </div>
                       <div className="text-right">
                         <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider">Logged At</span>
-                        <span className="text-xs text-slate-300 font-medium font-mono mt-0.5 block">{formatDateTime(login.createdAt)}</span>
+                        <span className="text-xs text-slate-600 dark:text-slate-300 font-medium font-mono mt-0.5 block">{formatDateTime(login.createdAt)}</span>
                       </div>
                     </div>
                   ))}
@@ -3418,7 +3404,7 @@ const ActivityDetails = () => {
                   setIsModalOpen(false);
                   setSelectedRowLogins(null);
                 }}
-                className="w-full mt-6 py-2.5 bg-slate-800 border border-white/10 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md"
+                className="w-full mt-6 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-xs"
               >
                 Close History
               </button>
@@ -3431,35 +3417,35 @@ const ActivityDetails = () => {
       {/* User Analytics Activity Popup Modal */}
       {selectedUserAnalytics && createPortal(
         <div 
-          className="fixed inset-0 bg-slate-950/50 backdrop-blur-lg flex items-center justify-center z-[9999] p-3 sm:p-4 md:p-6 animate-in fade-in duration-200"
+          className="fixed inset-0 bg-transparent dark:bg-slate-950/50 backdrop-blur-lg flex items-center justify-center z-[9999] p-3 sm:p-4 md:p-6 animate-in fade-in duration-200"
           onClick={() => setSelectedUserAnalytics(null)}
         >
           <div 
-            className="bg-slate-950/15 border border-white/20 shadow-2xl rounded-3xl p-5 sm:p-6 max-w-2xl w-full relative overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
+            className="bg-transparent dark:bg-slate-950/15 border border-slate-200/80 dark:border-white/20 shadow-2xl rounded-3xl p-5 sm:p-6 max-w-2xl w-full relative overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="absolute inset-0 bg-transparent pointer-events-none" />
 
-            <div className="flex justify-between items-start mb-4 border-b border-white/10 pb-3.5 relative z-10">
+            <div className="flex justify-between items-start mb-4 border-b border-slate-200/80 dark:border-white/10 pb-3.5 relative z-10">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-bold text-sm font-mono shadow-inner">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-sm font-mono shadow-inner">
                   {(selectedUserAnalytics.name || 'G').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-base font-black text-white leading-tight">
+                    <h3 className="text-base font-black text-slate-900 dark:text-white leading-tight">
                       {selectedUserAnalytics.name || 'Guest / Unauthenticated'}
                     </h3>
-                    <span className="px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                    <span className="px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30">
                       Customer
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400 font-mono mt-0.5 select-all">{selectedUserAnalytics.email || 'No email'}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5 select-all">{selectedUserAnalytics.email || 'No email'}</p>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedUserAnalytics(null)}
-                className="p-1.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer"
+                className="p-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-xl transition-all cursor-pointer"
                 title="Close modal"
               >
                 <FiX size={16} />
@@ -3467,26 +3453,26 @@ const ActivityDetails = () => {
             </div>
 
             {/* User Meta Card */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-white/[0.02] border border-white/10 rounded-2xl p-3.5 mb-4 text-xs relative z-10 shrink-0">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 rounded-2xl p-3.5 mb-4 text-xs relative z-10 shrink-0">
               <div className="flex flex-col min-w-0">
                 <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px] mb-0.5">Phone Number</span>
-                <span className="text-slate-200 font-semibold select-all font-mono">{selectedUserAnalytics.phone || '-'}</span>
+                <span className="text-slate-800 dark:text-slate-200 font-semibold select-all font-mono">{selectedUserAnalytics.phone || '-'}</span>
               </div>
               <div className="flex flex-col min-w-0">
                 <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px] mb-0.5">Last Logged IP</span>
-                <span className="text-slate-200 font-semibold select-all font-mono truncate">{selectedUserAnalytics.ip || '-'}</span>
+                <span className="text-slate-800 dark:text-slate-200 font-semibold select-all font-mono truncate">{selectedUserAnalytics.ip || '-'}</span>
               </div>
               <div className="flex flex-col min-w-0">
                 <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px] mb-0.5">Total Activity Logs</span>
-                <span className="text-indigo-400 font-black font-mono">{selectedUserAnalytics.totalActions} Action(s)</span>
+                <span className="text-indigo-600 dark:text-indigo-400 font-black font-mono">{selectedUserAnalytics.totalActions} Action(s)</span>
               </div>
             </div>
 
             {/* List of individual activity stream entries */}
             <div className="flex-1 min-h-0 flex flex-col relative z-10">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                  <FiActivity size={12} className="text-indigo-400" />
+                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                  <FiActivity size={12} className="text-indigo-600 dark:text-indigo-400" />
                   Activity Stream Log ({selectedUserAnalytics.activities?.length || 0})
                 </span>
               </div>
@@ -3497,17 +3483,17 @@ const ActivityDetails = () => {
                   const isPayment = eventType === 'INITIATED_PAYMENT' || eventType === 'INITIATE_PAYMENT' || eventType.includes('PAY') || eventType.includes('CHECKOUT');
                   
                   const badgeColor =
-                    eventType === 'ADD_TO_CART' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-                      eventType === 'REMOVE_FROM_CART' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' :
-                        isPayment ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
-                          'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+                    eventType === 'ADD_TO_CART' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' :
+                      eventType === 'REMOVE_FROM_CART' ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20' :
+                        isPayment ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20' :
+                          'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20';
 
                   return (
                     <div
                       key={item._id || index}
-                      className="bg-white/[0.02] border border-white/10 hover:border-white/20 p-3 rounded-2xl transition-colors flex flex-col gap-2 text-left"
+                      className="bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 p-3 rounded-2xl transition-colors flex flex-col gap-2 text-left"
                     >
-                      <div className="flex items-center justify-between gap-2 flex-wrap border-b border-white/5 pb-2">
+                      <div className="flex items-center justify-between gap-2 flex-wrap border-b border-slate-200/80 dark:border-white/5 pb-2">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${badgeColor}`}>
                             {eventType.replace(/_/g, ' ')}
@@ -3516,7 +3502,7 @@ const ActivityDetails = () => {
                             <span className="text-slate-500 text-[10px] font-mono select-all">IP: {item.ip}</span>
                           )}
                         </div>
-                        <span className="text-[10px] text-slate-400 font-medium font-mono">
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium font-mono">
                           {formatDateTime(item.timestamp || item.createdAt)}
                         </span>
                       </div>
@@ -3541,17 +3527,17 @@ const ActivityDetails = () => {
                               {/* Order & Transaction Row */}
                               <div className="flex items-center gap-2 flex-wrap text-xs">
                                 {amt !== undefined && (
-                                  <span className="text-sm font-black text-emerald-400 font-mono">
+                                  <span className="text-sm font-black text-emerald-600 dark:text-emerald-400 font-mono">
                                     ₹{Number(amt).toLocaleString('en-IN')}
                                   </span>
                                 )}
                                 {mTxn && (
-                                  <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-slate-300 font-mono text-[10px]">
+                                  <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 font-mono text-[10px]">
                                     Txn: {mTxn}
                                   </span>
                                 )}
                                 {oId && (
-                                  <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-slate-400 font-mono text-[10px]">
+                                  <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-slate-500 dark:text-slate-400 font-mono text-[10px]">
                                     Order ID: #{oId}
                                   </span>
                                 )}
@@ -3560,7 +3546,7 @@ const ActivityDetails = () => {
                               {/* Products inside this Initiated Order */}
                               {orderItems.length > 0 ? (
                                 <div className="pt-1">
-                                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
+                                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1.5">
                                     Ordered Products ({orderItems.length}):
                                   </span>
                                   <div className="flex flex-wrap gap-1.5">
@@ -3570,18 +3556,18 @@ const ActivityDetails = () => {
                                       const vName = oi.variant?.name || oi.variantName || '';
                                       const q = oi.quantity || oi.qty || 1;
                                       return (
-                                        <div key={oiIdx} className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 text-xs text-white">
-                                          <FiBox size={11} className="text-blue-400 shrink-0" />
+                                        <div key={oiIdx} className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-xs text-slate-900 dark:text-white">
+                                          <FiBox size={11} className="text-blue-600 dark:text-blue-400 shrink-0" />
                                           <span className="font-bold">{pName}</span>
-                                          {vName && <span className="text-[10px] text-amber-400 font-medium">({vName})</span>}
-                                          <span className="text-[11px] font-mono text-emerald-400 font-bold ml-0.5">×{q}</span>
+                                          {vName && <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">({vName})</span>}
+                                          <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-bold ml-0.5">×{q}</span>
                                         </div>
                                       );
                                     })}
                                   </div>
                                 </div>
                               ) : (
-                                <div className="text-xs text-slate-400 italic">
+                                <div className="text-xs text-slate-500 dark:text-slate-400 italic">
                                   Order #{oId ? oId.slice(-8) : 'N/A'} • Initiated with amount ₹{Number(amt || 0).toLocaleString('en-IN')}
                                 </div>
                               )}
@@ -3602,17 +3588,17 @@ const ActivityDetails = () => {
                         return (
                           <div className="flex items-center justify-between gap-2 flex-wrap">
                             <div className="flex items-center gap-2 flex-wrap min-w-0">
-                              <span className="text-xs text-white font-bold truncate" title={pName}>
+                              <span className="text-xs text-slate-900 dark:text-white font-bold truncate" title={pName}>
                                 {pName}
                               </span>
                               {vName && (
-                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
                                   Variant: {vName}
                                 </span>
                               )}
                             </div>
                             {item.details?.quantity !== undefined && (
-                              <span className="text-xs text-emerald-400 font-bold font-mono px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
+                              <span className="text-xs text-emerald-600 dark:text-emerald-400 font-bold font-mono px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
                                 Qty: {item.details.quantity}
                               </span>
                             )}
@@ -3632,14 +3618,14 @@ const ActivityDetails = () => {
       {/* Viewers & Engagement Breakdown Modal (Expanded) */}
       {selectedViewerBreakdown && createPortal(
         <div 
-          className="fixed inset-0 bg-slate-950/50 backdrop-blur-lg flex items-center justify-center z-[9999] p-3 sm:p-4 md:p-6 animate-in fade-in duration-200"
+          className="fixed inset-0 bg-transparent dark:bg-slate-950/50 backdrop-blur-lg flex items-center justify-center z-[9999] p-3 sm:p-4 md:p-6 animate-in fade-in duration-200"
           onClick={() => {
             setSelectedViewerBreakdown(null);
             setViewerSearchQuery('');
           }}
         >
           <div 
-            className="bg-slate-950/15 border border-white/20 shadow-2xl rounded-3xl p-5 sm:p-6 max-w-2xl w-full relative overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
+            className="bg-transparent dark:bg-slate-950/15 border border-slate-200/80 dark:border-white/20 shadow-2xl rounded-3xl p-5 sm:p-6 max-w-2xl w-full relative overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <div className={`absolute inset-0 pointer-events-none ${
@@ -3740,14 +3726,14 @@ const ActivityDetails = () => {
               return (
                 <div className="flex flex-col h-full min-h-0 relative z-10 space-y-4">
                   {/* Top Header: Info (Left) + 2x2 Compact Metric Grid (Right) */}
-                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 border-b border-white/10 pb-3.5 sm:pb-4 relative">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 border-b border-slate-200/80 dark:border-white/10 pb-3.5 sm:pb-4 relative">
                     {/* Close Button - positioned top-right */}
                     <button
                       onClick={() => {
                         setSelectedViewerBreakdown(null);
                         setViewerSearchQuery('');
                       }}
-                      className="absolute top-0 right-0 sm:static p-1.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer shrink-0 z-20 sm:order-3"
+                      className="absolute top-0 right-0 sm:static p-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-xl transition-all cursor-pointer shrink-0 z-20 sm:order-3"
                       title="Close modal"
                     >
                       <FiX size={16} />
@@ -3763,7 +3749,7 @@ const ActivityDetails = () => {
                               setViewerProductModalId(selectedViewerBreakdown.productId);
                             }
                           }}
-                          className={`w-14 h-14 sm:w-18 sm:h-18 rounded-2xl overflow-hidden bg-white shrink-0 border border-white/15 p-1 flex items-center justify-center shadow-inner ${
+                          className={`w-14 h-14 sm:w-18 sm:h-18 rounded-2xl overflow-hidden bg-white shrink-0 border border-slate-200/80 dark:border-white/15 p-1 flex items-center justify-center shadow-xs ${
                             bType === 'Product' ? 'cursor-pointer hover:scale-105 hover:border-blue-500/50 transition-all' : ''
                           }`}
                         >
@@ -3774,7 +3760,7 @@ const ActivityDetails = () => {
                           />
                         </div>
                       ) : (
-                        <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-2xl shrink-0 flex items-center justify-center border bg-white/5 border-white/10 text-slate-300">
+                        <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-2xl shrink-0 flex items-center justify-center border bg-slate-100 dark:bg-white/5 border-slate-200/80 dark:border-white/10 text-slate-500 dark:text-slate-300">
                           {bType === 'Brand' ? <FiTrendingUp size={24} /> :
                            bType === 'Category' ? <FiLayers size={24} /> :
                            <FiBox size={24} />}
@@ -3790,14 +3776,14 @@ const ActivityDetails = () => {
                                 setViewerProductModalId(selectedViewerBreakdown.productId);
                               }
                             }}
-                            className={`text-sm sm:text-base font-black text-white tracking-tight leading-snug truncate ${
-                              bType === 'Product' ? 'hover:text-blue-400 cursor-pointer transition-colors' : ''
+                            className={`text-sm sm:text-base font-black text-slate-900 dark:text-white tracking-tight leading-snug truncate ${
+                              bType === 'Product' ? 'hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors' : ''
                             }`}
                             title={selectedViewerBreakdown.title}
                           >
                             {selectedViewerBreakdown.title}
                           </h3>
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-white/5 text-slate-300 border border-white/10">
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/10">
                             {bType}
                           </span>
                         </div>
@@ -3807,18 +3793,18 @@ const ActivityDetails = () => {
                           {bType === 'Product' && (
                             <>
                               {selectedViewerBreakdown.brandName && selectedViewerBreakdown.brandName !== 'N/A' && (
-                                <span className="font-bold px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/10 flex items-center gap-1">
+                                <span className="font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/10 flex items-center gap-1">
                                   <FiTag size={10} className="text-slate-400" />
                                   {selectedViewerBreakdown.brandName}
                                 </span>
                               )}
                               {selectedViewerBreakdown.categoryName && selectedViewerBreakdown.categoryName !== 'N/A' && (
-                                <span className="font-semibold px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/10">
+                                <span className="font-semibold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/10">
                                   {selectedViewerBreakdown.categoryName}
                                 </span>
                               )}
                               {variantsCount > 0 && (
-                                <span className="font-semibold px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/10">
+                                <span className="font-semibold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/10">
                                   {variantsCount} Variant{variantsCount > 1 ? 's' : ''}
                                 </span>
                               )}
@@ -3828,7 +3814,7 @@ const ActivityDetails = () => {
                           {(bType === 'Brand' || bType === 'Category') && (
                             <>
                               {selectedViewerBreakdown.totalProducts !== undefined && (
-                                <span className="font-bold px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/10 flex items-center gap-1">
+                                <span className="font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/10 flex items-center gap-1">
                                   <FiBox size={10} className="text-slate-400" />
                                   {selectedViewerBreakdown.totalProducts} Catalog Product{selectedViewerBreakdown.totalProducts !== 1 ? 's' : ''}
                                 </span>
@@ -3836,8 +3822,8 @@ const ActivityDetails = () => {
                               {selectedViewerBreakdown.isActive !== undefined && (
                                 <span className={`px-2 py-0.5 rounded-md font-bold uppercase ${
                                   selectedViewerBreakdown.isActive 
-                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                    : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                                    : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
                                 }`}>
                                   {selectedViewerBreakdown.isActive ? 'Active' : 'Inactive'}
                                 </span>
@@ -3849,15 +3835,15 @@ const ActivityDetails = () => {
                         {/* Product Pricing (if Product) */}
                         {bType === 'Product' && effectivePrice > 0 && (
                           <div className="flex items-center gap-2 text-xs font-mono pt-0.5 flex-wrap">
-                            <span className="text-emerald-400 font-black text-sm">
+                            <span className="text-emerald-600 dark:text-emerald-400 font-black text-sm">
                               ₹{effectivePrice.toLocaleString('en-IN')}
                             </span>
                             {discountPercent > 0 && (
                               <>
-                                <span className="text-slate-500 line-through text-[11px]">
+                                <span className="text-slate-400 dark:text-slate-500 line-through text-[11px]">
                                   ₹{basePrice.toLocaleString('en-IN')}
                                 </span>
-                                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-rose-500/15 text-rose-400 border border-rose-500/25">
+                                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/25">
                                   {discountPercent}% OFF
                                 </span>
                               </>
@@ -3871,68 +3857,68 @@ const ActivityDetails = () => {
                     <div className="w-full sm:w-auto sm:order-2">
                       <div className="grid grid-cols-2 gap-1.5 w-full sm:min-w-[220px]">
                         {/* Total Views / Searches */}
-                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
-                          <div className="flex items-center justify-between text-slate-400">
+                        <div className="p-2 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 flex flex-col justify-between">
+                          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
                             <span className="text-[9px] font-bold uppercase tracking-wider">Total Views</span>
                             <FiEye size={11} className="text-slate-400" />
                           </div>
                           <div className="mt-1 flex items-baseline justify-between gap-1">
-                            <span className="text-sm font-black text-white font-mono">{totalViews}</span>
-                            <span className="text-[9px] text-slate-500">hits</span>
+                            <span className="text-sm font-black text-slate-900 dark:text-white font-mono">{totalViews}</span>
+                            <span className="text-[9px] text-slate-400 dark:text-slate-500">hits</span>
                           </div>
                         </div>
 
                         {/* Unique Viewers */}
-                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
-                          <div className="flex items-center justify-between text-slate-400">
+                        <div className="p-2 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 flex flex-col justify-between">
+                          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
                             <span className="text-[9px] font-bold uppercase tracking-wider">Unique</span>
                             <FiUsers size={11} className="text-slate-400" />
                           </div>
                           <div className="mt-1 flex items-baseline justify-between gap-1">
-                            <span className="text-sm font-black text-white font-mono">{uniqueCount}</span>
-                            <span className="text-[9px] text-slate-500">{repeatCount} rep</span>
+                            <span className="text-sm font-black text-slate-900 dark:text-white font-mono">{uniqueCount}</span>
+                            <span className="text-[9px] text-slate-400 dark:text-slate-500">{repeatCount} rep</span>
                           </div>
                         </div>
 
                         {/* Avg Views */}
-                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
-                          <div className="flex items-center justify-between text-slate-400">
+                        <div className="p-2 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 flex flex-col justify-between">
+                          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
                             <span className="text-[9px] font-bold uppercase tracking-wider">Avg Views</span>
                             <FiActivity size={11} className="text-slate-400" />
                           </div>
                           <div className="mt-1 flex items-baseline justify-between gap-1">
-                            <span className="text-sm font-black text-white font-mono">{avgViews}x</span>
-                            <span className="text-[9px] text-slate-500">/user</span>
+                            <span className="text-sm font-black text-slate-900 dark:text-white font-mono">{avgViews}x</span>
+                            <span className="text-[9px] text-slate-400 dark:text-slate-500">/user</span>
                           </div>
                         </div>
 
                         {/* 4th Card: Ordered (for Product) vs Traffic Share (for Brand / Category) */}
                         {bType === 'Product' ? (
-                          <div className="p-2 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
-                            <div className="flex items-center justify-between text-slate-400">
+                          <div className="p-2 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 flex flex-col justify-between">
+                            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
                               <span className="text-[9px] font-bold uppercase tracking-wider">Ordered</span>
                               <FiShoppingBag size={11} className="text-slate-400" />
                             </div>
                             <div className="mt-1 flex items-baseline justify-between gap-1">
-                              <span className="text-sm font-black text-emerald-400 font-mono">
+                              <span className="text-sm font-black text-emerald-600 dark:text-emerald-400 font-mono">
                                 {totalUnitsSold > 0 ? `${totalUnitsSold}u` : `${ordersCount} ord`}
                               </span>
-                              <span className="text-[9px] text-slate-500">
+                              <span className="text-[9px] text-slate-400 dark:text-slate-500">
                                 {totalSalesRevenue > 0 ? `₹${totalSalesRevenue.toLocaleString('en-IN')}` : 'sold'}
                               </span>
                             </div>
                           </div>
                         ) : (
-                          <div className="p-2 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
-                            <div className="flex items-center justify-between text-slate-400">
+                          <div className="p-2 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 flex flex-col justify-between">
+                            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
                               <span className="text-[9px] font-bold uppercase tracking-wider">Traffic Share</span>
                               <FiPercent size={11} className="text-slate-400" />
                             </div>
                             <div className="mt-1 flex items-baseline justify-between gap-1">
-                              <span className="text-sm font-black text-blue-400 font-mono">
+                              <span className="text-sm font-black text-blue-600 dark:text-blue-400 font-mono">
                                 {trafficSharePercent}%
                               </span>
-                              <span className="text-[9px] text-slate-500 truncate">
+                              <span className="text-[9px] text-slate-400 dark:text-slate-500 truncate">
                                 {bType === 'Brand' ? 'of brand traffic' : 'of cat traffic'}
                               </span>
                             </div>
@@ -3945,11 +3931,11 @@ const ActivityDetails = () => {
                   {/* Searchable Viewers Section Header */}
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                        <FiUsers className="text-blue-400" size={13} />
+                      <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                        <FiUsers className="text-blue-600 dark:text-blue-400" size={13} />
                         <span>Viewer Breakdown</span>
                       </span>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/10 text-slate-300 font-bold">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/80 dark:border-transparent">
                         {filteredViewers.length} of {uniqueCount}
                       </span>
                     </div>
@@ -3957,18 +3943,18 @@ const ActivityDetails = () => {
                     {/* Viewer search input */}
                     {uniqueCount > 0 && (
                       <div className="relative flex-1 sm:max-w-xs">
-                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={12} />
+                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={12} />
                         <input
                           type="text"
                           placeholder="Filter user by name, email, phone..."
                           value={viewerSearchQuery}
                           onChange={(e) => setViewerSearchQuery(e.target.value)}
-                          className="w-full pl-8 pr-7 py-1.5 bg-black/40 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50"
+                          className="w-full pl-8 pr-7 py-1.5 bg-slate-50 dark:bg-black/40 border border-slate-200/80 dark:border-white/10 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500/50"
                         />
                         {viewerSearchQuery && (
                           <button
                             onClick={() => setViewerSearchQuery('')}
-                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white text-xs"
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-white text-xs"
                           >
                             ✕
                           </button>
@@ -3980,9 +3966,9 @@ const ActivityDetails = () => {
                   {/* Scrollable list of user view metrics */}
                   <div className="space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-1 flex-1">
                     {filteredViewers.length === 0 ? (
-                      <div className="p-8 text-center bg-white/[0.01] rounded-2xl border border-white/5">
-                        <FiUsers className="mx-auto text-slate-600 text-2xl mb-1.5" />
-                        <p className="text-xs text-slate-400 font-medium">
+                      <div className="p-8 text-center bg-slate-50/50 dark:bg-white/[0.01] rounded-2xl border border-slate-200/80 dark:border-white/5">
+                        <FiUsers className="mx-auto text-slate-400 dark:text-slate-600 text-2xl mb-1.5" />
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                           {viewerSearchQuery
                             ? `No viewers match "${viewerSearchQuery}".`
                             : 'No individual viewer statistics recorded.'}
@@ -4001,15 +3987,15 @@ const ActivityDetails = () => {
                           return (
                             <div
                               key={u._id || u.email || index}
-                              className="p-3 rounded-2xl bg-white/[0.02] hover:bg-white/[0.04] border border-white/5 hover:border-white/15 transition-all duration-200 space-y-2"
+                              className="p-3 rounded-2xl bg-slate-50/80 dark:bg-white/[0.02] hover:bg-slate-100/80 dark:hover:bg-white/[0.04] border border-slate-200/80 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/15 transition-all duration-200 space-y-2"
                             >
                               <div className="flex items-center justify-between gap-2.5">
                                 {/* User details */}
                                 <div className="flex items-center gap-2.5 min-w-0 flex-1">
                                   <div className={`w-8 h-8 rounded-xl border flex items-center justify-center font-bold text-xs shrink-0 shadow-inner text-white ${
-                                    bType === 'Brand' ? 'bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 border-indigo-500/30' :
-                                    bType === 'Category' ? 'bg-gradient-to-tr from-purple-500/20 to-pink-500/20 border-purple-500/30' :
-                                    'bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 border-blue-500/30'
+                                    bType === 'Brand' ? 'bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 border-indigo-500/30 text-indigo-600 dark:text-white' :
+                                    bType === 'Category' ? 'bg-gradient-to-tr from-purple-500/20 to-pink-500/20 border-purple-500/30 text-purple-600 dark:text-white' :
+                                    'bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 border-blue-500/30 text-blue-600 dark:text-white'
                                   }`}>
                                     {initials}
                                   </div>
@@ -4022,21 +4008,21 @@ const ActivityDetails = () => {
                                             navigate(`/users/list?userId=${u._id}`);
                                           }
                                         }}
-                                        className="text-xs text-white font-extrabold truncate hover:text-blue-400 transition-colors cursor-pointer"
+                                        className="text-xs text-slate-900 dark:text-white font-extrabold truncate hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
                                         title={u.name || 'Unknown User'}
                                       >
                                         {u.name || 'Unknown User'}
                                       </span>
                                       {u.role && u.role !== 'user' && (
-                                        <span className="text-[9px] uppercase font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                        <span className="text-[9px] uppercase font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
                                           {u.role}
                                         </span>
                                       )}
                                     </div>
-                                    <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono truncate">
+                                    <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 font-mono truncate">
                                       <span className="truncate">{u.email || '-'}</span>
                                       {u.phone && (
-                                        <span className="text-slate-500 shrink-0 flex items-center gap-0.5">
+                                        <span className="text-slate-400 dark:text-slate-500 shrink-0 flex items-center gap-0.5">
                                           • {u.phone}
                                         </span>
                                       )}
@@ -4047,14 +4033,14 @@ const ActivityDetails = () => {
                                 {/* View count & Time */}
                                 <div className="text-right shrink-0 flex flex-col items-end">
                                   <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black border ${
-                                    bType === 'Brand' ? 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30' :
-                                    bType === 'Category' ? 'bg-purple-500/15 text-purple-300 border-purple-500/30' :
-                                    'bg-blue-500/15 text-blue-300 border-blue-500/30'
+                                    bType === 'Brand' ? 'bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-500/30' :
+                                    bType === 'Category' ? 'bg-purple-50 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-500/30' :
+                                    'bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-500/30'
                                   }`}>
                                     {item.count || 0} view{item.count !== 1 ? 's' : ''} ({percent}%)
                                   </span>
                                   {(item.lastViewedAt || item.timestamp || item.createdAt || u.lastActive) && (
-                                    <span className="text-[9px] text-slate-500 font-medium mt-0.5 font-mono flex items-center gap-1">
+                                    <span className="text-[9px] text-slate-400 dark:text-slate-500 font-medium mt-0.5 font-mono flex items-center gap-1">
                                       <FiClock size={9} />
                                       {formatDateTimeSmall(item.lastViewedAt || item.timestamp || item.createdAt || u.lastActive)}
                                     </span>
@@ -4063,7 +4049,7 @@ const ActivityDetails = () => {
                               </div>
 
                               {/* Progress bar */}
-                              <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+                              <div className="w-full bg-slate-200 dark:bg-white/5 h-1 rounded-full overflow-hidden">
                                 <div
                                   className={`h-full rounded-full transition-all duration-300 ${
                                     bType === 'Brand' ? 'bg-gradient-to-r from-indigo-500 to-purple-500' :
@@ -4080,7 +4066,7 @@ const ActivityDetails = () => {
                   </div>
 
                   {/* Modal Footer */}
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 pt-3 border-t border-white/10">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 pt-3 border-t border-slate-200/80 dark:border-white/10">
                     <div className="flex items-center gap-2 w-full sm:w-auto">
                       {bType === 'Product' && selectedViewerBreakdown.productId && (
                         <>
@@ -4089,7 +4075,7 @@ const ActivityDetails = () => {
                               setSelectedViewerBreakdown(null);
                               navigate(`/products/variants/${selectedViewerBreakdown.productId}`);
                             }}
-                            className="flex-1 sm:flex-initial px-3 py-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-purple-300 font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                            className="flex-1 sm:flex-initial px-3 py-2 bg-purple-500/10 hover:bg-purple-500/20 dark:bg-purple-600/20 dark:hover:bg-purple-600/30 border border-purple-500/20 dark:border-purple-500/30 text-purple-700 dark:text-purple-300 font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
                           >
                             <FiSliders size={13} />
                             <span>Edit Variants</span>
@@ -4098,7 +4084,7 @@ const ActivityDetails = () => {
                             onClick={() => {
                               setViewerProductModalId(selectedViewerBreakdown.productId);
                             }}
-                            className="flex-1 sm:flex-initial px-3 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-300 font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                            className="flex-1 sm:flex-initial px-3 py-2 bg-blue-500/10 hover:bg-blue-500/20 dark:bg-blue-600/20 dark:hover:bg-blue-600/30 border border-blue-500/20 dark:border-blue-500/30 text-blue-700 dark:text-blue-300 font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
                           >
                             <FiEye size={13} />
                             <span>Product Details</span>
@@ -4112,7 +4098,7 @@ const ActivityDetails = () => {
                             setSelectedViewerBreakdown(null);
                             navigate(`/products/list?brand=${encodeURIComponent(selectedViewerBreakdown.brandId || selectedViewerBreakdown.title)}`);
                           }}
-                          className="flex-1 sm:flex-initial px-3.5 py-2 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                          className="flex-1 sm:flex-initial px-3.5 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 dark:bg-indigo-600/20 dark:hover:bg-indigo-600/30 border border-indigo-500/20 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
                         >
                           <FiPackage size={13} />
                           <span>View Brand Products</span>
@@ -4125,7 +4111,7 @@ const ActivityDetails = () => {
                             setSelectedViewerBreakdown(null);
                             navigate(`/products/list?category=${encodeURIComponent(selectedViewerBreakdown.categoryId || selectedViewerBreakdown.title)}`);
                           }}
-                          className="flex-1 sm:flex-initial px-3.5 py-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-purple-300 font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                          className="flex-1 sm:flex-initial px-3.5 py-2 bg-purple-500/10 hover:bg-purple-500/20 dark:bg-purple-600/20 dark:hover:bg-purple-600/30 border border-purple-500/20 dark:border-purple-500/30 text-purple-700 dark:text-purple-300 font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
                         >
                           <FiLayers size={13} />
                           <span>View Category Products</span>
@@ -4138,7 +4124,7 @@ const ActivityDetails = () => {
                         setSelectedViewerBreakdown(null);
                         setViewerSearchQuery('');
                       }}
-                      className="w-full sm:w-auto px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer border border-white/10 shadow-sm"
+                      className="w-full sm:w-auto px-5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white font-bold rounded-xl text-xs transition-all cursor-pointer border border-slate-200 dark:border-white/10 shadow-xs"
                     >
                       Close
                     </button>
@@ -4161,5 +4147,4 @@ const ActivityDetails = () => {
     </div>
   );
 };
-
 export default ActivityDetails;

@@ -3,16 +3,19 @@ import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
+import { useTheme } from '../Context/ThemeContext';
 import {
   FiLogOut, FiMenu, FiX, FiUser,
   FiBell, FiBellOff, FiChevronDown, FiChevronRight,
   FiMessageSquare, FiPackage, FiUserPlus, FiClock, FiAlertTriangle, FiFileText,
-  FiCheckCircle, FiVolume2, FiShield, FiArrowUp, FiSettings
+  FiCheckCircle, FiVolume2, FiShield, FiArrowUp, FiSettings, FiSun, FiMoon
 } from 'react-icons/fi';
 import { getAccessibleMenus } from '../config/menus';
 import HeaderSearch from './HeaderSearch';
 import logoImg from '../assets/logos.png';
 import appIconImg from '../assets/app-icon-png.png';
+import lightLogoImg from '../assets/inizio_logo.png';
+import lightAppIconImg from '../assets/app_logo_light.png';
 import { api, BASE_URL } from '../api/axios';
 import { isRouteAllowed } from '../utils/rbac';
 import {
@@ -30,6 +33,7 @@ import {
 
 const Layout = () => {
   const { user, logout, userPermissions } = useAuth();
+  const { theme, isDark, toggleTheme } = useTheme();
   const location = useLocation();
   const mainRef = useRef(null);
   const [pollingConfigVersion, setPollingConfigVersion] = useState(0);
@@ -951,13 +955,26 @@ const Layout = () => {
   const isExpanded = isHovered || isMobileMenuOpen;
 
   return (
-    <div className="flex h-dvh bg-linear-to-br from-black via-slate-950 to-blue-950 font-sans overflow-hidden text-slate-300 relative z-0">
+    <div className={`flex h-full w-full font-sans overflow-hidden relative z-0 transition-colors duration-300 ${
+      isDark 
+        ? 'panel-bg-dark text-slate-300' 
+        : 'panel-bg-light text-slate-700'
+    }`}>
 
       {/* Global Ambient Glows */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-        <div className="absolute top-10 left-10 w-75 h-75 bg-blue-500/30 rounded-full mix-blend-screen filter blur-[80px] opacity-60 transform-gpu animate-glow"></div>
-        <div className="absolute bottom-10 right-10 w-75 h-75 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-70 transform-gpu animate-glow-alt" style={{ animationDelay: '-12s' }}></div>
-      </div>
+      {isDark ? (
+        <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+          <div className="absolute top-10 left-10 w-80 h-80 bg-blue-500/30 rounded-full mix-blend-screen filter blur-[80px] opacity-60 transform-gpu animate-glow"></div>
+          <div className="absolute bottom-10 right-10 w-80 h-80 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-70 transform-gpu animate-glow-alt" style={{ animationDelay: '-12s' }}></div>
+        </div>
+      ) : (
+        <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+          {/* Blue glowing moving blobs for Light Mode */}
+          <div className="absolute -top-12 -left-12 w-[420px] h-[420px] bg-gradient-to-br from-blue-400/40 to-sky-400/35 rounded-full filter blur-[75px] opacity-80 transform-gpu animate-glow"></div>
+          {/* <div className="absolute bottom-0 right-0 w-[480px] h-[480px] bg-gradient-to-tl from-blue-500/35 to-indigo-400/30 rounded-full filter blur-[95px] opacity-85 transform-gpu animate-glow-alt" style={{ animationDelay: '-12s' }}></div> */}
+          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[380px] h-[380px] bg-gradient-to-tr from-sky-400/30 to-blue-500/25 rounded-full filter blur-[85px] opacity-75 transform-gpu animate-glow" style={{ animationDelay: '-25s' }}></div>
+        </div>
+      )}
 
       {/* Toast Notification Stack Container */}
       <div className="fixed top-5 right-5 z-[9999] flex flex-col gap-3 w-80 max-w-[90%] pointer-events-none">
@@ -968,7 +985,11 @@ const Layout = () => {
               navigation(t.path);
               setToasts(prev => prev.filter(item => item.id !== t.id));
             }}
-            className={`flex items-start justify-between gap-4.5 p-4 bg-slate-900 border border-white/10 border-l-4 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.8)] cursor-pointer hover:bg-slate-800 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 animate-in slide-in-from-right-full fade-in text-left group pointer-events-auto select-none ${t.path.startsWith('/chat') ? 'border-l-blue-500 shadow-blue-500/10' :
+            className={`flex items-start justify-between gap-4.5 p-4 border border-l-4 rounded-xl cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 animate-in slide-in-from-right-full fade-in text-left group pointer-events-auto select-none ${
+              isDark 
+                ? 'bg-slate-900 border-white/10 hover:bg-slate-800 shadow-[0_10px_30px_rgba(0,0,0,0.8)]' 
+                : 'bg-white/40 border-slate-200 hover:bg-white shadow-xl shadow-slate-900/10'
+            } ${t.path.startsWith('/chat') ? 'border-l-blue-500 shadow-blue-500/10' :
                 t.path.startsWith('/orders') ? 'border-l-emerald-500 shadow-emerald-500/10' :
                   (t.path === '/users/list' || t.path.includes('tab=approved')) ? 'border-l-indigo-500 shadow-indigo-500/10' :
                     t.path.includes('tab=pending') ? 'border-l-amber-500 shadow-amber-500/10' :
@@ -977,26 +998,30 @@ const Layout = () => {
                           'border-l-blue-500 shadow-blue-500/10'
               }`}
           >
-            <div className={`p-1 bg-white/5 rounded-xl shrink-0 group-hover:scale-110 transition-transform ${t.path.startsWith('/chat') ? 'text-blue-400' :
-                t.path.startsWith('/orders') ? 'text-emerald-400' :
-                  (t.path === '/users/list' || t.path.includes('tab=approved')) ? 'text-indigo-400' :
-                    t.path.includes('tab=pending') ? 'text-amber-400' :
-                      t.path.includes('tab=deleted') ? 'text-rose-400' :
-                        t.path === '/quotes' ? 'text-cyan-400' :
-                          'text-blue-400'
+            <div className={`p-1 rounded-xl shrink-0 group-hover:scale-110 transition-transform ${
+              isDark ? 'bg-white/5' : 'bg-slate-100'
+            } ${t.path.startsWith('/chat') ? 'text-blue-500' :
+                t.path.startsWith('/orders') ? 'text-emerald-500' :
+                  (t.path === '/users/list' || t.path.includes('tab=approved')) ? 'text-indigo-500' :
+                    t.path.includes('tab=pending') ? 'text-amber-500' :
+                      t.path.includes('tab=deleted') ? 'text-rose-500' :
+                        t.path === '/quotes' ? 'text-cyan-500' :
+                          'text-blue-500'
               }`}>
               <t.IconComponent size={20} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-white tracking-wide">{t.title}</p>
-              <p className="text-xs text-slate-300 mt-1 leading-relaxed">{t.message}</p>
+              <p className={`text-sm font-bold tracking-wide ${isDark ? 'text-white' : 'text-slate-800'}`}>{t.title}</p>
+              <p className={`text-xs mt-1 leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{t.message}</p>
             </div>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 setToasts(prev => prev.filter(item => item.id !== t.id));
               }}
-              className="p-1 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer shrink-0"
+              className={`p-1 rounded-lg transition-colors cursor-pointer shrink-0 ${
+                isDark ? 'text-slate-400 hover:text-white hover:bg-white/10' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
+              }`}
             >
               <FiX size={16} />
             </button>
@@ -1036,14 +1061,18 @@ const Layout = () => {
       )}
 
       {/* MOBILE TOP BAR (Visible only on small screens) */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-slate-950/80 backdrop-blur-2xl border-b border-white/10 z-30 flex items-center justify-between px-4 shadow-xl shadow-black/50">
-        <img src={logoImg} alt="logo" className="h-18 w-auto object-contain" />
+      <div className={`lg:hidden fixed top-0 left-0 right-0 h-16 backdrop-blur-2xl border-b z-30 flex items-center justify-between px-4 transition-colors ${
+        isDark 
+          ? 'bg-slate-950/80 border-white/10 shadow-xl shadow-black/50' 
+          : 'bg-white/85 border-slate-200/80 shadow-md shadow-slate-900/5'
+      }`}>
+        <img src={isDark ? logoImg : lightLogoImg} alt="logo" className="h-18 w-auto object-contain" />
         <div className="flex items-center gap-4">
           {/* Mobile Notifications Dropdown */}
           <div className="relative" ref={mobileNotificationsDropdownRef}>
             <button
               onClick={() => setIsNotificationsDropdownOpen(!isNotificationsDropdownOpen)}
-              className="text-slate-300 hover:text-white relative transition-colors mt-1 focus:outline-none"
+              className={`${isDark ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'} relative transition-colors mt-1 focus:outline-none`}
             >
               <FiBell className="text-xl cursor-pointer" />
               {totalUnreadCount > 0 && (
@@ -1054,12 +1083,16 @@ const Layout = () => {
             </button>
 
             {isNotificationsDropdownOpen && (
-              <div className="absolute right-0 mt-3 w-72 bg-slate-900/90 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl shadow-black/50 py-2 z-50 animate-in fade-in slide-in-from-top-2">
-                <div className="px-3.5 py-2 border-b border-white/10 flex justify-between items-center mb-1">
+              <div className={`absolute right-0 mt-3 w-72 backdrop-blur-2xl border rounded-2xl shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-2 ${
+                isDark 
+                  ? 'bg-slate-900/90 border-white/10 shadow-black/50' 
+                  : 'bg-white/95 border-slate-200 shadow-slate-900/10'
+              }`}>
+                <div className={`px-3.5 py-2 border-b flex justify-between items-center mb-1 ${isDark ? 'border-white/10' : 'border-slate-100'}`}>
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="text-[10px] font-bold text-white uppercase tracking-wider">System Notifications</span>
+                    <span className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-white' : 'text-slate-800'}`}>System Notifications</span>
                     {totalUnreadCount > 0 && (
-                      <span className="text-[9px] bg-blue-500/20 text-blue-400 font-bold px-1.5 py-0.2 rounded-full border border-blue-500/20 shrink-0">
+                      <span className="text-[9px] bg-blue-500/20 text-blue-600 font-bold px-1.5 py-0.2 rounded-full border border-blue-500/20 shrink-0">
                         {totalUnreadCount}
                       </span>
                     )}
@@ -1068,7 +1101,9 @@ const Layout = () => {
                     {totalUnreadCount > 0 && (
                       <button
                         onClick={clearAllNotifications}
-                        className="text-[9px] text-slate-400 hover:text-rose-400 font-bold px-1.5 py-0.5 rounded transition-colors cursor-pointer"
+                        className={`text-[9px] font-bold px-1.5 py-0.5 rounded transition-colors cursor-pointer ${
+                          isDark ? 'text-slate-400 hover:text-rose-400' : 'text-slate-500 hover:text-rose-600'
+                        }`}
                         title="Clear all notifications"
                       >
                         Clear
@@ -1076,7 +1111,9 @@ const Layout = () => {
                     )}
                     <button
                       onClick={() => setIsNotificationsDropdownOpen(false)}
-                      className="p-1 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+                      className={`p-1 rounded-lg transition-colors cursor-pointer ${
+                        isDark ? 'text-slate-400 hover:text-white hover:bg-white/10' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+                      }`}
                       title="Close"
                     >
                       <FiX size={14} />
@@ -1088,25 +1125,25 @@ const Layout = () => {
                 {browserPermission !== 'granted' ? (
                   <div className="mx-3 my-2 p-2.5 bg-gradient-to-r from-blue-600/20 to-indigo-600/20 border border-blue-500/30 rounded-xl flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <FiBell className="text-blue-400 shrink-0" size={13} />
-                      <span className="text-[10px] font-bold text-white leading-tight">Desktop Alerts</span>
+                      <FiBell className="text-blue-500 shrink-0" size={13} />
+                      <span className={`text-[10px] font-bold leading-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>Desktop Alerts</span>
                     </div>
                     <button
                       onClick={handleRequestBrowserPermission}
-                      className="px-2 py-1 text-[9px] font-extrabold uppercase tracking-wider bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all cursor-pointer shadow-sm shrink-0"
+                      className="px-2 py-1 text-[9px] font-extrabold uppercase tracking-wider bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all cursor-pointer shadow-sm shrink-0"
                     >
                       Enable
                     </button>
                   </div>
                 ) : (
                   <div className="mx-3 my-2 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center justify-between text-[9px]">
-                    <span className="text-emerald-400 font-bold flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-emerald-600 font-bold flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                       Browser Alerts Active
                     </span>
                     <button
                       onClick={handleTestBrowserNotification}
-                      className="text-slate-400 hover:text-white font-bold underline transition-colors cursor-pointer"
+                      className={`${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'} font-bold underline transition-colors cursor-pointer`}
                     >
                       Test
                     </button>
@@ -1116,25 +1153,31 @@ const Layout = () => {
                 <div className="max-h-60 overflow-y-auto divide-y divide-white/5 no-scrollbar">
                   {notificationsList.length === 0 ? (
                     <div className="py-6 text-center text-slate-500 text-xs">
-                      <FiBell className="mx-auto text-xl mb-1 text-slate-600 animate-bounce" />
-                      <p className="font-semibold text-white">All caught up!</p>
-                      <p className="text-[9px] text-slate-600 mt-0.5">No new system updates.</p>
+                      <FiBell className="mx-auto text-xl mb-1 text-slate-500 animate-bounce" />
+                      <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>All caught up!</p>
+                      <p className="text-[9px] text-slate-500 mt-0.5">No new system updates.</p>
                     </div>
                   ) : (
                     notificationsList.map((notif) => (
                       <div
                         key={notif.id}
                         onClick={() => handleNotificationClick(notif.path, notif.id)}
-                        className="flex items-start gap-2.5 p-2.5 hover:bg-white/5 transition-all cursor-pointer group relative"
+                        className={`flex items-start gap-2.5 p-2.5 transition-all cursor-pointer group relative ${
+                          isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'
+                        }`}
                       >
                         <div className={`p-1.5 rounded-lg text-sm shrink-0 ${notif.color}`}>
                           {notif.icon}
                         </div>
                         <div className="flex-1 min-w-0 space-y-0.5 pr-5">
-                          <p className="text-[11px] font-bold text-white group-hover:text-blue-400 transition-colors">
+                          <p className={`text-[11px] font-bold transition-colors ${
+                            isDark ? 'text-white group-hover:text-blue-400' : 'text-slate-800 group-hover:text-blue-600'
+                          }`}>
                             {notif.title}
                           </p>
-                          <p className="text-[9px] text-slate-400 leading-normal line-clamp-2">
+                          <p className={`text-[9px] leading-normal line-clamp-2 ${
+                            isDark ? 'text-slate-400' : 'text-slate-500'
+                          }`}>
                             {notif.description}
                           </p>
                         </div>
@@ -1145,7 +1188,9 @@ const Layout = () => {
                             e.stopPropagation();
                             dismissNotification(notif.id);
                           }}
-                          className="absolute right-2 top-2 p-1 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-md transition-all cursor-pointer"
+                          className={`absolute right-2 top-2 p-1 rounded-md transition-all cursor-pointer ${
+                            isDark ? 'text-slate-500 hover:text-rose-400 hover:bg-rose-500/10' : 'text-slate-400 hover:text-rose-600 hover:bg-rose-50'
+                          }`}
                           title="Dismiss notification"
                         >
                           <FiX size={12} />
@@ -1169,20 +1214,60 @@ const Layout = () => {
 
             {/* Dropdown Menu */}
             {isProfileDropdownOpen && (
-              <div className="absolute right-0 mt-3 w-48 bg-slate-900/80 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl shadow-black/50 py-2 z-50 animate-in fade-in slide-in-from-top-2">
-                <div className="px-4 py-2 border-b border-white/10 mb-1">
-                  <p className="text-sm font-semibold text-white line-clamp-1">{user.email || 'User'}</p>
-                  <p className="text-xs text-slate-400 capitalize">Administrator</p>
+              <div className={`absolute right-0 mt-3 w-52 backdrop-blur-2xl border rounded-xl shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-2 ${
+                isDark 
+                  ? 'bg-slate-900/90 border-white/10 shadow-black/50' 
+                  : 'bg-white/95 border-slate-200 shadow-slate-900/10'
+              }`}>
+                <div className={`px-4 py-2 border-b mb-1 ${isDark ? 'border-white/10' : 'border-slate-100'}`}>
+                  <p className={`text-sm font-semibold line-clamp-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>{user.email || 'User'}</p>
+                  <p className={`text-xs capitalize ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Administrator</p>
                 </div>
+
+                {/* Theme Switch Toggle */}
+                <div className={`px-4 py-2 flex items-center justify-between border-b my-1 ${isDark ? 'border-white/10' : 'border-slate-100'}`}>
+                  <div className="flex items-center gap-2">
+                    {isDark ? (
+                      <FiMoon className="text-blue-400 text-sm" />
+                    ) : (
+                      <FiSun className="text-amber-500 text-sm" />
+                    )}
+                    <span className={`text-xs font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                      {isDark ? 'Dark Mode' : 'Light Mode'}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleTheme();
+                    }}
+                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      isDark ? 'bg-blue-600' : 'bg-slate-300'
+                    }`}
+                    role="switch"
+                    aria-checked={isDark}
+                    title={`Switch to ${isDark ? 'Light' : 'Dark'} Mode`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                        isDark ? 'translate-x-4' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
+
                 <Link
                   to="/profile"
-                  className="flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
+                  className={`flex items-center px-4 py-2 text-sm transition-colors ${
+                    isDark ? 'text-slate-300 hover:bg-white/10 hover:text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  }`}
                 >
                   <FiUser className="mr-2" /> Profile
                 </Link>
                 <button
                   onClick={logout}
-                  className="w-full flex items-center px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                  className="w-full flex items-center px-4 py-2 text-sm text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
                 >
                   <FiLogOut className="mr-2" /> Logout
                 </button>
@@ -1192,7 +1277,9 @@ const Layout = () => {
 
           <button
             onClick={() => setIsMobileMenuOpen(true)}
-            className="p-1 text-slate-300 hover:text-white focus:outline-none transition-colors"
+            className={`p-1 focus:outline-none transition-colors ${
+              isDark ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+            }`}
           >
             <FiMenu className="text-2xl" />
           </button>
@@ -1211,34 +1298,51 @@ const Layout = () => {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={`
-          fixed inset-y-0 left-0 z-50 bg-slate-950/50 backdrop-blur-2xl border-r border-white/10 flex flex-col shadow-2xl shadow-black/50
+          fixed inset-y-0 left-0 z-50 flex flex-col
           transform transition-all duration-300 ease-in-out lg:translate-x-0 overflow-hidden
+          ${isDark 
+            ? 'bg-slate-950/50 backdrop-blur-xl border-r border-white/10 shadow-2xl shadow-black/50' 
+            : 'bg-white/5 backdrop-blur-xl border-r border-slate-200/80 shadow-xl shadow-slate-900/5'
+          }
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
           ${isExpanded ? 'w-72' : 'lg:w-20 w-72'}
         `}
       >
         {/* Sidebar Ambient Glows */}
-        <div className="absolute top-0 left-0 w-full h-full pointer-events-none -z-10 transform-gpu">
-          <div className="absolute top-[10%] left-[-20%] w-64 h-64 bg-blue-600/20 rounded-full mix-blend-screen filter blur-[80px] opacity-60 transform-gpu animate-glow"></div>
-          <div className="absolute bottom-[20%] right-[-20%] w-72 h-72 bg-blue-600/50 rounded-full mix-blend-screen filter blur-[100px] opacity-50 transform-gpu animate-glow" style={{ animationDelay: '-5s' }}></div>
-        </div>
+        {isDark ? (
+          <div className="absolute top-0 left-0 w-full h-full pointer-events-none -z-10 transform-gpu">
+            <div className="absolute top-[10%] left-[-20%] w-64 h-64 bg-blue-600/20 rounded-full mix-blend-screen filter blur-[80px] opacity-60 transform-gpu animate-glow"></div>
+            <div className="absolute bottom-[20%] right-[-20%] w-72 h-72 bg-blue-600/50 rounded-full mix-blend-screen filter blur-[100px] opacity-50 transform-gpu animate-glow" style={{ animationDelay: '-5s' }}></div>
+          </div>
+        ) : (
+          <div className="absolute top-0 left-0 w-full h-full pointer-events-none -z-10 transform-gpu">
+            <div className="absolute top-[10%] left-[-20%] w-64 h-64 bg-blue-400/15 rounded-full filter blur-[75px] opacity-60 transform-gpu"></div>
+            <div className="absolute bottom-[20%] right-[-20%] w-72 h-72 bg-sky-300/20 rounded-full filter blur-[95px] opacity-50 transform-gpu"></div>
+          </div>
+        )}
 
-        <div className="h-16 flex items-center justify-center border-b border-white/10 bg-transparent shrink-0 relative overflow-hidden">
-          {/* Full Logo (logos.png) */}
+        <div className={`h-16 flex items-center justify-center border-b bg-transparent shrink-0 relative overflow-hidden ${
+          isDark ? 'border-white/10' : 'border-slate-200/80'
+        }`}>
+          {/* Full Logo (logos.png for dark, inizio_logo.png for light) */}
           <div className={`absolute transition-all duration-300 ease-in-out flex items-center justify-center ${isExpanded ? 'opacity-100 scale-100 rotate-0' : 'opacity-0 scale-75 rotate-[-12deg] pointer-events-none'
             }`}>
-            <Link to="/"><img src={logoImg} alt="logo" className="h-14 w-auto object-contain scale-200 mt-1.5" /></Link>
+            <Link to="/"><img src={isDark ? logoImg : lightLogoImg} alt="logo" className="h-14 w-auto object-contain scale-200 mt-1.5" /></Link>
           </div>
 
-          {/* Collapsed App Icon (app-icon-png.png) */}
+          {/* Collapsed App Icon (app-icon-png.png for dark, app_icon.png for light) */}
           <div className={`absolute transition-all duration-300 ease-in-out flex items-center justify-center ${isExpanded ? 'opacity-0 scale-75 rotate-[12deg] pointer-events-none' : 'opacity-100 scale-100 rotate-0'
             }`}>
-            <Link to="/"><img src={appIconImg} alt="logo" className="lg:h-10 lg:w-10 h-14 w-auto object-contain lg:scale-100 scale-200 lg:mt-0 mt-1.5" /></Link>
+            <Link to="/"><img src={isDark ? appIconImg : lightAppIconImg} alt="logo" className={`lg:h-14 lg:w-14 h-14 w-auto object-contain lg:scale-100 scale-200 lg:mt-0 mt-1.5 ${!isDark ? 'rounded-xl' : ''}`} /></Link>
           </div>
 
           {/* Mobile Close Button */}
           <button
-            className="lg:hidden absolute right-4 p-1.5 text-slate-400 hover:text-white bg-white/5 border border-white/10 rounded-xl transition-all cursor-pointer hover:bg-white/15"
+            className={`lg:hidden absolute right-4 p-1.5 rounded-xl transition-all cursor-pointer ${
+              isDark 
+                ? 'text-slate-400 hover:text-white bg-white/5 border border-white/10 hover:bg-white/15'
+                : 'text-slate-600 hover:text-slate-900 bg-slate-100 border border-slate-200 hover:bg-slate-200'
+            }`}
             onClick={() => setIsMobileMenuOpen(false)}
             title="Close Menu"
           >
@@ -1247,7 +1351,9 @@ const Layout = () => {
         </div>
 
         <nav className="flex-1 px-4 py-3 overflow-y-auto no-scrollbar space-y-2">
-          <p className={`px-2 text-xs font-bold text-slate-600 uppercase tracking-wider transition-all duration-300 opacity-100 mb-4 max-h-8 mt-2`}>
+          <p className={`px-2 text-xs font-bold uppercase tracking-wider transition-all duration-300 opacity-100 mb-4 max-h-8 mt-2 ${
+            isDark ? 'text-slate-500' : 'text-slate-400'
+          }`}>
             {isExpanded ? 'MAIN MENU' : 'MENU'}
           </p>
 
@@ -1272,10 +1378,16 @@ const Layout = () => {
                     className={`
                       w-full h-12 flex items-center justify-between px-3.5 transition-all duration-200 group rounded-xl relative cursor-pointer
                       ${isChildActive
-                        ? 'bg-gradient-to-r from-blue-600/25 to-blue-500/15 text-white font-semibold border border-blue-500/40 shadow-sm shadow-blue-500/10'
+                        ? isDark
+                          ? 'bg-gradient-to-r from-blue-600/25 to-blue-500/15 text-white font-semibold border border-blue-500/40 shadow-sm shadow-blue-500/10'
+                          : 'bg-gradient-to-r from-blue-600/15 to-indigo-600/10 text-blue-700 font-bold border border-blue-400/30 shadow-sm shadow-blue-500/5'
                         : isExpanded
-                          ? 'text-slate-300 border border-transparent hover:bg-white/[0.02] hover:text-white hover:border-white/10 hover:translate-x-0.5'
-                          : 'bg-white/[0.02] border border-white/5 text-slate-300 hover:bg-white/[0.02] hover:text-white hover:border-white/15 hover:scale-[1.03]'
+                          ? isDark
+                            ? 'text-slate-300 border border-transparent hover:bg-white/[0.02] hover:text-white hover:border-white/10 hover:translate-x-0.5'
+                            : 'text-slate-600 border border-transparent hover:bg-slate-100 hover:text-slate-900 hover:border-slate-200/80 hover:translate-x-0.5'
+                          : isDark
+                            ? 'bg-white/[0.02] border border-white/5 text-slate-300 hover:bg-white/[0.02] hover:text-white hover:border-white/15 hover:scale-[1.03]'
+                            : 'bg-slate-100/60 border border-slate-200/80 text-slate-600 hover:bg-slate-100 hover:text-slate-900 hover:border-slate-300 hover:scale-[1.03]'
                       }
                     `}
                   >
@@ -1284,7 +1396,9 @@ const Layout = () => {
                         <div className="relative shrink-0 flex items-center justify-center">
                           <Icon
                             className={`shrink-0 transition-all duration-200 
-                              ${isChildActive ? 'text-blue-400 scale-110' : 'text-slate-400 group-hover:text-blue-400 group-hover:scale-110'} 
+                              ${isChildActive 
+                                ? (isDark ? 'text-blue-400 scale-110' : 'text-blue-600 scale-110') 
+                                : (isDark ? 'text-slate-400 group-hover:text-blue-400 group-hover:scale-110' : 'text-slate-500 group-hover:text-blue-600 group-hover:scale-110')} 
                               ${isExpanded ? 'text-lg' : 'text-base lg:mr-0'}`}
                           />
                           {!isExpanded && parentBadgeCount > 0 && (
@@ -1303,7 +1417,7 @@ const Layout = () => {
                           {parentBadgeCount > 9 ? '9+' : parentBadgeCount}
                         </span>
                       )}
-                      <FiChevronRight className={`transition-transform duration-200 ${isOpen ? 'rotate-90 text-blue-400' : isChildActive ? 'text-blue-400' : 'text-slate-400 group-hover:text-white'}`} />
+                      <FiChevronRight className={`transition-transform duration-200 ${isOpen ? (isDark ? 'rotate-90 text-blue-400' : 'rotate-90 text-blue-600') : isChildActive ? (isDark ? 'text-blue-400' : 'text-blue-600') : (isDark ? 'text-slate-400 group-hover:text-white' : 'text-slate-400 group-hover:text-slate-900')}`} />
                     </div>
                   </button>
 
@@ -1327,14 +1441,18 @@ const Layout = () => {
                                 className={`
                                 flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-200
                                 ${isSubActive
-                                    ? 'bg-blue-600/25 text-white font-bold border border-blue-500/40 shadow-sm shadow-blue-500/10'
-                                    : 'text-slate-400 hover:bg-white/[0.03] border border-transparent hover:border-white/15 hover:text-slate-100 hover:translate-x-1'
+                                    ? isDark
+                                      ? 'bg-blue-600/25 text-white font-bold border border-blue-500/40 shadow-sm shadow-blue-500/10'
+                                      : 'bg-blue-600/15 text-blue-700 font-bold border border-blue-400/40 shadow-sm shadow-blue-500/5'
+                                    : isDark
+                                      ? 'text-slate-400 hover:bg-white/[0.03] border border-transparent hover:border-white/15 hover:text-slate-100 hover:translate-x-1'
+                                      : 'text-slate-600 hover:bg-slate-100 border border-transparent hover:border-slate-200 hover:text-slate-900 hover:translate-x-1'
                                   }
                               `}
                               >
                                 <div className="flex items-center min-w-0">
                                   {SubIcon && (
-                                    <SubIcon className={`text-[15px] mr-2.5 shrink-0 transition-colors ${isSubActive ? 'text-blue-400' : 'text-slate-500 group-hover:text-slate-300'}`} />
+                                    <SubIcon className={`text-[15px] mr-2.5 shrink-0 transition-colors ${isSubActive ? (isDark ? 'text-blue-400' : 'text-blue-600') : (isDark ? 'text-slate-500 group-hover:text-slate-300' : 'text-slate-400 group-hover:text-slate-700')}`} />
                                   )}
                                   <span className="truncate">{sub.name}</span>
                                 </div>
@@ -1370,10 +1488,16 @@ const Layout = () => {
                 className={`
                   w-full h-12 flex items-center justify-between px-3.5 transition-all duration-200 group rounded-xl relative cursor-pointer
                   ${isActive
-                    ? 'bg-gradient-to-r from-blue-600/25 to-blue-500/15 text-white font-semibold border border-blue-500/40 shadow-sm shadow-blue-500/10'
+                    ? isDark
+                      ? 'bg-gradient-to-r from-blue-600/25 to-blue-500/15 text-white font-semibold border border-blue-500/40 shadow-sm shadow-blue-500/10'
+                      : 'bg-gradient-to-r from-blue-600/15 to-indigo-600/10 text-blue-700 font-bold border border-blue-400/40 shadow-sm shadow-blue-500/5'
                     : isExpanded
-                      ? 'text-slate-300 border border-transparent hover:bg-white/[0.02] hover:text-white hover:border-white/10 hover:translate-x-0.5'
-                      : 'bg-white/[0.02] border border-white/5 text-slate-300 hover:bg-white/[0.02] hover:text-white hover:border-white/15 hover:scale-[1.03]'
+                      ? isDark
+                        ? 'text-slate-300 border border-transparent hover:bg-white/[0.02] hover:text-white hover:border-white/10 hover:translate-x-0.5'
+                        : 'text-slate-600 border border-transparent hover:bg-slate-100 hover:text-slate-900 hover:border-slate-200/80 hover:translate-x-0.5'
+                      : isDark
+                        ? 'bg-white/[0.02] border border-white/5 text-slate-300 hover:bg-white/[0.02] hover:text-white hover:border-white/15 hover:scale-[1.03]'
+                        : 'bg-slate-100/60 border border-slate-200/80 text-slate-600 hover:bg-slate-100 hover:text-slate-900 hover:border-slate-300 hover:scale-[1.03]'
                   }
                 `}
               >
@@ -1382,7 +1506,9 @@ const Layout = () => {
                     <div className="relative shrink-0 flex items-center justify-center">
                       <Icon
                         className={`shrink-0 transition-all duration-200 
-                          ${isActive ? 'scale-110 text-blue-400' : 'group-hover:scale-110 text-slate-400 group-hover:text-blue-400'} 
+                          ${isActive 
+                            ? (isDark ? 'scale-110 text-blue-400' : 'scale-110 text-blue-600') 
+                            : (isDark ? 'group-hover:scale-110 text-slate-400 group-hover:text-blue-400' : 'group-hover:scale-110 text-slate-500 group-hover:text-blue-600')} 
                           ${isExpanded ? 'text-lg' : 'text-base lg:mr-0'}`}
                       />
                       {!isExpanded && badgeCount > 0 && (
@@ -1409,7 +1535,11 @@ const Layout = () => {
       <div className={`flex-1 flex flex-col h-full overflow-hidden bg-transparent relative pt-16 lg:pt-0 lg:pl-20 transition-all duration-300 ${isExpanded ? 'lg:blur-[2px]' : 'blur-none'}`}>
 
         {/* GLOBAL HEADER (Desktop Top Bar) */}
-        <header className="hidden lg:flex h-16 bg-transparent backdrop-blur-2xl border-b border-white/10 shadow-sm shadow-black/50 items-center justify-between px-8 sticky top-0 z-20">
+        <header className={`hidden lg:flex h-16 backdrop-blur-2xl border-b items-center justify-between px-8 sticky top-0 z-20 transition-colors ${
+          isDark 
+            ? 'bg-transparent border-white/10 shadow-sm shadow-black/50' 
+            : 'bg-white/5 border-slate-200/80 shadow-md shadow-slate-900/5'
+        }`}>
 
           {/* Left Side: Global Search */}
           <HeaderSearch />
@@ -1420,7 +1550,7 @@ const Layout = () => {
             <div className="relative" ref={notificationsDropdownRef}>
               <button
                 onClick={() => setIsNotificationsDropdownOpen(!isNotificationsDropdownOpen)}
-                className="text-slate-400 hover:text-blue-500 relative transition-colors mt-1 focus:outline-none"
+                className={`${isDark ? 'text-slate-400 hover:text-blue-500' : 'text-slate-600 hover:text-blue-600'} relative transition-colors mt-1 focus:outline-none`}
               >
                 <FiBell className="text-xl cursor-pointer" />
                 {totalUnreadCount > 0 && (
@@ -1431,12 +1561,16 @@ const Layout = () => {
               </button>
 
               {isNotificationsDropdownOpen && (
-                <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-slate-900/90 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl shadow-black/50 py-2 z-50 animate-in fade-in slide-in-from-top-2">
-                  <div className="px-4 py-2.5 border-b border-white/10 flex justify-between items-center mb-1">
+                <div className={`absolute right-0 mt-3 w-80 sm:w-96 backdrop-blur-2xl border rounded-2xl shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-2 ${
+                  isDark 
+                    ? 'bg-slate-900/90 border-white/10 shadow-black/50' 
+                    : 'bg-white/80 border-slate-200 shadow-slate-900/10'
+                }`}>
+                  <div className={`px-4 py-2.5 border-b flex justify-between items-center mb-1 ${isDark ? 'border-white/10' : 'border-slate-100'}`}>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-white uppercase tracking-wider">System Notifications</span>
+                      <span className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-white' : 'text-slate-800'}`}>System Notifications</span>
                       {totalUnreadCount > 0 && (
-                        <span className="text-[10px] bg-blue-500/20 text-blue-400 font-bold px-2 py-0.5 rounded-full border border-blue-500/20">
+                        <span className="text-[10px] bg-blue-500/20 text-blue-600 font-bold px-2 py-0.5 rounded-full border border-blue-500/20">
                           {totalUnreadCount} New
                         </span>
                       )}
@@ -1445,7 +1579,9 @@ const Layout = () => {
                       {totalUnreadCount > 0 && (
                         <button
                           onClick={clearAllNotifications}
-                          className="text-[10px] text-slate-400 hover:text-rose-400 font-bold px-2 py-0.5 rounded-lg transition-colors cursor-pointer hover:bg-white/5"
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-lg transition-colors cursor-pointer ${
+                            isDark ? 'text-slate-400 hover:text-rose-400 hover:bg-white/5' : 'text-slate-500 hover:text-rose-600 hover:bg-slate-100'
+                          }`}
                           title="Clear all notifications"
                         >
                           Clear All
@@ -1453,7 +1589,9 @@ const Layout = () => {
                       )}
                       <button
                         onClick={() => setIsNotificationsDropdownOpen(false)}
-                        className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                        className={`p-1 rounded-lg transition-colors cursor-pointer ${
+                          isDark ? 'text-slate-400 hover:text-white hover:bg-white/10' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+                        }`}
                         title="Close popup"
                       >
                         <FiX size={16} />
@@ -1464,24 +1602,26 @@ const Layout = () => {
                   {/* Desktop Browser Notification Status Bar */}
                   {browserPermission === 'granted' && browserAlertsEnabled ? (
                     <div className="mx-3 my-2 px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center justify-between text-xs">
-                      <span className="text-emerald-400 font-bold flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="text-emerald-600 font-bold flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                         Browser Desktop Alerts Active
                       </span>
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
                           onClick={handleTestBrowserNotification}
-                          className="text-xs text-slate-400 hover:text-white font-bold underline transition-colors cursor-pointer"
+                          className={`text-xs font-bold underline transition-colors cursor-pointer ${
+                            isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
+                          }`}
                           title="Send a test notification"
                         >
                           Test
                         </button>
-                        <span className="text-slate-600">|</span>
+                        <span className="text-slate-400">|</span>
                         <button
                           type="button"
                           onClick={handleTurnOffBrowserAlerts}
-                          className="text-xs text-rose-400 hover:text-rose-300 font-bold hover:underline transition-colors cursor-pointer"
+                          className="text-xs text-rose-500 hover:text-rose-600 font-bold hover:underline transition-colors cursor-pointer"
                           title="Turn off desktop alerts"
                         >
                           Turn Off
@@ -1491,18 +1631,18 @@ const Layout = () => {
                   ) : browserPermission === 'denied' ? (
                     <div className="mx-3 my-2 p-3 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center justify-between gap-3 shadow-inner">
                       <div className="flex items-center gap-2.5">
-                        <div className="p-2 rounded-xl bg-rose-500/20 text-rose-400 shrink-0">
+                        <div className="p-2 rounded-xl bg-rose-500/20 text-rose-500 shrink-0">
                           <FiBellOff size={16} />
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-rose-300 leading-tight">Notifications Blocked</p>
-                          <p className="text-[10px] text-slate-400">Please enable notifications in your browser address bar settings.</p>
+                          <p className="text-xs font-bold text-rose-600 leading-tight">Notifications Blocked</p>
+                          <p className="text-[10px] text-slate-500">Please enable notifications in your browser address bar settings.</p>
                         </div>
                       </div>
                       <Link
                         to="/settings/notifications"
                         onClick={() => setIsNotificationsDropdownOpen(false)}
-                        className="px-2.5 py-1 text-[10px] font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 rounded-xl transition-all cursor-pointer shrink-0"
+                        className="px-2.5 py-1 text-[10px] font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-600 border border-rose-500/30 rounded-xl transition-all cursor-pointer shrink-0"
                       >
                         Settings
                       </Link>
@@ -1510,18 +1650,18 @@ const Layout = () => {
                   ) : (
                     <div className="mx-3 my-2 p-3 bg-gradient-to-r from-blue-600/20 via-indigo-600/20 to-blue-600/20 border border-blue-500/30 rounded-2xl flex items-center justify-between gap-3 shadow-inner">
                       <div className="flex items-center gap-2.5">
-                        <div className="p-2 rounded-xl bg-blue-500/20 text-blue-400">
+                        <div className="p-2 rounded-xl bg-blue-500/20 text-blue-500">
                           <FiBell size={16} />
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-white leading-tight">Desktop Push Alerts</p>
-                          <p className="text-[10px] text-slate-400">Get notified for orders & quotes even when tab is in background.</p>
+                          <p className={`text-xs font-bold leading-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>Desktop Push Alerts</p>
+                          <p className="text-[10px] text-slate-500">Get notified for orders & quotes even when tab is in background.</p>
                         </div>
                       </div>
                       <button
                         type="button"
                         onClick={handleRequestBrowserPermission}
-                        className="px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-all cursor-pointer shadow-md shrink-0 active:scale-95"
+                        className="px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all cursor-pointer shadow-md shrink-0 active:scale-95"
                       >
                         Enable Alerts
                       </button>
@@ -1531,25 +1671,31 @@ const Layout = () => {
                   <div className="max-h-72 overflow-y-auto divide-y divide-white/5 no-scrollbar">
                     {notificationsList.length === 0 ? (
                       <div className="py-8 text-center text-slate-500 text-xs">
-                        <FiBell className="mx-auto text-2xl mb-2 text-slate-600 animate-bounce" />
-                        <p className="font-semibold text-white">All caught up!</p>
-                        <p className="text-[10px] text-slate-600 mt-0.5">No new system updates.</p>
+                        <FiBell className="mx-auto text-2xl mb-2 text-slate-500 animate-bounce" />
+                        <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>All caught up!</p>
+                        <p className="text-[10px] text-slate-500 mt-0.5">No new system updates.</p>
                       </div>
                     ) : (
                       notificationsList.map((notif) => (
                         <div
                           key={notif.id}
                           onClick={() => handleNotificationClick(notif.path, notif.id)}
-                          className="flex items-start gap-3 p-3 hover:bg-white/5 transition-all cursor-pointer group relative"
+                          className={`flex items-start gap-3 p-3 transition-all cursor-pointer group relative ${
+                            isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'
+                          }`}
                         >
                           <div className={`p-2 rounded-xl text-base shrink-0 ${notif.color}`}>
                             {notif.icon}
                           </div>
                           <div className="flex-1 min-w-0 space-y-0.5 pr-6">
-                            <p className="text-xs font-bold text-white group-hover:text-blue-400 transition-colors">
+                            <p className={`text-xs font-bold transition-colors ${
+                              isDark ? 'text-white group-hover:text-blue-400' : 'text-slate-800 group-hover:text-blue-600'
+                            }`}>
                               {notif.title}
                             </p>
-                            <p className="text-[10px] text-slate-400 leading-relaxed line-clamp-2">
+                            <p className={`text-[10px] leading-relaxed line-clamp-2 ${
+                              isDark ? 'text-slate-400' : 'text-slate-500'
+                            }`}>
                               {notif.description}
                             </p>
                           </div>
@@ -1560,7 +1706,9 @@ const Layout = () => {
                               e.stopPropagation();
                               dismissNotification(notif.id);
                             }}
-                            className="absolute right-2.5 top-3 p-1 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-md transition-all cursor-pointer opacity-80 hover:opacity-100"
+                            className={`absolute right-2.5 top-3 p-1 rounded-md transition-all cursor-pointer opacity-80 hover:opacity-100 ${
+                              isDark ? 'text-slate-500 hover:text-rose-400 hover:bg-rose-500/10' : 'text-slate-400 hover:text-rose-600 hover:bg-rose-50'
+                            }`}
                             title="Dismiss notification"
                           >
                             <FiX size={14} />
@@ -1571,12 +1719,14 @@ const Layout = () => {
                   </div>
 
                   {/* Dropdown footer link to notification settings */}
-                  <div className="px-3.5 py-2 border-t border-white/5 bg-slate-950/40 flex items-center justify-between text-[10px] text-slate-400">
+                  <div className={`px-3.5 py-2 border-t flex items-center justify-between text-[10px] ${
+                    isDark ? 'border-white/5 bg-slate-950/40 text-slate-400' : 'border-slate-100 bg-slate-50/80 text-slate-500'
+                  }`}>
                     <span>Alert preferences</span>
                     <Link
                       to="/settings/notifications"
                       onClick={() => setIsNotificationsDropdownOpen(false)}
-                      className="text-blue-400 hover:text-blue-300 font-bold flex items-center gap-1 hover:underline transition-colors"
+                      className="text-blue-600 hover:text-blue-700 font-bold flex items-center gap-1 hover:underline transition-colors"
                     >
                       <FiSettings size={11} /> Settings
                     </Link>
@@ -1585,7 +1735,7 @@ const Layout = () => {
               )}
             </div>
 
-            <div className="h-8 w-px bg-white/10"></div>
+            <div className={`h-8 w-px ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}></div>
 
             {/* Profile Dropdown Trigger */}
             <div className="relative" ref={profileDropdownRef}>
@@ -1597,28 +1747,68 @@ const Layout = () => {
                   {user.email ? user.email.charAt(0).toUpperCase() : 'U'}
                 </div>
                 <div className="ml-3 hidden md:block">
-                  <p className="text-xs font-bold text-white">Admin Account</p>
-                  <p className="text-[10px] text-slate-400 uppercase">Administrator</p>
+                  <p className={`text-xs font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>Admin Account</p>
+                  <p className={`text-[10px] uppercase ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Administrator</p>
                 </div>
-                <FiChevronDown className="ml-2 text-slate-400 group-hover:text-white transition-colors" />
+                <FiChevronDown className={`ml-2 transition-colors ${isDark ? 'text-slate-400 group-hover:text-white' : 'text-slate-500 group-hover:text-slate-900'}`} />
               </div>
 
               {/* Dropdown Menu */}
               {isProfileDropdownOpen && (
-                <div className="absolute right-0 mt-3 w-48 bg-slate-900/90 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl shadow-black/50 py-2 z-50 animate-in fade-in slide-in-from-top-2">
-                  <div className="px-4 py-2 border-b border-white/10 mb-1">
-                    <p className="text-sm font-semibold text-white line-clamp-1">{user.email || 'User'}</p>
-                    <p className="text-xs text-slate-400 capitalize">Administrator</p>
+                <div className={`absolute right-0 mt-3 w-52 backdrop-blur-2xl border rounded-xl shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-2 ${
+                  isDark 
+                    ? 'bg-slate-900/90 border-white/10 shadow-black/50' 
+                    : 'bg-white/95 border-slate-200 shadow-slate-900/10'
+                }`}>
+                  <div className={`px-4 py-2 border-b mb-1 ${isDark ? 'border-white/10' : 'border-slate-100'}`}>
+                    <p className={`text-sm font-semibold line-clamp-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>{user.email || 'User'}</p>
+                    <p className={`text-xs capitalize ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Administrator</p>
                   </div>
+
+                  {/* Theme Switch Toggle */}
+                  <div className={`px-4 py-2 flex items-center justify-between border-b my-1 ${isDark ? 'border-white/10' : 'border-slate-100'}`}>
+                    <div className="flex items-center gap-2">
+                      {isDark ? (
+                        <FiMoon className="text-blue-400 text-sm" />
+                      ) : (
+                        <FiSun className="text-amber-500 text-sm" />
+                      )}
+                      <span className={`text-xs font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                        {isDark ? 'Dark Mode' : 'Light Mode'}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleTheme();
+                      }}
+                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        isDark ? 'bg-blue-600' : 'bg-slate-300'
+                      }`}
+                      role="switch"
+                      aria-checked={isDark}
+                      title={`Switch to ${isDark ? 'Light' : 'Dark'} Mode`}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                          isDark ? 'translate-x-4' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+
                   <Link
                     to="/profile"
-                    className="flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
+                    className={`flex items-center px-4 py-2 text-sm transition-colors ${
+                      isDark ? 'text-slate-300 hover:bg-white/10 hover:text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
                   >
                     <FiUser className="mr-2" /> Profile
                   </Link>
                   <button
                     onClick={logout}
-                    className="w-full flex items-center px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                    className="w-full flex items-center px-4 py-2 text-sm text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
                   >
                     <FiLogOut className="mr-2" /> Logout
                   </button>
@@ -1665,12 +1855,22 @@ const Layout = () => {
         </main>
 
         {/* GLOBAL FOOTER */}
-        <footer className="bg-transparent backdrop-blur-2xl border-t border-white/10 shadow-lg shadow-black/50 py-4 px-8 mt-auto z-10 relative">
-          <div className="w-full mx-auto flex flex-col md:flex-row justify-between items-center text-xs text-slate-400 font-medium">
+        <footer className={`backdrop-blur-2xl border-t py-4 px-8 mt-auto z-10 relative transition-colors ${
+          isDark 
+            ? 'bg-transparent border-white/10 shadow-lg shadow-black/50' 
+            : 'bg-white/40 border-slate-200/80 shadow-xs shadow-slate-900/5'
+        }`}>
+          <div className={`w-full mx-auto flex flex-col md:flex-row justify-between items-center text-xs font-medium ${
+            isDark ? 'text-slate-400' : 'text-slate-500'
+          }`}>
             <p>© {new Date().getFullYear()} Inizio Workspace. All rights reserved.</p>
             <div className="flex items-center space-x-4 mt-2 md:mt-0">
               {/* <Link to="/help" className="hover:text-blue-500 transition-colors">Help Center</Link> */}
-              <Link to="/settings/privacy-policy" className="hover:text-blue-500 transition-colors">Privacy Policy</Link>
+              <Link to="/settings/privacy-policy" className={`transition-colors ${
+                isDark ? 'hover:text-blue-400' : 'hover:text-blue-600'
+              }`}>
+                Privacy Policy
+              </Link>
               {/* <span className="px-2 py-0.5 bg-white/10 text-slate-300 rounded-md border border-white/10">
                 v1.2.0
               </span> */}
@@ -1697,7 +1897,11 @@ const Layout = () => {
             pointerEvents: showScrollTop ? 'auto' : 'none',
             transition: 'opacity 0.25s ease, transform 0.25s ease',
           }}
-          className="p-3.5 rounded-2xl bg-gradient-to-br from-slate-900/95 to-blue-950/95 backdrop-blur-xl border border-blue-500/40 text-blue-400 hover:text-white hover:from-blue-600 hover:to-indigo-600 hover:border-blue-400 shadow-[0_8px_25px_rgba(0,0,0,0.8),0_0_25px_rgba(37,99,235,0.4)] hover:shadow-[0_8px_35px_rgba(37,99,235,0.7)] cursor-pointer group active:scale-90 flex items-center justify-center"
+          className={`p-3.5 rounded-2xl backdrop-blur-xl transition-all duration-300 cursor-pointer group active:scale-90 flex items-center justify-center ${
+            isDark
+              ? 'bg-gradient-to-br from-slate-900/95 to-blue-950/95 border border-blue-500/40 text-blue-400 hover:text-white hover:from-blue-600 hover:to-indigo-600 hover:border-blue-400 shadow-[0_8px_25px_rgba(0,0,0,0.8),0_0_25px_rgba(37,99,235,0.4)] hover:shadow-[0_8px_35px_rgba(37,99,235,0.7)]'
+              : 'bg-white/95 border border-blue-400/40 text-blue-600 hover:text-white hover:bg-blue-600 hover:border-blue-600 shadow-xl shadow-blue-500/15'
+          }`}
         >
           <FiArrowUp className="w-5 h-5 transition-transform duration-300 group-hover:-translate-y-1" />
         </button>,

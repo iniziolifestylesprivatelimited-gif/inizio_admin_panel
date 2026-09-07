@@ -16,21 +16,36 @@ const AnimatedPath = animated.path;
 const AnimatedG = animated.g;
 const AnimatedRect = animated.rect;
 
-const tooltipCustomStyles = {
-  ...tooltipStyles,
-  backgroundColor: 'rgba(15, 23, 42, 0.75)',
-  backdropFilter: 'blur(16px)',
-  WebkitBackdropFilter: 'blur(16px)',
-  border: '1px solid rgba(255, 255, 255, 0.15)',
-  borderRadius: '16px',
-  color: '#f8fafc',
-  fontSize: '12px',
-  fontWeight: '600',
-  boxShadow: '0 20px 30px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.2)',
-  padding: '10px 14px',
-  pointerEvents: 'none',
-  zIndex: 9999
+const getIsDark = () => typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+const getGridStroke = () => getIsDark() ? "rgba(255, 255, 255, 0.06)" : "rgba(0, 0, 0, 0.06)";
+const getAxisStroke = () => getIsDark() ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.12)";
+
+const getTooltipStyles = () => {
+  const isDark = getIsDark();
+  return {
+    ...tooltipStyles,
+    backgroundColor: isDark ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.95)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
+    border: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(203, 213, 225, 0.9)',
+    borderRadius: '16px',
+    color: isDark ? '#f8fafc' : '#0f172a',
+    fontSize: '12px',
+    fontWeight: '600',
+    boxShadow: isDark 
+      ? '0 20px 30px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.2)' 
+      : '0 20px 30px -10px rgba(0, 0, 0, 0.12), inset 0 1px 0 0 rgba(255, 255, 255, 0.8)',
+    padding: '10px 14px',
+    pointerEvents: 'none',
+    zIndex: 9999
+  };
 };
+
+const tooltipCustomStyles = new Proxy({}, {
+  get(target, prop) {
+    return getTooltipStyles()[prop];
+  }
+});
 
 // Compact number formatter (e.g. 1500 -> 1.5k, 120000 -> 1.2L)
 const formatCompactNumber = (num, prefix = '') => {
@@ -397,15 +412,15 @@ function AppVersionsHorizontalChart({ data, width, height }) {
 
       {/* Bottom Platform Colors Legend */}
       <div className="absolute bottom-1 left-0 right-0 flex justify-center items-center gap-2 sm:gap-6 text-[10px] sm:text-xs font-bold px-2">
-        <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 rounded-lg backdrop-blur-md border border-white/10 bg-slate-900/60 shadow-lg">
+        <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 rounded-xl backdrop-blur-md border border-slate-200/80 dark:border-white/10 bg-white/80 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 shadow-sm">
           <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-xs shadow-blue-500/50"></span>
-          <span className="text-slate-300">Android</span>
-          {totalAndroid > 0 && <span className="font-mono text-blue-400 font-bold">({totalAndroid})</span>}
+          <span>Android</span>
+          {totalAndroid > 0 && <span className="font-mono text-blue-600 dark:text-blue-400 font-bold">({totalAndroid})</span>}
         </div>
-        <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 rounded-lg backdrop-blur-md border border-white/10 bg-slate-900/60 shadow-lg">
+        <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 rounded-xl backdrop-blur-md border border-slate-200/80 dark:border-white/10 bg-white/80 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 shadow-sm">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs shadow-emerald-500/50"></span>
-          <span className="text-slate-300">iOS</span>
-          {totalIos > 0 && <span className="font-mono text-emerald-400 font-bold">({totalIos})</span>}
+          <span>iOS</span>
+          {totalIos > 0 && <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">({totalIos})</span>}
         </div>
       </div>
 
@@ -577,10 +592,10 @@ function NotificationsDonutChart({ enabled, disabled, width, height, onClick }) 
           <text
             textAnchor="middle"
             dy={animationCompleted ? "-0.7em" : "-0.3em"}
-            fill="#ffffff"
+            fill="currentColor"
             fontSize={selectedItem ? 18 : 22}
             fontWeight={900}
-            className="font-mono cursor-pointer select-none"
+            className="font-mono cursor-pointer select-none text-slate-900 dark:text-white"
             onClick={() => {
               if (animationCompleted) {
                 handleClick(selectedItem ? selectedItem.label : 'All');
@@ -594,10 +609,10 @@ function NotificationsDonutChart({ enabled, disabled, width, height, onClick }) 
           <text
             textAnchor="middle"
             dy={animationCompleted ? "0.6em" : "1.4em"}
-            fill="#94a3b8"
+            fill="currentColor"
             fontSize={10}
             fontWeight={700}
-            className="uppercase tracking-wider cursor-pointer select-none"
+            className="uppercase tracking-wider cursor-pointer select-none text-slate-500 dark:text-slate-400"
             onClick={() => {
               if (animationCompleted) {
                 handleClick(selectedItem ? selectedItem.label : 'All');
@@ -613,10 +628,10 @@ function NotificationsDonutChart({ enabled, disabled, width, height, onClick }) 
             <text
               textAnchor="middle"
               dy="2.1em"
-              fill="#60a5fa"
+              fill="currentColor"
               fontSize={8}
               fontWeight={800}
-              className="uppercase tracking-wider cursor-pointer select-none animate-pulse hover:fill-blue-300 transition-colors"
+              className="uppercase tracking-wider cursor-pointer select-none animate-pulse text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
               onClick={() => handleClick(selectedItem ? selectedItem.label : 'All')}
             >
               Click for Details
@@ -629,17 +644,25 @@ function NotificationsDonutChart({ enabled, disabled, width, height, onClick }) 
       <div className="absolute bottom-0.5 left-0 right-0 flex flex-wrap justify-center gap-2 sm:gap-6 text-[10px] sm:text-xs font-bold px-2">
         <div
           onClick={() => setSelectedSegment(selectedSegment === 'Enabled' ? null : 'Enabled')}
-          className={`flex items-center gap-1.5 sm:gap-2 cursor-pointer px-2 py-0.5 sm:py-1 rounded-lg backdrop-blur-md border border-white/10 shadow-lg transition-all duration-200 ${selectedSegment === 'Enabled' ? 'bg-emerald-500/20 ring-1 ring-emerald-500 font-bold' : 'bg-slate-900/50 hover:bg-slate-800/60'}`}
+          className={`flex items-center gap-1.5 sm:gap-2 cursor-pointer px-2.5 py-1 rounded-xl backdrop-blur-md border shadow-sm transition-all duration-200 ${
+            selectedSegment === 'Enabled'
+              ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-700 dark:bg-emerald-500/20 dark:border-emerald-500/40 dark:text-emerald-300 ring-1 ring-emerald-500 font-bold'
+              : 'bg-white/80 hover:bg-white border-slate-200/80 text-slate-700 hover:text-slate-900 dark:bg-slate-900/50 dark:hover:bg-slate-800/60 dark:border-white/10 dark:text-slate-300'
+          }`}
         >
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs shadow-emerald-500/50"></span>
-          <span className="text-slate-300">Enabled ({total > 0 ? Math.round((enabled / total) * 100) : 0}%)</span>
+          <span>Enabled ({total > 0 ? Math.round((enabled / total) * 100) : 0}%)</span>
         </div>
         <div
           onClick={() => setSelectedSegment(selectedSegment === 'Disabled' ? null : 'Disabled')}
-          className={`flex items-center gap-1.5 sm:gap-2 cursor-pointer px-2 py-0.5 sm:py-1 rounded-lg backdrop-blur-md border border-white/10 shadow-lg transition-all duration-200 ${selectedSegment === 'Disabled' ? 'bg-rose-500/20 ring-1 ring-rose-500 font-bold' : 'bg-slate-900/50 hover:bg-slate-800/60'}`}
+          className={`flex items-center gap-1.5 sm:gap-2 cursor-pointer px-2.5 py-1 rounded-xl backdrop-blur-md border shadow-sm transition-all duration-200 ${
+            selectedSegment === 'Disabled'
+              ? 'bg-rose-500/15 border-rose-500/40 text-rose-700 dark:bg-rose-500/20 dark:border-rose-500/40 dark:text-rose-300 ring-1 ring-rose-500 font-bold'
+              : 'bg-white/80 hover:bg-white border-slate-200/80 text-slate-700 hover:text-slate-900 dark:bg-slate-900/50 dark:hover:bg-slate-800/60 dark:border-white/10 dark:text-slate-300'
+          }`}
         >
           <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-xs shadow-rose-500/50"></span>
-          <span className="text-slate-300">Disabled ({total > 0 ? Math.round((disabled / total) * 100) : 0}%)</span>
+          <span>Disabled ({total > 0 ? Math.round((disabled / total) * 100) : 0}%)</span>
         </div>
       </div>
 
@@ -756,7 +779,7 @@ function PriceTierGroupedChart({ categories, views, cartAdds, width, height }) {
         <LinearGradient id="visx-emerald-grad" from="#10b981" to="#059669" fromOpacity={0.9} toOpacity={0.55} />
 
         <Group left={margin.left} top={margin.top}>
-          <GridRows scale={yScale} width={xMax} stroke="rgba(255, 255, 255, 0.05)" strokeDasharray="3 3" pointerEvents="none" />
+          <GridRows scale={yScale} width={xMax} stroke={getGridStroke()} strokeDasharray="3 3" pointerEvents="none" />
           <BarGroup
             data={groupData}
             keys={keys}
@@ -812,7 +835,7 @@ function PriceTierGroupedChart({ categories, views, cartAdds, width, height }) {
           <AxisBottom
             top={yMax}
             scale={x0Scale}
-            stroke="rgba(255,255,255,0.1)"
+            stroke={getAxisStroke()}
             tickStroke="transparent"
             tickFormat={(val) => {
               if (isMobile) {
@@ -912,9 +935,9 @@ function InnerAreaChart({ labels, data, breakdowns = [], color, valuePrefix, val
 
   const isMobile = width < 480;
   const margin = isMobile 
-    ? { top: 15, right: 12, bottom: 35, left: 40 }
-    : { top: 25, right: 25, bottom: 45, left: 55 };
-  const effectiveHeight = Math.max(height, isMobile ? 220 : 250);
+    ? { top: 12, right: 12, bottom: 28, left: 40 }
+    : { top: 18, right: 20, bottom: 32, left: 50 };
+  const effectiveHeight = Math.max(height || 0, isMobile ? 120 : 140);
   const xMax = Math.max(0, width - margin.left - margin.right);
   const yMax = Math.max(0, effectiveHeight - margin.top - margin.bottom);
 
@@ -986,11 +1009,11 @@ function InnerAreaChart({ labels, data, breakdowns = [], color, valuePrefix, val
   const gradId = `visx-area-grad-${color.replace(/[^a-zA-Z0-9]/g, '')}`;
 
   return (
-    <div ref={containerRef} className="relative w-full h-full min-h-[220px]">
+    <div ref={containerRef} className="relative w-full h-full min-h-[120px]">
       <svg width={width} height={effectiveHeight}>
         <LinearGradient id={gradId} from={color} to={color} fromOpacity={0.45} toOpacity={0.02} />
         <Group left={margin.left} top={margin.top}>
-          <GridRows scale={yScale} width={xMax} stroke="rgba(255, 255, 255, 0.05)" strokeDasharray="3 3" pointerEvents="none" />
+          <GridRows scale={yScale} width={xMax} stroke={getGridStroke()} strokeDasharray="3 3" pointerEvents="none" />
           <AnimatedG style={springProps}>
             <AreaClosed
               data={chartData}
@@ -1059,7 +1082,7 @@ function InnerAreaChart({ labels, data, breakdowns = [], color, valuePrefix, val
             top={yMax}
             scale={xScale}
             tickValues={tickValues}
-            stroke="rgba(255,255,255,0.1)"
+            stroke={getAxisStroke()}
             tickStroke="transparent"
             tickFormat={(val) => {
               if (!val) return '';
@@ -1131,7 +1154,7 @@ export function VisxAreaChart({ labels = [], data = [], breakdowns = [], color =
   }
 
   return (
-    <ParentSize className="w-full h-full min-h-[220px]">
+    <ParentSize className="w-full h-full min-h-[120px]">
       {({ width, height }) => (
         <InnerAreaChart
           labels={labels}
@@ -1221,7 +1244,7 @@ function InnerStackedBarChart({ labels, series, width, height }) {
       <svg width={width} height={effectiveHeight}>
 
         <Group left={margin.left} top={margin.top}>
-          <GridRows scale={yScale} width={xMax} stroke="rgba(255, 255, 255, 0.05)" strokeDasharray="3 3" pointerEvents="none" />
+          <GridRows scale={yScale} width={xMax} stroke={getGridStroke()} strokeDasharray="3 3" pointerEvents="none" />
           <BarStack
             data={stackData}
             keys={keys}
@@ -1271,7 +1294,7 @@ function InnerStackedBarChart({ labels, series, width, height }) {
           <AxisBottom
             top={yMax}
             scale={xScale}
-            stroke="rgba(255,255,255,0.1)"
+            stroke={getAxisStroke()}
             tickStroke="transparent"
             tickFormat={(val) => {
               if (!val) return '';
@@ -1408,10 +1431,10 @@ function InnerDonutChart({ data, centerLabel, width, height }) {
           <text
             textAnchor="middle"
             dy="-0.3em"
-            fill="#ffffff"
+            fill="currentColor"
             fontSize={selectedItem ? 18 : 22}
             fontWeight={900}
-            className="font-mono cursor-pointer"
+            className="font-mono cursor-pointer text-slate-900 dark:text-white"
             onClick={() => setSelectedSegment(null)}
           >
             {selectedItem ? formatCompactNumber(selectedItem.value) : formatCompactNumber(total)}
@@ -1419,10 +1442,10 @@ function InnerDonutChart({ data, centerLabel, width, height }) {
           <text
             textAnchor="middle"
             dy="1.4em"
-            fill="#94a3b8"
+            fill="currentColor"
             fontSize={10}
             fontWeight={700}
-            className="uppercase tracking-wider cursor-pointer select-none"
+            className="uppercase tracking-wider cursor-pointer select-none text-slate-500 dark:text-slate-400"
             onClick={() => setSelectedSegment(null)}
           >
             {selectedItem ? selectedItem.label : centerLabel}
@@ -1440,15 +1463,15 @@ function InnerDonutChart({ data, centerLabel, width, height }) {
             <div
               key={`legend-${d.label || idx}`}
               onClick={() => setSelectedSegment(isSelected ? null : d.label)}
-              className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg cursor-pointer backdrop-blur-md border border-white/10 shadow-md transition-all duration-200 ${
+              className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg cursor-pointer backdrop-blur-md border shadow-sm transition-all duration-200 ${
                 isSelected
-                  ? 'bg-slate-800 text-white ring-1 ring-blue-400 font-bold scale-105'
-                  : 'bg-slate-900/60 text-slate-300 hover:bg-slate-800/80 hover:border-white/20'
+                  ? 'bg-blue-50 border-blue-300 text-blue-700 dark:bg-slate-800 dark:border-white/20 dark:text-white ring-1 ring-blue-400 font-bold scale-105'
+                  : 'bg-white/80 text-slate-700 hover:text-slate-900 border-slate-200/80 hover:bg-white dark:bg-slate-900/60 dark:text-slate-300 dark:hover:bg-slate-800/80 dark:border-white/10 dark:hover:border-white/20'
               }`}
             >
               <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }}></span>
               <span className="truncate max-w-[90px]">{d.label}</span>
-              <span className="text-slate-400 font-mono text-[9px]">({pct}%)</span>
+              <span className="text-slate-500 dark:text-slate-400 font-mono text-[9px]">({pct}%)</span>
             </div>
           );
         })}

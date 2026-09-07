@@ -90,7 +90,7 @@ const TermsAndCo = () => {
   };
 
   const renderFormattedContent = (text) => {
-    if (!text) return <p className="text-slate-500 italic">No terms and conditions content available.</p>;
+    if (!text) return <p className="text-slate-400 dark:text-slate-500 italic">No terms and conditions content available.</p>;
     
     const lines = text.split('\n');
     return (
@@ -124,14 +124,14 @@ const TermsAndCo = () => {
 
           if (isHeading) {
             return (
-              <h3 key={idx} className="text-lg font-bold text-white tracking-tight pt-3 border-b border-white/5 pb-1">
+              <h3 key={idx} className="text-lg font-bold text-slate-900 dark:text-white tracking-tight pt-3 border-b border-black/20 dark:border-white/20 pb-1">
                 {trimmed}
               </h3>
             );
           }
 
           return (
-            <p key={idx} className="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">
+            <p key={idx} className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">
               {trimmed}
             </p>
           );
@@ -145,11 +145,11 @@ const TermsAndCo = () => {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-            <FiFileText className="text-blue-400" />
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+            <FiFileText className="text-blue-600 dark:text-blue-400" />
             Terms and Conditions
           </h1>
-          <p className="text-slate-400 font-medium mt-1">
+          <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">
             {isEditing 
               ? 'Edit the terms and conditions document using the text editor below.' 
               : 'Review and manage the active customer terms and conditions document.'}
@@ -158,7 +158,7 @@ const TermsAndCo = () => {
         {!loading && !isEditing && (
           <button
             onClick={handleEditClick}
-            className="flex items-center px-4 py-2.5 text-white font-bold rounded-xl transition-all gap-2 cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            className="flex items-center px-4 py-2.5 text-white font-bold rounded-xl transition-all gap-2 cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md shadow-blue-500/20"
           >
             <FiEdit2 size={18} /> Edit Document
           </button>
@@ -166,41 +166,41 @@ const TermsAndCo = () => {
       </div>
 
       {error && (
-        <div className="text-red-400 bg-red-900/20 p-4 rounded-xl border border-red-500/30 flex items-center mb-6">
+        <div className="text-rose-600 dark:text-red-400 bg-rose-50 dark:bg-red-900/20 p-4 rounded-xl border border-rose-200 dark:border-red-500/30 flex items-center mb-6">
           <FiAlertCircle className="mr-2 text-lg shrink-0" /> {error}
         </div>
       )}
 
       {loading ? (
-        <div className="h-64 flex flex-col justify-center items-center bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl">
-          <FiLoader className="animate-spin text-3xl text-blue-400 mb-4" />
-          <p className="text-slate-400">Loading terms document...</p>
+        <div className="h-64 flex flex-col justify-center items-center bg-white/20 dark:bg-transparent backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 shadow-xl shadow-slate-900/5 dark:shadow-2xl dark:shadow-black/50 rounded-3xl">
+          <FiLoader className="animate-spin text-3xl text-blue-600 dark:text-blue-400 mb-4" />
+          <p className="text-slate-500 dark:text-slate-400">Loading terms document...</p>
         </div>
       ) : (
-        <div className="bg-tranparent backdrop-blur-xl border border-white/20 shadow-2xl rounded-3xl p-6 sm:p-8 flex flex-col transition-all duration-300">
+        <div className="bg-white/20 dark:bg-transparent backdrop-blur-xl border border-slate-200/80 dark:border-white/20 shadow-xl shadow-slate-900/5 dark:shadow-2xl rounded-3xl p-6 sm:p-8 flex flex-col transition-all duration-300">
           {isEditing ? (
             <div className="space-y-4 animate-fade-in-up">
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Document Content</label>
+              <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Document Content</label>
               <textarea
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 rows="24"
                 disabled={isSaving}
-                className="w-full px-4 py-3 bg-slate-950/60 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-slate-500 font-mono text-sm leading-relaxed transition-all resize-y custom-scrollbar"
+                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-mono text-sm leading-relaxed transition-all resize-y custom-scrollbar"
                 placeholder="Enter Terms and Conditions text..."
               ></textarea>
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={handleSaveTerms}
                   disabled={isSaving}
-                  className="text-white font-bold py-3 px-6 rounded-xl transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
+                  className="text-white font-bold py-3 px-6 rounded-xl transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 shadow-md shadow-emerald-500/20"
                 >
                   {isSaving ? <FiLoader className="animate-spin" /> : <FiSave />} Save Changes
                 </button>
                 <button
                   onClick={handleCancelEdit}
                   disabled={isSaving}
-                  className="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-6 rounded-xl transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white border border-slate-200 dark:border-transparent font-bold py-3 px-6 rounded-xl transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   <FiX /> Cancel
                 </button>
@@ -209,12 +209,12 @@ const TermsAndCo = () => {
           ) : (
             <div className="space-y-6">
               {updatedAt && (
-                <div className="text-xs text-slate-400 flex items-center gap-1.5 border-b border-white/5 pb-3">
+                <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 border-b border-black/20 dark:border-white/20 pb-3">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                  Last Updated: <span className="font-semibold text-slate-300">{updatedAt}</span>
+                  Last Updated: <span className="font-semibold text-slate-700 dark:text-slate-300">{updatedAt}</span>
                 </div>
               )}
-              <div className="p-4 sm:p-6 bg-black/25 rounded-2xl border border-white/5 max-h-[70vh] overflow-y-auto custom-scrollbar">
+              <div className="p-4 sm:p-6 bg-white/40 dark:bg-black/25 rounded-2xl border border-slate-200/80 dark:border-white/5 max-h-[70vh] overflow-y-auto custom-scrollbar">
                 {renderFormattedContent(content)}
               </div>
             </div>

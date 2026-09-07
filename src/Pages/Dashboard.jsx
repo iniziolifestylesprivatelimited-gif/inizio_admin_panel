@@ -26,8 +26,7 @@ import CustomDatePicker from '../Components/CustomDatePicker';
 import ProductDetailsModal from '../Components/ProductDetailsModal';
 import { getPollingInterval } from '../utils/browserNotifications';
 import OptimizedImage from '../Components/OptimizedImage';
-
-
+import { useTheme } from '../Context/ThemeContext';
 
 const formatActivityTime = (dateString) => {
   if (!dateString) return '';
@@ -60,20 +59,20 @@ const checkAppStatus = (u) => {
 const SalesRevenueCard = ({ salesData, chartLabels, onOpenDetails }) => {
   return (
     <Card 
-      className="w-full h-[400px] sm:h-[390px] flex flex-col relative group cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-4 sm:!p-6"
+      className="w-full h-[400px] sm:h-[390px] flex flex-col relative group cursor-pointer hover:border-slate-300 dark:hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-4 sm:!p-6"
     >
       <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-      <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
+      <div className="relative border-b border-slate-200/80 dark:border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider">Sales Revenue</h3>
-          <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Historical sales trends & revenue growth</p>
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Sales Revenue</h3>
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">Historical sales trends & revenue growth</p>
         </div>
         <button
           onClick={(e) => { e.stopPropagation(); onOpenDetails(); }}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 hover:border-white/20 transition-all text-xs font-semibold cursor-pointer shadow-sm group/btn"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-300 dark:hover:text-white dark:border-white/10 dark:hover:border-white/20 transition-all text-xs font-semibold cursor-pointer shadow-sm group/btn"
         >
           <span>Details</span>
-          <FiExternalLink size={12} className="text-slate-400 group-hover/btn:text-white transition-colors" />
+          <FiExternalLink size={12} className="text-slate-400 group-hover/btn:text-slate-700 dark:group-hover/btn:text-white transition-colors" />
         </button>
       </div>
       <div className="flex-1 w-full min-h-[260px] relative z-10">
@@ -86,20 +85,20 @@ const SalesRevenueCard = ({ salesData, chartLabels, onOpenDetails }) => {
 const OrderVolumeCard = ({ deliveredCountData, processingCountData, cancelledCountData, chartLabels, ordersChartConfig, onOpenDetails }) => {
   return (
     <Card 
-      className="w-full h-[400px] sm:h-[390px] flex flex-col relative group cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-4 sm:!p-6"
+      className="w-full h-[400px] sm:h-[390px] flex flex-col relative group cursor-pointer hover:border-slate-300 dark:hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-4 sm:!p-6"
     >
       <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-      <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
+      <div className="relative border-b border-slate-200/80 dark:border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider">Order Volume</h3>
-          <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Number of orders received over time</p>
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Order Volume</h3>
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">Number of orders received over time</p>
         </div>
         <button
           onClick={(e) => { e.stopPropagation(); onOpenDetails(); }}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 hover:border-white/20 transition-all text-xs font-semibold cursor-pointer shadow-sm group/btn"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-300 dark:hover:text-white dark:border-white/10 dark:hover:border-white/20 transition-all text-xs font-semibold cursor-pointer shadow-sm group/btn"
         >
           <span>Details</span>
-          <FiExternalLink size={12} className="text-slate-400 group-hover/btn:text-white transition-colors" />
+          <FiExternalLink size={12} className="text-slate-400 group-hover/btn:text-slate-700 dark:group-hover/btn:text-white transition-colors" />
         </button>
       </div>
       <div className="flex-1 w-full min-h-[260px] relative z-10">
@@ -112,20 +111,20 @@ const OrderVolumeCard = ({ deliveredCountData, processingCountData, cancelledCou
 const BrandShareCard = ({ brandShare, onOpenDetails }) => {
   return (
     <Card 
-      className="w-full h-[400px] sm:h-[390px] flex flex-col relative group cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-4 sm:!p-6"
+      className="w-full h-[400px] sm:h-[390px] flex flex-col relative group cursor-pointer hover:border-slate-300 dark:hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-4 sm:!p-6"
     >
       <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-      <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
+      <div className="relative border-b border-slate-200/80 dark:border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider">Brand Share</h3>
-          <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Product distribution across brands</p>
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Brand Share</h3>
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">Product distribution across brands</p>
         </div>
         <button
           onClick={(e) => { e.stopPropagation(); onOpenDetails(); }}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 hover:border-white/20 transition-all text-xs font-semibold cursor-pointer shadow-sm group/btn"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-300 dark:hover:text-white dark:border-white/10 dark:hover:border-white/20 transition-all text-xs font-semibold cursor-pointer shadow-sm group/btn"
         >
           <span>Details</span>
-          <FiExternalLink size={12} className="text-slate-400 group-hover/btn:text-white transition-colors" />
+          <FiExternalLink size={12} className="text-slate-400 group-hover/btn:text-slate-700 dark:group-hover/btn:text-white transition-colors" />
         </button>
       </div>
       <div className="flex-1 w-full min-h-[260px] relative z-10 flex items-center justify-center">
@@ -219,20 +218,20 @@ const AppVersionCard = ({ activityStats, users = [], onOpenDetails }) => {
 
   return (
     <Card
-      className="w-full h-[400px] sm:h-[390px] flex flex-col relative group cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-4 sm:!p-6"
+      className="w-full h-[400px] sm:h-[390px] flex flex-col relative group cursor-pointer hover:border-slate-300 dark:hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-4 sm:!p-6"
     >
       <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-      <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
+      <div className="relative border-b border-slate-200/80 dark:border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider">App Version Distribution</h3>
-          <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Registered devices per application release version</p>
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">App Version Distribution</h3>
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">Registered devices per application release version</p>
         </div>
         <button
           onClick={(e) => { e.stopPropagation(); onOpenDetails(); }}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 hover:border-white/20 transition-all text-xs font-semibold cursor-pointer shadow-sm group/btn"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-300 dark:hover:text-white dark:border-white/10 dark:hover:border-white/20 transition-all text-xs font-semibold cursor-pointer shadow-sm group/btn"
         >
           <span>Details</span>
-          <FiExternalLink size={12} className="text-slate-400 group-hover/btn:text-white transition-colors" />
+          <FiExternalLink size={12} className="text-slate-400 group-hover/btn:text-slate-700 dark:group-hover/btn:text-white transition-colors" />
         </button>
       </div>
       <div className="flex-1 w-full min-h-[260px] relative z-10">
@@ -245,20 +244,20 @@ const AppVersionCard = ({ activityStats, users = [], onOpenDetails }) => {
 const NotificationsCard = ({ notificationsMetrics, onOpenDetails, setSelectedNotificationsSegment, setIsNotificationsModalOpen }) => {
   return (
     <Card
-      className="w-full h-[400px] sm:h-[390px] flex flex-col relative group cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-4 sm:!p-6"
+      className="w-full h-[400px] sm:h-[390px] flex flex-col relative group cursor-pointer hover:border-slate-300 dark:hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-4 sm:!p-6"
     >
       <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-      <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
+      <div className="relative border-b border-slate-200/80 dark:border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider">Push Alerts Permission</h3>
-          <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Notification permissions enabled vs disabled ratio</p>
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Push Alerts Permission</h3>
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">Notification permissions enabled vs disabled ratio</p>
         </div>
         <button
           onClick={(e) => { e.stopPropagation(); onOpenDetails(); }}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 hover:border-white/20 transition-all text-xs font-semibold cursor-pointer shadow-sm group/btn"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-300 dark:hover:text-white dark:border-white/10 dark:hover:border-white/20 transition-all text-xs font-semibold cursor-pointer shadow-sm group/btn"
         >
           <span>Details</span>
-          <FiExternalLink size={12} className="text-slate-400 group-hover/btn:text-white transition-colors" />
+          <FiExternalLink size={12} className="text-slate-400 group-hover/btn:text-slate-700 dark:group-hover/btn:text-white transition-colors" />
         </button>
       </div>
       <div className="flex-1 w-full min-h-[260px] relative z-10 flex items-center justify-center">
@@ -278,22 +277,22 @@ const NotificationsCard = ({ notificationsMetrics, onOpenDetails, setSelectedNot
 const PriceTierCard = ({ priceTierEngagementData, onOpenDetails }) => {
   return (
     <Card
-      className="w-full h-[400px] sm:h-[390px] flex flex-col relative group cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-4 sm:!p-6"
+      className="w-full h-[400px] sm:h-[390px] flex flex-col relative group cursor-pointer hover:border-slate-300 dark:hover:border-white/20 hover:scale-[1.01] transition-all duration-300 !p-4 sm:!p-6"
     >
       <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-      <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
+      <div className="relative border-b border-slate-200/80 dark:border-white/5 pb-3 mb-4 z-10 flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
             Product Price Tier Engagement
           </h3>
-          <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Views vs cart additions by price tier</p>
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">Views vs cart additions by price tier</p>
         </div>
         <button
           onClick={(e) => { e.stopPropagation(); onOpenDetails(); }}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 hover:border-white/20 transition-all text-xs font-semibold cursor-pointer shadow-sm group/btn"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-300 dark:hover:text-white dark:border-white/10 dark:hover:border-white/20 transition-all text-xs font-semibold cursor-pointer shadow-sm group/btn"
         >
           <span>Details</span>
-          <FiExternalLink size={12} className="text-slate-400 group-hover/btn:text-white transition-colors" />
+          <FiExternalLink size={12} className="text-slate-400 group-hover/btn:text-slate-700 dark:group-hover/btn:text-white transition-colors" />
         </button>
       </div>
       <div className="flex-1 w-full min-h-[260px] relative z-10">
@@ -455,22 +454,22 @@ const ChartDetailsModal = ({
 
   return createPortal(
     <div 
-      className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-[9999] p-3 sm:p-4 md:p-6 animate-in fade-in duration-200"
+      className="fixed inset-0 dark:bg-slate-950/50 backdrop-blur-lg flex items-center justify-center z-[9999] p-3 sm:p-4 md:p-6 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div 
-        className="bg-slate-950/15 border border-white/15 rounded-3xl p-6 md:p-8 max-w-5xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+        className="bg-transparent dark:bg-slate-950/25 dark:backdrop-blur-md border border-slate-200 dark:border-white/15 rounded-3xl p-6 md:p-8 max-w-5xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="flex items-start justify-between border-b border-white/10 pb-4 mb-6">
+        <div className="flex items-start justify-between border-b border-slate-200 dark:border-white/10 pb-4 mb-6">
           <div>
-            <h3 className="text-lg font-black text-white tracking-wide">{currentMeta.title}</h3>
-            <p className="text-xs text-slate-400 mt-1 font-medium">{currentMeta.subtitle}</p>
+            <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-wide">{currentMeta.title}</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{currentMeta.subtitle}</p>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 p-2.5 rounded-xl border border-white/10 hover:border-white/20 transition-all cursor-pointer"
+            className="text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 p-2.5 rounded-xl border border-slate-200 dark:text-slate-400 dark:hover:text-white dark:bg-white/5 dark:hover:bg-white/10 dark:border-white/10 dark:hover:border-white/20 transition-all cursor-pointer"
           >
             <FiX size={18} />
           </button>
@@ -479,7 +478,7 @@ const ChartDetailsModal = ({
         {/* Modal Body */}
         <div className="flex flex-col lg:flex-row gap-8 flex-1 overflow-y-auto custom-scrollbar pr-1">
           {/* Left Chart Area */}
-          <div className="w-full lg:w-[60%] h-[340px] sm:h-[380px] lg:h-[420px] min-h-[320px] relative bg-slate-950/30 border border-white/5 rounded-2xl p-3 sm:p-4 flex items-center justify-center">
+          <div className="w-full lg:w-[60%] h-[340px] sm:h-[380px] lg:h-[420px] min-h-[320px] relative bg-white/40 dark:bg-slate-950/30 border border-slate-200/80 dark:border-white/5 rounded-2xl p-3 sm:p-4 flex items-center justify-center">
             {activeChartModal === 'revenue' && (
               <VisxAreaChart labels={chartLabels} data={salesData} color="#3b82f6" valuePrefix="₹" />
             )}
@@ -515,32 +514,32 @@ const ChartDetailsModal = ({
           <div className="w-full lg:w-[40%] flex flex-col justify-between space-y-6">
             {activeChartModal === 'revenue' && (
               <div className="space-y-4">
-                <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Revenue Breakdown</h4>
-                <div className="bg-white/[0.02] border border-white/5 p-3.5 rounded-2xl">
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Total Revenue (6 Months)</span>
-                  <span className="text-2xl font-black text-emerald-400 mt-1 block font-mono">₹{totalRev.toLocaleString('en-IN')}</span>
+                <h4 className="text-xs font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest">Revenue Breakdown</h4>
+                <div className="bg-white/40 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 p-3.5 rounded-2xl">
+                  <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Total Revenue (6 Months)</span>
+                  <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1 block font-mono">₹{totalRev.toLocaleString('en-IN')}</span>
                 </div>
-                <div className="bg-white/[0.02] border border-white/5 p-3.5 rounded-2xl flex justify-between items-center">
+                <div className="bg-white/40 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 p-3.5 rounded-2xl flex justify-between items-center">
                   <div>
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Peak Month</span>
-                    <span className="text-sm font-bold text-white mt-1 block">{peakMonth}</span>
+                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Peak Month</span>
+                    <span className="text-sm font-bold text-slate-900 dark:text-white mt-1 block">{peakMonth}</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Peak Revenue</span>
-                    <span className="text-sm font-bold text-emerald-400 mt-1 block font-mono">₹{peakAmount.toLocaleString('en-IN')}</span>
+                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Peak Revenue</span>
+                    <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-1 block font-mono">₹{peakAmount.toLocaleString('en-IN')}</span>
                   </div>
                 </div>
-                <div className="bg-white/[0.02] border border-white/5 p-3.5 rounded-2xl flex items-center justify-between">
+                <div className="bg-white/40 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 p-3.5 rounded-2xl flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Monthly Average</span>
-                    <span className="text-sm font-bold text-blue-400 mt-1 block font-mono">₹{avgMonthlyRev.toLocaleString('en-IN')}</span>
+                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Monthly Average</span>
+                    <span className="text-sm font-bold text-blue-600 dark:text-blue-400 mt-1 block font-mono">₹{avgMonthlyRev.toLocaleString('en-IN')}</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Month-over-Month</span>
+                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Month-over-Month</span>
                     <span className={`text-xs font-black px-2 py-0.5 rounded-md mt-1 inline-block ${
                       revDiff >= 0 
-                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                        : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                        ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20' 
+                        : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20'
                     }`}>
                       {revDiff >= 0 ? '+' : ''}{revPercent}%
                     </span>
@@ -551,45 +550,45 @@ const ChartDetailsModal = ({
 
             {activeChartModal === 'volume' && (
               <div className="space-y-4">
-                <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Fulfillment Metrics</h4>
-                <div className="bg-white/[0.02] border border-white/5 p-3.5 rounded-2xl flex justify-between items-center">
+                <h4 className="text-xs font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest">Fulfillment Metrics</h4>
+                <div className="bg-white/40 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 p-3.5 rounded-2xl flex justify-between items-center">
                   <div>
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Total Orders</span>
-                    <span className="text-2xl font-black text-indigo-400 mt-1 block font-mono">{totalOrders}</span>
+                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Total Orders</span>
+                    <span className="text-2xl font-black text-indigo-600 dark:text-indigo-400 mt-1 block font-mono">{totalOrders}</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Delivery Success</span>
-                    <span className="text-2xl font-black text-emerald-400 mt-1 block font-mono">{successRate}%</span>
+                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Delivery Success</span>
+                    <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1 block font-mono">{successRate}%</span>
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                  <div className="p-3 rounded-xl bg-white/40 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5">
                     <div className="flex justify-between text-xs font-bold mb-1.5">
-                      <span className="text-slate-400">Delivered</span>
-                      <span className="text-emerald-400 font-mono">{totalDelivered} ({totalOrders > 0 ? Math.round((totalDelivered/totalOrders)*100) : 0}%)</span>
+                      <span className="text-slate-600 dark:text-slate-400">Delivered</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-mono">{totalDelivered} ({totalOrders > 0 ? Math.round((totalDelivered/totalOrders)*100) : 0}%)</span>
                     </div>
-                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-2 w-full bg-slate-200/80 dark:bg-white/5 rounded-full overflow-hidden">
                       <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${totalOrders > 0 ? (totalDelivered/totalOrders)*100 : 0}%` }}></div>
                     </div>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                  <div className="p-3 rounded-xl bg-white/40 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5">
                     <div className="flex justify-between text-xs font-bold mb-1.5">
-                      <span className="text-slate-400">Processing</span>
-                      <span className="text-blue-400 font-mono">{totalProcessing} ({totalOrders > 0 ? Math.round((totalProcessing/totalOrders)*100) : 0}%)</span>
+                      <span className="text-slate-600 dark:text-slate-400">Processing</span>
+                      <span className="text-blue-600 dark:text-blue-400 font-mono">{totalProcessing} ({totalOrders > 0 ? Math.round((totalProcessing/totalOrders)*100) : 0}%)</span>
                     </div>
-                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-2 w-full bg-slate-200/80 dark:bg-white/5 rounded-full overflow-hidden">
                       <div className="h-full rounded-full bg-linear-to-r from-blue-600 to-indigo-600" style={{ width: `${totalOrders > 0 ? (totalProcessing/totalOrders)*100 : 0}%` }}></div>
                     </div>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                  <div className="p-3 rounded-xl bg-white/40 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5">
                     <div className="flex justify-between text-xs font-bold mb-1.5">
-                      <span className="text-slate-400">Cancelled</span>
-                      <span className="text-rose-400 font-mono">{totalCancelled} ({totalOrders > 0 ? Math.round((totalCancelled/totalOrders)*100) : 0}%)</span>
+                      <span className="text-slate-600 dark:text-slate-400">Cancelled</span>
+                      <span className="text-rose-600 dark:text-rose-400 font-mono">{totalCancelled} ({totalOrders > 0 ? Math.round((totalCancelled/totalOrders)*100) : 0}%)</span>
                     </div>
-                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-2 w-full bg-slate-200/80 dark:bg-white/5 rounded-full overflow-hidden">
                       <div className="h-full bg-rose-500 rounded-full" style={{ width: `${totalOrders > 0 ? (totalCancelled/totalOrders)*100 : 0}%` }}></div>
                     </div>
                   </div>
@@ -600,18 +599,18 @@ const ChartDetailsModal = ({
             {activeChartModal === 'brand' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">All Brand Distribution</h4>
-                  <span className="text-xs font-bold text-slate-400">{products.length} Total Items</span>
+                  <h4 className="text-xs font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest">All Brand Distribution</h4>
+                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{products.length} Total Items</span>
                 </div>
                 <div className="max-h-[290px] overflow-y-auto pr-1 space-y-2 custom-scrollbar">
                   {(brandShareSorted || []).map((b, idx) => {
                     const percentage = products.length > 0 ? ((b.value / products.length) * 100).toFixed(1) : '0';
                     return (
-                      <div key={b.name || idx} className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors">
-                        <span className="text-xs font-bold text-slate-200">{b.name}</span>
+                      <div key={b.name || idx} className="flex items-center justify-between p-2.5 rounded-xl bg-white/50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10 transition-colors">
+                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{b.name}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-white font-mono">{b.value} items</span>
-                          <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/10 font-mono">{percentage}%</span>
+                          <span className="text-xs font-bold text-slate-900 dark:text-white font-mono">{b.value} items</span>
+                          <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20 font-mono">{percentage}%</span>
                         </div>
                       </div>
                     );
@@ -622,27 +621,27 @@ const ChartDetailsModal = ({
 
             {activeChartModal === 'version' && (
               <div className="space-y-4">
-                <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Version Analytics</h4>
+                <h4 className="text-xs font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest">Version Analytics</h4>
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-white/[0.02] border border-white/5 p-2.5 rounded-xl">
-                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Total Devices</span>
-                    <span className="text-lg font-black text-blue-400 mt-0.5 block font-mono">{totalVersionDevices}</span>
+                  <div className="bg-white/40 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 p-2.5 rounded-xl">
+                    <span className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Total Devices</span>
+                    <span className="text-lg font-black text-blue-600 dark:text-blue-400 mt-0.5 block font-mono">{totalVersionDevices}</span>
                   </div>
-                  <div className="bg-white/[0.02] border border-white/5 p-2.5 rounded-xl">
-                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Releases</span>
-                    <span className="text-lg font-black text-purple-400 mt-0.5 block font-mono">{versions.length}</span>
+                  <div className="bg-white/40 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 p-2.5 rounded-xl">
+                    <span className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Releases</span>
+                    <span className="text-lg font-black text-purple-600 dark:text-purple-400 mt-0.5 block font-mono">{versions.length}</span>
                   </div>
-                  <div className="bg-blue-500/5 border border-blue-500/15 p-2.5 rounded-xl">
-                    <span className="text-[9px] font-black text-blue-400 uppercase tracking-wider block flex items-center gap-1.5">
+                  <div className="bg-blue-300/50 dark:bg-blue-500/5 border border-blue-200/80 dark:border-blue-500/15 p-2.5 rounded-xl">
+                    <span className="text-[9px] font-black text-blue-700 dark:text-blue-400 uppercase tracking-wider block flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-blue-500"></span> Android
                     </span>
-                    <span className="text-lg font-black text-blue-400 mt-0.5 block font-mono">{totalAndroid}</span>
+                    <span className="text-lg font-black text-blue-700 dark:text-blue-400 mt-0.5 block font-mono">{totalAndroid}</span>
                   </div>
-                  <div className="bg-emerald-500/5 border border-emerald-500/15 p-2.5 rounded-xl">
-                    <span className="text-[9px] font-black text-emerald-400 uppercase tracking-wider block flex items-center gap-1.5">
+                  <div className="bg-emerald-300/50 dark:bg-emerald-500/5 border border-emerald-200/80 dark:border-emerald-500/15 p-2.5 rounded-xl">
+                    <span className="text-[9px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-wider block flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-emerald-500"></span> iOS
                     </span>
-                    <span className="text-lg font-black text-emerald-400 mt-0.5 block font-mono">{totalIos}</span>
+                    <span className="text-lg font-black text-emerald-700 dark:text-emerald-400 mt-0.5 block font-mono">{totalIos}</span>
                   </div>
                 </div>
 
@@ -651,19 +650,19 @@ const ChartDetailsModal = ({
                     const pct = totalVersionDevices > 0 ? ((v.count / totalVersionDevices) * 100).toFixed(1) : '0';
                     const displayVer = v.version === 'Legacy' ? 'Legacy / Other' : `v${v.version || 'unknown'}`;
                     return (
-                      <div key={v.version || idx} className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5 space-y-1.5">
+                      <div key={v.version || idx} className="p-2.5 rounded-xl bg-white/50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 space-y-1.5">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-slate-200">{displayVer}</span>
+                          <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{displayVer}</span>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-white font-mono">{v.count} devices</span>
-                            <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/10">{pct}%</span>
+                            <span className="text-xs font-bold text-slate-900 dark:text-white font-mono">{v.count} devices</span>
+                            <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20">{pct}%</span>
                           </div>
                         </div>
                         <div className="flex items-center gap-3 text-[10px] font-bold">
-                          <span className="flex items-center gap-1 text-blue-400">
+                          <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
                             <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> {v.androidCount || 0} Android
                           </span>
-                          <span className="flex items-center gap-1 text-emerald-400">
+                          <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> {v.iosCount || 0} iOS
                           </span>
                         </div>
@@ -676,34 +675,34 @@ const ChartDetailsModal = ({
 
             {activeChartModal === 'notifications' && (
               <div className="space-y-4">
-                <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Notification Engagement</h4>
-                <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl flex justify-between items-center">
+                <h4 className="text-xs font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest">Notification Engagement</h4>
+                <div className="bg-white/40 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 p-3 rounded-xl flex justify-between items-center">
                   <div>
-                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Total Registered Users</span>
-                    <span className="text-xl font-black text-purple-400 mt-1 block font-mono">{totalNotifUsers} Users</span>
+                    <span className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Total Registered Users</span>
+                    <span className="text-xl font-black text-purple-600 dark:text-purple-400 mt-1 block font-mono">{totalNotifUsers} Users</span>
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
+                  <div className="p-3 rounded-xl bg-white/40 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                      <span className="text-xs font-bold text-slate-300">Enabled</span>
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Enabled</span>
                     </div>
                     <div className="text-right">
-                      <span className="text-xs font-bold text-white block font-mono">{notificationsMetrics?.enabled || 0} users</span>
-                      <span className="text-[10px] text-emerald-400 font-extrabold">{enabledPct}%</span>
+                      <span className="text-xs font-bold text-slate-900 dark:text-white block font-mono">{notificationsMetrics?.enabled || 0} users</span>
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-extrabold">{enabledPct}%</span>
                     </div>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
+                  <div className="p-3 rounded-xl bg-white/40 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
-                      <span className="text-xs font-bold text-slate-300">Disabled</span>
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Disabled</span>
                     </div>
                     <div className="text-right">
-                      <span className="text-xs font-bold text-white block font-mono">{notificationsMetrics?.disabled || 0} users</span>
-                      <span className="text-[10px] text-rose-400 font-extrabold">{disabledPct}%</span>
+                      <span className="text-xs font-bold text-slate-900 dark:text-white block font-mono">{notificationsMetrics?.disabled || 0} users</span>
+                      <span className="text-[10px] text-rose-600 dark:text-rose-400 font-extrabold">{disabledPct}%</span>
                     </div>
                   </div>
                 </div>
@@ -714,7 +713,7 @@ const ChartDetailsModal = ({
                     setSelectedNotificationsSegment('All');
                     setIsNotificationsModalOpen(true);
                   }}
-                  className="w-full py-2.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 hover:text-indigo-300 border border-indigo-500/25 transition-all text-xs font-bold cursor-pointer"
+                  className="w-full py-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 dark:text-indigo-400 dark:border-indigo-500/25 transition-all text-xs font-bold cursor-pointer"
                 >
                   View Registered Devices Details
                 </button>
@@ -723,15 +722,15 @@ const ChartDetailsModal = ({
 
             {activeChartModal === 'priceTier' && (
               <div className="space-y-4">
-                <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Conversion Analytics</h4>
+                <h4 className="text-xs font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest">Conversion Analytics</h4>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl">
-                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Total Tier Views</span>
-                    <span className="text-xl font-black text-blue-400 mt-1 block font-mono">{totalTierViews}</span>
+                  <div className="bg-white/40 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 p-3 rounded-xl">
+                    <span className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Total Tier Views</span>
+                    <span className="text-xl font-black text-blue-600 dark:text-blue-400 mt-1 block font-mono">{totalTierViews}</span>
                   </div>
-                  <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl">
-                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Total Cart Adds</span>
-                    <span className="text-xl font-black text-emerald-400 mt-1 block font-mono">{totalTierCartAdds}</span>
+                  <div className="bg-white/40 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 p-3 rounded-xl">
+                    <span className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Total Cart Adds</span>
+                    <span className="text-xl font-black text-emerald-600 dark:text-emerald-400 mt-1 block font-mono">{totalTierCartAdds}</span>
                   </div>
                 </div>
 
@@ -742,12 +741,12 @@ const ChartDetailsModal = ({
                     const conv = cViews > 0 ? ((cAdds / cViews) * 100).toFixed(1) : '0.0';
 
                     return (
-                      <div key={cat || idx} className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
-                        <div className="flex justify-between text-xs font-bold text-slate-300 mb-1">
+                      <div key={cat || idx} className="p-3 rounded-xl bg-white/50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5">
+                        <div className="flex justify-between text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                           <span>{cat}</span>
-                          <span className="text-emerald-400 font-mono">{conv}% Conv.</span>
+                          <span className="text-emerald-600 dark:text-emerald-400 font-mono">{conv}% Conv.</span>
                         </div>
-                        <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+                        <div className="flex justify-between text-[10px] text-slate-500 dark:text-slate-400 font-mono">
                           <span>Views: {cViews}</span>
                           <span>Cart Adds: {cAdds}</span>
                         </div>
@@ -758,7 +757,7 @@ const ChartDetailsModal = ({
               </div>
             )}
 
-            <div className="text-[10px] text-slate-500 font-medium border-t border-white/5 pt-3">
+            <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium border-t border-slate-200/80 dark:border-white/5 pt-3">
               * Live analytical telemetry updated automatically.
             </div>
           </div>
@@ -770,6 +769,7 @@ const ChartDetailsModal = ({
 };
 
 const Dashboard = () => {
+  const { theme, setTheme, isDark } = useTheme();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -1965,17 +1965,17 @@ const Dashboard = () => {
   if (error) {
     return (
       <div className="h-[80vh] flex flex-col justify-center items-center relative z-10 w-full">
-        <div className="p-6 rounded-3xl bg-rose-500/5 border border-rose-500/10 backdrop-blur-xl flex flex-col items-center gap-4 max-w-md text-center shadow-2xl">
-          <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+        <div className="p-6 rounded-3xl bg-rose-50/50 dark:bg-rose-500/5 border border-rose-200 dark:border-rose-500/10 backdrop-blur-xl flex flex-col items-center gap-4 max-w-md text-center shadow-2xl">
+          <div className="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 flex items-center justify-center text-rose-600 dark:text-rose-400">
             <FiActivity size={24} className="animate-bounce" />
           </div>
           <div>
-            <h3 className="text-white font-extrabold text-lg tracking-tight">Dashboard Connection Error</h3>
-            <p className="text-sm text-slate-400 mt-2 leading-relaxed">{error}</p>
+            <h3 className="text-slate-900 dark:text-white font-extrabold text-lg tracking-tight">Dashboard Connection Error</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">{error}</p>
           </div>
           <button
             onClick={() => window.location.reload()}
-            className="px-5 py-2.5 bg-rose-600/20 hover:bg-rose-600/35 border border-rose-500/30 text-rose-300 font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md"
+            className="px-5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 dark:bg-rose-600/20 dark:hover:bg-rose-600/35 dark:border-rose-500/30 dark:text-rose-300 font-bold rounded-xl text-xs transition-all cursor-pointer shadow-sm"
           >
             Retry Connection
           </button>
@@ -1995,11 +1995,10 @@ const Dashboard = () => {
         icon={FiTrendingUp}
         description="Live metrics covering sales performance, user behavior, and catalog analytics."
         action={
-          <div className="bg-slate-900/60 backdrop-blur-md border border-white/10 px-4.5 py-2 rounded-2xl flex items-center gap-3 shadow-lg shrink-0 w-fit self-start md:self-center">
+          <div className="bg-white/80 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200 dark:border-white/10 px-4.5 py-2 rounded-2xl flex items-center gap-3 shadow-xs dark:shadow-lg shrink-0 w-fit self-start md:self-center">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
             <div className="text-[10px] md:text-xs">
-              {/* <span className="text-slate-400 font-bold uppercase tracking-wider block text-[9px]">Live Connection</span> */}
-              <span className="text-white font-extrabold font-mono mt-0.5 block">
+              <span className="text-slate-900 dark:text-white font-extrabold font-mono mt-0.5 block">
                 {formatDateDDMMYYYY(new Date())}
               </span>
             </div>
@@ -2044,11 +2043,11 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="relative z-10">
-              <h3 className={`text-slate-400 text-xs sm:text-sm font-bold tracking-wide transition-all duration-300 group-hover:-translate-y-0.5 whitespace-nowrap truncate ${metric.groupHover}`} title={metric.title}>
+              <h3 className={`text-slate-600 dark:text-slate-400 text-xs sm:text-sm font-bold tracking-wide transition-all duration-300 group-hover:-translate-y-0.5 whitespace-nowrap truncate ${metric.groupHover}`} title={metric.title}>
                 {metric.title}
               </h3>
               <p
-                className="text-xl sm:text-2xl xl:text-3xl font-extrabold text-white mt-1 tracking-tight truncate"
+                className="text-xl sm:text-2xl xl:text-3xl font-extrabold text-slate-900 dark:text-white mt-1 tracking-tight truncate"
                 title={metric.value.toString()}
               >
                 {metric.value}
@@ -2063,13 +2062,13 @@ const Dashboard = () => {
         <div className="mt-8 space-y-2 relative z-10">
           {/* Section Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h2 className="text-2xl font-bold text-white tracking-tight flex items-center gap-3">
-              <FiActivity className="text-blue-400" /> Activity & Engagement Analytics
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+              <FiActivity className="text-blue-500 dark:text-blue-400" /> Activity & Engagement Analytics
             </h2>
             <div className="flex flex-wrap items-center justify-start sm:justify-end gap-3 flex-1">
               {/* Interval Selection Dropdown */}
               <div className="flex items-center gap-2 w-64">
-                <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider shrink-0">Interval:</span>
+                <span className="text-xs text-slate-600 dark:text-slate-400 font-semibold uppercase tracking-wider shrink-0">Interval:</span>
                 <CustomDropdown
                   value={breakdownType}
                   onChange={(val) => setBreakdownType(val)}
@@ -2078,7 +2077,7 @@ const Dashboard = () => {
                     { value: 'month', label: 'Monthly Breakdown' },
                     { value: 'custom', label: 'Custom Date Range' }
                   ]}
-                  statusColor="border-white/10 hover:border-blue-500/30 text-white font-bold bg-slate-800/80 !py-1.5 !rounded-xl text-xs"
+                  statusColor="border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-blue-500/30 text-slate-800 dark:text-white font-bold bg-white dark:bg-slate-800/80 !py-1.5 !rounded-xl text-xs"
                 />
               </div>
 
@@ -2103,7 +2102,7 @@ const Dashboard = () => {
 
               <button
                 onClick={() => navigate(`/dashboard/details/all${getFilterQueryParams()}`)}
-                className="flex items-center px-4 py-2 bg-blue-600/20 hover:bg-blue-600/35 border border-blue-500/30 text-blue-300 font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md hover:scale-[1.02] active:scale-[0.98] w-fit"
+                className="flex items-center px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-600/20 dark:hover:bg-blue-600/35 dark:text-blue-300 dark:border-blue-500/30 font-bold rounded-xl text-xs transition-all cursor-pointer shadow-xs dark:shadow-md hover:scale-[1.02] active:scale-[0.98] w-fit"
               >
                 <FiActivity className="mr-1.5" /> View Detailed Log Feed
               </button>
@@ -2160,18 +2159,18 @@ const Dashboard = () => {
                                        card.theme === "cyan" ? 'rgba(6, 182, 212, 0.4)' :
                                        card.theme === "pink" ? 'rgba(236, 72, 153, 0.4)' : 'rgba(59, 130, 246, 0.4)'
                     }}
-                    className={`relative overflow-hidden bg-transparent backdrop-blur-[10px] ${card.hoverBorder} p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col justify-between min-h-[145px] group hover:shadow-xl shadow-black/30`}
+                    className={`relative overflow-hidden bg-white/30 dark:bg-transparent backdrop-blur-[10px] ${card.hoverBorder} border border-slate-200/80 dark:border-white/10 p-5 rounded-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col justify-between min-h-[145px] group hover:shadow-xl shadow-slate-900/5 dark:shadow-black/30`}
                   >
                     <div className={`absolute inset-0 bg-linear-to-b ${card.fromColor} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none`}></div>
                     <div className="relative flex justify-between items-center mb-3 z-10">
-                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider transition-all duration-300 group-hover:text-white group-hover:-translate-y-0.5">{card.title}</span>
+                      <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider transition-all duration-300 group-hover:text-slate-900 dark:group-hover:text-white group-hover:-translate-y-0.5">{card.title}</span>
                       <div className={`p-2 rounded-xl ${card.bg}`}>
                         <card.icon className={`${card.color} text-lg`} />
                       </div>
                     </div>
                     <div className="relative z-10">
-                      <p className="text-3xl font-black text-white tracking-tight">{card.value}</p>
-                      <p className={`text-[10px] text-slate-500 font-bold mt-2.5 ${card.hoverColor || 'group-hover:text-blue-400'} transition-colors flex items-center gap-1.5 uppercase tracking-wider`}>
+                      <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{card.value}</p>
+                      <p className={`text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-2.5 ${card.hoverColor || 'group-hover:text-blue-500'} transition-colors flex items-center gap-1.5 uppercase tracking-wider`}>
                         {card.desc} &rarr;
                       </p>
                     </div>
@@ -2181,11 +2180,11 @@ const Dashboard = () => {
             </Card>
 
             {/* Right Column: Most Viewed Products */}
-            <Card className="lg:min-h-full min-h-fit bg-transparent backdrop-blur-2xl border border-white/10">
+            <Card className="lg:min-h-full min-h-fit">
               <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
 
-              <div className="relative border-b border-white/5 pb-4 mb-6 z-10 flex items-center justify-between">
-                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+              <div className="relative border-b border-slate-200/80 dark:border-white/5 pb-4 mb-6 z-10 flex items-center justify-between">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   Most viewed Products
                 </h3>
                 <button
@@ -2209,21 +2208,21 @@ const Dashboard = () => {
                     const firstImg = prod.images?.[0] || '';
                     const imgUrl = firstImg.startsWith('http') ? firstImg : (firstImg ? `${BASE_URL}${firstImg.startsWith('/') ? '' : '/'}${firstImg}` : '');
 
-                    let rankBg = 'bg-slate-800/80 text-slate-400 border-white/10';
-                    let itemBorder = 'border-white/5 hover:border-blue-500/30 bg-transparent backdrop-blur-2xl hover:bg-white/5';
+                    let rankBg = 'bg-slate-200 dark:bg-slate-800/80 text-slate-700 dark:text-slate-400 border border-slate-200 dark:border-white/10';
+                    let itemBorder = 'border-slate-200/80 dark:border-white/5 hover:border-blue-500/40 dark:hover:border-blue-500/30 bg-white/70 hover:bg-white dark:bg-transparent dark:hover:bg-white/5 backdrop-blur-2xl shadow-xs';
                     let rankLabel = `${idx + 1}`;
 
                     if (idx === 0) {
-                      rankBg = 'bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 font-black shadow-lg shadow-amber-500/25 border-amber-300/30';
-                      itemBorder = 'border-amber-500/30 hover:border-amber-400/60 bg-gradient-to-r from-amber-500/30 via-yellow-600/20 to-transparent';
+                      rankBg = 'bg-gradient-to-br from-amber-400 to-amber-500 text-white dark:text-slate-950 font-black shadow-md shadow-amber-500/25 border border-amber-300/60 dark:border-amber-300/30';
+                      itemBorder = 'border-amber-300/70 hover:border-amber-400 bg-gradient-to-r from-amber-300/80 to-amber-100/90 hover:from-amber-50 hover:to-white shadow-xs dark:border-amber-500/30 dark:hover:border-amber-400/60 dark:bg-gradient-to-r dark:from-amber-500/20 dark:via-yellow-600/10 dark:to-transparent dark:hover:from-amber-500/30 dark:hover:via-yellow-600/20 dark:hover:to-transparent';
                       rankLabel = '1st';
                     } else if (idx === 1) {
-                      rankBg = 'bg-gradient-to-r from-slate-300 to-slate-500 text-slate-950 font-black shadow-lg shadow-slate-400/25 border-slate-200/30';
-                      itemBorder = 'border-slate-400/30 hover:border-slate-300/60 bg-gradient-to-r from-slate-400/30 via-slate-500/20 to-transparent';
+                      rankBg = 'bg-gradient-to-br from-slate-300 to-slate-400 text-slate-800 dark:text-slate-950 font-black shadow-md shadow-slate-400/20 border border-slate-300/60 dark:border-slate-200/30';
+                      itemBorder = 'border-slate-300/80 hover:border-slate-400 bg-gradient-to-r from-slate-300/80 to-slate-100/90 hover:from-slate-50 hover:to-white shadow-xs dark:border-slate-400/30 dark:hover:border-slate-300/60 dark:bg-gradient-to-r dark:from-slate-400/20 dark:via-slate-500/10 dark:to-transparent dark:hover:from-slate-400/30 dark:hover:via-slate-500/20 dark:hover:to-transparent';
                       rankLabel = '2nd';
                     } else if (idx === 2) {
-                      rankBg = 'bg-gradient-to-r from-orange-600 to-amber-600 text-slate-950 font-black shadow-lg shadow-orange-500/25 border-orange-300/30';
-                      itemBorder = 'border-orange-500/30 hover:border-orange-400/60 bg-gradient-to-r from-orange-500/30 via-amber-600/20 to-transparent';
+                      rankBg = 'bg-gradient-to-br from-orange-400 to-amber-600 text-white dark:text-slate-950 font-black shadow-md shadow-orange-500/25 border border-orange-300/60 dark:border-orange-300/30';
+                      itemBorder = 'border-orange-300/70 hover:border-orange-400 bg-gradient-to-r from-orange-300/80 to-orange-100/90 hover:from-orange-50 hover:to-white shadow-xs dark:border-orange-500/30 dark:hover:border-orange-400/60 dark:bg-gradient-to-r dark:from-orange-500/20 dark:via-amber-600/10 dark:to-transparent dark:hover:from-orange-500/30 dark:hover:via-amber-600/20 dark:hover:to-transparent';
                       rankLabel = '3rd';
                     }
 
@@ -2231,7 +2230,7 @@ const Dashboard = () => {
                       <div
                         key={prod._id || idx}
                         onClick={() => handleProductViewsClick(item)}
-                        className={`flex items-center gap-3 p-3 rounded-2xl border transition-all duration-300 group cursor-pointer hover:scale-[1.01] shadow-sm ${itemBorder}`}
+                        className={`flex items-center gap-3 p-3 rounded-2xl border transition-all duration-300 group cursor-pointer hover:scale-[1.01] shadow-xs ${itemBorder}`}
                       >
                         {/* Rank Badge */}
                         <div className={`flex items-center justify-center shrink-0 w-8 h-8 rounded-xl text-[10px] font-black border uppercase tracking-wider ${rankBg}`}>
@@ -2248,7 +2247,7 @@ const Dashboard = () => {
                                 setViewModalProductId(prodId);
                               }
                             }}
-                            className="w-12 h-12 rounded-xl overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center shadow-inner p-0.5 hover:scale-110 hover:border-blue-500/50 transition-all duration-200 cursor-pointer"
+                            className="w-12 h-12 rounded-xl overflow-hidden bg-white shrink-0 border border-slate-200 dark:border-white/10 flex items-center justify-center shadow-inner p-0.5 hover:scale-110 hover:border-blue-500/50 transition-all duration-200 cursor-pointer"
                             title="View Product Details"
                           >
                             <OptimizedImage src={firstImg} alt={prod.name} width={120} quality={65} className="w-full h-full object-contain" />
@@ -2262,7 +2261,7 @@ const Dashboard = () => {
                                 setViewModalProductId(prodId);
                               }
                             }}
-                            className="w-12 h-12 rounded-xl bg-slate-800/80 shrink-0 flex items-center justify-center text-slate-500 border border-white/5 hover:scale-110 hover:border-blue-500/50 transition-all duration-200 cursor-pointer"
+                            className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800/80 shrink-0 flex items-center justify-center text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-white/5 hover:scale-110 hover:border-blue-500/50 transition-all duration-200 cursor-pointer"
                             title="View Product Details"
                           >
                             <FiBox size={18} />
@@ -2271,15 +2270,15 @@ const Dashboard = () => {
 
                         {/* Details */}
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-extrabold text-white truncate group-hover:text-blue-400 transition-colors leading-snug" title={prod.name || 'Unknown Product'}>
+                          <p className="text-xs font-extrabold text-slate-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug" title={prod.name || 'Unknown Product'}>
                             {prod.name || 'Unknown Product'}
                           </p>
                           <div className="flex items-center gap-1.5 mt-1 font-mono">
-                            <span className="text-[10px] text-emerald-400 font-extrabold">
+                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-extrabold">
                               ₹{(prod.offerPrice && Number(prod.offerPrice) > 0 ? Number(prod.offerPrice) : Number(prod.basePrice || 0)).toLocaleString('en-IN')}
                             </span>
                             {prod.offerPrice && Number(prod.offerPrice) > 0 && Number(prod.offerPrice) < Number(prod.basePrice || 0) && (
-                              <span className="text-[9px] text-slate-500 line-through">
+                              <span className="text-[9px] text-slate-400 dark:text-slate-500 line-through">
                                 ₹{(prod.basePrice || 0).toLocaleString('en-IN')}
                               </span>
                             )}
@@ -2287,7 +2286,7 @@ const Dashboard = () => {
                         </div>
 
                         {/* Views counter */}
-                        <div className="shrink-0 bg-blue-500/15 text-blue-300 text-xs font-black font-mono px-3 py-1.5 rounded-xl border border-blue-500/30 shadow-xs group-hover:bg-blue-500/25 transition-all">
+                        <div className="shrink-0 bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300 text-xs font-black font-mono px-3 py-1.5 rounded-xl border border-blue-200 dark:border-blue-500/30 shadow-xs group-hover:bg-blue-100 dark:group-hover:bg-blue-500/25 transition-all">
                           {item.views || 0} views
                         </div>
                       </div>
@@ -2304,24 +2303,24 @@ const Dashboard = () => {
       {!loading && activityStats && activityStats.trends && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 z-10 relative mt-6">
           {/* Trends Area Chart */}
-          <Card className="lg:col-span-2 !p-4 sm:!p-5 overflow-hidden flex flex-col min-h-[360px] sm:min-h-[340px] h-auto">
+          <Card className="lg:col-span-2 !p-4 sm:!p-5 overflow-hidden flex flex-col h-[340px]">
             <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none" />
-            <div className="relative border-b border-white/5 pb-3 mb-4 z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="relative border-b border-slate-200/80 dark:border-white/5 pb-2.5 mb-3 z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full animate-pulse bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"></span>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full animate-pulse bg-gradient-to-r from-blue-600 to-indigo-600"></span>
                   User Engagement Analytics
                 </h3>
               </div>
               <div className="flex items-center gap-4">
-                <div className="flex bg-slate-950/40 p-1 rounded-xl border border-white/5">
+                <div className="flex bg-slate-100 dark:bg-slate-950/40 p-1 rounded-xl border border-slate-200 dark:border-white/5">
                   {['1d', '1w', '1m', '1y'].map((range) => (
                     <button
                       key={range}
                       onClick={() => setTrendsRange(range)}
                       className={`px-2.5 py-1 text-[10px] font-black uppercase rounded-lg transition-all cursor-pointer ${trendsRange === range
-                        ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                        : 'text-slate-400 hover:text-slate-200 border border-transparent'
+                        ? 'bg-blue-600 text-white shadow-xs dark:bg-blue-500/20 dark:text-blue-400 border border-blue-600 dark:border-blue-500/30'
+                        : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 border border-transparent'
                         }`}
                     >
                       {range}
@@ -2330,9 +2329,8 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-
             <div
-              className="relative w-full flex-1 min-h-[240px] h-[260px] sm:h-[240px] z-10 transition-all duration-200 ease-in-out"
+              className="relative w-full flex-1 min-h-0 z-10 transition-all duration-200 ease-in-out"
               style={{ opacity: chartOpacity, transform: `scale(${chartOpacity === 0 ? 0.98 : 1})` }}
             >
               <VisxAreaChart labels={activeLabels} data={activeValues} breakdowns={activeBreakdowns} color="#3b82f6" valueSuffix=" actions" />
@@ -2340,35 +2338,35 @@ const Dashboard = () => {
           </Card>
 
           {/* Top Trending List */}
-          <Card className="!p-4 sm:!p-5 overflow-hidden flex flex-col min-h-[360px] sm:min-h-[340px] h-auto">
+          <Card className="!p-4 sm:!p-5 overflow-hidden flex flex-col h-[340px]">
             <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/5 to-transparent pointer-events-none" />
-            <div className="relative border-b border-white/5 pb-3 mb-4 z-10">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                <FiTrendingUp className="text-indigo-400" />
+            <div className="relative border-b border-slate-200/80 dark:border-white/5 pb-2.5 mb-3 z-10">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                <FiTrendingUp className="text-indigo-500 dark:text-indigo-400" />
                 Trending Highlights
               </h3>
-              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Top active items by date</p>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">Top active items by date</p>
             </div>
 
-            <div className="relative flex-1 overflow-y-auto space-y-2.5 pr-1 custom-scrollbar z-10">
+            <div className="relative flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 custom-scrollbar z-10">
               {trendingHighlights.length === 0 ? (
-                <div className="text-center text-slate-500 text-xs py-12 italic">
+                <div className="text-center text-slate-400 dark:text-slate-500 text-xs py-12 italic">
                   No highlight events recorded.
                 </div>
               ) : (
                 trendingHighlights.map((item, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-between p-2 rounded-xl bg-slate-950/10 border border-white/5 hover:border-indigo-500/10 transition-colors"
+                    className="flex items-center justify-between p-2 rounded-xl bg-slate-50/80 dark:bg-slate-950/10 border border-slate-200/80 dark:border-white/5 hover:border-indigo-400/30 dark:hover:border-indigo-500/10 transition-colors"
                   >
                     <div className="flex flex-col min-w-0">
-                      <span className="text-xs font-bold text-white truncate">{item.name}</span>
-                      <span className="text-[9px] text-slate-500 font-semibold">{item.type} &bull; {item.date}</span>
+                      <span className="text-xs font-bold text-slate-900 dark:text-white truncate">{item.name}</span>
+                      <span className="text-[9px] text-slate-500 dark:text-slate-400 font-semibold">{item.type} &bull; {item.date}</span>
                     </div>
-                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-lg border shrink-0 ${item.type === 'Product' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                      item.type === 'Brand' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' :
-                        item.type === 'Category' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
-                          'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-lg border shrink-0 ${item.type === 'Product' ? 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20' :
+                      item.type === 'Brand' ? 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-500/20' :
+                        item.type === 'Category' ? 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20' :
+                          'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
                       }`}>
                       {item.count} views
                     </span>
@@ -2445,7 +2443,7 @@ const Dashboard = () => {
       {/* Product Views Details Modal (Expanded) */}
       {isProductModalOpen && selectedProductViews && createPortal(
         <div 
-          className="fixed inset-0 bg-slate-950/50 backdrop-blur-lg flex items-center justify-center z-[9999] p-3 sm:p-4 md:p-6 animate-in fade-in duration-200"
+          className="fixed inset-0 bg-transparent dark:bg-slate-950/50 backdrop-blur-xl dark:backdrop-blur-md flex items-center justify-center z-[9999] p-3 sm:p-4 md:p-6 animate-in fade-in duration-200"
           onClick={() => {
             setIsProductModalOpen(false);
             setSelectedProductViews(null);
@@ -2453,7 +2451,7 @@ const Dashboard = () => {
           }}
         >
           <div 
-            className="bg-slate-950/25 border border-white/20 shadow-2xl rounded-3xl p-5 sm:p-6 max-w-2xl w-full relative overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
+            className="bg-transparent dark:bg-slate-950/15 border border-slate-200 dark:border-white/20 shadow-2xl rounded-3xl p-5 sm:p-6 max-w-2xl w-full relative overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col backdrop-blur-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="absolute inset-0 bg-transparent pointer-events-none"></div>
@@ -2520,7 +2518,7 @@ const Dashboard = () => {
               return (
                 <div className="flex flex-col h-full min-h-0 relative z-10 space-y-4">
                   {/* Top Header: Product Info & 2x2 Compact Metric Grid */}
-                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 border-b border-white/20 pb-3.5 sm:pb-4 relative">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 border-b border-slate-200/80 dark:border-white/20 pb-3.5 sm:pb-4 relative">
                     {/* Close Button - positioned top-right */}
                     <button
                       onClick={() => {
@@ -2528,7 +2526,7 @@ const Dashboard = () => {
                         setSelectedProductViews(null);
                         setProductViewerSearch('');
                       }}
-                      className="absolute top-0 right-0 sm:static p-1.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer shrink-0 z-20 sm:order-3"
+                      className="absolute top-0 right-0 sm:static p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-400 dark:hover:text-white rounded-xl transition-all cursor-pointer shrink-0 z-20 sm:order-3"
                       title="Close modal"
                     >
                       <FiX size={16} />
@@ -2544,13 +2542,13 @@ const Dashboard = () => {
                             setViewModalProductId(prodId);
                           }
                         }}
-                        className="w-14 h-14 sm:w-18 sm:h-18 rounded-2xl overflow-hidden bg-white shrink-0 border border-white/15 p-1 flex items-center justify-center shadow-inner cursor-pointer hover:border-blue-500/50 hover:scale-105 transition-all duration-200 relative group"
+                        className="w-14 h-14 sm:w-18 sm:h-18 rounded-2xl overflow-hidden bg-slate-50 dark:bg-white shrink-0 border border-slate-200 dark:border-white/15 p-1 flex items-center justify-center shadow-inner cursor-pointer hover:border-blue-500/50 hover:scale-105 transition-all duration-200 relative group"
                         title="Click to view product details modal"
                       >
                         {firstImg ? (
                           <OptimizedImage src={firstImg} alt={prod.name} width={180} quality={70} className="w-full h-full object-contain" />
                         ) : (
-                          <FiBox className="text-slate-500" size={24} />
+                          <FiBox className="text-slate-400 dark:text-slate-500" size={24} />
                         )}
                         {imagesCount > 1 && (
                           <span className="absolute bottom-1 right-1 bg-black/80 text-slate-300 text-[8px] font-mono px-1 rounded">
@@ -2562,7 +2560,7 @@ const Dashboard = () => {
                       {/* Title & Metadata Badges */}
                       <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
                         <h3 
-                          className="text-sm sm:text-base font-black text-white tracking-tight leading-snug truncate hover:text-blue-400 cursor-pointer transition-colors"
+                          className="text-sm sm:text-base font-black text-slate-900 dark:text-white tracking-tight leading-snug truncate hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors"
                           onClick={() => {
                             const prodId = prod._id || prod.id;
                             if (prodId) setViewModalProductId(prodId);
@@ -2575,18 +2573,18 @@ const Dashboard = () => {
                         {/* Category & Brand tags */}
                         <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
                           {brandName && (
-                            <span className="font-bold px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/10 flex items-center gap-1">
-                              <FiTag size={10} className="text-slate-400" />
+                            <span className="font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10 flex items-center gap-1">
+                              <FiTag size={10} className="text-slate-500 dark:text-slate-400" />
                               {brandName}
                             </span>
                           )}
                           {categoryName && (
-                            <span className="font-semibold px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/10">
+                            <span className="font-semibold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10">
                               {categoryName}{subCategoryName ? ` / ${subCategoryName}` : ''}
                             </span>
                           )}
                           {variantsCount > 0 && (
-                            <span className="font-semibold px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/10">
+                            <span className="font-semibold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10">
                               {variantsCount} Variant{variantsCount > 1 ? 's' : ''}
                             </span>
                           )}
@@ -2594,15 +2592,15 @@ const Dashboard = () => {
 
                         {/* Price Row */}
                         <div className="flex items-center gap-2 text-xs font-mono pt-0.5 flex-wrap">
-                          <span className="text-emerald-400 font-black text-sm">
+                          <span className="text-emerald-600 dark:text-emerald-400 font-black text-sm">
                             ₹{effectivePrice.toLocaleString('en-IN')}
                           </span>
                           {discountPercent > 0 && (
                             <>
-                              <span className="text-slate-500 line-through text-[11px]">
+                              <span className="text-slate-400 dark:text-slate-500 line-through text-[11px]">
                                 ₹{basePrice.toLocaleString('en-IN')}
                               </span>
-                              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-rose-500/15 text-rose-400 border border-rose-500/25">
+                              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-rose-500/10 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20 dark:border-rose-500/25">
                                 {discountPercent}% OFF
                               </span>
                             </>
@@ -2620,49 +2618,49 @@ const Dashboard = () => {
                     <div className="w-full sm:w-auto sm:order-2">
                       <div className="grid grid-cols-2 gap-1.5 w-full sm:min-w-[220px]">
                         {/* Total Views */}
-                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
-                          <div className="flex items-center justify-between text-slate-400">
+                        <div className="p-2 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 flex flex-col justify-between">
+                          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
                             <span className="text-[9px] font-bold uppercase tracking-wider">Total Views</span>
                             <FiEye size={11} className="text-slate-400" />
                           </div>
                           <div className="mt-1 flex items-baseline justify-between gap-1">
-                            <span className="text-sm font-black text-white font-mono">{selectedProductViews.totalViews}</span>
+                            <span className="text-sm font-black text-slate-900 dark:text-white font-mono">{selectedProductViews.totalViews}</span>
                             <span className="text-[9px] text-slate-500">hits</span>
                           </div>
                         </div>
 
                         {/* Unique Users */}
-                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
-                          <div className="flex items-center justify-between text-slate-400">
+                        <div className="p-2 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 flex flex-col justify-between">
+                          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
                             <span className="text-[9px] font-bold uppercase tracking-wider">Unique</span>
                             <FiUsers size={11} className="text-slate-400" />
                           </div>
                           <div className="mt-1 flex items-baseline justify-between gap-1">
-                            <span className="text-sm font-black text-white font-mono">{uniqueViewers}</span>
+                            <span className="text-sm font-black text-slate-900 dark:text-white font-mono">{uniqueViewers}</span>
                             <span className="text-[9px] text-slate-500">{repeatViewers} rep</span>
                           </div>
                         </div>
 
                         {/* Avg Views */}
-                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
-                          <div className="flex items-center justify-between text-slate-400">
+                        <div className="p-2 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 flex flex-col justify-between">
+                          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
                             <span className="text-[9px] font-bold uppercase tracking-wider">Avg Views</span>
                             <FiActivity size={11} className="text-slate-400" />
                           </div>
                           <div className="mt-1 flex items-baseline justify-between gap-1">
-                            <span className="text-sm font-black text-white font-mono">{avgViewsPerUser}x</span>
+                            <span className="text-sm font-black text-slate-900 dark:text-white font-mono">{avgViewsPerUser}x</span>
                             <span className="text-[9px] text-slate-500">/user</span>
                           </div>
                         </div>
 
                         {/* Ordered */}
-                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
-                          <div className="flex items-center justify-between text-slate-400">
+                        <div className="p-2 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 flex flex-col justify-between">
+                          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
                             <span className="text-[9px] font-bold uppercase tracking-wider">Ordered</span>
                             <FiShoppingBag size={11} className="text-slate-400" />
                           </div>
                           <div className="mt-1 flex items-baseline justify-between gap-1">
-                            <span className="text-sm font-black text-emerald-400 font-mono">
+                            <span className="text-sm font-black text-emerald-600 dark:text-emerald-400 font-mono">
                               {totalUnitsSold > 0 ? `${totalUnitsSold}u` : `${productOrdersCount} ord`}
                             </span>
                             <span className="text-[9px] text-slate-500">
@@ -2677,11 +2675,11 @@ const Dashboard = () => {
                   {/* Searchable Viewers Section Header */}
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                        <FiUsers className="text-blue-400" size={13} />
+                      <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                        <FiUsers className="text-blue-500 dark:text-blue-400" size={13} />
                         <span>Viewer Breakdown</span>
                       </span>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/10 text-slate-300 font-bold">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 font-bold">
                         {filteredViewers.length} of {uniqueViewers}
                       </span>
                     </div>
@@ -2689,18 +2687,18 @@ const Dashboard = () => {
                     {/* User search bar */}
                     {uniqueViewers > 0 && (
                       <div className="relative flex-1 sm:max-w-xs">
-                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={12} />
+                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={12} />
                         <input
                           type="text"
                           placeholder="Filter user by name, email, phone..."
                           value={productViewerSearch}
                           onChange={(e) => setProductViewerSearch(e.target.value)}
-                          className="w-full pl-8 pr-7 py-1.5 bg-black/40 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50"
+                          className="w-full pl-8 pr-7 py-1.5 bg-slate-100 dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500"
                         />
                         {productViewerSearch && (
                           <button
                             onClick={() => setProductViewerSearch('')}
-                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white text-xs"
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:text-slate-500 dark:hover:text-white text-xs"
                           >
                             ✕
                           </button>
@@ -2712,9 +2710,9 @@ const Dashboard = () => {
                   {/* Scrollable list of user view metrics */}
                   <div className="space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-1 flex-1">
                     {filteredViewers.length === 0 ? (
-                      <div className="p-8 text-center bg-white/[0.01] rounded-2xl border border-white/5">
-                        <FiUsers className="mx-auto text-slate-600 text-2xl mb-1.5" />
-                        <p className="text-xs text-slate-400 font-medium">
+                      <div className="p-8 text-center bg-slate-50 dark:bg-white/[0.01] rounded-2xl border border-slate-200/80 dark:border-white/5">
+                        <FiUsers className="mx-auto text-slate-400 dark:text-slate-600 text-2xl mb-1.5" />
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                           {productViewerSearch
                             ? `No viewers match "${productViewerSearch}".`
                             : 'No individual user view statistics recorded.'}
@@ -2731,12 +2729,12 @@ const Dashboard = () => {
                         return (
                           <div
                             key={u._id || u.email || index}
-                            className="p-3 rounded-2xl bg-white/[0.02] hover:bg-white/[0.04] border border-white/5 hover:border-white/15 transition-all duration-200 space-y-2"
+                            className="p-3 rounded-2xl bg-slate-50/80 hover:bg-slate-100/80 dark:bg-white/[0.02] dark:hover:bg-white/[0.04] border border-slate-200/80 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/15 transition-all duration-200 space-y-2"
                           >
                             <div className="flex items-center justify-between gap-2.5">
                               {/* User details */}
                               <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                <div className="w-8 h-8 rounded-xl border bg-linear-to-tr from-blue-500/20 to-indigo-500/20 border-white/10 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-inner">
+                                <div className="w-8 h-8 rounded-xl border bg-linear-to-tr from-blue-500/10 to-indigo-500/10 dark:from-blue-500/20 dark:to-indigo-500/20 border-blue-500/20 dark:border-white/10 text-blue-600 dark:text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-inner">
                                   {initials}
                                 </div>
                                 <div className="min-w-0 flex-1">
@@ -2748,21 +2746,21 @@ const Dashboard = () => {
                                           navigate(`/users/list?userId=${u._id}`);
                                         }
                                       }}
-                                      className="text-xs text-white font-extrabold truncate hover:text-blue-400 transition-colors cursor-pointer"
+                                      className="text-xs text-slate-900 dark:text-white font-extrabold truncate hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
                                       title={u.name || 'Unknown User'}
                                     >
                                       {u.name || 'Unknown User'}
                                     </span>
                                     {u.role && u.role !== 'user' && (
-                                      <span className="text-[9px] uppercase font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                      <span className="text-[9px] uppercase font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
                                         {u.role}
                                       </span>
                                     )}
                                   </div>
-                                  <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono truncate">
+                                  <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 font-mono truncate">
                                     <span className="truncate">{u.email || '-'}</span>
                                     {u.phone && (
-                                      <span className="text-slate-500 shrink-0 flex items-center gap-0.5">
+                                      <span className="text-slate-400 dark:text-slate-500 shrink-0 flex items-center gap-0.5">
                                         • {u.phone}
                                       </span>
                                     )}
@@ -2772,11 +2770,11 @@ const Dashboard = () => {
 
                               {/* View counter & time */}
                               <div className="text-right shrink-0 flex flex-col items-end">
-                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-500/15 text-blue-300 border border-blue-500/30">
+                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30">
                                   {item.count || 0} view{item.count !== 1 ? 's' : ''} ({percent}%)
                                 </span>
                                 {item.latestView && (
-                                  <span className="text-[9px] text-slate-500 font-medium mt-0.5 font-mono flex items-center gap-1">
+                                  <span className="text-[9px] text-slate-400 dark:text-slate-500 font-medium mt-0.5 font-mono flex items-center gap-1">
                                     <FiClock size={9} />
                                     {formatActivityTime(item.latestView)}
                                   </span>
@@ -2785,7 +2783,7 @@ const Dashboard = () => {
                             </div>
 
                             {/* View Percentage Progress Bar */}
-                            <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+                            <div className="w-full bg-slate-200/80 dark:bg-white/5 h-1 rounded-full overflow-hidden">
                               <div
                                 className="bg-gradient-to-r from-blue-500 to-indigo-500 h-full rounded-full transition-all duration-300"
                                 style={{ width: `${Math.min(100, Math.max(5, percent))}%` }}
@@ -2798,26 +2796,14 @@ const Dashboard = () => {
                   </div>
 
                   {/* Modal Footer Actions */}
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 pt-3 border-t border-white/10">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 pt-3 border-t border-slate-200/80 dark:border-white/10">
                     <div className="flex items-center gap-2 w-full sm:w-auto">
-                      {/* {prod._id && (
-                        <button
-                          onClick={() => {
-                            setIsProductModalOpen(false);
-                            navigate(`/products/variants/${prod._id}`);
-                          }}
-                          className="flex-1 sm:flex-initial px-3 py-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-purple-300 font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                        >
-                          <FiSliders size={13} />
-                          <span>Edit Variants</span>
-                        </button>
-                      )} */}
                       <button
                         onClick={() => {
                           setIsProductModalOpen(false);
                           navigate(`/dashboard/details/most-viewed-products${getFilterQueryParams()}`);
                         }}
-                        className="flex-1 sm:flex-initial px-3.5 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-300 font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                        className="flex-1 sm:flex-initial px-3.5 py-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-600/20 dark:hover:bg-blue-600/30 border border-blue-200 dark:border-blue-500/30 text-blue-700 dark:text-blue-300 font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
                       >
                         <FiBarChart2 size={13} />
                         <span>All Viewed Products</span>
@@ -2830,7 +2816,7 @@ const Dashboard = () => {
                         setSelectedProductViews(null);
                         setProductViewerSearch('');
                       }}
-                      className="w-full sm:w-auto px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer border border-white/10 shadow-sm"
+                      className="w-full sm:w-auto px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white font-bold rounded-xl text-xs transition-all cursor-pointer border border-slate-200 dark:border-white/10 shadow-sm"
                     >
                       Close
                     </button>
@@ -2845,25 +2831,25 @@ const Dashboard = () => {
 
       {/* Push Alerts Permissions Modal */}
       {isNotificationsModalOpen && createPortal(
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
-          <div className="bg-linear-to-br from-slate-950 via-slate-900 to-blue-950/95 border border-white/10 shadow-2xl rounded-3xl p-6 max-w-md w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+        <div className="fixed inset-0 bg-slate-900/40 dark:bg-slate-950/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-linear-to-br dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/95 border border-slate-200 dark:border-white/10 shadow-2xl rounded-3xl p-6 max-w-md w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="absolute inset-0 bg-linear-to-b from-slate-100/50 dark:from-white/5 to-transparent pointer-events-none"></div>
 
             <div className="flex justify-between items-start mb-5 relative z-1000">
               <div className="flex items-center gap-3">
                 <div className={`p-2.5 rounded-xl shrink-0 ${selectedNotificationsSegment === 'Enabled'
-                  ? 'bg-emerald-500/20 text-emerald-400'
+                  ? 'bg-emerald-500/15 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'
                   : selectedNotificationsSegment === 'Disabled'
-                    ? 'bg-rose-500/20 text-rose-400'
-                    : 'bg-blue-500/20 text-blue-400'
+                    ? 'bg-rose-500/15 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400'
+                    : 'bg-blue-500/15 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400'
                   }`}>
                   <FiBell size={20} />
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-white tracking-tight leading-snug">
+                  <h3 className="text-base font-black text-slate-900 dark:text-white tracking-tight leading-snug">
                     Push Notification Users
                   </h3>
-                  <p className="text-[10px] text-slate-400 mt-0.5 font-medium">
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
                     Showing {selectedNotificationsSegment} notifications ({filteredNotificationsUsers.length} user{filteredNotificationsUsers.length !== 1 ? 's' : ''})
                   </p>
                 </div>
@@ -2873,7 +2859,7 @@ const Dashboard = () => {
                   setIsNotificationsModalOpen(false);
                   setNotificationsSearchQuery('');
                 }}
-                className="p-1.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer"
+                className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-400 dark:hover:text-white rounded-xl transition-all cursor-pointer"
               >
                 <FiX size={16} />
               </button>
@@ -2889,12 +2875,12 @@ const Dashboard = () => {
                 value={notificationsSearchQuery}
                 onChange={(e) => setNotificationsSearchQuery(e.target.value)}
                 placeholder="Search by name, email or phone..."
-                className="w-full pl-9 pr-8 py-2 bg-slate-950/40 border border-white/10 hover:border-white/20 focus:border-blue-500 focus:outline-hidden text-xs text-white placeholder-slate-500 rounded-xl transition-all"
+                className="w-full pl-9 pr-8 py-2 bg-slate-100 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 focus:border-blue-500 focus:outline-hidden text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 rounded-xl transition-all"
               />
               {notificationsSearchQuery && (
                 <button
                   onClick={() => setNotificationsSearchQuery('')}
-                  className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-white transition-colors"
+                  className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
                 >
                   <FiX size={12} />
                 </button>
@@ -2917,20 +2903,20 @@ const Dashboard = () => {
                   return (
                     <div
                       key={u._id || u.email || index}
-                      className="flex items-center justify-between bg-transparent backdrop-blur-2xl border border-white/10 p-3 rounded-xl hover:border-white/20 transition-colors animate-in fade-in duration-150"
+                      className="flex items-center justify-between bg-slate-50/80 hover:bg-slate-100/80 dark:bg-transparent backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 p-3 rounded-xl hover:border-slate-300 dark:hover:border-white/20 transition-colors animate-in fade-in duration-150"
                     >
                       <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
                         <div className={`w-8 h-8 rounded-lg border text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-inner ${isEnabled
-                          ? 'bg-gradient-to-tr from-emerald-500/20 to-teal-500/20 border-emerald-500/20'
-                          : 'bg-gradient-to-tr from-rose-500/20 to-pink-500/20 border-rose-500/20'
+                          ? 'bg-gradient-to-tr from-emerald-500/20 to-teal-500/20 border-emerald-500/20 text-emerald-600 dark:text-white'
+                          : 'bg-gradient-to-tr from-rose-500/20 to-pink-500/20 border-rose-500/20 text-rose-600 dark:text-white'
                           }`}>
                           {initials}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <span className="text-xs text-white font-extrabold block truncate">{u.name || 'Unknown User'}</span>
-                          <span className="text-[9px] text-slate-400 font-mono block truncate select-all">{u.email || '-'}</span>
+                          <span className="text-xs text-slate-900 dark:text-white font-extrabold block truncate">{u.name || 'Unknown User'}</span>
+                          <span className="text-[9px] text-slate-500 dark:text-slate-400 font-mono block truncate select-all">{u.email || '-'}</span>
                           {deviceText && (
-                            <span className="text-[9px] text-slate-500 block truncate mt-0.5">
+                            <span className="text-[9px] text-slate-400 dark:text-slate-500 block truncate mt-0.5">
                               Device: {deviceText}
                             </span>
                           )}
@@ -2939,8 +2925,8 @@ const Dashboard = () => {
 
                       <div className="text-right shrink-0">
                         <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold border ${isEnabled
-                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                          : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                          : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
                           }`}>
                           {isEnabled ? 'Enabled' : 'Disabled'}
                         </span>
@@ -2956,7 +2942,7 @@ const Dashboard = () => {
                 setIsNotificationsModalOpen(false);
                 setNotificationsSearchQuery('');
               }}
-              className="w-full mt-6 py-2.5 bg-slate-800 border border-white/10 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md"
+              className="w-full mt-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:border-white/10 dark:hover:bg-slate-700 dark:text-white font-bold rounded-xl text-xs transition-all cursor-pointer border border-slate-200 shadow-sm"
             >
               Close Details
             </button>
