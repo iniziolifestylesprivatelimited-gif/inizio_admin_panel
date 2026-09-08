@@ -169,13 +169,13 @@ const Brands = () => {
 
   return (
     <div className="relative space-y-6 min-h-full z-0">
-
-
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3"><FiTag className='text-blue-400' /> Brand Management.</h1>
-          <p className="text-slate-400 font-medium mt-1">Add, edit, and organize product brands across your catalog.</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+            <FiTag className="text-blue-500 dark:text-blue-400" /> Brand Management
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Add, edit, and organize product brands across your catalog.</p>
         </div>
         <div className="relative w-full sm:w-72 mt-4 sm:mt-0">
           <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 z-10" />
@@ -187,7 +187,7 @@ const Brands = () => {
               setSearchTerm(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full pl-10 pr-10 py-2.5 bg-black/20 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md transition-all text-sm font-medium placeholder-slate-400"
+            className="w-full pl-10 pr-10 py-2.5 bg-white dark:bg-black/20 border border-slate-200/80 dark:border-white/10 text-slate-800 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-black/40 shadow-xs dark:shadow-inner backdrop-blur-md transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-400"
           />
           {searchTerm && (
             <button
@@ -196,7 +196,7 @@ const Brands = () => {
                 setSearchTerm('');
                 setCurrentPage(1);
               }}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer"
             >
               <FiX className="w-4 h-4" />
             </button>
@@ -208,12 +208,12 @@ const Brands = () => {
 
         {/* Left Column: Add / Edit Form */}
         <div className="lg:col-span-1">
-          <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl p-6 flex flex-col justify-between lg:h-[580px]">
-            <div className="flex items-center gap-3 mb-4 border-b border-white/10 pb-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-900/50 text-blue-400 flex items-center justify-center text-lg">
+          <div className="bg-white/10 dark:bg-transparent backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 shadow-xl dark:shadow-2xl shadow-slate-400/50 dark:shadow-black/50 rounded-3xl p-6 flex flex-col justify-between lg:h-[580px]">
+            <div className="flex items-center gap-3 mb-4 border-b border-slate-200/80 dark:border-white/10 pb-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/50 border border-blue-200/60 dark:border-transparent text-blue-600 dark:text-blue-400 flex items-center justify-center text-lg">
                 {editingId ? <FiEdit2 /> : <FiTag />}
               </div>
-              <h2 className="text-lg font-bold text-white">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
                 {editingId ? 'Edit Brand' : 'Add New Brand'}
               </h2>
             </div>
@@ -221,30 +221,30 @@ const Brands = () => {
             <form onSubmit={handleSubmit} className="space-y-4 flex-1 flex flex-col justify-between overflow-y-auto custom-scrollbar pr-1">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Brand Name</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Brand Name</label>
                   <input
                     type="text"
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder="e.g. Sony, Samsung"
-                    className="w-full px-4 py-2.5 bg-black/20 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md transition-all text-sm font-medium placeholder-slate-500"
+                    className="w-full px-4 py-2.5 bg-white dark:bg-black/20 border border-slate-200/80 dark:border-white/10 text-slate-800 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-black/40 shadow-xs dark:shadow-inner backdrop-blur-md transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Description</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Description</label>
                   <input
                     type="text"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     placeholder="e.g. Smart accessories brand"
-                    className="w-full px-4 py-2.5 bg-black/20 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md transition-all text-sm font-medium placeholder-slate-500"
+                    className="w-full px-4 py-2.5 bg-white dark:bg-black/20 border border-slate-200/80 dark:border-white/10 text-slate-800 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-black/40 shadow-xs dark:shadow-inner backdrop-blur-md transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500"
                   />
                 </div>
 
                 {/* Brand Logo Upload Dropzone */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Brand Logo</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Brand Logo</label>
                   <div
                     onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                     onDragLeave={() => setIsDragging(false)}
@@ -260,7 +260,7 @@ const Brands = () => {
                     onClick={() => document.getElementById('brand-logo-input').click()}
                     className={`w-full h-32 border-2 border-dashed rounded-2xl flex flex-col justify-center items-center gap-1.5 cursor-pointer transition-all duration-300 relative overflow-hidden group select-none ${isDragging
                       ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/20'
-                      : 'border-white/10 hover:border-blue-500/40 hover:bg-white/5'
+                      : 'border-slate-300 dark:border-white/10 hover:border-blue-500/40 bg-slate-50/50 hover:bg-slate-100/50 dark:bg-transparent dark:hover:bg-white/5'
                       }`}
                   >
                     <input
@@ -279,7 +279,7 @@ const Brands = () => {
                             setImageFile(null);
                             setImagePreview(null);
                           }}
-                          className="absolute top-2.5 right-2.5 p-1.5 bg-slate-900/80 hover:bg-red-600 hover:text-white rounded-lg text-slate-400 transition-colors z-30 cursor-pointer"
+                          className="absolute top-2.5 right-2.5 p-1.5 bg-white/90 dark:bg-slate-900/80 hover:bg-red-600 hover:text-white rounded-lg text-slate-600 dark:text-slate-400 transition-colors z-30 cursor-pointer shadow-xs border border-slate-200 dark:border-transparent"
                           title="Clear file"
                         >
                           <FiX size={14} />
@@ -292,9 +292,9 @@ const Brands = () => {
                       </>
                     ) : (
                       <>
-                        <FiImage size={22} className="text-slate-400 group-hover:text-blue-400 transition-colors" />
-                        <span className="text-xs font-medium text-slate-300 group-hover:text-white transition-colors">Drag & drop logo here, or <span className="text-blue-400 group-hover:underline">browse</span></span>
-                        <span className="text-[10px] text-slate-500">Supports JPG, PNG, WEBP</span>
+                        <FiImage size={22} className="text-slate-400 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors" />
+                        <span className="text-xs font-medium text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Drag & drop logo here, or <span className="text-blue-600 dark:text-blue-400 group-hover:underline">browse</span></span>
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500">Supports JPG, PNG, WEBP</span>
                       </>
                     )}
                   </div>
@@ -303,7 +303,7 @@ const Brands = () => {
                 {/* Placement Toggles */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-2">Home Screen</label>
+                    <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Home Screen</label>
                     <label className="inline-flex items-center cursor-pointer">
                       <input
                         type="checkbox"
@@ -311,8 +311,8 @@ const Brands = () => {
                         checked={formData.showOnHomeScreen}
                         onChange={(e) => setFormData({ ...formData, showOnHomeScreen: e.target.checked })}
                       />
-                      <div className="relative w-9 h-5 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-500/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-white after:border-slate-400 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500"></div>
-                      <span className="ms-2 text-xs font-bold text-slate-300">
+                      <div className="relative w-9 h-5 bg-slate-300 dark:bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-500/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-white after:border-slate-300 dark:after:border-slate-400 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500"></div>
+                      <span className="ms-2 text-xs font-bold text-slate-700 dark:text-slate-300">
                         {formData.showOnHomeScreen ? 'Show' : 'Hide'}
                       </span>
                     </label>
@@ -320,7 +320,7 @@ const Brands = () => {
 
                   {editingId ? (
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-2">Status</label>
+                      <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Status</label>
                       <label className="inline-flex items-center cursor-pointer">
                         <input
                           type="checkbox"
@@ -328,8 +328,8 @@ const Brands = () => {
                           checked={formData.isActive}
                           onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                         />
-                        <div className="relative w-9 h-5 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-white after:border-slate-400 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
-                        <span className="ms-2 text-xs font-bold text-slate-300">
+                        <div className="relative w-9 h-5 bg-slate-300 dark:bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-500/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-white after:border-slate-300 dark:after:border-slate-400 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                        <span className="ms-2 text-xs font-bold text-slate-700 dark:text-slate-300">
                           {formData.isActive ? 'Active' : 'Hidden'}
                         </span>
                       </label>
@@ -344,7 +344,7 @@ const Brands = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 flex items-center justify-center px-4 py-2.5 bg-blue-600/70 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  className="flex-1 flex items-center justify-center px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-md shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {isSubmitting ? <FiLoader className="mr-2 animate-spin" /> : (editingId ? <FiSave className="mr-2" /> : <FiPlus className="mr-2" />)}
                   {isSubmitting ? 'Saving...' : (editingId ? 'Update Brand' : 'Add Brand')}
@@ -354,7 +354,7 @@ const Brands = () => {
                   <button
                     type="button"
                     onClick={cancelEdit}
-                    className="flex items-center justify-center px-4 py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl hover:bg-slate-700 transition-colors cursor-pointer"
+                    className="flex items-center justify-center px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl border border-slate-200 dark:border-transparent transition-colors cursor-pointer"
                     title="Cancel Edit"
                   >
                     <FiX />
@@ -367,54 +367,54 @@ const Brands = () => {
 
         {/* Right Column: Brands List Table */}
         <div className="lg:col-span-2">
-          <div className="border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full lg:h-[580px]">
+          <div className="border border-white/10 dark:border-white/10 shadow-xl dark:shadow-2xl shadow-slate-400/50 dark:shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full lg:h-[580px] bg-white/10 dark:bg-transparent">
             <div className="overflow-auto custom-scrollbar flex-1 min-h-0">
               <table className="w-full text-left border-collapse whitespace-nowrap min-w-full">
-                <thead className="sticky top-0 z-20 bg-white/[0.03] backdrop-blur-md border-b border-white/10 shadow-md">
+                <thead className="sticky top-0 z-20 bg-white/60 dark:bg-white/[0.03] backdrop-blur-md border-b border-slate-200/80 dark:border-white/10 shadow-xs dark:shadow-md">
                   <tr>
-                    <th className="px-3 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider w-16">S.No.</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider">Brand Name</th>
-                    <th className="px-3 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider text-center">Products<br></br><span className='text-[10px]'>(varaints)</span></th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider text-center">Date Info</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider text-right">Actions</th>
+                    <th className="px-3 py-4 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider w-16">S.No.</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Brand Name</th>
+                    <th className="px-3 py-4 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-center">Products<br></br><span className="text-[10px]">(varaints)</span></th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-center">Date Info</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/10">
+                <tbody className="divide-y divide-slate-200/80 dark:divide-white/10">
                   {loading ? (
                     <tr>
-                      <td colSpan="5" className="px-6 py-12 text-center text-slate-400 font-medium">
-                        <FiLoader className="animate-spin text-3xl mx-auto mb-3 text-blue-400" />
+                      <td colSpan="5" className="px-6 py-12 text-center text-slate-500 dark:text-slate-400 font-medium">
+                        <FiLoader className="animate-spin text-3xl mx-auto mb-3 text-blue-500 dark:text-blue-400" />
                         Loading brands...
                       </td>
                     </tr>
                   ) : currentBrands.length > 0 ? (
                     currentBrands.map((brand, index) => (
-                      <tr key={brand._id} className="hover:bg-transparent transition-colors group">
-                        <td className="px-3 py-4 text-sm font-medium text-slate-300 text-center">{indexOfFirstItem + index + 1}</td>
+                      <tr key={brand._id} className="hover:bg-slate-500/5 dark:hover:bg-white/5 transition-colors group">
+                        <td className="px-3 py-4 text-sm font-medium text-slate-600 dark:text-slate-300 text-center">{indexOfFirstItem + index + 1}</td>
                         <td className="px-6 py-4">
                           <div className="flex items-center">
                             {brand.logo ? (
-                              <OptimizedImage src={brand.logo} alt={brand.name} width={80} quality={65} className="w-10 h-10 rounded-lg object-contain bg-white p-1 border border-white/10 mr-3 shrink-0" />
+                              <OptimizedImage src={brand.logo} alt={brand.name} width={80} quality={65} className="w-10 h-10 rounded-lg object-contain bg-white p-1 border border-slate-200 dark:border-white/10 mr-3 shrink-0" />
                             ) : (
-                              <div className="w-10 h-10 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center mr-3 text-slate-400 shrink-0">
+                              <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-3 text-slate-400 shrink-0">
                                 <FiTag />
                               </div>
                             )}
                             <div className="flex flex-col">
-                              <span className="font-bold text-white">{brand.name}</span>
+                              <span className="font-bold text-slate-900 dark:text-white">{brand.name}</span>
                               <div className="flex items-center gap-1 mt-0.5">
-                                <span className="text-xs text-slate-600 font-bold font-mono">{brand._id}</span>
+                                <span className="text-xs text-slate-500 dark:text-slate-600 font-bold font-mono">{brand._id}</span>
                                 <CopyButton text={brand._id} />
                               </div>
                               {brand.description && (
-                                <span className="text-slate-400 text-xs mt-0.5 line-clamp-1 max-w-[200px]" title={brand.description}>{brand.description}</span>
+                                <span className="text-slate-500 dark:text-slate-400 text-xs mt-0.5 line-clamp-1 max-w-[200px]" title={brand.description}>{brand.description}</span>
                               )}
                               <div className="flex gap-2 mt-1">
-                                <span className={`text-[9px] font-bold px-2 py-0.5 rounded border ${brand.isActive !== false ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>
+                                <span className={`text-[9px] font-bold px-2 py-0.5 rounded border ${brand.isActive !== false ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20' : 'bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border-red-200 dark:border-red-500/20'}`}>
                                   {brand.isActive !== false ? 'ACTIVE' : 'HIDDEN'}
                                 </span>
                                 {(brand.showOnHomeScreen === true || brand.showOnHomeScreen === 'true') && (
-                                  <span className="text-[9px] font-bold px-2 py-0.5 rounded border bg-blue-500/10 text-blue-400 border-blue-500/20">
+                                  <span className="text-[9px] font-bold px-2 py-0.5 rounded border bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/20">
                                     HOME SCREEN
                                   </span>
                                 )}
@@ -422,25 +422,25 @@ const Brands = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm font-semibold text-slate-300 text-center">
+                        <td className="px-6 py-4 text-sm font-semibold text-slate-700 dark:text-slate-300 text-center">
                           <div className="inline-flex items-center justify-center gap-1.5">
-                            <span className="font-bold text-white" title="Products count">{brand.productCount || 0}</span>
-                            <span className="text-xs text-slate-400 font-normal" title="Count including variants">
+                            <span className="font-bold text-slate-900 dark:text-white" title="Products count">{brand.productCount || 0}</span>
+                            <span className="text-xs text-slate-500 dark:text-slate-400 font-normal" title="Count including variants">
                               ({brand.variantCount || 0})
                             </span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-[11px] text-slate-400 font-medium leading-relaxed">
+                        <td className="px-6 py-4 text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
                           <div className="flex flex-col gap-0.5">
-                            <div><span className="text-[9px] text-slate-500 font-bold uppercase mr-1">Created:</span>{formatDateTimeDDMMYYYY(brand.createdAt)}</div>
-                            <div><span className="text-[9px] text-slate-500 font-bold uppercase mr-1">Updated:</span>{formatDateTimeDDMMYYYY(brand.updatedAt)}</div>
+                            <div><span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase mr-1">Created:</span>{formatDateTimeDDMMYYYY(brand.createdAt)}</div>
+                            <div><span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase mr-1">Updated:</span>{formatDateTimeDDMMYYYY(brand.updatedAt)}</div>
                           </div>
                         </td>
                         <td className="px-4 py-4 text-right space-x-2">
-                          <button onClick={() => handleEdit(brand)} className="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-900/30 rounded-lg transition-colors cursor-pointer" title="Edit Brand">
+                          <button onClick={() => handleEdit(brand)} className="p-2 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors cursor-pointer" title="Edit Brand">
                             <FiEdit2 />
                           </button>
-                          <button onClick={() => { setBrandToDelete(brand); setDeleteConfirmOpen(true); }} className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-900/30 rounded-lg transition-colors cursor-pointer" title="Delete Brand">
+                          <button onClick={() => { setBrandToDelete(brand); setDeleteConfirmOpen(true); }} className="p-2 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors cursor-pointer" title="Delete Brand">
                             <FiTrash2 />
                           </button>
                         </td>
@@ -448,7 +448,7 @@ const Brands = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="5" className="px-6 py-12 text-center text-slate-400 font-medium">
+                      <td colSpan="5" className="px-6 py-12 text-center text-slate-500 dark:text-slate-400 font-medium">
                         {searchTerm ? 'No brands matching your search.' : 'No brands found. Create your first brand using the form.'}
                       </td>
                     </tr>
@@ -459,15 +459,15 @@ const Brands = () => {
 
             {/* Pagination */}
             {!loading && filteredBrands.length > 0 && (
-              <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
-                <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
-                  Showing <span className="font-bold text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastItem, filteredBrands.length)}</span> of <span className="font-bold text-white">{filteredBrands.length}</span> brands
+              <div className="p-4 border-t border-slate-200/80 dark:border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50 dark:bg-white/[0.02] backdrop-blur-md">
+                <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 text-center sm:text-left">
+                  Showing <span className="font-bold text-slate-900 dark:text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-slate-900 dark:text-white">{Math.min(indexOfLastItem, filteredBrands.length)}</span> of <span className="font-bold text-slate-900 dark:text-white">{filteredBrands.length}</span> brands
                 </span>
                 <div className="flex space-x-2">
                   <button
                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
-                    className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                    className="px-3 sm:px-4 py-2 bg-white dark:bg-slate-950/20 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200/80 dark:border-white/10 shadow-xs dark:shadow-none transform-gpu cursor-pointer"
                   >
                     &larr;
                   </button>
@@ -505,8 +505,8 @@ const Brands = () => {
                           className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${page === currentPage
                             ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
                             : page === '...'
-                              ? 'bg-transparent text-slate-500 border-transparent cursor-default'
-                              : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
+                              ? 'bg-transparent text-slate-400 dark:text-slate-500 border-transparent cursor-default'
+                              : 'bg-white dark:bg-slate-950/20 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white shadow-xs dark:shadow-none cursor-pointer'
                             }`}
                         >
                           {page}
@@ -517,7 +517,7 @@ const Brands = () => {
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages || totalPages === 0}
-                    className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                    className="px-3 sm:px-4 py-2 bg-white dark:bg-slate-950/20 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200/80 dark:border-white/10 shadow-xs dark:shadow-none transform-gpu cursor-pointer"
                   >
                     &rarr;
                   </button>
@@ -532,26 +532,26 @@ const Brands = () => {
       {/* Delete Confirmation Modal */}
       {deleteConfirmOpen && brandToDelete && createPortal(
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setBrandToDelete(null); setTypedConfirmName(''); }}></div>
-          <div className="relative bg-slate-950/25 border border-red-500/20 rounded-2xl p-6 shadow-red-500/20 shadow-2xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+          <div className="absolute inset-0 dark:bg-slate-950/50 backdrop-blur-md animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setBrandToDelete(null); setTypedConfirmName(''); }}></div>
+          <div className="relative bg-white/40 dark:bg-slate-950/90 border border-red-500 dark:border-red-500/20 rounded-2xl p-6 shadow-2xl shadow-red-500/10 dark:shadow-red-500/20 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
               <FiAlertCircle className="text-red-500 animate-pulse" /> Confirm Deletion
             </h3>
-            <p className="text-slate-400 text-sm mb-4 leading-relaxed">
-              This action cannot be undone. To permanently delete the brand <strong className="text-white">"{brandToDelete.name}"</strong>, please type its name below to proceed:
+            <p className="text-slate-600 dark:text-slate-400 text-sm mb-4 leading-relaxed">
+              This action cannot be undone. To permanently delete the brand <strong className="text-slate-900 dark:text-white">"{brandToDelete.name}"</strong>, please type its name below to proceed:
             </p>
             <input
               type="text"
               placeholder="Type brand name to confirm"
               value={typedConfirmName}
               onChange={(e) => setTypedConfirmName(e.target.value)}
-              className="w-full px-4 py-2.5 bg-black/20 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-sm font-medium mb-5"
+              className="w-full px-4 py-2.5 bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-sm font-medium mb-5 shadow-xs dark:shadow-none placeholder-slate-400"
             />
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => { setDeleteConfirmOpen(false); setBrandToDelete(null); setTypedConfirmName(''); }}
-                className="flex-1 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors text-sm"
+                className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl border border-slate-200 dark:border-transparent transition-colors text-sm cursor-pointer"
               >
                 Cancel
               </button>
@@ -564,7 +564,7 @@ const Brands = () => {
                   setBrandToDelete(null);
                   setTypedConfirmName('');
                 }}
-                className="flex-1 px-4 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all text-sm bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700"
+                className="flex-1 px-4 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all text-sm bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 shadow-md shadow-red-500/20 cursor-pointer"
               >
                 Proceed Delete
               </button>
@@ -577,18 +577,18 @@ const Brands = () => {
       {/* Custom Alert Modal */}
       {alertOpen && createPortal(
         <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/25 animate-fade-in" onClick={() => setAlertOpen(false)}></div>
-          <div className="relative bg-slate-950/15 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-              <FiInfo className="text-blue-400" /> Alert
+          <div className="absolute inset-0 dark:bg-slate-950/25 backdrop-blur-md animate-fade-in" onClick={() => setAlertOpen(false)}></div>
+          <div className="relative bg-white/40 dark:bg-slate-950/90 border border-slate-200/80 dark:border-white/10 rounded-2xl p-6 shadow-2xl shadow-slate-900/10 dark:shadow-black/60 w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+              <FiInfo className="text-blue-500 dark:text-blue-400" /> Alert
             </h3>
-            <p className="text-slate-300 text-sm mb-5 leading-relaxed">
+            <p className="text-slate-600 dark:text-slate-300 text-sm mb-5 leading-relaxed">
               {alertMessage}
             </p>
             <button
               type="button"
               onClick={() => setAlertOpen(false)}
-              className="w-full px-4 py-2.5 text-white font-bold rounded-xl transition-colors text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+              className="w-full px-4 py-2.5 text-white font-bold rounded-xl transition-colors text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md shadow-blue-500/20 cursor-pointer"
             >
               OK
             </button>

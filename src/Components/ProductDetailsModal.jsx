@@ -123,12 +123,12 @@ const ProductDetailsModal = ({
     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg"
+        className="absolute inset-0 dark:bg-slate-950/50 backdrop-blur-lg"
         onClick={onClose}
       />
 
       {/* Modal Container */}
-      <div className="relative bg-slate-950/25 border border-white/20 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] z-10 animate-in fade-in zoom-in-95 duration-200 text-left">
+      <div className="relative bg-transparent dark:bg-slate-950/25 border border-white/20 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] z-10 animate-in fade-in zoom-in-95 duration-200 text-left">
         {/* Floating Close Button */}
         <button
           type="button"
@@ -154,7 +154,7 @@ const ProductDetailsModal = ({
           ) : product ? (
             <>
               {/* General Information */}
-              <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15">
+              <div className="bg-white/60 dark:bg-white/[0.03] p-5 rounded-2xl border border-white/15">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="md:col-span-2 space-y-4">
                     <div>
@@ -229,7 +229,7 @@ const ProductDetailsModal = ({
               </div>
 
               {/* Pricing & Inventory */}
-              <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15">
+              <div className="bg-white/60 dark:bg-white/[0.03] p-5 rounded-2xl border border-white/15">
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-white/15 pb-2">
                   <span className="w-1.5 h-4 bg-emerald-500 rounded-full"></span> Pricing & Inventory
                 </h3>
@@ -277,7 +277,7 @@ const ProductDetailsModal = ({
               </div>
 
               {/* Extended Details & Policies */}
-              <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15 space-y-4">
+              <div className="bg-white/60 dark:bg-white/[0.03] p-5 rounded-2xl border border-white/15 space-y-4">
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-white/15 pb-2">
                   <span className="w-1.5 h-4 bg-amber-500 rounded-full"></span> Descriptions & Policies
                 </h3>
@@ -312,7 +312,7 @@ const ProductDetailsModal = ({
               </div>
 
               {/* Product Images */}
-              <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15">
+              <div className="bg-white/60 dark:bg-white/[0.03] p-5 rounded-2xl border border-white/15">
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-white/15 pb-2">
                   <span className="w-1.5 h-4 bg-purple-500 rounded-full"></span> Product Images
                 </h3>
@@ -339,13 +339,13 @@ const ProductDetailsModal = ({
                 <button
                   type="button"
                   onClick={() => setIsVariantsExpanded(!isVariantsExpanded)}
-                  className="w-full flex items-center justify-between px-5 py-4 bg-white/[0.03] border border-white/15 rounded-2xl hover:bg-slate-900/30 transition-colors cursor-pointer"
+                  className="w-full flex items-center justify-between px-5 py-4 bg-white/60 dark:bg-white/[0.03] border border-white/15 rounded-2xl hover:bg-white/90 dark:hover:bg-slate-900/30 transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-sm border border-blue-500/30">
+                    <span className="w-8 h-8 rounded-full bg-white/60 dark:bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-sm border border-blue-500/30">
                       {product.variants?.length || 0}
                     </span>
-                    <span className="font-bold text-white text-base">Product Variants</span>
+                    <span className="font-bold !text-black dark:text-white text-base">Product Variants</span>
                   </div>
                   {isVariantsExpanded ? <FiChevronUp className="text-slate-400 text-xl" /> : <FiChevronDown className="text-slate-400 text-xl" />}
                 </button>
@@ -354,7 +354,7 @@ const ProductDetailsModal = ({
                   <div className="mt-3 space-y-3">
                     {product.variants && product.variants.length > 0 ? (
                       product.variants.map((variant, idx) => (
-                        <div key={idx} className="p-5 bg-white/[0.03] border border-white/15 rounded-2xl space-y-4">
+                        <div key={idx} className="p-5 bg-white/60 dark:bg-white/[0.03] border border-white/15 rounded-2xl space-y-4">
                           <div className="flex justify-between items-center border-b border-white/15 pb-2 mb-3">
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-bold text-white uppercase tracking-wider">Variant #{idx + 1}</span>

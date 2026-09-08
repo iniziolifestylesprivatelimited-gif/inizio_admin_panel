@@ -226,16 +226,14 @@ const ActiveUsers = () => {
 
   return (
     <div className="relative space-y-6 min-h-full z-0 isolate w-full">
-
-
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-            <FiActivity className="text-blue-400" />
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+            <FiActivity className="text-blue-500 dark:text-blue-400" />
             Login & Setup Reports
           </h1>
-          <p className="text-slate-400 font-medium mt-1">
+          <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">
             Track user login activities, session frequencies, and security setup reports.
           </p>
         </div>
@@ -248,13 +246,13 @@ const ActiveUsers = () => {
               placeholder="Search by name, email, ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-10 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 text-sm font-medium transition-all"
+              className="w-full pl-10 pr-10 py-2.5 bg-white dark:bg-black/20 border border-slate-200/80 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-black/40 shadow-xs dark:shadow-inner backdrop-blur-md text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm font-medium transition-all"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
               >
                 <FiX className="w-4 h-4" />
               </button>
@@ -263,7 +261,7 @@ const ActiveUsers = () => {
           <button
             onClick={() => fetchReportData(activeTab)}
             disabled={loading}
-            className="p-2.5 bg-slate-800 border border-white/10 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center shrink-0"
+            className="p-2.5 bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded-xl shadow-xs dark:shadow-md transition-all cursor-pointer flex items-center justify-center shrink-0"
             title="Refresh Report Data"
           >
             <FiRefreshCcw className={`${loading ? 'animate-spin' : ''} text-lg`} />
@@ -272,12 +270,12 @@ const ActiveUsers = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-white/10 gap-6">
+      <div className="flex border-b border-slate-200/80 dark:border-white/10 gap-6">
         <button
           onClick={() => setActiveTab('login')}
           className={`pb-3 font-bold text-sm transition-all cursor-pointer ${activeTab === 'login'
-              ? 'text-blue-400 border-b-2 border-blue-400 font-extrabold'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 font-extrabold'
+              : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
             }`}
         >
           Login Report
@@ -285,8 +283,8 @@ const ActiveUsers = () => {
         <button
           onClick={() => setActiveTab('password-setup')}
           className={`pb-3 font-bold text-sm transition-all cursor-pointer ${activeTab === 'password-setup'
-              ? 'text-blue-400 border-b-2 border-blue-400 font-extrabold'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 font-extrabold'
+              : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
             }`}
         >
           Password Setup Report
@@ -301,35 +299,39 @@ const ActiveUsers = () => {
               title: "Total Active Users",
               value: totalActiveUsers,
               icon: FiUsers,
-              color: "text-blue-400",
-              bg: "bg-blue-500/20",
-              fromColor: "from-blue-500/25",
-              hoverBorder: "hover:border-blue-500/30"
+              color: "text-blue-600 dark:text-blue-400",
+              valueColor: "text-blue-800 dark:text-white",
+              bg: "bg-blue-500/10 dark:bg-blue-500/20",
+              fromColor: "from-blue-500/50 dark:from-blue-500/25",
+              hoverBorder: "hover:border-blue-500/40 dark:hover:border-blue-500/30"
             },
             {
               title: "Total Login Activity",
               value: totalLogins,
               icon: FiKey,
-              color: "text-emerald-400",
-              bg: "bg-emerald-500/20",
-              fromColor: "from-emerald-500/25",
-              hoverBorder: "hover:border-emerald-500/30"
+              color: "text-emerald-600 dark:text-emerald-400",
+              valueColor: "text-emerald-800 dark:text-white",
+              bg: "bg-emerald-500/10 dark:bg-emerald-500/20",
+              fromColor: "from-emerald-500/50 dark:from-emerald-500/25",
+              hoverBorder: "hover:border-emerald-500/40 dark:hover:border-emerald-500/30"
             },
             {
               title: "Most Active User",
               value: mostActiveUser ? mostActiveUser.name : 'N/A',
               subText: mostActiveUser ? `Logins: ${mostActiveUser.loginCount}` : null,
               icon: FiClock,
-              color: "text-amber-400",
-              bg: "bg-amber-500/20",
-              fromColor: "from-amber-500/25",
-              hoverBorder: "hover:!border-amber-500/30"
+              color: "text-amber-600 dark:text-amber-400",
+              valueColor: "text-amber-800 dark:text-white",
+              subTextColor: "text-amber-700/90 dark:text-slate-400",
+              bg: "bg-amber-500/10 dark:bg-amber-500/20",
+              fromColor: "from-amber-500/50 dark:from-amber-500/25",
+              hoverBorder: "hover:!border-amber-500/40 dark:hover:!border-amber-500/30"
             }
           ].map((metric, index) => (
             <Card
               key={index}
               hoverable
-              className={`p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group ${metric.hoverBorder}`}
+              className={`p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group bg-white dark:bg-transparent ${metric.hoverBorder}`}
             >
               <div className={`absolute inset-0 bg-linear-to-b ${metric.fromColor} to-transparent pointer-events-none`}></div>
               <div className="relative flex items-center justify-between gap-3 z-10">
@@ -338,13 +340,13 @@ const ActiveUsers = () => {
                     {metric.title}
                   </h3>
                   <p
-                    className="text-xl sm:text-2xl xl:text-3xl font-extrabold text-white mt-1 tracking-tight truncate"
+                    className={`text-xl sm:text-2xl xl:text-3xl font-extrabold mt-1 tracking-tight truncate ${metric.valueColor || 'text-slate-900 dark:text-white'}`}
                     title={metric.value ? metric.value.toString() : ''}
                   >
                     {metric.value}
                   </p>
                   {metric.subText && (
-                    <p className="text-xs font-semibold text-slate-400 mt-1 truncate">
+                    <p className={`text-xs font-semibold mt-1 truncate ${metric.subTextColor || 'text-slate-500 dark:text-slate-400'}`}>
                       {metric.subText}
                     </p>
                   )}
@@ -363,34 +365,37 @@ const ActiveUsers = () => {
               title: "Total Accounts Checked",
               value: totalChecked,
               icon: FiUsers,
-              color: "text-blue-400",
-              bg: "bg-blue-500/20",
-              fromColor: "from-blue-500/25",
-              hoverBorder: "hover:border-blue-500/30"
+              color: "text-blue-600 dark:text-blue-400",
+              valueColor: "text-blue-800 dark:text-white",
+              bg: "bg-blue-500/10 dark:bg-blue-500/20",
+              fromColor: "from-blue-500/50 dark:from-blue-500/25",
+              hoverBorder: "hover:border-blue-500/40 dark:hover:border-blue-500/30"
             },
             {
               title: "Setup Not Sent",
               value: notSentCount,
               icon: FiMail,
-              color: "text-rose-400",
-              bg: "bg-rose-500/20",
-              fromColor: "from-rose-500/25",
-              hoverBorder: "hover:border-rose-500/30"
+              color: "text-rose-600 dark:text-rose-400",
+              valueColor: "text-rose-800 dark:text-white",
+              bg: "bg-rose-500/10 dark:bg-rose-500/20",
+              fromColor: "from-rose-500/50 dark:from-rose-500/25",
+              hoverBorder: "hover:border-rose-500/40 dark:hover:border-rose-500/30"
             },
             {
               title: "Completed / Link Sent",
               value: `${reportData.filter(u => u.passwordSetupStatus !== 'not_sent' && u.passwordSetupStatus !== 'sent').length} / ${sentOrCompletedCount}`,
               icon: FiCheck,
-              color: "text-emerald-400",
-              bg: "bg-emerald-500/20",
-              fromColor: "from-emerald-500/25",
-              hoverBorder: "hover:border-emerald-500/30"
+              color: "text-emerald-600 dark:text-emerald-400",
+              valueColor: "text-emerald-800 dark:text-white",
+              bg: "bg-emerald-500/10 dark:bg-emerald-500/20",
+              fromColor: "from-emerald-500/50 dark:from-emerald-500/25",
+              hoverBorder: "hover:border-emerald-500/40 dark:hover:border-emerald-500/30"
             }
           ].map((metric, index) => (
             <Card
               key={index}
               hoverable
-              className={`p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group ${metric.hoverBorder}`}
+              className={`p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group bg-white dark:bg-transparent ${metric.hoverBorder}`}
             >
               <div className={`absolute inset-0 bg-linear-to-b ${metric.fromColor} to-transparent pointer-events-none`}></div>
               <div className="relative flex items-center justify-between gap-3 z-10">
@@ -399,7 +404,7 @@ const ActiveUsers = () => {
                     {metric.title}
                   </h3>
                   <p
-                    className="text-xl sm:text-2xl xl:text-3xl font-extrabold text-white mt-1 tracking-tight truncate"
+                    className={`text-xl sm:text-2xl xl:text-3xl font-extrabold mt-1 tracking-tight truncate ${metric.valueColor || 'text-slate-900 dark:text-white'}`}
                     title={metric.value ? metric.value.toString() : ''}
                   >
                     {metric.value}
@@ -416,28 +421,28 @@ const ActiveUsers = () => {
 
       {/* Main Content Grid */}
       {loading ? (
-        <div className="h-64 flex flex-col justify-center items-center bg-slate-900/50 border border-white/10 rounded-2xl">
-          <FiLoader className="animate-spin text-3xl text-blue-400 mb-4" />
-          <p className="text-slate-400 font-medium">Loading report records...</p>
+        <div className="h-64 flex flex-col justify-center items-center bg-white/80 dark:bg-slate-900/50 border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-xs dark:shadow-none">
+          <FiLoader className="animate-spin text-3xl text-blue-500 dark:text-blue-400 mb-4" />
+          <p className="text-slate-500 dark:text-slate-400 font-medium">Loading report records...</p>
         </div>
       ) : error ? (
-        <div className="text-red-400 bg-red-900/20 p-4 rounded-xl border border-red-500/30 flex items-center">
+        <div className="text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-4 rounded-xl border border-red-200 dark:border-red-500/30 flex items-center">
           <FiAlertCircle className="mr-2 text-lg shrink-0" /> {error}
         </div>
       ) : (
-        <div className="relative z-10 border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full isolate will-change-transform">
+        <div className="relative z-10 bg-transparent border border-slate-200/80 dark:border-white/10 shadow-xl dark:shadow-2xl shadow-slate-200/50 dark:shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full isolate will-change-transform">
           <div className="overflow-auto custom-scrollbar max-h-[70vh]">
             <table className="w-full text-left border-collapse whitespace-nowrap min-w-200">
-              <thead className="sticky top-0 z-20 bg-white/[0.03] backdrop-blur-md shadow-md border-b border-white/10">
+              <thead className="sticky top-0 z-20 bg-white/40 dark:bg-white/[0.03] backdrop-blur-md shadow-xs dark:shadow-md border-b border-slate-200/80 dark:border-white/10">
                 {activeTab === 'login' ? (
-                  <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-slate-400">
+                  <tr className="border-b border-slate-200/80 dark:border-white/10 text-xs uppercase tracking-wider text-slate-600 dark:text-slate-400">
                     <th className="p-2 font-bold text-center">
                       <div className="flex items-center justify-center gap-1">
                         <span>S.No</span>
                         {hasActiveFilters && (
                           <button
                             onClick={handleClearHeaderFilters}
-                            className="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold rounded border border-white/10 transition-all cursor-pointer hover:text-white"
+                            className="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white text-[10px] font-bold rounded border border-slate-200 dark:border-white/10 transition-all cursor-pointer"
                             title="Reset Table Filters"
                           >
                             Reset
@@ -447,40 +452,40 @@ const ActiveUsers = () => {
                     </th>
                     <th
                       onClick={() => handleSortChange('userId')}
-                      className="p-4 font-bold text-center cursor-pointer select-none hover:text-white transition-colors"
+                      className="p-4 font-bold text-center cursor-pointer select-none hover:text-slate-900 dark:hover:text-white transition-colors"
                     >
                       <div className="flex items-center justify-center gap-1">
-                        <span className={sortKey === 'userId' ? 'text-blue-400 font-extrabold' : ''}>User ID</span>
+                        <span className={sortKey === 'userId' ? 'text-blue-600 dark:text-blue-400 font-extrabold' : ''}>User ID</span>
                         {sortKey === 'userId' ? (
-                          sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                          sortOrder === 'asc' ? <span className="text-blue-600 dark:text-blue-400">▲</span> : <span className="text-blue-600 dark:text-blue-400">▼</span>
                         ) : (
-                          <span className="text-slate-500">⇅</span>
+                          <span className="text-slate-400 dark:text-slate-500">⇅</span>
                         )}
                       </div>
                     </th>
                     <th
                       onClick={() => handleSortChange('name')}
-                      className="p-4 font-bold text-left cursor-pointer select-none hover:text-white transition-colors min-w-[140px]"
+                      className="p-4 font-bold text-left cursor-pointer select-none hover:text-slate-900 dark:hover:text-white transition-colors min-w-[140px]"
                     >
                       <div className="flex items-center gap-1">
-                        <span className={sortKey === 'name' ? 'text-blue-400 font-extrabold' : ''}>Name</span>
+                        <span className={sortKey === 'name' ? 'text-blue-600 dark:text-blue-400 font-extrabold' : ''}>Name</span>
                         {sortKey === 'name' ? (
-                          sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                          sortOrder === 'asc' ? <span className="text-blue-600 dark:text-blue-400">▲</span> : <span className="text-blue-600 dark:text-blue-400">▼</span>
                         ) : (
-                          <span className="text-slate-500">⇅</span>
+                          <span className="text-slate-400 dark:text-slate-500">⇅</span>
                         )}
                       </div>
                     </th>
                     <th
                       onClick={() => handleSortChange('email')}
-                      className="p-4 font-bold text-left cursor-pointer select-none hover:text-white transition-colors"
+                      className="p-4 font-bold text-left cursor-pointer select-none hover:text-slate-900 dark:hover:text-white transition-colors"
                     >
                       <div className="flex items-center gap-1">
-                        <span className={sortKey === 'email' ? 'text-blue-400 font-extrabold' : ''}>Email</span>
+                        <span className={sortKey === 'email' ? 'text-blue-600 dark:text-blue-400 font-extrabold' : ''}>Email</span>
                         {sortKey === 'email' ? (
-                          sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                          sortOrder === 'asc' ? <span className="text-blue-600 dark:text-blue-400">▲</span> : <span className="text-blue-600 dark:text-blue-400">▼</span>
                         ) : (
-                          <span className="text-slate-500">⇅</span>
+                          <span className="text-slate-400 dark:text-slate-500">⇅</span>
                         )}
                       </div>
                     </th>
@@ -490,19 +495,19 @@ const ActiveUsers = () => {
                         value={selectedBusinessType}
                         onChange={(val) => setSelectedBusinessType(val)}
                         options={businessTypeOptions}
-                        statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedBusinessType ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'}`}
+                        statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-slate-900 dark:hover:text-white ${selectedBusinessType ? 'text-blue-600 dark:text-blue-400 font-extrabold' : 'text-slate-700 dark:text-slate-300 font-bold'}`}
                       />
                     </th>
                     <th
                       onClick={() => handleSortChange('lastLoginAt')}
-                      className="p-4 font-bold text-center cursor-pointer select-none hover:text-white transition-colors"
+                      className="p-4 font-bold text-center cursor-pointer select-none hover:text-slate-900 dark:hover:text-white transition-colors"
                     >
                       <div className="flex items-center justify-center gap-1">
-                        <span className={sortKey === 'lastLoginAt' ? 'text-blue-400 font-extrabold' : ''}>Last Login At</span>
+                        <span className={sortKey === 'lastLoginAt' ? 'text-blue-600 dark:text-blue-400 font-extrabold' : ''}>Last Login At</span>
                         {sortKey === 'lastLoginAt' ? (
-                          sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                          sortOrder === 'asc' ? <span className="text-blue-600 dark:text-blue-400">▲</span> : <span className="text-blue-600 dark:text-blue-400">▼</span>
                         ) : (
-                          <span className="text-slate-500">⇅</span>
+                          <span className="text-slate-400 dark:text-slate-500">⇅</span>
                         )}
                       </div>
                     </th>
@@ -511,32 +516,32 @@ const ActiveUsers = () => {
                         value={selectedMethod}
                         onChange={(val) => setSelectedMethod(val)}
                         options={methodOptions}
-                        statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedMethod ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'}`}
+                        statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-slate-900 dark:hover:text-white ${selectedMethod ? 'text-blue-600 dark:text-blue-400 font-extrabold' : 'text-slate-700 dark:text-slate-300 font-bold'}`}
                       />
                     </th>
                     <th
                       onClick={() => handleSortChange('loginCount')}
-                      className="p-4 font-bold text-center cursor-pointer select-none hover:text-white transition-colors"
+                      className="p-4 font-bold text-center cursor-pointer select-none hover:text-slate-900 dark:hover:text-white transition-colors"
                     >
                       <div className="flex items-center justify-center gap-1">
-                        <span className={sortKey === 'loginCount' ? 'text-blue-400 font-extrabold' : ''}>Logins</span>
+                        <span className={sortKey === 'loginCount' ? 'text-blue-600 dark:text-blue-400 font-extrabold' : ''}>Logins</span>
                         {sortKey === 'loginCount' ? (
-                          sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                          sortOrder === 'asc' ? <span className="text-blue-600 dark:text-blue-400">▲</span> : <span className="text-blue-600 dark:text-blue-400">▼</span>
                         ) : (
-                          <span className="text-slate-500">⇅</span>
+                          <span className="text-slate-400 dark:text-slate-500">⇅</span>
                         )}
                       </div>
                     </th>
                   </tr>
                 ) : (
-                  <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-slate-400">
-                    <th className="p-2 font-bold text-center bg-slate-900/95">
+                  <tr className="border-b border-slate-200/80 dark:border-white/10 text-xs uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                    <th className="p-2 font-bold text-center">
                       <div className="flex items-center justify-center gap-1">
                         <span>S.No</span>
                         {hasActiveFilters && (
                           <button
                             onClick={handleClearHeaderFilters}
-                            className="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold rounded border border-white/10 transition-all cursor-pointer hover:text-white"
+                            className="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white text-[10px] font-bold rounded border border-slate-200 dark:border-white/10 transition-all cursor-pointer"
                             title="Reset Table Filters"
                           >
                             Reset
@@ -546,40 +551,40 @@ const ActiveUsers = () => {
                     </th>
                     <th
                       onClick={() => handleSortChange('userId')}
-                      className="p-4 font-bold text-center cursor-pointer select-none hover:text-white transition-colors"
+                      className="p-4 font-bold text-center cursor-pointer select-none hover:text-slate-900 dark:hover:text-white transition-colors"
                     >
                       <div className="flex items-center justify-center gap-1">
-                        <span className={sortKey === 'userId' ? 'text-blue-400 font-extrabold' : ''}>User ID</span>
+                        <span className={sortKey === 'userId' ? 'text-blue-600 dark:text-blue-400 font-extrabold' : ''}>User ID</span>
                         {sortKey === 'userId' ? (
-                          sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                          sortOrder === 'asc' ? <span className="text-blue-600 dark:text-blue-400">▲</span> : <span className="text-blue-600 dark:text-blue-400">▼</span>
                         ) : (
-                          <span className="text-slate-500">⇅</span>
+                          <span className="text-slate-400 dark:text-slate-500">⇅</span>
                         )}
                       </div>
                     </th>
                     <th
                       onClick={() => handleSortChange('name')}
-                      className="p-4 font-bold text-left cursor-pointer select-none hover:text-white transition-colors min-w-[140px]"
+                      className="p-4 font-bold text-left cursor-pointer select-none hover:text-slate-900 dark:hover:text-white transition-colors min-w-[140px]"
                     >
                       <div className="flex items-center gap-1">
-                        <span className={sortKey === 'name' ? 'text-blue-400 font-extrabold' : ''}>Name</span>
+                        <span className={sortKey === 'name' ? 'text-blue-600 dark:text-blue-400 font-extrabold' : ''}>Name</span>
                         {sortKey === 'name' ? (
-                          sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                          sortOrder === 'asc' ? <span className="text-blue-600 dark:text-blue-400">▲</span> : <span className="text-blue-600 dark:text-blue-400">▼</span>
                         ) : (
-                          <span className="text-slate-500">⇅</span>
+                          <span className="text-slate-400 dark:text-slate-500">⇅</span>
                         )}
                       </div>
                     </th>
                     <th
                       onClick={() => handleSortChange('email')}
-                      className="p-4 font-bold text-left cursor-pointer select-none hover:text-white transition-colors"
+                      className="p-4 font-bold text-left cursor-pointer select-none hover:text-slate-900 dark:hover:text-white transition-colors"
                     >
                       <div className="flex items-center gap-1">
-                        <span className={sortKey === 'email' ? 'text-blue-400 font-extrabold' : ''}>Email</span>
+                        <span className={sortKey === 'email' ? 'text-blue-600 dark:text-blue-400 font-extrabold' : ''}>Email</span>
                         {sortKey === 'email' ? (
-                          sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                          sortOrder === 'asc' ? <span className="text-blue-600 dark:text-blue-400">▲</span> : <span className="text-blue-600 dark:text-blue-400">▼</span>
                         ) : (
-                          <span className="text-slate-500">⇅</span>
+                          <span className="text-slate-400 dark:text-slate-500">⇅</span>
                         )}
                       </div>
                     </th>
@@ -589,7 +594,7 @@ const ActiveUsers = () => {
                         value={selectedBusinessType}
                         onChange={(val) => setSelectedBusinessType(val)}
                         options={businessTypeOptions}
-                        statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedBusinessType ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'}`}
+                        statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-slate-900 dark:hover:text-white ${selectedBusinessType ? 'text-blue-600 dark:text-blue-400 font-extrabold' : 'text-slate-700 dark:text-slate-300 font-bold'}`}
                       />
                     </th>
                     <th className="p-4 font-bold text-center min-w-[150px]">
@@ -597,60 +602,63 @@ const ActiveUsers = () => {
                         value={selectedSetupStatus}
                         onChange={(val) => setSelectedSetupStatus(val)}
                         options={setupStatusOptions}
-                        statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedSetupStatus ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'}`}
+                        statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-slate-900 dark:hover:text-white ${selectedSetupStatus ? 'text-blue-600 dark:text-blue-400 font-extrabold' : 'text-slate-700 dark:text-slate-300 font-bold'}`}
                       />
                     </th>
                   </tr>
                 )}
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                 {currentItems.length > 0 ? (
                   currentItems.map((item, index) => (
-                    <tr key={item._id || index} className="hover:bg-white/5 transition-colors text-center">
-                      <td className="p-4 text-sm text-slate-400 font-medium">
+                    <tr key={item._id || index} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors text-center">
+                      <td className="p-4 text-sm text-slate-500 dark:text-slate-400 font-medium">
                         {indexOfFirstItem + index + 1}
                       </td>
-                      <td className="p-4 text-sm text-emerald-400 font-mono font-semibold">
+                      <td className="p-4 text-sm text-emerald-600 dark:text-emerald-400 font-mono font-semibold">
                         {item.userId || 'N/A'}
                       </td>
-                      <td className="p-4 text-sm text-white font-medium text-left">
+                      <td className="p-4 text-sm text-slate-900 dark:text-white font-medium text-left">
                         <div className="flex items-center gap-2">
                           <span>{item.name}</span>
                           {checkAppStatus(item) === 'uninstalled' ? (
-                            <span className="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 text-[9px] font-extrabold border border-rose-500/20 shrink-0">
+                            <span className="px-1.5 py-0.5 rounded bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[9px] font-extrabold border border-rose-200 dark:border-rose-500/20 shrink-0">
                               Uninstalled
                             </span>
                           ) : checkAppStatus(item) === 'installed' ? (
-                            <span className="px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-400 text-[9px] font-extrabold border border-teal-500/20 shrink-0">
+                            <span className="px-1.5 py-0.5 rounded bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400 text-[9px] font-extrabold border border-teal-200 dark:border-teal-500/20 shrink-0">
                               Installed
                             </span>
                           ) : null}
                         </div>
                       </td>
-                      <td className="p-4 text-sm text-slate-300 text-left">
-                        <GmailLink email={item.email} />
+                      <td className="p-4 text-sm text-left">
+                        <GmailLink 
+                          email={item.email} 
+                          className="text-slate-700 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400"
+                        />
                       </td>
-                      <td className="p-4 text-sm text-slate-300">
+                      <td className="p-4 text-sm text-slate-600 dark:text-slate-300">
                         {item.phone || 'N/A'}
                       </td>
                       <td className="p-4 text-sm">
-                        <span className="bg-slate-700/50 border border-slate-600/50 text-slate-300 px-2.5 py-1 rounded-md text-xs font-bold">
+                        <span className="bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600/50 text-slate-700 dark:text-slate-300 px-2.5 py-1 rounded-md text-xs font-bold">
                           {item.businessType || 'L1'}
                         </span>
                       </td>
 
                       {activeTab === 'login' ? (
                         <>
-                          <td className="p-4 text-sm text-slate-300">
+                          <td className="p-4 text-sm text-slate-600 dark:text-slate-300">
                             {formatDateTime(item.lastLoginAt)}
                           </td>
                           <td className="p-4 text-sm">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 border border-blue-500/20 text-blue-400 capitalize">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-blue-700 dark:text-blue-400 capitalize">
                               {item.lastLoginMethod || 'password'}
                             </span>
                           </td>
                           <td className="p-4 text-sm text-center">
-                            <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 text-slate-300 font-bold border border-white/5">
+                            <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold border border-slate-200 dark:border-white/5">
                               {item.loginCount || 0}
                             </span>
                           </td>
@@ -658,15 +666,15 @@ const ActiveUsers = () => {
                       ) : (
                         <td className="p-4 text-sm text-center">
                           {item.passwordSetupStatus === 'not_sent' ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold">
                               <FiX className="text-[10px]" /> Not Sent
                             </span>
                           ) : item.passwordSetupStatus === 'sent' ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-blue-700 dark:text-blue-400 text-xs font-bold">
                               <FiMail className="text-[10px]" /> Link Sent
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold">
                               <FiCheck className="text-[10px]" /> {item.passwordSetupStatus || 'Completed'}
                             </span>
                           )}
@@ -676,7 +684,7 @@ const ActiveUsers = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={activeTab === 'login' ? 9 : 6} className="p-12 text-center text-slate-400 italic">
+                    <td colSpan={activeTab === 'login' ? 9 : 6} className="p-12 text-center text-slate-500 dark:text-slate-400 italic">
                       {hasActiveFilters ? 'No matching reports found for the selected filters.' : 'No reports found.'}
                     </td>
                   </tr>
@@ -687,15 +695,15 @@ const ActiveUsers = () => {
 
           {/* Pagination Controls */}
           {!loading && !error && sortedData.length > 0 && (
-            <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
-              <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
-                Showing <span className="font-bold text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastItem, sortedData.length)}</span> of <span className="font-bold text-white">{sortedData.length}</span> records
+            <div className="p-4 border-t border-slate-200/80 dark:border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50 dark:bg-white/[0.02] backdrop-blur-md">
+              <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 text-center sm:text-left">
+                Showing <span className="font-bold text-slate-900 dark:text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-slate-900 dark:text-white">{Math.min(indexOfLastItem, sortedData.length)}</span> of <span className="font-bold text-slate-900 dark:text-white">{sortedData.length}</span> records
               </span>
               <div className="flex space-x-2">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                  className="px-3 sm:px-4 py-2 bg-white dark:bg-slate-950/20 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200/80 dark:border-white/10 shadow-xs dark:shadow-none transform-gpu cursor-pointer"
                 >
                   &larr;
                 </button>
@@ -731,8 +739,8 @@ const ActiveUsers = () => {
                         className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${page === currentPage
                             ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
                             : page === '...'
-                              ? 'bg-transparent text-slate-500 border-transparent cursor-default'
-                              : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
+                              ? 'bg-transparent text-slate-400 dark:text-slate-500 border-transparent cursor-default'
+                              : 'bg-white dark:bg-slate-950/20 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white shadow-xs dark:shadow-none cursor-pointer'
                           }`}
                       >
                         {page}
@@ -743,7 +751,7 @@ const ActiveUsers = () => {
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages || totalPages === 0}
-                  className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                  className="px-3 sm:px-4 py-2 bg-white dark:bg-slate-950/20 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200/80 dark:border-white/10 shadow-xs dark:shadow-none transform-gpu cursor-pointer"
                 >
                   &rarr;
                 </button>

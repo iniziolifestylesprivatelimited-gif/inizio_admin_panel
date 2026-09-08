@@ -12,6 +12,7 @@ import {
 } from 'react-icons/fi';
 import { getAccessibleMenus } from '../config/menus';
 import HeaderSearch from './HeaderSearch';
+import InternetStrengthIndicator from './InternetStrengthIndicator';
 import logoImg from '../assets/logos.png';
 import appIconImg from '../assets/app-icon-png.png';
 import lightLogoImg from '../assets/inizio_logo.png';
@@ -988,7 +989,7 @@ const Layout = () => {
             className={`flex items-start justify-between gap-4.5 p-4 border border-l-4 rounded-xl cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 animate-in slide-in-from-right-full fade-in text-left group pointer-events-auto select-none ${
               isDark 
                 ? 'bg-slate-900 border-white/10 hover:bg-slate-800 shadow-[0_10px_30px_rgba(0,0,0,0.8)]' 
-                : 'bg-white/40 border-slate-200 hover:bg-white shadow-xl shadow-slate-900/10'
+                : 'bg-white/40 backdrop-blur-md border-slate-200 hover:bg-white shadow-xl shadow-slate-900/10'
             } ${t.path.startsWith('/chat') ? 'border-l-blue-500 shadow-blue-500/10' :
                 t.path.startsWith('/orders') ? 'border-l-emerald-500 shadow-emerald-500/10' :
                   (t.path === '/users/list' || t.path.includes('tab=approved')) ? 'border-l-indigo-500 shadow-indigo-500/10' :
@@ -1061,13 +1062,16 @@ const Layout = () => {
       )}
 
       {/* MOBILE TOP BAR (Visible only on small screens) */}
-      <div className={`lg:hidden fixed top-0 left-0 right-0 h-16 backdrop-blur-2xl border-b z-30 flex items-center justify-between px-4 transition-colors ${
+      <div className={`lg:hidden fixed top-0 left-0 right-0 h-16 backdrop-blur-2xl border-b z-40 flex items-center justify-between px-4 transition-colors ${
         isDark 
           ? 'bg-slate-950/80 border-white/10 shadow-xl shadow-black/50' 
           : 'bg-white/85 border-slate-200/80 shadow-md shadow-slate-900/5'
       }`}>
         <img src={isDark ? logoImg : lightLogoImg} alt="logo" className="h-18 w-auto object-contain" />
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          {/* Mobile Internet Strength Indicator */}
+          <InternetStrengthIndicator compact={true} />
+
           {/* Mobile Notifications Dropdown */}
           <div className="relative" ref={mobileNotificationsDropdownRef}>
             <button
@@ -1301,8 +1305,8 @@ const Layout = () => {
           fixed inset-y-0 left-0 z-50 flex flex-col
           transform transition-all duration-300 ease-in-out lg:translate-x-0 overflow-hidden
           ${isDark 
-            ? 'bg-slate-950/50 backdrop-blur-xl border-r border-white/10 shadow-2xl shadow-black/50' 
-            : 'bg-white/5 backdrop-blur-xl border-r border-slate-200/80 shadow-xl shadow-slate-900/5'
+            ? 'bg-slate-950/50 backdrop-blur-2xl border-r border-white/10 shadow-2xl shadow-black/50' 
+            : 'bg-white/10 backdrop-blur-xl border-r border-slate-200/80 shadow-xl shadow-slate-900/5'
           }
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
           ${isExpanded ? 'w-72' : 'lg:w-20 w-72'}
@@ -1535,7 +1539,7 @@ const Layout = () => {
       <div className={`flex-1 flex flex-col h-full overflow-hidden bg-transparent relative pt-16 lg:pt-0 lg:pl-20 transition-all duration-300 ${isExpanded ? 'lg:blur-[2px]' : 'blur-none'}`}>
 
         {/* GLOBAL HEADER (Desktop Top Bar) */}
-        <header className={`hidden lg:flex h-16 backdrop-blur-2xl border-b items-center justify-between px-8 sticky top-0 z-20 transition-colors ${
+        <header className={`hidden lg:flex h-16 backdrop-blur-2xl border-b items-center justify-between px-8 sticky top-0 z-40 transition-colors ${
           isDark 
             ? 'bg-transparent border-white/10 shadow-sm shadow-black/50' 
             : 'bg-white/5 border-slate-200/80 shadow-md shadow-slate-900/5'
@@ -1545,7 +1549,10 @@ const Layout = () => {
           <HeaderSearch />
 
           {/* Right Side: Profile & Notifications */}
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-4 sm:space-x-5">
+            {/* Internet Strength Indicator */}
+            <InternetStrengthIndicator compact={true} />
+
             {/* Desktop Notifications Dropdown */}
             <div className="relative" ref={notificationsDropdownRef}>
               <button
@@ -1820,7 +1827,7 @@ const Layout = () => {
 
         {/* Browser Notification Permission Top Banner */}
         {showPermissionBanner && browserPermission === 'default' && (
-          <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 text-white px-4 py-2.5 flex items-center justify-between shadow-lg z-20 backdrop-blur-md animate-in slide-in-from-top-2 border-b border-white/20">
+          <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 text-white px-4 py-2.5 flex items-center justify-between shadow-lg z-30 backdrop-blur-md animate-in slide-in-from-top-2 border-b border-white/20">
             <div className="flex items-center gap-3">
               <div className="p-1.5 rounded-lg bg-white/20">
                 <FiBell size={16} />

@@ -165,27 +165,27 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
       {!hideHeader && (
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-              <FiUser className="text-amber-400" />
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+              <FiUser className="text-amber-500 dark:text-amber-400" />
               KYC Verification
             </h1>
-            <p className="text-slate-400 font-medium mt-1">Approve or reject pending applications.</p>
+            <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Approve or reject pending applications.</p>
           </div>
           
           <div className="relative w-full md:w-72">
-            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
+            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-400 z-10" />
             <input 
               type="text" 
               placeholder="Search by name, email..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-10 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/50 text-white placeholder-slate-500 text-sm font-medium"
+              className="w-full pl-10 pr-10 py-2.5 bg-white dark:bg-black/20 border border-slate-200/80 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm font-medium transition-all"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer"
               >
                 <FiX className="w-4 h-4" />
               </button>
@@ -196,20 +196,20 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
 
       {/* Content Area */}
       {loading ? (
-        <div className="h-64 flex flex-col justify-center items-center bg-slate-900/50 border border-white/10 rounded-2xl">
-          <FiLoader className="animate-spin text-3xl text-amber-400 mb-4" />
-          <p className="text-slate-400 font-medium">Loading pending applications...</p>
+        <div className="h-64 flex flex-col justify-center items-center bg-white/5 dark:bg-slate-900/50 border border-slate-200/80 dark:border-white/10 rounded-2xl">
+          <FiLoader className="animate-spin text-3xl text-amber-500 dark:text-amber-400 mb-4" />
+          <p className="text-slate-500 dark:text-slate-400 font-medium">Loading pending applications...</p>
         </div>
       ) : error ? (
-        <div className="text-red-400 bg-red-900/20 p-4 rounded-xl border border-red-500/30 flex items-center">
+        <div className="text-rose-600 dark:text-red-400 bg-rose-50 dark:bg-red-900/20 p-4 rounded-xl border border-rose-200 dark:border-red-500/30 flex items-center">
           <FiAlertCircle className="mr-2 text-lg shrink-0" /> {error}
         </div>
       ) : (
-        <div className="bg-black/20 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden">
+        <div className="relative z-10 bg-white/5 dark:bg-transparent border border-slate-200/80 dark:border-white/10 shadow-xl dark:shadow-2xl shadow-slate-200/50 dark:shadow-black/50 rounded-3xl overflow-hidden">
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse whitespace-nowrap min-w-200">
-              <thead>
-                <tr className="bg-slate-800/50 border-b border-white/10 text-xs uppercase tracking-wider text-slate-400">
+              <thead className="sticky top-0 z-20 bg-white/40 dark:bg-white/[0.03] backdrop-blur-md shadow-xs dark:shadow-md border-b border-slate-200/80 dark:border-white/10">
+                <tr className="border-b border-slate-200/80 dark:border-white/10 text-xs uppercase tracking-wider text-slate-600 dark:text-slate-400">
                   <th className="p-5 font-bold">S.No</th>
                   <th className="p-5 font-bold">Name</th>
                   <th className="p-5 font-bold">Email</th>
@@ -219,27 +219,27 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
                   <th className="p-5 font-bold text-center">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-slate-300/80 dark:divide-white/5">
                 {filteredUsers.length > 0 ? (
                   filteredUsers.map((user, index) => (
                     <tr 
                       key={user._id} 
                       onClick={() => openModal(user)}
-                      className="hover:bg-white/[0.02] cursor-pointer transition-colors"
+                      className="hover:bg-slate-100/40 dark:hover:bg-white/[0.02] cursor-pointer transition-colors"
                     >
-                      <td className="p-5 text-sm text-slate-400 font-medium">{index + 1}</td>
-                      <td className="p-5 text-sm text-white font-medium">{user.name}</td>
-                      <td className="p-5 text-sm text-slate-300">
+                      <td className="p-5 text-sm text-slate-500 dark:text-slate-400 font-medium">{index + 1}</td>
+                      <td className="p-5 text-sm text-slate-900 dark:text-white font-medium">{user.name}</td>
+                      <td className="p-5 text-sm text-slate-600 dark:text-slate-300">
                         <GmailLink email={user.email} />
                       </td>
-                      <td className="p-5 text-sm text-slate-300">{user.phone || 'N/A'}</td>
+                      <td className="p-5 text-sm text-slate-600 dark:text-slate-300">{user.phone || 'N/A'}</td>
                       <td className="p-5 text-sm">
-                        <span className="bg-slate-700/50 border border-slate-600/50 text-slate-300 px-2.5 py-1 rounded-md text-xs font-bold">
+                        <span className="bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600/50 text-slate-700 dark:text-slate-300 px-2.5 py-1 rounded-md text-xs font-bold">
                           {user.businessType || 'L1'}
                         </span>
                       </td>
                       <td className="p-5 text-sm">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold">
                           <FiLoader className="animate-spin text-[10px]" /> Pending
                         </span>
                       </td>
@@ -247,7 +247,7 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
                         <button 
                           onClick={(e) => { e.stopPropagation(); handleApprove(user._id); }} 
                           disabled={isActionLoading} 
-                          className="p-2.5 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg transition-all disabled:opacity-50" 
+                          className="p-2.5 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-500/20 rounded-lg transition-all disabled:opacity-50 cursor-pointer shadow-xs" 
                           title="Approve & Generate ID"
                         >
                           <FiCheck strokeWidth={3} />
@@ -255,7 +255,7 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
                         <button 
                           onClick={(e) => { e.stopPropagation(); triggerReject(user._id); }} 
                           disabled={isActionLoading} 
-                          className="p-2.5 text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50" 
+                          className="p-2.5 text-rose-600 dark:text-red-400 bg-rose-50 dark:bg-red-500/10 hover:bg-rose-100 dark:hover:bg-red-500/20 border border-rose-200 dark:border-red-500/20 rounded-lg transition-all disabled:opacity-50 cursor-pointer shadow-xs" 
                           title="Reject KYC"
                         >
                           <FiX strokeWidth={3} />
@@ -265,7 +265,7 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="p-12 text-center text-slate-400 italic">
+                    <td colSpan={7} className="p-12 text-center text-slate-500 dark:text-slate-400 italic">
                       {searchQuery ? 'No matching pending users found.' : 'No pending approvals at the moment.'}
                     </td>
                   </tr>
@@ -279,14 +279,14 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
       {/* User Details Modal */}
       {isModalOpen && selectedUser && createPortal(
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeModal}></div>
+          <div className="absolute inset-0 dark:bg-slate-950/50 backdrop-blur-lg animate-fade-in" onClick={closeModal}></div>
           
-          <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-2xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-5 py-3 border-b border-white/10 flex justify-between items-center bg-slate-800/50">
-              <h3 className="font-bold text-white text-lg flex items-center gap-2">
-                <FiUser className="text-amber-400" /> Pending KYC Details
+          <div className="relative bg-transparent dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-2xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-5 py-3 border-b border-slate-200 dark:border-white/10 flex justify-between items-center bg-white/40 dark:bg-slate-800/50">
+              <h3 className="font-bold text-slate-900 dark:text-white text-lg flex items-center gap-2">
+                <FiUser className="text-amber-500 dark:text-amber-400" /> Pending KYC Details
               </h3>
-              <button onClick={closeModal} className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors">
+              <button onClick={closeModal} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors cursor-pointer">
                 <FiX className="text-xl" />
               </button>
             </div>
@@ -294,48 +294,48 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
             <div className="overflow-y-auto custom-scrollbar p-5 space-y-4">
               {/* Personal Information */}
               <div>
-                <h4 className="text-sm font-bold text-white mb-3 uppercase tracking-wider border-b border-white/10 pb-2">Personal Information</h4>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-3 uppercase tracking-wider border-b border-slate-200 dark:border-white/10 pb-2">Personal Information</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Full Name</p>
-                    <p className="text-white font-medium">{selectedUser.name}</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Full Name</p>
+                    <p className="text-slate-900 dark:text-white font-medium">{selectedUser.name}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Email Address</p>
-                    <div className="text-white font-medium">
-                      <GmailLink email={selectedUser.email} className="text-white hover:text-blue-400" />
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Email Address</p>
+                    <div className="text-slate-900 dark:text-white font-medium">
+                      <GmailLink email={selectedUser.email} className="text-blue-600 dark:text-white hover:text-blue-700 dark:hover:text-blue-400" />
                     </div>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Phone Number</p>
-                    <p className="text-white font-medium">{selectedUser.phone || 'Not Provided'}</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Phone Number</p>
+                    <p className="text-slate-900 dark:text-white font-medium">{selectedUser.phone || 'Not Provided'}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Role</p>
-                    <p className="text-white font-medium capitalize">{selectedUser.role || 'customer'}</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Role</p>
+                    <p className="text-slate-900 dark:text-white font-medium capitalize">{selectedUser.role || 'customer'}</p>
                   </div>
                 </div>
 
                 {/* Auth Account Status Block */}
-                <div className="mt-4 p-4 rounded-2xl border border-white/5 bg-slate-800/40">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Auth Account status</p>
+                <div className="mt-4 p-4 rounded-2xl border border-slate-200 dark:border-white/5 bg-white/40 dark:bg-slate-800/40">
+                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Auth Account status</p>
                   {loadingAuthStatus ? (
-                    <div className="flex items-center gap-2 text-slate-400 text-xs font-medium">
-                      <FiLoader className="animate-spin text-amber-400" /> Checking system registration...
+                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-medium">
+                      <FiLoader className="animate-spin text-amber-500 dark:text-amber-400" /> Checking system registration...
                     </div>
                   ) : authStatus ? (
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
-                        <span className="text-white font-semibold capitalize text-sm">{authStatus.status || authStatus.message || 'Active'}</span>
+                        <span className="text-slate-900 dark:text-white font-semibold capitalize text-sm">{authStatus.status || authStatus.message || 'Active'}</span>
                         {authStatus.lastLogin && <p className="text-[10px] text-slate-500">Last login: {new Date(authStatus.lastLogin).toLocaleString()}</p>}
                       </div>
-                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${authStatus.exists ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${authStatus.exists ? 'bg-emerald-50 border-emerald-200 text-emerald-600 dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:text-emerald-400' : 'bg-rose-50 border-rose-200 text-rose-600 dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-400'}`}>
                         {authStatus.exists ? 'Registered' : 'Unregistered'}
                       </span>
                     </div>
                   ) : (
                     <div className="flex items-center gap-1.5 text-slate-500 text-xs font-medium italic">
-                      <FiAlertCircle size={14} className="text-red-400" /> Failed to retrieve authentication status.
+                      <FiAlertCircle size={14} className="text-rose-500 dark:text-red-400" /> Failed to retrieve authentication status.
                     </div>
                   )}
                 </div>
@@ -343,31 +343,31 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
 
               {/* Business / KYC Information */}
               <div>
-                <h4 className="text-sm font-bold text-white mb-3 uppercase tracking-wider border-b border-white/10 pb-2">Business & KYC Details</h4>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-3 uppercase tracking-wider border-b border-slate-200 dark:border-white/10 pb-2">Business & KYC Details</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Business Type</p>
-                    <span className="bg-slate-700 border border-slate-600 text-slate-200 px-3 py-1 rounded-md text-xs font-bold shadow-sm">
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Business Type</p>
+                    <span className="bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-800 dark:text-slate-200 px-3 py-1 rounded-md text-xs font-bold shadow-xs">
                       {selectedUser.businessType || 'L1'}
                     </span>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">GST Number</p>
-                    <p className="text-white font-medium font-mono tracking-wide">{selectedUser.gstNumber || 'Not Provided'}</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">GST Number</p>
+                    <p className="text-slate-900 dark:text-white font-medium font-mono tracking-wide">{selectedUser.gstNumber || 'Not Provided'}</p>
                   </div>
                   <div className="sm:col-span-2">
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">GST Document</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">GST Document</p>
                     {selectedUser.gstDocument ? (
                       <a 
                         href={getDocumentUrl(selectedUser.gstDocument)} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-3 bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 text-blue-400 rounded-xl font-medium text-sm transition-all"
+                        className="inline-flex items-center gap-2 px-4 py-3 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 hover:bg-blue-100 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-xl font-medium text-sm transition-all"
                       >
                         <FiFileText className="text-lg" /> View Uploaded Document
                       </a>
                     ) : (
-                      <div className="inline-flex items-center gap-2 px-4 py-3 bg-transparent border border-dashed border-white/10 text-slate-500 rounded-xl text-sm italic">
+                      <div className="inline-flex items-center gap-2 px-4 py-3 bg-slate-50 dark:bg-transparent border border-dashed border-slate-200 dark:border-white/10 text-slate-500 rounded-xl text-sm italic">
                         <FiFileText className="text-lg" /> No document uploaded
                       </div>
                     )}
@@ -375,17 +375,17 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
                 </div>
               </div>
 
-               <p className="text-amber-400 font-medium italic bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl flex items-center gap-2 text-sm">
-                 <FiLoader className="animate-spin" /> User is awaiting KYC verification by an administrator.
-               </p>
+              <p className="text-amber-600 dark:text-amber-400 font-medium italic bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 p-3 rounded-xl flex items-center gap-2 text-sm">
+                <FiLoader className="animate-spin" /> User is awaiting KYC verification by an administrator.
+              </p>
             </div>
 
             {/* Footer Actions */}
-            <div className="pt-3 pb-4 px-5 border-t border-white/10 flex flex-col sm:flex-row justify-end gap-3 bg-slate-800/30 shrink-0">
-              <button onClick={() => triggerReject(selectedUser._id)} disabled={isActionLoading} className="w-full sm:w-auto px-6 py-2.5 bg-transparent border border-red-500/30 text-red-400 font-bold rounded-xl hover:bg-red-500/10 transition-colors disabled:opacity-50">
+            <div className="pt-3 pb-4 px-5 border-t border-slate-200 dark:border-white/10 flex flex-col sm:flex-row justify-end gap-3 bg-white/40 dark:bg-slate-800/30 shrink-0">
+              <button onClick={() => triggerReject(selectedUser._id)} disabled={isActionLoading} className="w-full sm:w-auto px-6 py-2.5 bg-white dark:bg-transparent border border-rose-300 dark:border-red-500/30 text-rose-600 dark:text-red-400 font-bold rounded-xl hover:bg-rose-50 dark:hover:bg-red-500/10 transition-colors disabled:opacity-50 cursor-pointer">
                 Reject KYC
               </button>
-              <button onClick={() => handleApprove(selectedUser._id)} disabled={isActionLoading} className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 text-white font-bold rounded-xl transition-all disabled:opacity-50 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700">
+              <button onClick={() => handleApprove(selectedUser._id)} disabled={isActionLoading} className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 text-white font-bold rounded-xl transition-all disabled:opacity-50 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 cursor-pointer shadow-md shadow-emerald-600/20">
                 {isActionLoading ? <FiLoader className="mr-2 animate-spin" /> : <FiCheck className="mr-2 text-lg" />}
                 {isActionLoading ? 'Processing...' : 'Approve & Generate ID'}
               </button>
@@ -397,13 +397,13 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
       {/* Reject KYC Reason Popup Modal */}
       {rejectingUserId && createPortal(
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={() => { setRejectingUserId(null); setRejectionReason(''); }}></div>
+          <div className="absolute inset-0 dark:bg-slate-950/50 backdrop-blur-lg animate-fade-in" onClick={() => { setRejectingUserId(null); setRejectionReason(''); }}></div>
           
-          <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl p-6 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-              <FiUserMinus className="text-red-400" /> Reject KYC Application
+          <div className="relative bg-transparent dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-2xl rounded-2xl p-6 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+              <FiUserMinus className="text-rose-600 dark:text-red-400" /> Reject KYC Application
             </h3>
-            <p className="text-xs text-slate-400 mb-4 font-medium">Please provide a reason to notify the customer about their KYC rejection.</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 font-medium">Please provide a reason to notify the customer about their KYC rejection.</p>
             
             <textarea
               required
@@ -411,20 +411,20 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
               placeholder="Provide a detailed reason..."
-              className="w-full px-3.5 py-2.5 bg-slate-950 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-white text-sm"
+              className="w-full px-3.5 py-2.5 bg-white/40 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500/50 text-slate-900 dark:text-white text-sm"
             ></textarea>
             
             <div className="flex gap-3 justify-end mt-5">
               <button
                 onClick={() => { setRejectingUserId(null); setRejectionReason(''); }}
-                className="px-4 py-2 bg-slate-800 text-slate-300 text-sm font-bold rounded-xl hover:bg-slate-700 transition-colors cursor-pointer"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 text-sm font-bold rounded-xl transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleReject(rejectingUserId, rejectionReason)}
                 disabled={isActionLoading || !rejectionReason.trim()}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-white text-sm font-bold rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-white text-sm font-bold rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 shadow-md shadow-rose-600/20"
               >
                 {isActionLoading ? <FiLoader className="animate-spin text-xs" /> : <FiUserMinus size={14} />} Reject KYC
               </button>

@@ -1,8 +1,8 @@
 import React from 'react';
 
-const PageHeader = ({ title, icon: Icon, description, action }) => {
+const PageHeader = ({ title, icon: Icon, description, action, className = '' }) => {
   return (
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 z-10 relative">
+    <div className={`flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 relative z-10 ${className}`}>
       <div>
         <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
           {Icon && <Icon className="text-blue-600 dark:text-blue-400 shrink-0" />}

@@ -705,133 +705,85 @@ const UserDetails = () => {
         <div>
           <button
             onClick={() => navigate('/users/list')}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.03] hover:bg-white/10 text-slate-400 hover:text-white border border-white/10 text-xs font-bold transition-all cursor-pointer mb-2.5 active:scale-95"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-white/[0.03] hover:bg-slate-100 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200/80 dark:border-white/10 text-xs font-bold transition-all cursor-pointer mb-2.5 active:scale-95 shadow-xs dark:shadow-none"
           >
             <FiArrowLeft size={14} /> Back to Users List
           </button>
-          {/* <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-3">
-              <FiUser className="text-blue-400" />
-              <span>User Profile</span>
-            </h1>
-            {user && (
-              <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
-                user.deleteRequested
-                  ? 'bg-rose-500/15 text-rose-400 border-rose-500/30'
-                  : (user.isApproved || user.userId)
-                    ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
-                    : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-              }`}>
-                {user.deleteRequested ? 'Deleted' : (user.isApproved || user.userId) ? 'Active & Approved' : 'Pending KYC'}
-              </span>
-            )}
-          </div>
-          <p className="text-slate-400 text-xs sm:text-sm font-medium mt-1">Detailed customer information, app telemetry, devices, and browsing activity.</p> */}
         </div>
-
-        {/* {user && (
-          <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap shrink-0">
-            <button
-              onClick={handleForceLogout}
-              disabled={isActionLoading}
-              className="px-3.5 py-2 rounded-xl text-xs font-bold text-amber-300 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm active:scale-95"
-              title="Force logout from all active sessions"
-            >
-              <FiLogOut size={14} /> Force Logout
-            </button>
-            {user.deleteRequested ? (
-              <button
-                onClick={handleReactivate}
-                disabled={isActionLoading}
-                className="px-3.5 py-2 rounded-xl text-xs font-bold text-emerald-300 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm active:scale-95"
-              >
-                <FiRefreshCcw size={14} /> Reactivate Account
-              </button>
-            ) : (
-              <button
-                onClick={() => setDeleteConfirmOpen(true)}
-                disabled={isActionLoading}
-                className="px-3.5 py-2 rounded-xl text-xs font-bold text-rose-300 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm active:scale-95"
-              >
-                <FiTrash2 size={14} /> Delete Account
-              </button>
-            )}
-          </div>
-        )} */}
       </div>
 
       {/* Loading & Error States */}
       {loading && !user ? (
-        <div className="h-72 flex flex-col justify-center items-center bg-slate-950/20 border border-white/10 rounded-3xl shadow-xl">
-          <FiLoader className="animate-spin text-3xl text-blue-400 mb-3" />
-          <p className="text-slate-400 font-semibold text-sm">Loading user details...</p>
+        <div className="h-72 flex flex-col justify-center items-center bg-white/40 dark:bg-slate-950/20 border border-slate-200/80 dark:border-white/10 rounded-3xl shadow-xs dark:shadow-xl">
+          <FiLoader className="animate-spin text-3xl text-blue-600 dark:text-blue-400 mb-3" />
+          <p className="text-slate-500 dark:text-slate-400 font-semibold text-sm">Loading user details...</p>
         </div>
       ) : error ? (
-        <div className="text-rose-400 bg-rose-500/10 p-6 rounded-3xl border border-rose-500/25 flex items-center gap-4 shadow-xl">
-          <FiAlertCircle className="text-2xl shrink-0 text-rose-400" />
+        <div className="text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 p-6 rounded-3xl border border-rose-200 dark:border-rose-500/25 flex items-center gap-4 shadow-xs dark:shadow-xl">
+          <FiAlertCircle className="text-2xl shrink-0 text-rose-600 dark:text-rose-400" />
           <div>
-            <p className="font-bold text-base text-rose-300">Error Loading Profile</p>
-            <p className="text-xs text-rose-400/90 mt-0.5">{error}</p>
+            <p className="font-bold text-base text-rose-700 dark:text-rose-300">Error Loading Profile</p>
+            <p className="text-xs text-rose-600/90 dark:text-rose-400/90 mt-0.5">{error}</p>
           </div>
         </div>
       ) : user ? (
         <div className="space-y-6 w-full">
 
           {/* Core User Information Hero Card */}
-          <div className="relative bg-slate-950/50 border border-white/20 rounded-3xl p-6 shadow-2xl overflow-hidden space-y-6">
+          <div className="relative bg-white/20 dark:bg-slate-950/50 border border-slate-200/80 dark:border-white/20 rounded-3xl p-6 shadow-xl dark:shadow-2xl overflow-hidden space-y-6 backdrop-blur-xl">
             <div className="absolute top-0 right-0 -mt-10 -mr-10 w-92 h-92 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
             {/* Profile Header Bar */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-white/20">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-slate-200/80 dark:border-white/20">
               <div className="flex items-start sm:items-center gap-5">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-blue-600/30 via-indigo-600/20 to-purple-600/20 border border-blue-500/30 flex items-center justify-center text-2xl sm:text-3xl font-black text-blue-400 shadow-inner shrink-0 select-none">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-blue-500/15 via-indigo-500/10 to-purple-500/10 dark:from-blue-600/30 dark:via-indigo-600/20 dark:to-purple-600/20 border border-blue-500/20 dark:border-blue-500/30 flex items-center justify-center text-2xl sm:text-3xl font-black text-blue-600 dark:text-blue-400 shadow-inner shrink-0 select-none">
                   {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                 </div>
 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2.5 flex-wrap">
-                    <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">{user.name || 'Anonymous User'}</h2>
+                    <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">{user.name || 'Anonymous User'}</h2>
                     
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                       {user.role || 'customer'}
                     </span>
 
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-slate-800 text-slate-300 border border-white/10">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10">
                       Tier: {user.businessType || 'L1'}
                     </span>
 
                     {user.isOnline ? (
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 inline-flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 inline-flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span>
                         Online
                       </span>
                     ) : (
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-800 text-slate-400 border border-white/5 inline-flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/5 inline-flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500"></span>
                         Offline
                       </span>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-4 text-xs text-slate-400 flex-wrap">
+                  <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
                     {/* Email with GmailLink & CopyButton */}
                     <div className="flex items-center gap-1.5">
-                      <GmailLink email={user.email} showIcon={true} iconSize={13} className="text-slate-300 hover:text-blue-400 font-medium" />
+                      <GmailLink email={user.email} showIcon={true} iconSize={13} className="text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium" />
                     </div>
 
                     {user.phone && (
                       <div className="flex items-center gap-1.5">
-                        <span className="text-slate-600">•</span>
-                        <FiPhone size={12} className="text-slate-500" />
-                        <span className="text-slate-300 font-mono font-medium">{user.phone}</span>
-                        <CopyButton text={user.phone} size={11} className="text-slate-500 hover:text-white" title="Copy Phone" />
+                        <span className="text-slate-400 dark:text-slate-600">•</span>
+                        <FiPhone size={12} className="text-slate-400 dark:text-slate-500" />
+                        <span className="text-slate-700 dark:text-slate-300 font-mono font-medium">{user.phone}</span>
+                        <CopyButton text={user.phone} size={11} className="text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white" title="Copy Phone" />
                       </div>
                     )}
 
                     {user.createdAt && (
-                      <div className="flex items-center gap-1.5 text-slate-400">
-                        <span className="text-slate-600">•</span>
-                        <FiCalendar size={12} className="text-slate-500" />
+                      <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                        <span className="text-slate-400 dark:text-slate-600">•</span>
+                        <FiCalendar size={12} className="text-slate-400 dark:text-slate-500" />
                         <span>Joined {formatDateDDMMYYYY(user.createdAt)}</span>
                       </div>
                     )}
@@ -840,21 +792,21 @@ const UserDetails = () => {
               </div>
 
               {/* ID summary chips */}
-              <div className="flex items-center gap-3 self-start lg:self-auto bg-white/[0.03] border border-white/10 rounded-2xl p-3.5">
+              <div className="flex items-center gap-3 self-start lg:self-auto bg-slate-100/70 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl p-3.5 shadow-xs dark:shadow-none">
                 {(user.isApproved || user.userId) && user.userId ? (
-                  <div className="pr-3 border-r border-white/10">
+                  <div className="pr-3 border-r border-slate-200/80 dark:border-white/10">
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Generated User ID</span>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="font-mono text-emerald-400 font-black text-sm select-all">{user.userId}</span>
-                      <CopyButton text={user.userId} size={11} className="text-emerald-400 hover:text-emerald-300" title="Copy User ID" />
+                      <span className="font-mono text-emerald-600 dark:text-emerald-400 font-black text-sm select-all">{user.userId}</span>
+                      <CopyButton text={user.userId} size={11} className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300" title="Copy User ID" />
                     </div>
                   </div>
                 ) : null}
                 <div>
                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Database ID</span>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="font-mono text-slate-300 text-xs font-semibold select-all truncate max-w-[130px]" title={user._id}>{user._id}</span>
-                    <CopyButton text={user._id} size={11} className="text-slate-400 hover:text-white" title="Copy DB ID" />
+                    <span className="font-mono text-slate-700 dark:text-slate-300 text-xs font-semibold select-all truncate max-w-[130px]" title={user._id}>{user._id}</span>
+                    <CopyButton text={user._id} size={11} className="text-slate-400 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white" title="Copy DB ID" />
                   </div>
                 </div>
               </div>
@@ -864,82 +816,82 @@ const UserDetails = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
               {/* Account Information */}
               <div className="space-y-3.5">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                  <FiUser className="text-blue-400" /> Account Profile Details
+                <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                  <FiUser className="text-blue-600 dark:text-blue-400" /> Account Profile Details
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
+                  <div className="p-3.5 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Full Name</span>
-                    <p className="text-white font-semibold text-sm mt-1">{user.name || 'N/A'}</p>
+                    <p className="text-slate-900 dark:text-white font-semibold text-sm mt-1">{user.name || 'N/A'}</p>
                   </div>
-                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
+                  <div className="p-3.5 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Role</span>
-                    <p className="text-white font-semibold text-sm mt-1 capitalize">{user.role || 'customer'}</p>
+                    <p className="text-slate-900 dark:text-white font-semibold text-sm mt-1 capitalize">{user.role || 'customer'}</p>
                   </div>
-                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
+                  <div className="p-3.5 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Phone Number</span>
-                    <p className="text-white font-semibold text-sm mt-1 font-mono">{user.phone || 'Not Provided'}</p>
+                    <p className="text-slate-900 dark:text-white font-semibold text-sm mt-1 font-mono">{user.phone || 'Not Provided'}</p>
                   </div>
-                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
+                  <div className="p-3.5 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Email Address</span>
                     <div className="mt-1">
-                      <GmailLink email={user.email} className="text-white hover:text-blue-400 text-sm" />
+                      <GmailLink email={user.email} className="text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 text-sm" />
                     </div>
                   </div>
-                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
+                  <div className="p-3.5 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Account Created</span>
-                    <p className="text-slate-300 font-semibold text-xs mt-1 font-mono">{user.createdAt ? formatDateTimeDDMMYYYY(user.createdAt) : 'N/A'}</p>
+                    <p className="text-slate-700 dark:text-slate-300 font-semibold text-xs mt-1 font-mono">{user.createdAt ? formatDateTimeDDMMYYYY(user.createdAt) : 'N/A'}</p>
                   </div>
-                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
+                  <div className="p-3.5 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Last Updated</span>
-                    <p className="text-slate-300 font-semibold text-xs mt-1 font-mono">{user.updatedAt ? formatDateTimeDDMMYYYY(user.updatedAt) : 'N/A'}</p>
+                    <p className="text-slate-700 dark:text-slate-300 font-semibold text-xs mt-1 font-mono">{user.updatedAt ? formatDateTimeDDMMYYYY(user.updatedAt) : 'N/A'}</p>
                   </div>
                 </div>
               </div>
 
               {/* Business & Verification */}
               <div className="space-y-3.5">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                  <FiShield className="text-emerald-400" /> Business & KYC Verification
+                <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                  <FiShield className="text-emerald-600 dark:text-emerald-400" /> Business & KYC Verification
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
+                  <div className="p-3.5 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Business Type</span>
                     <div className="mt-1.5">
-                      <span className="bg-slate-800/90 border border-slate-700 text-slate-200 px-2.5 py-1 rounded-lg text-xs font-bold">
+                      <span className="bg-slate-200 dark:bg-slate-800/90 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-2.5 py-1 rounded-lg text-xs font-bold">
                         {user.businessType || 'L1'}
                       </span>
                     </div>
                   </div>
-                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
+                  <div className="p-3.5 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">KYC Status</span>
                     <div className="mt-1.5">
                       {(user.isApproved || user.userId) ? (
-                        <span className="text-emerald-400 text-xs font-bold inline-flex items-center gap-1.5">
-                          <FiCheckCircle className="text-emerald-400" /> Verified & Approved
+                        <span className="text-emerald-600 dark:text-emerald-400 text-xs font-bold inline-flex items-center gap-1.5">
+                          <FiCheckCircle className="text-emerald-600 dark:text-emerald-400" /> Verified & Approved
                         </span>
                       ) : (
-                        <span className="text-amber-400 text-xs font-bold inline-flex items-center gap-1.5">
-                          <FiLoader className="animate-spin text-amber-400" /> Pending Review
+                        <span className="text-amber-600 dark:text-amber-400 text-xs font-bold inline-flex items-center gap-1.5">
+                          <FiLoader className="animate-spin text-amber-600 dark:text-amber-400" /> Pending Review
                         </span>
                       )}
                     </div>
                   </div>
-                  <div className="col-span-2 p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
+                  <div className="col-span-2 p-3.5 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">GST Number</span>
                     <div className="flex items-center justify-between gap-2 mt-1">
-                      <span className="text-white font-mono font-bold text-sm tracking-wide select-all">
+                      <span className="text-slate-900 dark:text-white font-mono font-bold text-sm tracking-wide select-all">
                         {user.gstNumber || 'Not Provided'}
                       </span>
                       {user.gstNumber && (
-                        <CopyButton text={user.gstNumber} size={12} className="text-slate-400 hover:text-white" title="Copy GST Number" />
+                        <CopyButton text={user.gstNumber} size={12} className="text-slate-400 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white" title="Copy GST Number" />
                       )}
                     </div>
                   </div>
-                  <div className="col-span-2 p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
+                  <div className="col-span-2 p-3.5 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
                     <div>
                       <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">GST Certificate / Document</span>
-                      <p className="text-xs text-slate-400 mt-0.5">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                         {user.gstDocument ? 'Official document uploaded by customer' : 'No document uploaded yet'}
                       </p>
                     </div>
@@ -948,12 +900,12 @@ const UserDetails = () => {
                         href={getDocumentUrl(user.gstDocument)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/15 border border-blue-500/30 hover:bg-blue-500/25 text-blue-300 rounded-xl font-bold text-xs transition-all shrink-0 active:scale-95 shadow-sm"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 dark:bg-blue-500/15 dark:hover:bg-blue-500/25 border border-blue-500/20 dark:border-blue-500/30 text-blue-600 dark:text-blue-300 rounded-xl font-bold text-xs transition-all shrink-0 active:scale-95 shadow-xs"
                       >
                         <FiFileText size={14} /> View Document
                       </a>
                     ) : (
-                      <span className="text-xs text-slate-500 italic bg-white/[0.03] px-3 py-1.5 rounded-xl border border-white/10">
+                      <span className="text-xs text-slate-500 italic bg-slate-200/50 dark:bg-white/[0.03] px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/10">
                         No Document
                       </span>
                     )}
@@ -964,7 +916,7 @@ const UserDetails = () => {
           </div>
 
           {/* Main Navigation Section Tabs */}
-          <div className="flex items-center gap-2 border-b border-white/20 pb-3 overflow-x-auto scrollbar-none">
+          <div className="flex items-center gap-2 border-b border-slate-200/80 dark:border-white/20 pb-3 overflow-x-auto scrollbar-none">
             {[
               { id: 'sessions', name: 'App Usage & Sessions', icon: FiActivity, badge: user.isOnline ? 'Online' : null },
               { id: 'devices', name: 'Registered Devices', icon: FiSmartphone, badge: user.devices?.length || 0 },
@@ -979,15 +931,15 @@ const UserDetails = () => {
                   onClick={() => setActiveSectionTab(tab.id)}
                   className={`px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap active:scale-95 ${
                     isActive
-                      ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 shadow-lg shadow-blue-500/10'
-                      : 'bg-white/[0.03] hover:bg-white/[0.08] text-slate-400 hover:text-slate-200 border border-white/10'
+                      ? 'bg-blue-600/15 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 shadow-md shadow-blue-500/10'
+                      : 'bg-white dark:bg-white/[0.03] hover:bg-slate-100 dark:hover:bg-white/[0.08] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-slate-200/80 dark:border-white/10 shadow-xs dark:shadow-none'
                   }`}
                 >
                   <Icon size={15} />
                   <span>{tab.name}</span>
                   {tab.badge !== null && tab.badge !== undefined && (
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                      isActive ? 'bg-blue-500/25 text-blue-300' : 'bg-slate-800 text-slate-400'
+                      isActive ? 'bg-blue-500/20 dark:bg-blue-500/25 text-blue-600 dark:text-blue-300' : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                     }`}>
                       {tab.badge}
                     </span>
@@ -1001,46 +953,46 @@ const UserDetails = () => {
           {activeSectionTab === 'sessions' && (
             <div className="space-y-6">
               {/* App Status & Security Overview */}
-              <div className="relative bg-slate-950/50 border border-white/20 shadow-2xl rounded-3xl p-6 overflow-hidden space-y-4">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 border-b border-white/20 pb-3">
-                  <FiSmartphone className="text-blue-400" /> App Status & Security Overview
+              <div className="relative bg-white/20 dark:bg-slate-950/50 border border-slate-200/80 dark:border-white/20 shadow-xl dark:shadow-2xl rounded-3xl p-6 overflow-hidden space-y-4 backdrop-blur-xl">
+                <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-200/80 dark:border-white/20 pb-3">
+                  <FiSmartphone className="text-blue-600 dark:text-blue-400" /> App Status & Security Overview
                 </h3>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3.5">
                   {/* Online Status */}
-                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl flex flex-col justify-between">
+                  <div className="p-3.5 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl flex flex-col justify-between">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Connection</span>
                     <div className="mt-2.5">
                       {user.isOnline ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 text-xs font-extrabold border border-emerald-500/30">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Online
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-xs font-extrabold border border-emerald-500/30">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span> Online
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 text-xs font-semibold border border-white/5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span> Offline
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-semibold border border-slate-300/80 dark:border-white/5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500"></span> Offline
                         </span>
                       )}
                     </div>
                   </div>
 
                   {/* App Version */}
-                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl flex flex-col justify-between">
+                  <div className="p-3.5 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl flex flex-col justify-between">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">App Version</span>
-                    <p className="text-xs font-black font-mono text-white mt-2.5">
+                    <p className="text-xs font-black font-mono text-slate-900 dark:text-white mt-2.5">
                       {hasValidAppVersion(user.appVersion) ? `v${user.appVersion}` : 'N/A'}
                     </p>
                   </div>
 
                   {/* App Installation */}
-                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl flex flex-col justify-between">
+                  <div className="p-3.5 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl flex flex-col justify-between">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Installation</span>
                     <div className="mt-2.5">
                       <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border ${
                         checkAppStatus(user) === 'uninstalled'
-                          ? 'bg-rose-500/15 text-rose-400 border-rose-500/30'
+                          ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 dark:border-rose-500/30'
                           : checkAppStatus(user) === 'installed'
-                            ? 'bg-teal-500/15 text-teal-400 border-teal-500/30'
-                            : 'bg-slate-800 text-slate-400 border-white/5'
+                            ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20 dark:border-teal-500/30'
+                            : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300/80 dark:border-white/5'
                       }`}>
                         {checkAppStatus(user) === 'uninstalled' ? 'Uninstalled' : checkAppStatus(user) === 'installed' ? 'Installed' : 'Pending'}
                       </span>
@@ -1048,25 +1000,25 @@ const UserDetails = () => {
                   </div>
 
                   {/* App Lock */}
-                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl flex flex-col justify-between">
+                  <div className="p-3.5 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl flex flex-col justify-between">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">App Lock</span>
-                    <p className={`text-xs font-extrabold mt-2.5 ${user.isAppLockEnabled ? 'text-teal-400' : 'text-slate-400'}`}>
+                    <p className={`text-xs font-extrabold mt-2.5 ${user.isAppLockEnabled ? 'text-teal-600 dark:text-teal-400' : 'text-slate-500 dark:text-slate-400'}`}>
                       {user.isAppLockEnabled ? 'Secured' : 'Inactive'}
                     </p>
                   </div>
 
                   {/* Push Alerts */}
-                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl flex flex-col justify-between">
+                  <div className="p-3.5 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl flex flex-col justify-between">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Push Alerts</span>
-                    <p className={`text-xs font-extrabold mt-2.5 ${user.notificationsEnabled ? 'text-emerald-400' : 'text-slate-400'}`}>
+                    <p className={`text-xs font-extrabold mt-2.5 ${user.notificationsEnabled ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`}>
                       {user.notificationsEnabled ? 'Enabled' : 'Disabled'}
                     </p>
                   </div>
 
                   {/* Password Setup */}
-                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl flex flex-col justify-between">
+                  <div className="p-3.5 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl flex flex-col justify-between">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Password</span>
-                    <p className="text-xs font-extrabold text-white mt-2.5 capitalize truncate">
+                    <p className="text-xs font-extrabold text-slate-900 dark:text-white mt-2.5 capitalize truncate">
                       {user.passwordSetupStatus?.replace('_', ' ') || 'Not Sent'}
                     </p>
                   </div>
@@ -1074,27 +1026,27 @@ const UserDetails = () => {
               </div>
 
               {/* Connection & Timestamps Card */}
-              <div className="relative bg-slate-950/50 border border-white/20 shadow-2xl rounded-3xl p-6 overflow-hidden space-y-4">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 border-b border-white/20 pb-3">
-                  <FiClock className="text-indigo-400" /> Connection & Session Timeline
+              <div className="relative bg-white/20 dark:bg-slate-950/50 border border-slate-200/80 dark:border-white/20 shadow-xl dark:shadow-2xl rounded-3xl p-6 overflow-hidden space-y-4 backdrop-blur-xl">
+                <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-200/80 dark:border-white/20 pb-3">
+                  <FiClock className="text-indigo-600 dark:text-indigo-400" /> Connection & Session Timeline
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
                   {/* Last Active Connection */}
-                  <div className="p-4 bg-white/[0.03] border border-white/10 rounded-2xl flex flex-col justify-between gap-3">
+                  <div className="p-4 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl flex flex-col justify-between gap-3">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Last Active Connection</span>
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-mono font-bold text-white select-all">
+                      <p className="text-xs font-mono font-bold text-slate-900 dark:text-white select-all">
                         {isLastActiveValid(user.lastActive, user)
                           ? formatDateTimeDDMMYYYY(user.lastActive)
                           : 'Not Active'}
                       </p>
                       {isLastActiveValid(user.lastActive, user) ? (
-                        <span className="text-[10px] bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-lg font-mono font-bold shrink-0">
+                        <span className="text-[10px] bg-indigo-500/10 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20 dark:border-indigo-500/30 px-2 py-0.5 rounded-lg font-mono font-bold shrink-0">
                           {formatRelativeTime(user.lastActive, user)}
                         </span>
                       ) : (
-                        <span className="text-[10px] bg-slate-800 text-slate-500 border border-white/5 px-2 py-0.5 rounded-lg font-bold shrink-0">
+                        <span className="text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-500 border border-slate-300 dark:border-white/5 px-2 py-0.5 rounded-lg font-bold shrink-0">
                           Offline
                         </span>
                       )}
@@ -1102,18 +1054,18 @@ const UserDetails = () => {
                   </div>
 
                   {/* Last Login Authorization */}
-                  <div className="p-4 bg-white/[0.03] border border-white/10 rounded-2xl flex flex-col justify-between gap-3">
+                  <div className="p-4 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl flex flex-col justify-between gap-3">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Last Session Login</span>
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-mono font-bold text-white select-all">
+                      <p className="text-xs font-mono font-bold text-slate-900 dark:text-white select-all">
                         {user.lastLoginAt ? formatDateTimeDDMMYYYY(user.lastLoginAt) : 'No recorded login'}
                       </p>
                       {user.lastLoginMethod ? (
-                        <span className="text-[10px] bg-teal-500/15 text-teal-300 border border-teal-500/30 px-2 py-0.5 rounded-lg font-bold uppercase tracking-wider shrink-0">
+                        <span className="text-[10px] bg-teal-500/10 dark:bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/20 dark:border-teal-500/30 px-2 py-0.5 rounded-lg font-bold uppercase tracking-wider shrink-0">
                           via {user.lastLoginMethod}
                         </span>
                       ) : (
-                        <span className="text-[10px] bg-slate-800 text-slate-500 border border-white/5 px-2 py-0.5 rounded-lg font-bold shrink-0">
+                        <span className="text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-500 border border-slate-300 dark:border-white/5 px-2 py-0.5 rounded-lg font-bold shrink-0">
                           {user.lastLoginAt ? 'Standard' : 'N/A'}
                         </span>
                       )}
@@ -1122,11 +1074,11 @@ const UserDetails = () => {
 
                   {/* Installed At */}
                   {hasAppOrDevice(user) && user.isAppInstalled && user.installedAt && (
-                    <div className="p-4 bg-white/[0.03] border border-white/10 rounded-2xl flex flex-col justify-between gap-3">
+                    <div className="p-4 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl flex flex-col justify-between gap-3">
                       <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">App Installed Date</span>
                       <div className="flex items-center justify-between gap-2">
-                        <p className="text-xs font-mono font-bold text-white select-all">{formatDateTimeDDMMYYYY(user.installedAt)}</p>
-                        <span className="text-[10px] bg-teal-500/15 text-teal-300 border border-teal-500/30 px-2 py-0.5 rounded-lg font-mono font-bold shrink-0">
+                        <p className="text-xs font-mono font-bold text-slate-900 dark:text-white select-all">{formatDateTimeDDMMYYYY(user.installedAt)}</p>
+                        <span className="text-[10px] bg-teal-500/10 dark:bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/20 dark:border-teal-500/30 px-2 py-0.5 rounded-lg font-mono font-bold shrink-0">
                           {formatRelativeTime(user.installedAt, user)}
                         </span>
                       </div>
@@ -1135,11 +1087,11 @@ const UserDetails = () => {
 
                   {/* Uninstalled At */}
                   {user.uninstalledAt && (
-                    <div className="p-4 bg-white/[0.03] border border-white/10 rounded-2xl flex flex-col justify-between gap-3">
+                    <div className="p-4 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl flex flex-col justify-between gap-3">
                       <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">App Uninstalled Date</span>
                       <div className="flex items-center justify-between gap-2">
-                        <p className="text-xs font-mono font-bold text-white select-all">{formatDateTimeDDMMYYYY(user.uninstalledAt)}</p>
-                        <span className="text-[10px] bg-rose-500/15 text-rose-300 border border-rose-500/30 px-2 py-0.5 rounded-lg font-mono font-bold shrink-0">
+                        <p className="text-xs font-mono font-bold text-slate-900 dark:text-white select-all">{formatDateTimeDDMMYYYY(user.uninstalledAt)}</p>
+                        <span className="text-[10px] bg-rose-500/10 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/20 dark:border-rose-500/30 px-2 py-0.5 rounded-lg font-mono font-bold shrink-0">
                           {formatRelativeTime(user.uninstalledAt)}
                         </span>
                       </div>
@@ -1149,9 +1101,9 @@ const UserDetails = () => {
               </div>
 
               {/* Usage & Engagement Metrics */}
-              <div className="relative bg-slate-950/50 border border-white/20 shadow-2xl rounded-3xl p-6 overflow-hidden space-y-4">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 border-b border-white/20 pb-3">
-                  <FiActivity className="text-emerald-400" /> Usage & Engagement Metrics
+              <div className="relative bg-white/20 dark:bg-slate-950/50 border border-slate-200/80 dark:border-white/20 shadow-xl dark:shadow-2xl rounded-3xl p-6 overflow-hidden space-y-4 backdrop-blur-xl">
+                <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-200/80 dark:border-white/20 pb-3">
+                  <FiActivity className="text-emerald-600 dark:text-emerald-400" /> Usage & Engagement Metrics
                 </h3>
 
                 {(() => {
@@ -1164,34 +1116,34 @@ const UserDetails = () => {
 
                   return (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
-                      <div className="p-4 bg-white/[0.03] border border-white/10 rounded-2xl text-center">
+                      <div className="p-4 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl text-center">
                         <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Total Logins</span>
-                        <p className="text-xl font-black text-white mt-1.5 font-mono">{totalLoginsCount}</p>
+                        <p className="text-xl font-black text-slate-900 dark:text-white mt-1.5 font-mono">{totalLoginsCount}</p>
                       </div>
 
-                      <div className="p-4 bg-white/[0.03] border border-white/10 rounded-2xl text-center">
+                      <div className="p-4 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl text-center">
                         <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Product Views</span>
-                        <p className="text-xl font-black text-blue-400 mt-1.5 font-mono">{productViewsCount}</p>
+                        <p className="text-xl font-black text-blue-600 dark:text-blue-400 mt-1.5 font-mono">{productViewsCount}</p>
                       </div>
 
-                      <div className="p-4 bg-white/[0.03] border border-white/10 rounded-2xl text-center">
+                      <div className="p-4 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl text-center">
                         <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Brand Views</span>
-                        <p className="text-xl font-black text-indigo-400 mt-1.5 font-mono">{brandViewsCount}</p>
+                        <p className="text-xl font-black text-indigo-600 dark:text-indigo-400 mt-1.5 font-mono">{brandViewsCount}</p>
                       </div>
 
-                      <div className="p-4 bg-white/[0.03] border border-white/10 rounded-2xl text-center">
+                      <div className="p-4 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl text-center">
                         <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Category Views</span>
-                        <p className="text-xl font-black text-purple-400 mt-1.5 font-mono">{categoryViewsCount}</p>
+                        <p className="text-xl font-black text-purple-600 dark:text-purple-400 mt-1.5 font-mono">{categoryViewsCount}</p>
                       </div>
 
-                      <div className="p-4 bg-white/[0.03] border border-white/10 rounded-2xl text-center">
+                      <div className="p-4 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl text-center">
                         <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Search Queries</span>
-                        <p className="text-xl font-black text-teal-400 mt-1.5 font-mono">{searchQueriesCount}</p>
+                        <p className="text-xl font-black text-teal-600 dark:text-teal-400 mt-1.5 font-mono">{searchQueriesCount}</p>
                       </div>
 
-                      <div className="p-4 bg-emerald-500/[0.08] border border-emerald-500/25 rounded-2xl text-center shadow-inner">
-                        <span className="text-[10px] text-emerald-400/90 font-bold uppercase tracking-wider block">Total Actions</span>
-                        <p className="text-xl font-black text-emerald-400 mt-1.5 font-mono">{totalActionsCount}</p>
+                      <div className="p-4 bg-emerald-500/30 dark:bg-emerald-500/[0.08] border border-emerald-500/20 dark:border-emerald-500/25 rounded-2xl text-center shadow-inner">
+                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400/90 font-bold uppercase tracking-wider block">Total Actions</span>
+                        <p className="text-xl font-black text-emerald-600 dark:text-emerald-400 mt-1.5 font-mono">{totalActionsCount}</p>
                       </div>
                     </div>
                   );
@@ -1202,17 +1154,17 @@ const UserDetails = () => {
 
           {/* 2. Registered Devices Tab */}
           {activeSectionTab === 'devices' && (
-            <div className="relative bg-slate-950/50 border border-white/20 shadow-2xl rounded-3xl p-6 overflow-hidden space-y-4">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between border-b border-white/20 pb-3">
+            <div className="relative bg-white/20 dark:bg-slate-950/50 border border-slate-200/80 dark:border-white/20 shadow-xl dark:shadow-2xl rounded-3xl p-6 overflow-hidden space-y-4 backdrop-blur-xl">
+              <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center justify-between border-b border-slate-200/80 dark:border-white/20 pb-3">
                 <span className="flex items-center gap-2">
-                  <FiSmartphone className="text-blue-400" /> Registered Devices
+                  <FiSmartphone className="text-blue-600 dark:text-blue-400" /> Registered Devices
                 </span>
-                <span className="text-xs font-mono font-bold text-slate-400">Total: {user.devices?.length || 0}</span>
+                <span className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400">Total: {user.devices?.length || 0}</span>
               </h3>
 
               {!user.devices || user.devices.length === 0 ? (
-                <div className="py-12 flex flex-col items-center justify-center text-slate-500 text-center space-y-2">
-                  <FiSmartphone size={32} className="text-slate-600" />
+                <div className="py-12 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 text-center space-y-2">
+                  <FiSmartphone size={32} className="text-slate-400 dark:text-slate-600" />
                   <p className="text-xs italic font-medium">No registered devices found for this account.</p>
                 </div>
               ) : (
@@ -1223,30 +1175,30 @@ const UserDetails = () => {
                     const isApple = platform === 'ios' || platform === 'apple';
 
                     return (
-                      <div key={device._id || idx} className="p-4 bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 rounded-2xl space-y-3 transition-all shadow-sm">
-                        <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                      <div key={device._id || idx} className="p-4 bg-slate-100/60 dark:bg-white/[0.03] hover:bg-slate-100 dark:hover:bg-white/[0.06] border border-slate-200/80 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 rounded-2xl space-y-3 transition-all shadow-xs dark:shadow-sm">
+                        <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-white/10 pb-2.5">
                           <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400 shrink-0">
+                            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
                               {isAndroid ? (
-                                <DiAndroid size={18} className="text-green-400" />
+                                <DiAndroid size={18} className="text-green-600 dark:text-green-400" />
                               ) : isApple ? (
-                                <DiApple size={18} className="text-slate-200" />
+                                <DiApple size={18} className="text-slate-700 dark:text-slate-200" />
                               ) : platform === 'tablet' ? (
-                                <FiTablet size={16} className="text-purple-400" />
+                                <FiTablet size={16} className="text-purple-600 dark:text-purple-400" />
                               ) : (
-                                <FiSmartphone size={16} className="text-blue-400" />
+                                <FiSmartphone size={16} className="text-blue-600 dark:text-blue-400" />
                               )}
                             </div>
                             <div className="min-w-0">
-                              <p className="text-white font-bold truncate text-sm">{device.deviceModel || 'Unknown Device'}</p>
+                              <p className="text-slate-900 dark:text-white font-bold truncate text-sm">{device.deviceModel || 'Unknown Device'}</p>
                               <p className="text-[10px] text-slate-500 uppercase tracking-wider font-extrabold">{device.devicePlatform || 'N/A'}</p>
                             </div>
                           </div>
 
                           <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
                             device.notificationsEnabled
-                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                              : 'bg-slate-800 text-slate-500 border border-white/5'
+                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                              : 'bg-slate-200 dark:bg-slate-800 text-slate-500 border border-slate-300 dark:border-white/5'
                           }`}>
                             {device.notificationsEnabled ? 'Push ON' : 'Push OFF'}
                           </span>
@@ -1255,23 +1207,23 @@ const UserDetails = () => {
                         <div className="grid grid-cols-2 gap-2 text-xs">
                           <div>
                             <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">App Version</span>
-                            <span className="text-white font-mono font-bold text-xs">v{device.appVersion || 'N/A'}</span>
+                            <span className="text-slate-900 dark:text-white font-mono font-bold text-xs">v{device.appVersion || 'N/A'}</span>
                           </div>
                           <div>
                             <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Last Active</span>
-                            <span className="text-slate-300 font-medium text-xs truncate block">
+                            <span className="text-slate-700 dark:text-slate-300 font-medium text-xs truncate block">
                               {device.lastActive ? formatRelativeTime(device.lastActive, user) : 'N/A'}
                             </span>
                           </div>
 
-                          <div className="col-span-2 pt-1 border-t border-white/10">
+                          <div className="col-span-2 pt-1 border-t border-slate-200/80 dark:border-white/10">
                             <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Device Token / ID</span>
                             <div className="flex items-center justify-between gap-2 mt-0.5">
-                              <span className="text-slate-400 font-mono text-[10px] truncate" title={device.deviceId || device.fcmToken}>
+                              <span className="text-slate-500 dark:text-slate-400 font-mono text-[10px] truncate" title={device.deviceId || device.fcmToken}>
                                 {device.deviceId || device.fcmToken || 'N/A'}
                               </span>
                               {(device.deviceId || device.fcmToken) && (
-                                <CopyButton text={device.deviceId || device.fcmToken} size={11} className="text-slate-500 hover:text-white" title="Copy Device Token" />
+                                <CopyButton text={device.deviceId || device.fcmToken} size={11} className="text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white" title="Copy Device Token" />
                               )}
                             </div>
                           </div>
@@ -1286,15 +1238,15 @@ const UserDetails = () => {
 
           {/* 3. Customer Browsing Activity Tab */}
           {activeSectionTab === 'activity' && (
-            <div className="relative bg-slate-950/50 border border-white/20 shadow-2xl rounded-3xl p-6 overflow-hidden space-y-5">
-              <div className="border-b border-white/20 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                  <FiEye className="text-blue-400" /> Customer Browsing Activity
+            <div className="relative bg-white/20 dark:bg-slate-950/50 border border-slate-200/80 dark:border-white/20 shadow-xl dark:shadow-2xl rounded-3xl p-6 overflow-hidden space-y-5">
+              <div className="border-b border-slate-200/80 dark:border-white/20 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                  <FiEye className="text-blue-600 dark:text-blue-400" /> Customer Browsing Activity
                 </h3>
               </div>
 
               {/* Sub tabs for activity categories */}
-              <div className="flex border-b border-white/10 gap-2 overflow-x-auto scrollbar-none pb-2">
+              <div className="flex border-b border-slate-200/80 dark:border-white/10 gap-2 overflow-x-auto scrollbar-none pb-2">
                 {[
                   { id: 'products', name: 'Viewed Products', count: userActivities.products.length },
                   { id: 'brands', name: 'Viewed Brands', count: userActivities.brands.length },
@@ -1306,13 +1258,13 @@ const UserDetails = () => {
                     onClick={() => setActiveActivityTab(tab.id)}
                     className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1.5 active:scale-95 ${
                       activeActivityTab === tab.id
-                        ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 shadow-md'
-                        : 'bg-white/[0.03] hover:bg-white/[0.08] text-slate-400 hover:text-slate-200 border border-white/10'
+                        ? 'bg-blue-600/15 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 shadow-xs'
+                        : 'bg-white dark:bg-white/[0.03] hover:bg-slate-100 dark:hover:bg-white/[0.08] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-slate-200/80 dark:border-white/10'
                     }`}
                   >
                     <span>{tab.name}</span>
                     <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono font-black ${
-                      activeActivityTab === tab.id ? 'bg-blue-500/30 text-blue-300' : 'bg-slate-800 text-slate-400'
+                      activeActivityTab === tab.id ? 'bg-blue-500/20 dark:bg-blue-500/30 text-blue-600 dark:text-blue-300' : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                     }`}>
                       {tab.count}
                     </span>
@@ -1321,36 +1273,36 @@ const UserDetails = () => {
               </div>
 
               {loadingActivities ? (
-                <div className="py-12 flex flex-col items-center justify-center text-slate-400">
-                  <FiLoader className="animate-spin text-2xl text-blue-400 mb-2" />
+                <div className="py-12 flex flex-col items-center justify-center text-slate-500 dark:text-slate-400">
+                  <FiLoader className="animate-spin text-2xl text-blue-600 dark:text-blue-400 mb-2" />
                   <span className="text-xs font-medium">Processing activity logs...</span>
                 </div>
               ) : (
-                <div className="max-h-[380px] overflow-auto custom-scrollbar rounded-2xl border border-white/10 bg-white/[0.02]">
+                <div className="max-h-[380px] overflow-auto custom-scrollbar rounded-2xl border border-slate-200/80 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02]">
                   {activeActivityTab === 'products' && (
                     <table className="w-full text-left border-collapse min-w-[500px]">
                       <thead>
-                        <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                          <th className="p-3.5 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Product</th>
-                          <th className="p-3.5 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Brand</th>
-                          <th className="p-3.5 text-center sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Views Count</th>
-                          <th className="p-3.5 text-right sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Latest View</th>
+                        <tr className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                          <th className="p-3.5 sticky top-0 bg-slate-100/90 dark:bg-slate-950/80 backdrop-blur-md z-10 border-b border-slate-200/80 dark:border-white/10">Product</th>
+                          <th className="p-3.5 sticky top-0 bg-slate-100/90 dark:bg-slate-950/80 backdrop-blur-md z-10 border-b border-slate-200/80 dark:border-white/10">Brand</th>
+                          <th className="p-3.5 text-center sticky top-0 bg-slate-100/90 dark:bg-slate-950/80 backdrop-blur-md z-10 border-b border-slate-200/80 dark:border-white/10">Views Count</th>
+                          <th className="p-3.5 text-right sticky top-0 bg-slate-100/90 dark:bg-slate-950/80 backdrop-blur-md z-10 border-b border-slate-200/80 dark:border-white/10">Latest View</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/10">
+                      <tbody className="divide-y divide-slate-200/80 dark:divide-white/10">
                         {userActivities.products.length === 0 ? (
                           <tr>
                             <td colSpan="4" className="p-8 text-center text-xs text-slate-500 italic">No products viewed by this user.</td>
                           </tr>
                         ) : (
                           userActivities.products.map(item => (
-                            <tr key={item.id} className="hover:bg-white/[0.03] transition-colors">
+                            <tr key={item.id} className="hover:bg-white/10 dark:hover:bg-white/[0.02] transition-colors">
                               <td className="p-3.5">
                                 <div className="flex items-center gap-3">
                                   {item.image ? (
                                     <div 
                                       onClick={() => item.id && setViewModalProductId(item.id)}
-                                      className={`w-9 h-9 rounded-lg overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center p-0.5 ${item.id ? 'cursor-pointer hover:scale-105 hover:border-blue-500/50 transition-all shadow-sm' : ''}`}
+                                      className={`w-9 h-9 rounded-lg overflow-hidden bg-white shrink-0 border border-slate-200/80 dark:border-white/10 flex items-center justify-center p-0.5 shadow-xs ${item.id ? 'cursor-pointer hover:scale-105 hover:border-blue-500/50 transition-all' : ''}`}
                                       title={item.id ? "View Product Details" : undefined}
                                     >
                                       <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
@@ -1358,7 +1310,7 @@ const UserDetails = () => {
                                   ) : (
                                     <div 
                                       onClick={() => item.id && setViewModalProductId(item.id)}
-                                      className={`w-9 h-9 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center text-slate-500 shrink-0 ${item.id ? 'cursor-pointer hover:scale-105 hover:border-blue-500/50 transition-all shadow-sm' : ''}`}
+                                      className={`w-9 h-9 rounded-lg bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-white/10 flex items-center justify-center text-slate-500 shrink-0 shadow-xs ${item.id ? 'cursor-pointer hover:scale-105 hover:border-blue-500/50 transition-all' : ''}`}
                                       title={item.id ? "View Product Details" : undefined}
                                     >
                                       <FiFileText />
@@ -1366,20 +1318,20 @@ const UserDetails = () => {
                                   )}
                                   <span 
                                     onClick={() => item.id && setViewModalProductId(item.id)}
-                                    className={`font-semibold text-sm text-white line-clamp-1 max-w-[240px] ${item.id ? 'cursor-pointer hover:text-blue-400 transition-colors' : ''}`}
+                                    className={`font-semibold text-sm text-slate-900 dark:text-white line-clamp-1 max-w-[240px] ${item.id ? 'cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors' : ''}`}
                                     title={item.name}
                                   >
                                     {item.name}
                                   </span>
                                 </div>
                               </td>
-                              <td className="p-3.5 text-sm text-slate-300 font-medium">{item.brand}</td>
+                              <td className="p-3.5 text-sm text-slate-700 dark:text-slate-300 font-medium">{item.brand}</td>
                               <td className="p-3.5 text-center">
-                                <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30">
+                                <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20 dark:border-blue-500/30">
                                   {item.count}
                                 </span>
                               </td>
-                              <td className="p-3.5 text-right text-xs text-slate-400 font-mono font-medium">{formatDateTimeDDMMYYYY(item.latestView)}</td>
+                              <td className="p-3.5 text-right text-xs text-slate-500 dark:text-slate-400 font-mono font-medium">{formatDateTimeDDMMYYYY(item.latestView)}</td>
                             </tr>
                           ))
                         )}
@@ -1390,40 +1342,40 @@ const UserDetails = () => {
                   {activeActivityTab === 'brands' && (
                     <table className="w-full text-left border-collapse min-w-[500px]">
                       <thead>
-                        <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                          <th className="p-3.5 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Brand Name</th>
-                          <th className="p-3.5 text-center sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Views Count</th>
-                          <th className="p-3.5 text-right sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Latest View</th>
+                        <tr className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                          <th className="p-3.5 sticky top-0 bg-slate-100/90 dark:bg-slate-950/80 backdrop-blur-md z-10 border-b border-slate-200/80 dark:border-white/10">Brand Name</th>
+                          <th className="p-3.5 text-center sticky top-0 bg-slate-100/90 dark:bg-slate-950/80 backdrop-blur-md z-10 border-b border-slate-200/80 dark:border-white/10">Views Count</th>
+                          <th className="p-3.5 text-right sticky top-0 bg-slate-100/90 dark:bg-slate-950/80 backdrop-blur-md z-10 border-b border-slate-200/80 dark:border-white/10">Latest View</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/10">
+                      <tbody className="divide-y divide-slate-200/80 dark:divide-white/10">
                         {userActivities.brands.length === 0 ? (
                           <tr>
                             <td colSpan="3" className="p-8 text-center text-xs text-slate-500 italic">No brands viewed by this user.</td>
                           </tr>
                         ) : (
                           userActivities.brands.map(item => (
-                            <tr key={item.id} className="hover:bg-white/[0.03] transition-colors">
+                            <tr key={item.id} className="hover:bg-slate-100/70 dark:hover:bg-white/[0.03] transition-colors">
                               <td className="p-3.5">
                                 <div className="flex items-center gap-3">
                                   {item.logo ? (
-                                    <div className="w-9 h-9 rounded-lg overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center p-0.5">
+                                    <div className="w-9 h-9 rounded-lg overflow-hidden bg-white shrink-0 border border-slate-200/80 dark:border-white/10 flex items-center justify-center p-0.5 shadow-xs">
                                       <img src={getDocumentUrl(item.logo)} alt={item.name} className="w-full h-full object-contain animate-in fade-in" />
                                     </div>
                                   ) : (
-                                    <div className="w-9 h-9 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center text-slate-500 shrink-0">
+                                    <div className="w-9 h-9 rounded-lg bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-white/10 flex items-center justify-center text-slate-500 shrink-0 shadow-xs">
                                       <FiTag />
                                     </div>
                                   )}
-                                  <span className="font-semibold text-sm text-white">{item.name}</span>
+                                  <span className="font-semibold text-sm text-slate-900 dark:text-white">{item.name}</span>
                                 </div>
                               </td>
                               <td className="p-3.5 text-center">
-                                <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30">
+                                <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20 dark:border-blue-500/30">
                                   {item.count}
                                 </span>
                               </td>
-                              <td className="p-3.5 text-right text-xs text-slate-400 font-mono font-medium">{formatDateTimeDDMMYYYY(item.latestView)}</td>
+                              <td className="p-3.5 text-right text-xs text-slate-500 dark:text-slate-400 font-mono font-medium">{formatDateTimeDDMMYYYY(item.latestView)}</td>
                             </tr>
                           ))
                         )}
@@ -1434,40 +1386,40 @@ const UserDetails = () => {
                   {activeActivityTab === 'categories' && (
                     <table className="w-full text-left border-collapse min-w-[500px]">
                       <thead>
-                        <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                          <th className="p-3.5 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Category</th>
-                          <th className="p-3.5 text-center sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Views Count</th>
-                          <th className="p-3.5 text-right sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Latest View</th>
+                        <tr className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                          <th className="p-3.5 sticky top-0 bg-slate-100/90 dark:bg-slate-950/80 backdrop-blur-md z-10 border-b border-slate-200/80 dark:border-white/10">Category</th>
+                          <th className="p-3.5 text-center sticky top-0 bg-slate-100/90 dark:bg-slate-950/80 backdrop-blur-md z-10 border-b border-slate-200/80 dark:border-white/10">Views Count</th>
+                          <th className="p-3.5 text-right sticky top-0 bg-slate-100/90 dark:bg-slate-950/80 backdrop-blur-md z-10 border-b border-slate-200/80 dark:border-white/10">Latest View</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/10">
+                      <tbody className="divide-y divide-slate-200/80 dark:divide-white/10">
                         {userActivities.categories.length === 0 ? (
                           <tr>
                             <td colSpan="3" className="p-8 text-center text-xs text-slate-500 italic">No categories viewed by this user.</td>
                           </tr>
                         ) : (
                           userActivities.categories.map(item => (
-                            <tr key={item.id} className="hover:bg-white/[0.03] transition-colors">
+                            <tr key={item.id} className="hover:bg-slate-100/70 dark:hover:bg-white/[0.03] transition-colors">
                               <td className="p-3.5">
                                 <div className="flex items-center gap-3">
                                   {item.image ? (
-                                    <div className="w-9 h-9 rounded-lg overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center p-0.5">
+                                    <div className="w-9 h-9 rounded-lg overflow-hidden bg-white shrink-0 border border-slate-200/80 dark:border-white/10 flex items-center justify-center p-0.5 shadow-xs">
                                       <img src={getDocumentUrl(item.image)} alt={item.name} className="w-full h-full object-contain animate-in fade-in" />
                                     </div>
                                   ) : (
-                                    <div className="w-9 h-9 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center text-slate-500 shrink-0">
+                                    <div className="w-9 h-9 rounded-lg bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-white/10 flex items-center justify-center text-slate-500 shrink-0 shadow-xs">
                                       <FiFileText />
                                     </div>
                                   )}
-                                  <span className="font-semibold text-sm text-white">{item.name}</span>
+                                  <span className="font-semibold text-sm text-slate-900 dark:text-white">{item.name}</span>
                                 </div>
                               </td>
                               <td className="p-3.5 text-center">
-                                <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30">
+                                <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20 dark:border-blue-500/30">
                                   {item.count}
                                 </span>
                               </td>
-                              <td className="p-3.5 text-right text-xs text-slate-400 font-mono font-medium">{formatDateTimeDDMMYYYY(item.latestView)}</td>
+                              <td className="p-3.5 text-right text-xs text-slate-500 dark:text-slate-400 font-mono font-medium">{formatDateTimeDDMMYYYY(item.latestView)}</td>
                             </tr>
                           ))
                         )}
@@ -1478,34 +1430,34 @@ const UserDetails = () => {
                   {activeActivityTab === 'searches' && (
                     <table className="w-full text-left border-collapse min-w-[500px]">
                       <thead>
-                        <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                          <th className="p-3.5 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Search Query</th>
-                          <th className="p-3.5 text-center sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Search Count</th>
-                          <th className="p-3.5 text-right sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Latest Search</th>
+                        <tr className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                          <th className="p-3.5 sticky top-0 bg-slate-100/90 dark:bg-slate-950/80 backdrop-blur-md z-10 border-b border-slate-200/80 dark:border-white/10">Search Query</th>
+                          <th className="p-3.5 text-center sticky top-0 bg-slate-100/90 dark:bg-slate-950/80 backdrop-blur-md z-10 border-b border-slate-200/80 dark:border-white/10">Search Count</th>
+                          <th className="p-3.5 text-right sticky top-0 bg-slate-100/90 dark:bg-slate-950/80 backdrop-blur-md z-10 border-b border-slate-200/80 dark:border-white/10">Latest Search</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/10">
+                      <tbody className="divide-y divide-slate-200/80 dark:divide-white/10">
                         {userActivities.searches.length === 0 ? (
                           <tr>
                             <td colSpan="3" className="p-8 text-center text-xs text-slate-500 italic">No search queries logged by this user.</td>
                           </tr>
                         ) : (
                           userActivities.searches.map(item => (
-                            <tr key={item.id} className="hover:bg-white/[0.03] transition-colors">
+                            <tr key={item.id} className="hover:bg-slate-100/70 dark:hover:bg-white/[0.03] transition-colors">
                               <td className="p-3.5">
                                 <div className="flex items-center gap-3">
-                                  <div className="w-9 h-9 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center text-slate-400 shrink-0">
+                                  <div className="w-9 h-9 rounded-lg bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 shrink-0 shadow-xs">
                                     <FiSearch size={14} />
                                   </div>
-                                  <span className="font-semibold text-sm text-white font-mono">{item.query}</span>
+                                  <span className="font-semibold text-sm text-slate-900 dark:text-white font-mono">{item.query}</span>
                                 </div>
                               </td>
                               <td className="p-3.5 text-center">
-                                <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30">
+                                <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20 dark:border-blue-500/30">
                                   {item.count}
                                 </span>
                               </td>
-                              <td className="p-3.5 text-right text-xs text-slate-400 font-mono font-medium">{formatDateTimeDDMMYYYY(item.latestSearch)}</td>
+                              <td className="p-3.5 text-right text-xs text-slate-500 dark:text-slate-400 font-mono font-medium">{formatDateTimeDDMMYYYY(item.latestSearch)}</td>
                             </tr>
                           ))
                         )}
@@ -1519,27 +1471,27 @@ const UserDetails = () => {
 
           {/* 4. Customer Orders Tab */}
           {activeSectionTab === 'orders' && (
-            <div className="relative bg-slate-950/50 border border-white/20 shadow-2xl rounded-3xl p-6 overflow-hidden space-y-5">
-              <div className="border-b border-white/20 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="relative bg-white/20 dark:bg-slate-950/50 border border-slate-200/80 dark:border-white/20 shadow-xl dark:shadow-2xl rounded-3xl p-6 overflow-hidden space-y-5">
+              <div className="border-b border-slate-200/80 dark:border-white/20 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400 shrink-0">
+                  <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
                     <FiShoppingBag size={18} />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                       Customer Orders
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 dark:border-blue-500/30">
                         {customerOrders.length}
                       </span>
                     </h3>
-                    <p className="text-slate-400 text-xs mt-0.5">Order fulfillment history and transaction records for this customer.</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-xs mt-0.5">Order fulfillment history and transaction records for this customer.</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => navigate('/orders/all')}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white border border-white/10 rounded-xl text-xs font-semibold transition-all cursor-pointer active:scale-95"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-white/[0.03] hover:bg-slate-100 dark:hover:bg-white/[0.08] text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200/80 dark:border-white/10 rounded-xl text-xs font-semibold transition-all cursor-pointer active:scale-95 shadow-xs dark:shadow-none"
                   >
                     <span>All Orders Panel</span>
                     <FiExternalLink size={12} />
@@ -1550,25 +1502,25 @@ const UserDetails = () => {
               {/* Summary stat cards */}
               {customerOrders.length > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
+                  <div className="p-3.5 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Total Orders</span>
-                    <p className="text-lg font-black text-white mt-1 font-mono">{customerOrders.length}</p>
+                    <p className="text-lg font-black text-slate-900 dark:text-white mt-1 font-mono">{customerOrders.length}</p>
                   </div>
-                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
+                  <div className="p-3.5 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Total Spent</span>
-                    <p className="text-lg font-black text-emerald-400 mt-1 font-mono">
+                    <p className="text-lg font-black text-emerald-600 dark:text-emerald-400 mt-1 font-mono">
                       ₹{customerOrders.reduce((sum, o) => sum + (Number(o.totalAmount) || 0), 0).toLocaleString('en-IN')}
                     </p>
                   </div>
-                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
+                  <div className="p-3.5 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Delivered Orders</span>
-                    <p className="text-lg font-black text-teal-400 mt-1 font-mono">
+                    <p className="text-lg font-black text-teal-600 dark:text-teal-400 mt-1 font-mono">
                       {customerOrders.filter(o => (o.orderStatus || '').toLowerCase() === 'delivered').length}
                     </p>
                   </div>
-                  <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
+                  <div className="p-3.5 bg-slate-100/60 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Latest Order Date</span>
-                    <p className="text-xs font-bold text-slate-300 mt-2 font-mono">
+                    <p className="text-xs font-bold text-slate-700 dark:text-slate-300 mt-2 font-mono">
                       {customerOrders[0]?.createdAt ? formatDateDDMMYYYY(customerOrders[0].createdAt) : 'N/A'}
                     </p>
                   </div>
@@ -1576,31 +1528,31 @@ const UserDetails = () => {
               )}
 
               {loadingActivities ? (
-                <div className="py-12 flex flex-col items-center justify-center text-slate-400">
-                  <FiLoader className="animate-spin text-2xl text-blue-400 mb-2" />
+                <div className="py-12 flex flex-col items-center justify-center text-slate-500 dark:text-slate-400">
+                  <FiLoader className="animate-spin text-2xl text-blue-600 dark:text-blue-400 mb-2" />
                   <span className="text-xs font-medium">Loading customer orders...</span>
                 </div>
               ) : customerOrders.length === 0 ? (
-                <div className="py-12 flex flex-col items-center justify-center text-slate-500 text-center space-y-2">
-                  <FiShoppingBag size={32} className="text-slate-600" />
+                <div className="py-12 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 text-center space-y-2">
+                  <FiShoppingBag size={32} className="text-slate-400 dark:text-slate-600" />
                   <p className="text-xs italic font-medium">No orders found for this user account.</p>
                 </div>
               ) : (
-                <div className="max-h-[440px] overflow-auto custom-scrollbar rounded-2xl border border-white/10 bg-white/[0.02]">
+                <div className="max-h-[440px] overflow-auto custom-scrollbar rounded-2xl border border-slate-200/80 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02]">
                   <table className="w-full text-left border-collapse min-w-[760px]">
                     <thead>
-                      <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                        <th className="p-3.5 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">#</th>
-                        <th className="p-3.5 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Order ID</th>
-                        <th className="p-3.5 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Date</th>
-                        <th className="p-3.5 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Items</th>
-                        <th className="p-3.5 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Total Amount</th>
-                        <th className="p-3.5 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Payment</th>
-                        <th className="p-3.5 sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Status</th>
-                        <th className="p-3.5 text-right sticky top-0 bg-slate-950/80 backdrop-blur-md z-10 border-b border-white/10">Action</th>
+                      <tr className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                        <th className="p-3.5 sticky top-0 bg-slate-100/90 dark:bg-slate-950/80 backdrop-blur-md z-10 border-b border-slate-200/80 dark:border-white/10">#</th>
+                        <th className="p-3.5 sticky top-0 bg-slate-100/90 dark:bg-slate-950/80 backdrop-blur-md z-10 border-b border-slate-200/80 dark:border-white/10">Order ID</th>
+                        <th className="p-3.5 sticky top-0 bg-slate-100/90 dark:bg-slate-950/80 backdrop-blur-md z-10 border-b border-slate-200/80 dark:border-white/10">Date</th>
+                        <th className="p-3.5 sticky top-0 bg-slate-100/90 dark:bg-slate-950/80 backdrop-blur-md z-10 border-b border-slate-200/80 dark:border-white/10">Items</th>
+                        <th className="p-3.5 sticky top-0 bg-slate-100/90 dark:bg-slate-950/80 backdrop-blur-md z-10 border-b border-slate-200/80 dark:border-white/10">Total Amount</th>
+                        <th className="p-3.5 sticky top-0 bg-slate-100/90 dark:bg-slate-950/80 backdrop-blur-md z-10 border-b border-slate-200/80 dark:border-white/10">Payment</th>
+                        <th className="p-3.5 sticky top-0 bg-slate-100/90 dark:bg-slate-950/80 backdrop-blur-md z-10 border-b border-slate-200/80 dark:border-white/10">Status</th>
+                        <th className="p-3.5 text-right sticky top-0 bg-slate-100/90 dark:bg-slate-950/80 backdrop-blur-md z-10 border-b border-slate-200/80 dark:border-white/10">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/10">
+                    <tbody className="divide-y divide-slate-200/80 dark:divide-white/10">
                       {customerOrders.map((order, index) => {
                         const firstItem = order.items?.[0] || order.orderItems?.[0] || order.products?.[0];
                         const prodId = firstItem?.product?._id || firstItem?.product || firstItem?.productId;
@@ -1612,27 +1564,27 @@ const UserDetails = () => {
                           <tr
                             key={order._id || index}
                             onClick={() => navigate(`/orders/all?viewOrderId=${order._id}`, { state: { viewOrderId: order._id } })}
-                            className="hover:bg-white/[0.03] transition-colors cursor-pointer group"
+                            className="hover:bg-slate-100/70 dark:hover:bg-white/[0.03] transition-colors cursor-pointer group"
                           >
-                            <td className="p-3.5 text-xs text-slate-400 font-mono">
+                            <td className="p-3.5 text-xs text-slate-500 dark:text-slate-400 font-mono">
                               {index + 1}
                             </td>
-                            <td className="p-3.5 font-mono text-xs text-blue-300 font-medium">
+                            <td className="p-3.5 font-mono text-xs text-blue-600 dark:text-blue-300 font-medium">
                               <div className="flex flex-col">
                                 <div className="flex items-center gap-1.5">
                                   <span className="truncate max-w-[120px]" title={order._id}>{order._id}</span>
-                                  <CopyButton text={order._id} className="text-blue-400/60 hover:text-blue-300 shrink-0" size={10} />
+                                  <CopyButton text={order._id} className="text-blue-600/60 dark:text-blue-400/60 hover:text-blue-600 dark:hover:text-blue-300 shrink-0" size={10} />
                                 </div>
                                 {order.invoiceUrl && (
-                                  <span className="text-[9px] text-emerald-400 font-sans mt-0.5 flex items-center gap-1">
+                                  <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-sans mt-0.5 flex items-center gap-1">
                                     <FiFileText className="shrink-0" size={9} /> Invoiced
                                   </span>
                                 )}
                               </div>
                             </td>
-                            <td className="p-3.5 text-xs text-slate-300 whitespace-nowrap">
+                            <td className="p-3.5 text-xs text-slate-700 dark:text-slate-300 whitespace-nowrap">
                               <div className="flex items-center gap-1.5 font-mono">
-                                <FiCalendar className="text-slate-500 shrink-0" size={12} />
+                                <FiCalendar className="text-slate-400 dark:text-slate-500 shrink-0" size={12} />
                                 <span>{formatDateDDMMYYYY(order.createdAt)}</span>
                               </div>
                             </td>
@@ -1646,41 +1598,41 @@ const UserDetails = () => {
                                         setViewModalProductId(prodId);
                                       }
                                     }}
-                                    className={`w-9 h-9 rounded-lg overflow-hidden bg-white shrink-0 border border-white/10 flex items-center justify-center p-0.5 ${
-                                      prodId ? 'hover:scale-105 hover:border-blue-500/50 transition-all shadow-sm' : ''
+                                    className={`w-9 h-9 rounded-lg overflow-hidden bg-white shrink-0 border border-slate-200/80 dark:border-white/10 flex items-center justify-center p-0.5 shadow-xs ${
+                                      prodId ? 'hover:scale-105 hover:border-blue-500/50 transition-all' : ''
                                     }`}
                                     title={prodId ? "View Product Details" : undefined}
                                   >
                                     <img src={itemImg} alt={itemName} className="w-full h-full object-contain" />
                                   </div>
                                 ) : (
-                                  <div className="w-9 h-9 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center text-slate-500 shrink-0">
+                                  <div className="w-9 h-9 rounded-lg bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-white/10 flex items-center justify-center text-slate-500 shrink-0 shadow-xs">
                                     <FiBox size={14} />
                                   </div>
                                 )}
                                 <div className="flex flex-col min-w-0 max-w-[180px]">
-                                  <span className="text-white text-xs font-semibold truncate" title={itemName}>
+                                  <span className="text-slate-900 dark:text-white text-xs font-semibold truncate" title={itemName}>
                                     {itemName}
                                   </span>
                                   {firstItem?.variant?.name && (
-                                    <span className="text-amber-400 text-[10px] truncate" title={firstItem.variant.name}>
+                                    <span className="text-amber-600 dark:text-amber-400 text-[10px] truncate" title={firstItem.variant.name}>
                                       {firstItem.variant.name}
                                     </span>
                                   )}
-                                  <span className="text-[10px] text-slate-400">
+                                  <span className="text-[10px] text-slate-500 dark:text-slate-400">
                                     {itemsCount > 1 ? `+${itemsCount - 1} more item(s)` : `Qty: ${firstItem?.quantity || 1}`}
                                   </span>
                                 </div>
                               </div>
                             </td>
-                            <td className="p-3.5 text-xs font-bold text-emerald-400 font-mono">
+                            <td className="p-3.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono">
                               ₹{order.totalAmount?.toLocaleString('en-IN') || 0}
                             </td>
                             <td className="p-3.5 text-xs">
                               <div className="flex flex-col items-start gap-1">
-                                <span className="text-slate-300 font-medium text-[11px]">{order.paymentMethod || 'N/A'}</span>
+                                <span className="text-slate-700 dark:text-slate-300 font-medium text-[11px]">{order.paymentMethod || 'N/A'}</span>
                                 <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-bold uppercase tracking-wider border ${
-                                  order.paymentStatus === 'Paid' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                                  order.paymentStatus === 'Paid' ? 'bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 dark:border-emerald-500/30' : 'bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/20 dark:border-amber-500/30'
                                 }`}>
                                   {order.paymentStatus || 'Pending'}
                                 </span>
@@ -1697,7 +1649,7 @@ const UserDetails = () => {
                                   e.stopPropagation();
                                   navigate(`/orders/all?viewOrderId=${order._id}`, { state: { viewOrderId: order._id } });
                                 }}
-                                className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-blue-500/15 hover:bg-blue-500/25 border border-blue-500/30 text-blue-300 hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-sm"
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 dark:bg-blue-500/15 dark:hover:bg-blue-500/25 border border-blue-500/20 dark:border-blue-500/30 text-blue-600 dark:text-blue-300 hover:text-blue-700 dark:hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-xs"
                                 title="View in Orders"
                               >
                                 <span>View</span>
@@ -1715,13 +1667,13 @@ const UserDetails = () => {
           )}
 
           {/* Danger Zone */}
-          <div className="relative bg-slate-950/50 border border-rose-500/20 shadow-2xl rounded-3xl p-6 overflow-hidden space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+          <div className="relative bg-rose-50/40 dark:bg-slate-950/50 border border-rose-200 dark:border-rose-500/20 shadow-xl dark:shadow-2xl rounded-3xl p-6 overflow-hidden space-y-4 backdrop-blur-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-rose-200/80 dark:border-white/10 pb-4">
               <div>
-                <h4 className="text-xs font-bold text-rose-400 uppercase tracking-wider flex items-center gap-2">
+                <h4 className="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider flex items-center gap-2">
                   <FiAlertCircle /> Account Security & Danger Zone
                 </h4>
-                <p className="text-slate-400 text-xs mt-1">Manage critical account actions, session revocation, and data removal.</p>
+                <p className="text-slate-600 dark:text-slate-400 text-xs mt-1">Manage critical account actions, session revocation, and data removal.</p>
               </div>
             </div>
 
@@ -1729,7 +1681,7 @@ const UserDetails = () => {
               <button
                 onClick={handleForceLogout}
                 disabled={isActionLoading}
-                className="px-4 py-2.5 text-amber-300 font-bold rounded-xl text-xs bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95"
+                className="px-4 py-2.5 text-amber-700 dark:text-amber-300 font-bold rounded-xl text-xs bg-amber-500/10 hover:bg-amber-500/20 dark:bg-amber-500/15 dark:hover:bg-amber-500/25 border border-amber-500/20 dark:border-amber-500/30 shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95"
               >
                 <FiLogOut size={14} /> Force Logout User
               </button>
@@ -1738,7 +1690,7 @@ const UserDetails = () => {
                 <button
                   onClick={handleReactivate}
                   disabled={isActionLoading}
-                  className="px-4 py-2.5 text-emerald-300 font-bold rounded-xl text-xs bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95"
+                  className="px-4 py-2.5 text-emerald-700 dark:text-emerald-300 font-bold rounded-xl text-xs bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-emerald-500/15 dark:hover:bg-emerald-500/25 border border-emerald-500/20 dark:border-emerald-500/30 shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95"
                 >
                   <FiRefreshCcw size={14} /> Reactivate Account
                 </button>
@@ -1746,7 +1698,7 @@ const UserDetails = () => {
                 <button
                   onClick={() => setDeleteConfirmOpen(true)}
                   disabled={isActionLoading}
-                  className="px-4 py-2.5 text-rose-300 font-bold rounded-xl text-xs bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95"
+                  className="px-4 py-2.5 text-rose-700 dark:text-rose-300 font-bold rounded-xl text-xs bg-rose-500/10 hover:bg-rose-500/20 dark:bg-rose-500/15 dark:hover:bg-rose-500/25 border border-rose-500/20 dark:border-rose-500/30 shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95"
                 >
                   <FiTrash2 size={14} /> Delete User Account
                 </button>
@@ -1760,26 +1712,26 @@ const UserDetails = () => {
       {/* Delete Confirmation Modal */}
       {deleteConfirmOpen && user && createPortal(
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setTypedConfirmName(''); }}></div>
-          <div className="relative bg-slate-950/25 border border-red-500/20 rounded-2xl p-6 shadow-2xl shadow-red-500/25 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+          <div className="absolute inset-0 dark:bg-slate-950/50 backdrop-blur-lg animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setTypedConfirmName(''); }}></div>
+          <div className="relative bg-transparent dark:bg-slate-950/95 border border-red-500 dark:border-red-500/20 rounded-2xl p-6 shadow-2xl shadow-red-500/15 dark:shadow-red-500/25 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
               <FiAlertCircle className="text-red-500 animate-pulse" /> Confirm Account Deletion
             </h3>
-            <p className="text-slate-400 text-sm mb-4 leading-relaxed">
-              This action cannot be undone. To permanently delete the user account for <strong className="text-white">"{user.name}"</strong>, please type their name below:
+            <p className="text-slate-600 dark:text-slate-400 text-sm mb-4 leading-relaxed">
+              This action cannot be undone. To permanently delete the user account for <strong className="text-slate-900 dark:text-white">"{user.name}"</strong>, please type their name below:
             </p>
             <input
               type="text"
               placeholder="Type user's name to confirm"
               value={typedConfirmName}
               onChange={(e) => setTypedConfirmName(e.target.value)}
-              className="w-full px-4 py-2.5 bg-black/40 border border-white/10 focus:border-red-500/50 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/30 text-sm font-medium mb-5"
+              className="w-full px-4 py-2.5 bg-slate-100 dark:bg-black/40 border border-slate-200 dark:border-white/10 focus:border-red-500/50 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/30 text-sm font-medium mb-5"
             />
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => { setDeleteConfirmOpen(false); setTypedConfirmName(''); }}
-                className="flex-1 py-2 bg-slate-900/75 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer border border-white/15"
+                className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-900/75 dark:hover:bg-white/10 dark:text-slate-400 dark:hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer border border-slate-200 dark:border-white/15"
               >
                 Cancel
               </button>
@@ -1804,12 +1756,12 @@ const UserDetails = () => {
       {/* Custom Alert Modal */}
       {alertOpen && createPortal(
         <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg animate-fade-in" onClick={() => setAlertOpen(false)}></div>
-          <div className="relative bg-slate-950/25 border border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-              <FiAlertCircle className="text-blue-400" /> Notification
+          <div className="absolute inset-0 dark:bg-slate-950/50 backdrop-blur-lg animate-fade-in" onClick={() => setAlertOpen(false)}></div>
+          <div className="relative bg-transparent dark:bg-slate-950/95 border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+              <FiAlertCircle className="text-blue-600 dark:text-blue-400" /> Notification
             </h3>
-            <p className="text-slate-300 text-sm mb-5 leading-relaxed">
+            <p className="text-slate-600 dark:text-slate-300 text-sm mb-5 leading-relaxed">
               {alertMessage}
             </p>
             <button

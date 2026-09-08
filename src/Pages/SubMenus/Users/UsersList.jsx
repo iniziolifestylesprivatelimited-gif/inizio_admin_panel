@@ -592,27 +592,27 @@ const UsersList = () => {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-            <FiUser className="text-blue-400" />
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+            <FiUser className="text-blue-600 dark:text-blue-400" />
             Users List
           </h1>
-          <p className="text-slate-400 font-medium mt-1">View your registered, approved, rejected and deleted users.</p>
+          <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">View your registered, approved, rejected and deleted users.</p>
         </div>
 
         <div className="relative w-full md:w-72">
-          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
+          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-400 z-10" />
           <input 
             type="text" 
             placeholder="Search by name, email, date..." 
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="w-full pl-10 pr-10 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 text-sm font-medium transition-all"
+            className="w-full pl-10 pr-10 py-2.5 bg-white dark:bg-black/20 border border-slate-200/80 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-black/40 shadow-xs dark:shadow-inner backdrop-blur-md text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm font-medium transition-all"
           />
           {searchInput && (
             <button
               type="button"
               onClick={() => setSearchInput('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer"
             >
               <FiX className="w-4 h-4" />
             </button>
@@ -621,26 +621,26 @@ const UsersList = () => {
       </div>
 
       {/* Metrics & Quick Device Filter Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-semibold text-slate-400 px-1 py-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-semibold text-slate-600 dark:text-slate-400 px-1 py-1">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
-            Total Users: <strong className="text-white">{baseUsers.length}</strong>
+          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-white/5 border border-slate-200/80 dark:border-white/10 rounded-full shadow-xs dark:shadow-none text-slate-600 dark:text-slate-400">
+            Total Users: <strong className="text-slate-900 dark:text-white">{baseUsers.length}</strong>
           </span>
           {(searchTerm || selectedBusinessType || selectedDevice || sortKey) && (
-            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full">
+            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 rounded-full">
               Found: <strong>{sortedUsers.length}</strong>
             </span>
           )}
         </div>
 
         {/* Device Quick Filter */}
-        <div className="grid grid-cols-3 sm:flex items-center gap-1 bg-black/20 p-1 rounded-xl border border-white/10 w-full sm:w-auto">
+        <div className="grid grid-cols-3 sm:flex items-center gap-1 bg-slate-100/80 dark:bg-black/20 p-1 rounded-xl border border-slate-200/80 dark:border-white/10 w-full sm:w-auto shadow-xs dark:shadow-none">
           <button
             onClick={() => handleFilterChange('device', '')}
             className={`px-3 py-1.5 sm:py-1 rounded-lg text-xs font-bold transition-all cursor-pointer text-center justify-center flex items-center ${
               !selectedDevice
                 ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
             All Devices
@@ -650,7 +650,7 @@ const UsersList = () => {
             className={`px-3 py-1.5 sm:py-1 rounded-lg text-xs font-bold transition-all cursor-pointer text-center justify-center flex items-center gap-1 ${
               selectedDevice === 'android'
                 ? 'bg-green-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-green-400'
+                : 'text-slate-600 dark:text-slate-400 hover:text-green-600 dark:hover:text-green-400'
             }`}
           >
             <DiAndroid className="text-sm shrink-0" /> Android
@@ -659,8 +659,8 @@ const UsersList = () => {
             onClick={() => handleFilterChange('device', 'ios')}
             className={`px-3 py-1.5 sm:py-1 rounded-lg text-xs font-bold transition-all cursor-pointer text-center justify-center flex items-center gap-1 ${
               selectedDevice === 'ios'
-                ? 'bg-white text-black shadow-sm'
-                : 'text-slate-400 hover:text-indigo-400'
+                ? '!bg-slate-900 text-white dark:!bg-white dark:text-black shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400'
             }`}
           >
             <DiApple className="text-sm shrink-0" /> IOS
@@ -669,14 +669,14 @@ const UsersList = () => {
       </div>
 
       {/* Approved vs Rejected User Section Switcher */}
-      <div className="relative z-30 flex flex-col xl:flex-row xl:items-center justify-between gap-3 sm:gap-4 p-2.5 sm:p-3 bg-black/20 border border-white/10 rounded-2xl backdrop-blur-xl">
+      <div className="relative z-30 flex flex-col xl:flex-row xl:items-center justify-between gap-3 sm:gap-4 p-2.5 sm:p-3 bg-white/20 dark:bg-black/20 border border-slate-200/80 dark:border-white/10 rounded-2xl backdrop-blur-xl shadow-xs dark:shadow-none">
         <div className="grid grid-cols-2 sm:grid-cols-4 xl:flex xl:flex-wrap items-center gap-2 sm:gap-3 w-full xl:w-auto">
           <button
             onClick={() => handleTabChange('approved')}
             className={`w-full xl:w-auto px-3 sm:px-4.5 py-2.5 sm:py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-between sm:justify-center xl:justify-start gap-2 ${
               userTab === 'approved'
                 ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
-                : 'text-slate-400 hover:text-white hover:bg-white/5 bg-white/5 sm:bg-transparent'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 bg-slate-100/60 dark:bg-white/5 sm:bg-transparent'
             }`}
           >
             <div className="flex items-center gap-1.5 min-w-0">
@@ -684,7 +684,7 @@ const UsersList = () => {
               <span className="truncate">Approved</span>
             </div>
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold shrink-0 ${
-              userTab === 'approved' ? 'bg-white/20 text-white' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+              userTab === 'approved' ? 'bg-white/20 text-white' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
             }`}>
               {approvedUsers.length}
             </span>
@@ -695,7 +695,7 @@ const UsersList = () => {
             className={`w-full xl:w-auto px-3 sm:px-4.5 py-2.5 sm:py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-between sm:justify-center xl:justify-start gap-2 ${
               userTab === 'rejected'
                 ? 'bg-rose-500 text-white shadow-lg shadow-rose-600/30'
-                : 'text-slate-400 hover:text-white hover:bg-white/5 bg-white/5 sm:bg-transparent'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 bg-slate-100/60 dark:bg-white/5 sm:bg-transparent'
             }`}
           >
             <div className="flex items-center gap-1.5 min-w-0">
@@ -703,7 +703,7 @@ const UsersList = () => {
               <span className="truncate">Rejected</span>
             </div>
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold shrink-0 ${
-              userTab === 'rejected' ? 'bg-white/20 text-white' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+              userTab === 'rejected' ? 'bg-white/20 text-white' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
             }`}>
               {rejectedUsers.length}
             </span>
@@ -714,7 +714,7 @@ const UsersList = () => {
             className={`w-full xl:w-auto px-3 sm:px-4.5 py-2.5 sm:py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-between sm:justify-center xl:justify-start gap-2 ${
               userTab === 'pending'
                 ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/30'
-                : 'text-slate-400 hover:text-white hover:bg-white/5 bg-white/5 sm:bg-transparent'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 bg-slate-100/60 dark:bg-white/5 sm:bg-transparent'
             }`}
           >
             <div className="flex items-center gap-1.5 min-w-0">
@@ -722,7 +722,7 @@ const UsersList = () => {
               <span className="truncate">Pending KYC</span>
             </div>
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold shrink-0 ${
-              userTab === 'pending' ? 'bg-white/20 text-white' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+              userTab === 'pending' ? 'bg-white/20 text-white' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
             }`}>
               {pendingCount}
             </span>
@@ -733,7 +733,7 @@ const UsersList = () => {
             className={`w-full xl:w-auto px-3 sm:px-4.5 py-2.5 sm:py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-between sm:justify-center xl:justify-start gap-2 ${
               userTab === 'deleted'
                 ? 'bg-red-600 text-white shadow-lg shadow-red-600/30'
-                : 'text-slate-400 hover:text-white hover:bg-white/5 bg-white/5 sm:bg-transparent'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 bg-slate-100/60 dark:bg-white/5 sm:bg-transparent'
             }`}
           >
             <div className="flex items-center gap-1.5 min-w-0">
@@ -741,7 +741,7 @@ const UsersList = () => {
               <span className="truncate">Deleted</span>
             </div>
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold shrink-0 ${
-              userTab === 'deleted' ? 'bg-white/20 text-white' : 'bg-red-500/10 text-red-400 border border-red-500/20'
+              userTab === 'deleted' ? 'bg-white/20 text-white' : 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20'
             }`}>
               {deletedUsers.length}
             </span>
@@ -752,9 +752,9 @@ const UsersList = () => {
         <div className="relative z-50 w-full xl:w-auto">
           <button
             onClick={() => setIsSecurityDropdownOpen(!isSecurityDropdownOpen)}
-            className="w-full xl:w-auto px-4 py-2.5 sm:py-2 rounded-xl text-xs font-bold bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 transition-all cursor-pointer flex items-center justify-center gap-2 shadow-md hover:scale-[1.02] active:scale-[0.98]"
+            className="w-full xl:w-auto px-4 py-2.5 sm:py-2 rounded-xl text-xs font-bold bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-700 dark:text-amber-300 transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs hover:scale-[1.02] active:scale-[0.98]"
           >
-            <FiShield className="text-amber-400 text-sm" />
+            <FiShield className="text-amber-600 dark:text-amber-400 text-sm" />
             <span>Security Actions</span>
             <FiChevronDown className={`transition-transform duration-200 ${isSecurityDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
@@ -765,14 +765,14 @@ const UsersList = () => {
                 className="fixed inset-0 z-[9998]" 
                 onClick={() => setIsSecurityDropdownOpen(false)}
               />
-              <div className="absolute right-0 mt-2 w-full sm:w-56 bg-slate-900/95 border border-white/10 shadow-2xl rounded-2xl p-1.5 z-[9999] backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-150 space-y-1">
+              <div className="absolute right-0 mt-2 w-full sm:w-56 bg-white dark:bg-slate-900/95 border border-slate-200 dark:border-white/10 shadow-2xl rounded-2xl p-1.5 z-[9999] backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-150 space-y-1">
                 <button
                   onClick={() => {
                     setIsSecurityDropdownOpen(false);
                     const role = prompt("Enter role to force logout (e.g., billing, warehouse, customer):");
                     if (role) handleRoleLogout(role);
                   }}
-                  className="w-full px-3 py-2 text-left text-xs font-bold text-orange-400 hover:bg-orange-500/15 rounded-xl transition-all flex items-center gap-2.5 cursor-pointer"
+                  className="w-full px-3 py-2 text-left text-xs font-bold text-orange-600 dark:text-orange-400 hover:bg-orange-500/10 dark:hover:bg-orange-500/15 rounded-xl transition-all flex items-center gap-2.5 cursor-pointer"
                 >
                   <FiRefreshCcw size={14} className="shrink-0" />
                   <span>Logout Role</span>
@@ -783,7 +783,7 @@ const UsersList = () => {
                     setIsSecurityDropdownOpen(false);
                     handleGlobalLogout('all');
                   }}
-                  className="w-full px-3 py-2 text-left text-xs font-bold text-red-400 hover:bg-red-500/15 rounded-xl transition-all flex items-center gap-2.5 cursor-pointer"
+                  className="w-full px-3 py-2 text-left text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-500/10 dark:hover:bg-red-500/15 rounded-xl transition-all flex items-center gap-2.5 cursor-pointer"
                 >
                   <FiAlertCircle size={14} className="shrink-0" />
                   <span>Logout All Users</span>
@@ -794,7 +794,7 @@ const UsersList = () => {
                     setIsSecurityDropdownOpen(false);
                     handleGlobalLogout('android');
                   }}
-                  className="w-full px-3 py-2 text-left text-xs font-bold text-emerald-400 hover:bg-emerald-500/15 rounded-xl transition-all flex items-center gap-2.5 cursor-pointer"
+                  className="w-full px-3 py-2 text-left text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 dark:hover:bg-emerald-500/15 rounded-xl transition-all flex items-center gap-2.5 cursor-pointer"
                 >
                   <MdPhoneAndroid size={14} className="shrink-0" />
                   <span>Logout Android Only</span>
@@ -805,7 +805,7 @@ const UsersList = () => {
                     setIsSecurityDropdownOpen(false);
                     handleGlobalLogout('ios');
                   }}
-                  className="w-full px-3 py-2 text-left text-xs font-bold text-indigo-400 hover:bg-indigo-500/15 rounded-xl transition-all flex items-center gap-2.5 cursor-pointer"
+                  className="w-full px-3 py-2 text-left text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10 dark:hover:bg-indigo-500/15 rounded-xl transition-all flex items-center gap-2.5 cursor-pointer"
                 >
                   <MdPhoneIphone size={14} className="shrink-0" />
                   <span>Logout IOS Only</span>
@@ -817,47 +817,47 @@ const UsersList = () => {
       </div>
       {/* Content Area */}
       {loading ? (
-        <div className="h-64 flex flex-col justify-center items-center bg-slate-950/15 border border-white/10 rounded-2xl">
-          <FiLoader className="animate-spin text-3xl text-blue-400 mb-4" />
-          <p className="text-slate-400 font-medium">Loading customers...</p>
+        <div className="h-64 flex flex-col justify-center items-center bg-white/40 dark:bg-slate-950/15 border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-xs dark:shadow-none">
+          <FiLoader className="animate-spin text-3xl text-blue-600 dark:text-blue-400 mb-4" />
+          <p className="text-slate-500 dark:text-slate-400 font-medium">Loading customers...</p>
         </div>
       ) : error ? (
-        <div className="text-red-400 bg-red-900/20 p-4 rounded-xl border border-red-500/30 flex items-center">
+        <div className="text-rose-600 dark:text-red-400 bg-rose-50 dark:bg-red-900/20 p-4 rounded-xl border border-rose-200 dark:border-red-500/30 flex items-center">
           <FiAlertCircle className="mr-2 text-lg shrink-0" /> {error}
         </div>
       ) : userTab === 'pending' ? (
         <UsersVerification hideHeader={true} searchQuery={searchTerm} refreshParentCounts={fetchUsers} />
       ) : (
         <>
-          <div className="relative z-10 bg-transparent border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full isolate will-change-transform">
+          <div className="relative z-10 bg-white/5 dark:bg-transparent border border-slate-200/80 dark:border-white/10 shadow-xl dark:shadow-2xl shadow-slate-200/50 dark:shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full isolate will-change-transform">
             <div className="overflow-auto custom-scrollbar max-h-[70vh]">
               <table className="w-full text-left border-collapse whitespace-nowrap min-w-200">
-                <thead className="sticky top-0 z-20 bg-white/[0.03] backdrop-blur-md shadow-md border-b border-white/10">
-                  <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-slate-400">
+                <thead className="sticky top-0 z-20 bg-white/40 dark:bg-white/[0.03] backdrop-blur-md shadow-xs dark:shadow-md border-b border-slate-200/80 dark:border-white/10">
+                  <tr className="border-b border-slate-200/80 dark:border-white/10 text-xs uppercase tracking-wider text-slate-600 dark:text-slate-400">
                     <th className="p-2 font-bold text-center">S.No</th>
                     <th 
                       onClick={() => handleSortChange('name')}
-                      className="p-4 font-bold text-left cursor-pointer select-none hover:text-white transition-colors"
+                      className="p-4 font-bold text-left cursor-pointer select-none hover:text-slate-900 dark:hover:text-white transition-colors"
                     >
                       <div className="flex justify-center items-center gap-1">
-                        <span className={sortKey === 'name' ? 'text-blue-400 font-extrabold' : ''}>Name</span>
+                        <span className={sortKey === 'name' ? 'text-blue-600 dark:text-blue-400 font-extrabold' : ''}>Name</span>
                         {sortKey === 'name' ? (
-                          sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                          sortOrder === 'asc' ? <span className="text-blue-600 dark:text-blue-400">▲</span> : <span className="text-blue-600 dark:text-blue-400">▼</span>
                         ) : (
-                          <span className="text-slate-500">⇅</span>
+                          <span className="text-slate-400 dark:text-slate-500">⇅</span>
                         )}
                       </div>
                     </th>
                     <th 
                       onClick={() => handleSortChange('email')}
-                      className="p-4 font-bold text-left cursor-pointer select-none hover:text-white transition-colors"
+                      className="p-4 font-bold text-left cursor-pointer select-none hover:text-slate-900 dark:hover:text-white transition-colors"
                     >
                       <div className="flex justify-center items-center gap-1">
-                        <span className={sortKey === 'email' ? 'text-blue-400 font-extrabold' : ''}>Email</span>
+                        <span className={sortKey === 'email' ? 'text-blue-600 dark:text-blue-400 font-extrabold' : ''}>Email</span>
                         {sortKey === 'email' ? (
-                          sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                          sortOrder === 'asc' ? <span className="text-blue-600 dark:text-blue-400">▲</span> : <span className="text-blue-600 dark:text-blue-400">▼</span>
                         ) : (
-                          <span className="text-slate-500">⇅</span>
+                          <span className="text-slate-400 dark:text-slate-500">⇅</span>
                         )}
                       </div>
                     </th>
@@ -867,33 +867,33 @@ const UsersList = () => {
                         value=""
                         onChange={(val) => handleFilterChange('businessType', val)}
                         options={businessTypeOptions}
-                        statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedBusinessType ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'}`}
+                        statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-slate-900 dark:hover:text-white ${selectedBusinessType ? 'text-blue-600 dark:text-blue-400 font-extrabold' : 'text-slate-700 dark:text-slate-300 font-bold'}`}
                       />
                     </th>
                     <th className="p-4 font-bold text-center">Status</th>
                     <th 
                       onClick={() => handleSortChange('createdAt')}
-                      className="p-4 font-bold text-center cursor-pointer select-none hover:text-white transition-colors"
+                      className="p-4 font-bold text-center cursor-pointer select-none hover:text-slate-900 dark:hover:text-white transition-colors"
                     >
                       <div className="flex items-center justify-center gap-1">
-                        <span className={sortKey === 'createdAt' ? 'text-blue-400 font-extrabold' : ''}>Created At</span>
+                        <span className={sortKey === 'createdAt' ? 'text-blue-600 dark:text-blue-400 font-extrabold' : ''}>Created At</span>
                         {sortKey === 'createdAt' ? (
-                          sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                          sortOrder === 'asc' ? <span className="text-blue-600 dark:text-blue-400">▲</span> : <span className="text-blue-600 dark:text-blue-400">▼</span>
                         ) : (
-                          <span className="text-slate-500">⇅</span>
+                          <span className="text-slate-400 dark:text-slate-500">⇅</span>
                         )}
                       </div>
                     </th>
                     <th 
                       onClick={() => handleSortChange('lastActive')}
-                      className="p-4 font-bold text-center cursor-pointer select-none hover:text-white transition-colors"
+                      className="p-4 font-bold text-center cursor-pointer select-none hover:text-slate-900 dark:hover:text-white transition-colors"
                     >
                       <div className="flex items-center justify-center gap-1">
-                        <span className={sortKey === 'lastActive' || sortKey === 'loginCount' ? 'text-blue-400 font-extrabold' : ''}>Activity & Logins</span>
+                        <span className={sortKey === 'lastActive' || sortKey === 'loginCount' ? 'text-blue-600 dark:text-blue-400 font-extrabold' : ''}>Activity & Logins</span>
                         {sortKey === 'lastActive' || sortKey === 'loginCount' ? (
-                          sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                          sortOrder === 'asc' ? <span className="text-blue-600 dark:text-blue-400">▲</span> : <span className="text-blue-600 dark:text-blue-400">▼</span>
                         ) : (
-                          <span className="text-slate-500">⇅</span>
+                          <span className="text-slate-400 dark:text-slate-500">⇅</span>
                         )}
                       </div>
                     </th>
@@ -904,7 +904,7 @@ const UsersList = () => {
                         {(searchTerm || selectedBusinessType || selectedDevice || sortKey) && (
                           <button
                             onClick={handleClearFilters}
-                            className="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold rounded border border-white/10 transition-all cursor-pointer hover:text-white ml-2"
+                            className="px-1.5 py-0.5 bg-slate-200 hover:bg-slate-300 text-slate-700 hover:text-slate-900 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 dark:hover:text-white text-[10px] font-bold rounded border border-slate-300 dark:border-white/10 transition-all cursor-pointer ml-2"
                             title="Clear All Filters"
                           >
                             Reset
@@ -914,43 +914,43 @@ const UsersList = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-slate-300/80 dark:divide-white/5">
                   {currentUsers.length > 0 ? (
                     currentUsers.map((user, index) => (
                       <tr 
                         key={user._id} 
                         onClick={() => navigate(`/users/list/${user._id}`)}
-                        className="hover:bg-white/[0.02] cursor-pointer transition-colors"
+                        className="hover:bg-slate-100/40 dark:hover:bg-white/[0.02] cursor-pointer transition-colors"
                       >
-                        <td className="p-2 text-sm text-slate-400 text-center font-medium">{indexOfFirstUser + index + 1}</td>
-                        <td className="p-4 text-sm text-white font-medium">
+                        <td className="p-2 text-sm text-slate-500 dark:text-slate-400 text-center font-medium">{indexOfFirstUser + index + 1}</td>
+                        <td className="p-4 text-sm text-slate-900 dark:text-white font-medium">
                           <div>
                             <div className="flex items-center gap-2">
                               <span>{user.name}</span>
                               {checkAppStatus(user) === 'uninstalled' ? (
-                                <span className="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 text-[9px] font-extrabold border border-rose-500/20 shrink-0">
+                                <span className="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[9px] font-extrabold border border-rose-500/20 shrink-0">
                                   Uninstalled
                                 </span>
                               ) : checkAppStatus(user) === 'installed' ? (
-                                <span className="px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-400 text-[9px] font-extrabold border border-teal-500/20 shrink-0">
+                                <span className="px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-600 dark:text-teal-400 text-[9px] font-extrabold border border-teal-500/20 shrink-0">
                                   Installed
                                 </span>
                               ) : null}
                             </div>
                             <div className="flex items-center gap-1 mt-0.5">
-                              <span className="text-xs text-slate-600 font-bold font-mono">{user._id}</span>
+                              <span className="text-xs text-slate-500 dark:text-slate-500 font-bold font-mono">{user._id}</span>
                               <CopyButton text={user._id} />
                             </div>
                             {(hasValidAppVersion(user.appVersion) || user.devices?.length > 0) && (
-                              <span className="block text-[10px] text-slate-500 font-bold mt-0.5 flex items-center gap-1.5 flex-wrap">
+                              <span className="block text-[10px] text-slate-500 dark:text-slate-500 font-bold mt-0.5 flex items-center gap-1.5 flex-wrap">
                                 {hasValidAppVersion(user.appVersion) && <span>v{user.appVersion}</span>}
                                 {user.devices?.length > 0 && (
                                   <span className="inline-flex items-center">
                                     {Array.from(new Set(user.devices.map(d => d.devicePlatform?.toLowerCase()).filter(Boolean))).map(plat => (
                                       <span key={plat} className={`py-0.25 rounded text-[12px] font-black uppercase font-mono tracking-wider ${
-                                        plat === 'android' ? 'text-green-400' : 
-                                        plat === 'ios' ? 'text-slate-300' : 
-                                        'bg-slate-800 text-slate-400 border border-white/5'
+                                        plat === 'android' ? 'text-green-600 dark:text-green-400' : 
+                                        plat === 'ios' ? 'text-slate-700 dark:text-slate-300' : 
+                                        'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400 border border-slate-200 dark:border-white/5'
                                       }`}>
                                         {plat==='android' ? <DiAndroid/> : <DiApple/>}
                                       </span>
@@ -961,26 +961,26 @@ const UsersList = () => {
                             )}
                           </div>
                         </td>
-                        <td className="p-4 text-sm text-slate-300">
+                        <td className="p-4 text-sm text-slate-700 dark:text-slate-300">
                           <GmailLink email={user.email} />
                         </td>
-                        <td className="p-4 text-sm text-slate-300">{user.phone || 'N/A'}</td>
+                        <td className="p-4 text-sm text-slate-700 dark:text-slate-300">{user.phone || 'N/A'}</td>
                         <td className="p-4 text-sm text-center">
-                          <span className="bg-slate-700/50 border border-slate-600/50 text-slate-300 px-2.5 py-1 rounded-md text-xs font-bold">
+                          <span className="bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600/50 text-slate-700 dark:text-slate-300 px-2.5 py-1 rounded-md text-xs font-bold">
                             {user.businessType || 'L1'}
                           </span>
                         </td>
                         <td className="p-4 text-sm">
                           {user.deleteRequested ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold">
                               <FiTrash2 className="text-[10px]" /> Deleted
                             </span>
                           ) : user.isApproved !== false ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
                               <FiCheck className="text-[10px]" /> Approved
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold">
                               <FiX className="text-[10px]" /> Rejected
                             </span>
                           )}
@@ -988,11 +988,11 @@ const UsersList = () => {
                         <td className="p-4 text-sm text-center font-medium">
                           {(() => {
                             const createdDate = user.createdAt || user.created_at || user.registrationDate;
-                            if (!createdDate) return <span className="text-slate-500 font-mono text-xs">-</span>;
+                            if (!createdDate) return <span className="text-slate-400 dark:text-slate-500 font-mono text-xs">-</span>;
                             return (
                               <div className="flex flex-col items-center">
-                                <span className="text-xs font-bold text-slate-200 flex items-center gap-1">
-                                  <FiCalendar className="text-blue-400 text-[11px]" />
+                                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
+                                  <FiCalendar className="text-blue-600 dark:text-blue-400 text-[11px]" />
                                   {formatDateDDMMYYYY(createdDate)}
                                 </span>
                                 <span className="text-[10px] text-slate-500 font-mono mt-0.5" title={new Date(createdDate).toLocaleString()}>
@@ -1005,25 +1005,25 @@ const UsersList = () => {
                         <td className="p-4 text-sm text-center">
                           <div className="flex flex-col items-center gap-1">
                             {user.isOnline ? (
-                              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-bold animate-pulse">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Online
+                              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 text-xs font-bold animate-pulse">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400"></span> Online
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-500/10 border border-white/5 text-slate-400 text-xs font-semibold">
-                                <span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span> Offline
+                              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-200/60 dark:bg-slate-500/10 border border-slate-300/60 dark:border-white/5 text-slate-600 dark:text-slate-400 text-xs font-semibold">
+                                <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500"></span> Offline
                               </span>
                             )}
                             <span className="text-[10px] text-slate-500 font-medium" title={`Raw lastActive: ${user.lastActive || 'None'}`}>
                               {formatRelativeTime(user.lastActive, user) === 'Not Active' ? 'Not Active' : `Active: ${formatRelativeTime(user.lastActive, user)}`}
                             </span>
                             {user.loginCount > 0 && (
-                              <span className="text-[9px] text-blue-400 font-bold bg-blue-500/5 px-1.5 py-0.5 rounded border border-blue-500/10 block mt-0.5">
+                              <span className="text-[9px] text-blue-600 dark:text-blue-400 font-bold bg-blue-500/10 dark:bg-blue-500/5 px-1.5 py-0.5 rounded border border-blue-500/20 dark:border-blue-500/10 block mt-0.5">
                                 {user.loginCount} logins
                               </span>
                             )}
                             {user.activityStats?.totalEngagement > 0 && (
                               <span 
-                                className="text-[9px] text-indigo-400 font-bold bg-indigo-500/5 px-1.5 py-0.5 rounded border border-indigo-500/10 block mt-0.5 cursor-help"
+                                className="text-[9px] text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-500/10 dark:bg-indigo-500/5 px-1.5 py-0.5 rounded border border-indigo-500/20 dark:border-indigo-500/10 block mt-0.5 cursor-help"
                                 title={`Engagement breakdown:
   - Product Views: ${user.activityStats.productViews || 0}
   - Brand Views: ${user.activityStats.brandViews || 0}
@@ -1036,7 +1036,7 @@ const UsersList = () => {
                             )}
                           </div>
                         </td>
-                        <td className="p-4 text-center text-sm text-yellow-400 font-mono font-semibold">{user.gstNumber || 'N/A'}</td>
+                        <td className="p-4 text-center text-sm text-amber-600 dark:text-yellow-400 font-mono font-semibold">{user.gstNumber || 'N/A'}</td>
                         <td className="p-4 justify-center gap-2">
                           {user.deleteRequested ? (
                             <button 
@@ -1056,7 +1056,7 @@ const UsersList = () => {
                             <button 
                               onClick={(e) => { e.stopPropagation(); setUserToDelete(user); setDeleteConfirmOpen(true); }}
                               disabled={isActionLoading} 
-                              className="p-2.5 text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50 cursor-pointer transform-gpu" 
+                              className="p-2.5 text-red-600 dark:text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50 cursor-pointer transform-gpu" 
                               title="Delete User"
                             >
                               <FiTrash2 />
@@ -1066,7 +1066,7 @@ const UsersList = () => {
                             <button 
                               onClick={(e) => { e.stopPropagation(); handleForceLogout(user._id); }} 
                               disabled={isActionLoading} 
-                              className="p-2.5 text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50 cursor-pointer transform-gpu" 
+                              className="p-2.5 text-red-600 dark:text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50 cursor-pointer transform-gpu" 
                               title="Force Logout User"
                             >
                               <FiLogOut />
@@ -1077,7 +1077,7 @@ const UsersList = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={10} className="p-12 text-center text-slate-400 italic">
+                      <td colSpan={10} className="p-12 text-center text-slate-500 dark:text-slate-400 italic">
                         {searchTerm || selectedBusinessType || selectedDevice || sortKey
                           ? 'No matching users found.' 
                           : userTab === 'approved' 
@@ -1095,15 +1095,15 @@ const UsersList = () => {
 
             {/* Pagination Controls */}
             {!loading && !error && sortedUsers.length > 0 && (
-              <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
-                <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
-                  Showing <span className="font-bold text-white">{indexOfFirstUser + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastUser, sortedUsers.length)}</span> of <span className="font-bold text-white">{sortedUsers.length}</span> users
+              <div className="p-4 border-t border-slate-200/80 dark:border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50 dark:bg-white/[0.02] backdrop-blur-md">
+                <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 text-center sm:text-left">
+                  Showing <span className="font-bold text-slate-800 dark:text-white">{indexOfFirstUser + 1}</span> to <span className="font-bold text-slate-800 dark:text-white">{Math.min(indexOfLastUser, sortedUsers.length)}</span> of <span className="font-bold text-slate-800 dark:text-white">{sortedUsers.length}</span> users
                 </span>
                 <div className="flex space-x-2">
                   <button 
                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
-                    className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                    className="px-3 sm:px-4 py-2 bg-white dark:bg-slate-950/20 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200/80 dark:border-white/10 shadow-xs dark:shadow-none transform-gpu cursor-pointer"
                   >
                     &larr;
                   </button>
@@ -1140,8 +1140,8 @@ const UsersList = () => {
                             page === currentPage
                               ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
                               : page === '...'
-                              ? 'bg-transparent text-slate-500 border-transparent cursor-default'
-                              : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
+                              ? 'bg-transparent text-slate-400 dark:text-slate-500 border-transparent cursor-default'
+                              : 'bg-white dark:bg-slate-950/20 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white cursor-pointer'
                           }`}
                         >
                           {page}
@@ -1152,7 +1152,7 @@ const UsersList = () => {
                   <button 
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages || totalPages === 0}
-                    className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                    className="px-3 sm:px-4 py-2 bg-white dark:bg-slate-950/20 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200/80 dark:border-white/10 shadow-xs dark:shadow-none transform-gpu cursor-pointer"
                   >
                     &rarr;
                   </button>
@@ -1166,26 +1166,26 @@ const UsersList = () => {
       {/* Delete Confirmation Modal */}
       {deleteConfirmOpen && userToDelete && createPortal(
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/25 backdrop-blur-lg animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setUserToDelete(null); setTypedConfirmName(''); }}></div>
-          <div className="relative bg-slate-950/15 border border-red-500/20 rounded-2xl p-6 shadow-2xl shadow-red-500/25 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+          <div className="absolute inset-0 dark:bg-slate-950/50 backdrop-blur-lg animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setUserToDelete(null); setTypedConfirmName(''); }}></div>
+          <div className="relative bg-transparent dark:bg-slate-950/95 border border-red-500/30 dark:border-red-500/20 rounded-2xl p-6 shadow-2xl shadow-red-500/15 dark:shadow-red-500/25 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
               <FiAlertCircle className="text-red-500 animate-pulse" /> Confirm Deletion
             </h3>
-            <p className="text-slate-400 text-sm mb-4 leading-relaxed">
-              This action cannot be undone. To permanently delete the user account for <strong className="text-white">"{userToDelete.name}"</strong>, please type their name below to proceed:
+            <p className="text-slate-600 dark:text-slate-400 text-sm mb-4 leading-relaxed">
+              This action cannot be undone. To permanently delete the user account for <strong className="text-slate-900 dark:text-white">"{userToDelete.name}"</strong>, please type their name below to proceed:
             </p>
             <input
               type="text"
               placeholder="Type user's name to confirm"
               value={typedConfirmName}
               onChange={(e) => setTypedConfirmName(e.target.value)}
-              className="w-full px-4 py-2.5 bg-black/20 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-sm font-medium mb-5"
+              className="w-full px-4 py-2.5 bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-sm font-medium mb-5"
             />
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => { setDeleteConfirmOpen(false); setUserToDelete(null); setTypedConfirmName(''); }}
-                className="flex-1 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors text-sm"
+                className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 font-bold rounded-xl transition-colors text-sm cursor-pointer"
               >
                 Cancel
               </button>
@@ -1198,7 +1198,7 @@ const UsersList = () => {
                   setUserToDelete(null);
                   setTypedConfirmName('');
                 }}
-                className="flex-1 px-4 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all text-sm bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700"
+                className="flex-1 px-4 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all text-sm bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 cursor-pointer shadow-md shadow-red-600/20"
               >
                 Proceed Delete
               </button>
@@ -1212,21 +1212,21 @@ const UsersList = () => {
       {reactivateConfirmOpen && userToReactivate && createPortal(
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg animate-fade-in"
+            className="absolute inset-0 dark:bg-slate-950/50 backdrop-blur-lg animate-fade-in"
             onClick={() => { setReactivateConfirmOpen(false); setUserToReactivate(null); }}
           ></div>
-          <div className="relative bg-slate-950/25 border border-emerald-500/20 rounded-2xl p-6 shadow-2xl shadow-emerald-500/25 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-              <FiRefreshCcw className="text-emerald-400" /> Confirm Reactivation
+          <div className="relative bg-transparent dark:bg-slate-950/95 border border-emerald-500 dark:border-emerald-500/20 rounded-2xl p-6 shadow-2xl shadow-emerald-500/25 dark:shadow-emerald-500/25 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+              <FiRefreshCcw className="text-emerald-600 dark:text-emerald-400" /> Confirm Reactivation
             </h3>
-            <p className="text-slate-300 text-sm mb-5 leading-relaxed">
-              Are you sure you want to reactivate the customer account for <strong className="text-white">"{userToReactivate.name}"</strong>? This will restore their active status and access.
+            <p className="text-slate-600 dark:text-slate-300 text-sm mb-5 leading-relaxed">
+              Are you sure you want to reactivate the customer account for <strong className="text-slate-900 dark:text-white">"{userToReactivate.name}"</strong>? This will restore their active status and access.
             </p>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => { setReactivateConfirmOpen(false); setUserToReactivate(null); }}
-                className="flex-1 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors text-sm cursor-pointer"
+                className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 font-bold rounded-xl transition-colors text-sm cursor-pointer"
               >
                 Cancel
               </button>
@@ -1252,18 +1252,18 @@ const UsersList = () => {
       {/* Custom Alert Modal */}
       {alertOpen && createPortal(
         <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg animate-fade-in" onClick={() => setAlertOpen(false)}></div>
-          <div className="relative bg-slate-950/25 border border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-              <FiAlertCircle className="text-blue-400" /> Alert
+          <div className="absolute inset-0 dark:bg-slate-950/50 backdrop-blur-lg animate-fade-in" onClick={() => setAlertOpen(false)}></div>
+          <div className="relative bg-transparent dark:bg-slate-950/95 border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+              <FiAlertCircle className="text-blue-600 dark:text-blue-400" /> Alert
             </h3>
-            <p className="text-slate-300 text-sm mb-5 leading-relaxed">
+            <p className="text-slate-600 dark:text-slate-300 text-sm mb-5 leading-relaxed">
               {alertMessage}
             </p>
             <button
               type="button"
               onClick={() => setAlertOpen(false)}
-              className="w-full px-4 py-2.5 text-white font-bold rounded-xl transition-colors text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+              className="w-full px-4 py-2.5 text-white font-bold rounded-xl transition-colors text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 cursor-pointer"
             >
               OK
             </button>

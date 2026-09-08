@@ -3,11 +3,9 @@ import { api, BASE_URL } from '../../../api/axios';
 import { 
   FiSliders, FiPlus, FiTrash2, FiSave, FiLoader, FiSearch, 
   FiCheck, FiX, FiChevronLeft, FiChevronRight, FiAlertCircle,
-  FiBox, FiTag, FiGrid, FiGrid as FiList, FiPackage, FiInfo
+  FiBox, FiTag, FiGrid, FiGrid as FiList, FiInfo
 } from 'react-icons/fi';
 import CustomDropdown from '../../../Components/CustomDropdown';
-import { getImageUrl } from '../../../utils/imageUtils';
-import OptimizedImage from '../../../Components/OptimizedImage';
 
 export default function QuantitySlabs() {
   const [products, setProducts] = useState([]);
@@ -774,34 +772,19 @@ export default function QuantitySlabs() {
 
                             {/* Name / Info */}
                             <td className="p-3 align-top max-w-[200px]">
-                              <div className="flex gap-2.5 items-center">
-                                {product.images && product.images[0] ? (
-                                  <OptimizedImage
-                                    src={product.images[0]}
-                                    alt={product.name}
-                                    width={80}
-                                    quality={60}
-                                    className="w-9 h-9 rounded-lg object-contain bg-white shrink-0 p-0.5 border border-white/10 shadow-sm"
-                                  />
-                                ) : (
-                                  <div className="w-9 h-9 rounded-lg bg-slate-800 shrink-0 flex items-center justify-center border border-white/10 text-slate-500">
-                                    <FiPackage size={14} />
-                                  </div>
-                                )}
-                                <div>
-                                  <div className="font-semibold text-slate-100 line-clamp-2">{product.name}</div>
-                                  <div className="flex gap-1.5 items-center mt-1">
-                                    {hasVariants ? (
-                                      <span className="px-1.5 py-0.5 bg-purple-500/10 border border-purple-500/30 text-purple-400 text-[9px] rounded font-bold uppercase">
-                                        Variants ({product.variants.length})
-                                      </span>
-                                    ) : (
-                                      <span className="px-1.5 py-0.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[9px] rounded font-bold uppercase">
-                                        Standard
-                                      </span>
-                                    )}
-                                    {/* <span className="text-[10px] text-slate-500">{product.eanNumber || 'No EAN'}</span> */}
-                                  </div>
+                              <div>
+                                <div className="font-semibold text-slate-100 line-clamp-2">{product.name}</div>
+                                <div className="flex gap-1.5 items-center mt-1">
+                                  {hasVariants ? (
+                                    <span className="px-1.5 py-0.5 bg-purple-500/10 border border-purple-500/30 text-purple-400 text-[9px] rounded font-bold uppercase">
+                                      Variants ({product.variants.length})
+                                    </span>
+                                  ) : (
+                                    <span className="px-1.5 py-0.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[9px] rounded font-bold uppercase">
+                                      Standard
+                                    </span>
+                                  )}
+                                  {/* <span className="text-[10px] text-slate-500">{product.eanNumber || 'No EAN'}</span> */}
                                 </div>
                               </div>
                             </td>
