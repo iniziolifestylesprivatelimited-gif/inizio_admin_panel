@@ -3300,8 +3300,8 @@ const ActivityDetails = () => {
         const ModalIcon = modalConfig.icon;
 
         return createPortal(
-          <div className="fixed inset-0 bg-slate-900/40 dark:bg-slate-950/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-linear-to-br dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/95 border border-slate-200/80 dark:border-white/10 shadow-2xl rounded-3xl p-6 max-w-md w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="fixed inset-0 dark:bg-slate-950/50 backdrop-blur-lg flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
+            <div className="bg-transparent dark:bg-slate-950/25 dark:via-slate-900 dark:to-blue-950/95 border border-slate-200/80 dark:border-white/10 shadow-2xl rounded-3xl p-6 max-w-md w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
               <div className="absolute inset-0 bg-gradient-to-b from-slate-100/50 to-transparent dark:from-white/5 dark:to-transparent pointer-events-none"></div>
 
               <div className="flex justify-between items-start mb-5 relative z-1000">
@@ -3323,7 +3323,7 @@ const ActivityDetails = () => {
               </div>
 
               {/* User Meta Card */}
-              <div className="bg-slate-50/80 dark:bg-transparent backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 mb-5 space-y-2 text-xs relative z-10">
+              <div className="bg-white/40 dark:bg-white/[0.03] backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 mb-5 space-y-2 text-xs relative z-10">
                 <div className="flex justify-between items-center">
                   <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px]">Email Address</span>
                   <span className="text-slate-800 dark:text-slate-200 font-bold select-all font-mono">{selectedRowLogins.user?.email || '-'}</span>
@@ -3348,7 +3348,7 @@ const ActivityDetails = () => {
                     Object.entries(selectedRowLogins.endpointStats || {}).map(([endpoint, count], idx) => (
                       <div
                         key={idx}
-                        className="flex justify-between items-center bg-slate-50/80 dark:bg-transparent backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 p-3 rounded-xl hover:border-slate-300 dark:hover:border-white/20 transition-colors animate-in fade-in duration-150 font-mono text-xs"
+                        className="flex justify-between items-center bg-white/40 dark:bg-white/[0.03] backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 p-3 rounded-xl hover:border-slate-300 dark:hover:border-white/20 transition-colors animate-in fade-in duration-150 font-mono text-xs"
                       >
                         <div className="text-left flex-1 min-w-0 pr-2">
                           <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider font-sans">Endpoint Path</span>
@@ -3364,7 +3364,7 @@ const ActivityDetails = () => {
                     selectedRowLogins.views?.map((view, index) => (
                       <div
                         key={view._id || index}
-                        className="flex justify-between items-center bg-slate-50/80 dark:bg-transparent backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 p-3 rounded-xl hover:border-slate-300 dark:hover:border-white/20 transition-colors animate-in fade-in duration-150"
+                        className="flex justify-between items-center bg-white/40 dark:bg-white/[0.03] backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 p-3 rounded-xl hover:border-slate-300 dark:hover:border-white/20 transition-colors animate-in fade-in duration-150"
                       >
                         <div className="text-left flex-1 min-w-0 pr-2">
                           <span className="text-[9px] text-slate-500 font-bold block uppercase tracking-wider">{modalConfig.viewHeader}</span>

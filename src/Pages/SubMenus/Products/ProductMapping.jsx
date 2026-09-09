@@ -924,16 +924,16 @@ const ProductMapping = () => {
   };
 
   return (
-    <div className="relative space-y-4 min-h-full z-0">
+    <div className="relative space-y-4 min-h-full z-0 text-slate-800 dark:text-slate-100">
       <div className="flex items-center gap-4 mb-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight flex items-center gap-3"><FiFilter className='text-blue-400' />Product Mapping</h1>
-          <p className="text-slate-400 font-medium mt-1">Upload inventory report or Tally files to sync product quantities.</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-3"><FiFilter className='text-blue-600 dark:text-blue-400' />Product Mapping</h1>
+          <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Upload inventory report or Tally files to sync product quantities.</p>
         </div>
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex border-b border-white/10 gap-6 mb-4">
+      <div className="flex border-b border-slate-200 dark:border-white/10 gap-6 mb-4">
         {/* <button
           onClick={() => {
             setActiveTab('tally');
@@ -941,8 +941,8 @@ const ProductMapping = () => {
           }}
           className={`pb-2.5 text-sm font-bold border-b-2 transition-colors cursor-pointer ${
             activeTab === 'tally'
-              ? 'text-blue-400 border-blue-500'
-              : 'text-slate-400 border-transparent hover:text-white'
+              ? 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-500'
+              : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 border-transparent dark:hover:text-white'
           }`}
         >
           Tally Mapping (Standard)
@@ -953,15 +953,15 @@ const ProductMapping = () => {
             setError('');
           }}
           className={`pb-2.5 text-sm font-bold border-b-2 transition-colors cursor-pointer ${activeTab === 'stock'
-              ? 'text-blue-400 border-blue-500'
-              : 'text-slate-400 border-transparent hover:text-white'
+              ? 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-500'
+              : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 border-transparent dark:hover:text-white'
             }`}
         >
           Stock Update (Detailed & Variants)
         </button>
       </div>
 
-      <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-2xl md:rounded-3xl p-6 space-y-6">
+      <div className="bg-white/40 dark:bg-transparent backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 shadow-xl dark:shadow-2xl shadow-slate-200/50 dark:shadow-black/50 rounded-2xl md:rounded-3xl p-6 space-y-6">
         {/* =========================================================================
             TALLY MAPPING SECTION (COMMENTED OUT)
             ========================================================================= */}
@@ -1038,7 +1038,7 @@ const ProductMapping = () => {
                       <h4 className="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
                         <FiAlertTriangle /> Excel Items Not Found in System ({mappedData.filter(m => !m.matchedProduct).length})
                       </h4>
-                      <div className="overflow-y-auto custom-scrollbar bg-slate-900/50 rounded-xl border border-white/10 max-h-60">
+                      <div className="overflow-y-auto custom-scrollbar rounded-xl border border-white/10 max-h-60">
                         <table className="w-full text-left border-collapse whitespace-nowrap">
                           <thead className="bg-slate-800/80 border-b border-white/10 text-slate-300 text-xs uppercase tracking-wider sticky top-0 z-10 backdrop-blur-sm">
                             <tr>
@@ -1147,7 +1147,7 @@ const ProductMapping = () => {
                             </div>
                           </div>
 
-                          <div className="overflow-y-auto custom-scrollbar bg-slate-900/50 rounded-xl border border-white/10 max-h-60">
+                          <div className="overflow-y-auto custom-scrollbar rounded-xl border border-white/10 max-h-60">
                             <table className="w-full text-left border-collapse whitespace-nowrap">
                               <thead className="bg-slate-800/80 border-b border-white/10 text-slate-300 text-xs uppercase tracking-wider sticky top-0 z-10 backdrop-blur-sm">
                                 <tr>
@@ -1328,7 +1328,7 @@ const ProductMapping = () => {
           {/* New Stock Update UI */}
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-bold text-slate-300 mb-2">Step 1: Upload Detailed Inventory File</label>
+              <label className="block text-sm font-bold text-slate-800 dark:text-slate-300 mb-2">Step 1: Upload Detailed Inventory File</label>
               <div className="flex items-center gap-4">
                 <input
                   type="file"
@@ -1337,13 +1337,13 @@ const ProductMapping = () => {
                   className="hidden"
                   onChange={handleStockFileChange}
                 />
-                <label htmlFor="stock-upload" className="grow file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-900/50 file:text-blue-400 hover:file:bg-blue-800/50 transition-colors cursor-pointer text-slate-400 border border-dashed border-slate-600 rounded-xl p-4 text-center">
+                <label htmlFor="stock-upload" className="grow file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 dark:file:bg-blue-900/50 file:text-blue-600 dark:file:text-blue-400 hover:file:bg-blue-100 dark:hover:file:bg-blue-800/50 transition-colors cursor-pointer text-slate-600 dark:text-slate-400 border border-dashed border-slate-300 dark:border-slate-600 hover:border-blue-500 bg-slate-50/50 dark:bg-transparent rounded-xl p-4 text-center">
                   {stockFile ? stockFile.name : 'Click to select a stock list file'}
                 </label>
                 <button
                   onClick={handleStockUpload}
                   disabled={!stockFile || isUploadingStock}
-                  className="flex items-center justify-center px-6 py-2.5 text-white font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
+                  className="flex items-center justify-center px-6 py-2.5 text-white font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 cursor-pointer shadow-md"
                 >
                   {isUploadingStock ? <FiLoader className="animate-spin mr-2" /> : <FiUpload className="mr-2" />}
                   {isUploadingStock ? 'Uploading...' : 'Upload'}
@@ -1352,19 +1352,19 @@ const ProductMapping = () => {
             </div>
 
             {stockUploadSuccess && (
-              <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 flex items-center">
-                <FiCheckCircle className="mr-3 text-xl" />
+              <div className="p-4 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-xl text-emerald-700 dark:text-emerald-400 flex items-center shadow-xs">
+                <FiCheckCircle className="mr-3 text-xl shrink-0" />
                 Stock list parsed successfully. Verify matches below and synchronize.
               </div>
             )}
           </div>
 
           {stockMappedData.length > 0 && (
-            <div className="space-y-4 pt-4 border-t border-white/10">
+            <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-white/10">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-lg font-bold text-white">Stock Mapping Preview</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">Stock Mapping Preview</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                     {
                       stockMappedData.filter(m => {
                         if (!m.matchedProduct) return false;
@@ -1379,7 +1379,7 @@ const ProductMapping = () => {
                     onClick={() => setStockFilter('all')}
                     className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${stockFilter === 'all'
                         ? 'bg-blue-600 text-white shadow'
-                        : 'bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-slate-200 dark:border-slate-700'
                       }`}
                   >
                     Show All ({stockMappedData.length})
@@ -1388,7 +1388,7 @@ const ProductMapping = () => {
                     onClick={() => setStockFilter('diff')}
                     className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${stockFilter === 'diff'
                         ? 'bg-amber-600 text-white shadow'
-                        : 'bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-slate-200 dark:border-slate-700'
                       }`}
                   >
                     Only Differences ({
@@ -1403,7 +1403,7 @@ const ProductMapping = () => {
                     onClick={() => setStockFilter('unmatched_missing')}
                     className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${stockFilter === 'unmatched_missing'
                         ? 'bg-red-600 text-white shadow'
-                        : 'bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-slate-200 dark:border-slate-700'
                       }`}
                   >
                     Unmatched & Missing ({stockMappedData.filter(m => !m.matchedProduct).length + getMissingStockItems().length})
@@ -1415,12 +1415,12 @@ const ProductMapping = () => {
                 <div className="space-y-6">
                   {/* Section 1: Unmatched Excel Items */}
                   <div className="space-y-2">
-                    <h4 className="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                    <h4 className="text-sm font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider flex items-center gap-2">
                       <FiAlertTriangle /> Excel Items Not Found in System ({stockMappedData.filter(m => !m.matchedProduct).length})
                     </h4>
-                    <div className="overflow-y-auto custom-scrollbar bg-slate-900/50 rounded-xl border border-white/10 max-h-60">
+                    <div className="overflow-y-auto custom-scrollbar dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-white/10 max-h-60">
                       <table className="w-full text-left border-collapse whitespace-nowrap">
-                        <thead className="bg-slate-800/80 border-b border-white/10 text-slate-300 text-xs uppercase tracking-wider sticky top-0 z-10 backdrop-blur-sm">
+                        <thead className="bg-slate-100/90 dark:bg-slate-800/80 border-b border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs uppercase tracking-wider sticky top-0 z-10 backdrop-blur-sm">
                           <tr>
                             <th className="px-4 py-3 font-medium w-12 text-center">S.No</th>
                             <th className="px-4 py-3 font-medium">Excel Item Name</th>
@@ -1428,26 +1428,26 @@ const ProductMapping = () => {
                             <th className="px-4 py-3 font-medium">Status</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/5">
+                        <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                           {stockMappedData.filter(m => !m.matchedProduct).length === 0 ? (
                             <tr>
-                              <td colSpan="4" className="px-4 py-6 text-center text-slate-500 italic">No unmatched Excel items. All items mapped!</td>
+                              <td colSpan="4" className="px-4 py-6 text-center text-slate-400 dark:text-slate-500 italic">No unmatched Excel items. All items mapped!</td>
                             </tr>
                           ) : (
                             stockMappedData
                               .map((mapping, originalIndex) => ({ mapping, originalIndex }))
                               .filter(({ mapping }) => !mapping.matchedProduct)
                               .map(({ mapping, originalIndex }, listIdx) => (
-                                <tr key={originalIndex} className="hover:bg-white/5 transition-colors">
-                                  <td className="px-4 py-3 text-sm text-slate-400 text-center font-medium">{listIdx + 1}</td>
-                                  <td className="px-4 py-3 text-sm text-slate-300">
+                                <tr key={originalIndex} className="hover:bg-slate-100/60 dark:hover:bg-white/5 transition-colors">
+                                  <td className="px-4 py-3 text-sm text-slate-500 dark:text-slate-400 text-center font-medium">{listIdx + 1}</td>
+                                  <td className="px-4 py-3 text-sm text-slate-800 dark:text-slate-300">
                                     {mapping.excelName}
                                     {mapping.isVariant && (
-                                      <span className="ml-2 text-[10px] bg-blue-500/20 text-blue-400 border border-blue-500/30 px-1.5 py-0.5 rounded-full uppercase tracking-wider font-bold">Variant</span>
+                                      <span className="ml-2 text-[10px] bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-500/20 dark:text-blue-400 dark:border-blue-500/30 px-1.5 py-0.5 rounded-full uppercase tracking-wider font-bold">Variant</span>
                                     )}
                                   </td>
-                                  <td className="px-4 py-3 text-sm font-bold text-amber-400 text-center">{mapping.excelQty}</td>
-                                  <td className="px-4 py-3 text-sm text-red-400/80 italic font-semibold">Not Found</td>
+                                  <td className="px-4 py-3 text-sm font-bold text-amber-700 dark:text-amber-400 text-center">{mapping.excelQty}</td>
+                                  <td className="px-4 py-3 text-sm text-rose-600 dark:text-red-400/80 italic font-semibold">Not Found</td>
                                 </tr>
                               ))
                           )}
@@ -1480,7 +1480,7 @@ const ProductMapping = () => {
                     return (
                       <div className="space-y-2">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1">
-                          <h4 className="text-sm font-bold text-rose-400 uppercase tracking-wider flex items-center gap-2">
+                          <h4 className="text-sm font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider flex items-center gap-2">
                             <FiDatabase /> System Products Missing from Excel ({filteredMissingStockItems.length}
                             {(missingStockBrandFilter !== 'all' || missingStockSearch) ? ` of ${missingStockItems.length}` : ''})
                           </h4>
@@ -1493,12 +1493,12 @@ const ProductMapping = () => {
                                 value={missingStockSearch}
                                 onChange={(e) => setMissingStockSearch(e.target.value)}
                                 placeholder="Search missing..."
-                                className="w-36 sm:w-44 bg-slate-950/70 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                                className="w-36 sm:w-44 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500"
                               />
                               {missingStockSearch && (
                                 <button
                                   onClick={() => setMissingStockSearch('')}
-                                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white"
                                 >
                                   <FiX className="text-xs" />
                                 </button>
@@ -1517,14 +1517,14 @@ const ProductMapping = () => {
                                     label: `${bName} (${stockBrandCounts[bName]})`
                                   }))
                                 ]}
-                                statusColor="bg-slate-950/80 border-white/10 text-slate-200 text-xs py-1.5 px-3 rounded-lg hover:border-white/20"
+                                statusColor="bg-white dark:bg-slate-950/80 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 text-xs py-1.5 px-3 rounded-lg hover:border-slate-300 dark:hover:border-white/20"
                               />
                             </div>
 
                             {missingStockBrandFilter !== 'all' && (
                               <button
                                 onClick={() => setMissingStockBrandFilter('all')}
-                                className="px-2 py-1 text-xs bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded-lg hover:bg-rose-500/30 transition-colors flex items-center gap-1 font-semibold cursor-pointer"
+                                className="px-2 py-1 text-xs bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/30 dark:hover:bg-rose-500/30 rounded-lg transition-colors flex items-center gap-1 font-semibold cursor-pointer"
                               >
                                 Clear Brand <FiX className="text-xs" />
                               </button>
@@ -1532,9 +1532,9 @@ const ProductMapping = () => {
                           </div>
                         </div>
 
-                        <div className="overflow-y-auto custom-scrollbar bg-slate-900/50 rounded-xl border border-white/10 max-h-60">
+                        <div className="overflow-y-auto custom-scrollbar dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-white/10 max-h-60">
                           <table className="w-full text-left border-collapse whitespace-nowrap">
-                            <thead className="bg-slate-800/80 border-b border-white/10 text-slate-300 text-xs uppercase tracking-wider sticky top-0 z-10 backdrop-blur-sm">
+                            <thead className="bg-slate-100/90 dark:bg-slate-800/80 border-b border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs uppercase tracking-wider sticky top-0 z-10 backdrop-blur-sm">
                               <tr>
                                 <th className="px-4 py-3 font-medium w-12 text-center">S.No</th>
                                 <th className="px-4 py-3 font-medium">System Product</th>
@@ -1543,10 +1543,10 @@ const ProductMapping = () => {
                                 <th className="px-4 py-3 font-medium text-center font-medium">System Qty</th>
                               </tr>
                             </thead>
-                            <tbody className="divide-y divide-white/5">
+                            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                               {filteredMissingStockItems.length === 0 ? (
                                 <tr>
-                                  <td colSpan="5" className="px-4 py-6 text-center text-slate-500 italic">
+                                  <td colSpan="5" className="px-4 py-6 text-center text-slate-400 dark:text-slate-500 italic">
                                     {missingStockItems.length === 0
                                       ? 'No missing system products. All are matched!'
                                       : 'No missing products found for the selected filter.'}
@@ -1556,25 +1556,25 @@ const ProductMapping = () => {
                                 filteredMissingStockItems.map((item, index) => {
                                   const brandStr = getProductBrandName(item.product);
                                   return (
-                                    <tr key={index} className="hover:bg-white/5 transition-colors">
-                                      <td className="px-4 py-3 text-sm text-slate-400 text-center font-medium">{index + 1}</td>
-                                      <td className="px-4 py-3 text-sm text-slate-300">
+                                    <tr key={index} className="hover:bg-slate-100/60 dark:hover:bg-white/5 transition-colors">
+                                      <td className="px-4 py-3 text-sm text-slate-500 dark:text-slate-400 text-center font-medium">{index + 1}</td>
+                                      <td className="px-4 py-3 text-sm text-slate-800 dark:text-slate-300">
                                         <div>
-                                          <span className="font-semibold text-white">{item.product.name}</span>
-                                          {brandStr && <span className="ml-2 text-xs text-slate-400">({brandStr})</span>}
+                                          <span className="font-semibold text-slate-900 dark:text-white">{item.product.name}</span>
+                                          {brandStr && <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">({brandStr})</span>}
                                         </div>
                                       </td>
-                                      <td className="px-4 py-3 text-sm text-slate-400">
+                                      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
                                         {item.variant ? (
-                                          <span className="text-blue-400 font-medium">{item.variant.name}</span>
+                                          <span className="text-blue-600 dark:text-blue-400 font-medium">{item.variant.name}</span>
                                         ) : (
-                                          <span className="text-slate-500 font-normal">-</span>
+                                          <span className="text-slate-400 dark:text-slate-500 font-normal">-</span>
                                         )}
                                       </td>
-                                      <td className="px-4 py-3 text-sm text-slate-400 font-mono">
+                                      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 font-mono">
                                         {item.variant ? item.variant.sku : item.product.eanNumber || '-'}
                                       </td>
-                                      <td className="px-4 py-3 text-sm font-bold text-amber-500 text-center">
+                                      <td className="px-4 py-3 text-sm font-bold text-amber-700 dark:text-amber-500 text-center">
                                         {item.variant ? item.variant.quantity : item.product.totalQuantity}
                                       </td>
                                     </tr>
@@ -1589,9 +1589,9 @@ const ProductMapping = () => {
                   })()}
                 </div>
               ) : (
-                <div className="overflow-y-auto custom-scrollbar bg-slate-900/50 rounded-xl border border-white/10 max-h-96">
+                <div className="overflow-y-auto custom-scrollbar dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-white/10 max-h-96">
                   <table className="w-full text-left border-collapse whitespace-nowrap">
-                    <thead className="bg-slate-800/80 border-b border-white/10 text-slate-300 text-xs uppercase tracking-wider sticky top-0 z-10 backdrop-blur-sm">
+                    <thead className="bg-slate-100/90 dark:bg-slate-800/80 border-b border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs uppercase tracking-wider sticky top-0 z-10 backdrop-blur-sm">
                       <tr>
                         <th className="px-4 py-3 font-medium w-12 text-center">S.No</th>
                         <th className="px-4 py-3 font-medium">Excel Item Name</th>
@@ -1602,7 +1602,7 @@ const ProductMapping = () => {
                         <th className="px-4 py-3 font-medium text-center font-medium">Status / Action</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/5">
+                    <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                       {stockMappedData
                         .map((mapping, originalIndex) => ({ mapping, originalIndex }))
                         .filter(({ mapping }) => {
@@ -1618,39 +1618,39 @@ const ProductMapping = () => {
                           const isDiff = currentStock !== null && Number(mapping.excelQty) !== Number(currentStock);
 
                           return (
-                            <tr key={originalIndex} className="hover:bg-white/5 transition-colors">
-                              <td className="px-4 py-3 text-sm text-slate-400 text-center font-medium">{originalIndex + 1}</td>
-                              <td className="px-4 py-3 text-sm text-slate-300">
+                            <tr key={originalIndex} className="hover:bg-slate-100/60 dark:hover:bg-white/5 transition-colors">
+                              <td className="px-4 py-3 text-sm text-slate-500 dark:text-slate-400 text-center font-medium">{originalIndex + 1}</td>
+                              <td className="px-4 py-3 text-sm text-slate-800 dark:text-slate-300">
                                 {mapping.excelName}
                                 {mapping.isVariant && (
-                                  <span className="ml-2 text-[10px] bg-blue-500/20 text-blue-400 border border-blue-500/30 px-1.5 py-0.5 rounded-full uppercase tracking-wider font-bold">Variant</span>
+                                  <span className="ml-2 text-[10px] bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-500/20 dark:text-blue-400 dark:border-blue-500/30 px-1.5 py-0.5 rounded-full uppercase tracking-wider font-bold">Variant</span>
                                 )}
                               </td>
-                              <td className="px-4 py-3 text-sm font-bold text-amber-400 text-center">{mapping.excelQty}</td>
+                              <td className="px-4 py-3 text-sm font-bold text-amber-700 dark:text-amber-400 text-center">{mapping.excelQty}</td>
                               <td className="px-4 py-3 text-sm">
                                 {mapping.matchedProduct ? (
-                                  <span className="text-emerald-400 font-medium">{mapping.matchedProduct.name}</span>
+                                  <span className="text-emerald-700 dark:text-emerald-400 font-medium">{mapping.matchedProduct.name}</span>
                                 ) : (
-                                  <span className="text-red-400/80 italic">Not Found</span>
+                                  <span className="text-rose-600 dark:text-red-400/80 italic font-semibold">Not Found</span>
                                 )}
                               </td>
-                              <td className="px-4 py-3 text-sm text-slate-300">
+                              <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">
                                 {mapping.matchedVariant ? (
-                                  <span className="text-blue-400 font-medium">{mapping.matchedVariant.name}</span>
+                                  <span className="text-blue-600 dark:text-blue-400 font-medium">{mapping.matchedVariant.name}</span>
                                 ) : mapping.isVariant && mapping.matchedProduct ? (
-                                  <span className="text-amber-500/80 italic" title="Product exists, but this variant wasn't found">Variant Not Found</span>
+                                  <span className="text-amber-700 dark:text-amber-500/80 italic" title="Product exists, but this variant wasn't found">Variant Not Found</span>
                                 ) : (
-                                  <span className="text-slate-500 font-normal">-</span>
+                                  <span className="text-slate-400 dark:text-slate-500 font-normal">-</span>
                                 )}
                               </td>
-                              <td className="px-4 py-3 text-sm text-slate-400 text-center font-medium">
+                              <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 text-center font-medium">
                                 {currentStock !== null ? (
                                   <span className="inline-flex items-center gap-1.5 justify-center">
-                                    <span>{currentStock}</span>
+                                    <span className="text-slate-800 dark:text-slate-200 font-medium">{currentStock}</span>
                                     {isDiff ? (
-                                      <span className="text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded-full font-bold">Differs</span>
+                                      <span className="text-[10px] bg-amber-50 text-amber-700 border border-amber-300/80 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/30 px-1.5 py-0.5 rounded-full font-bold">Differs</span>
                                     ) : (
-                                      <span className="text-[10px] bg-emerald-500/15 text-emerald-400/80 border border-emerald-500/20 px-1.5 py-0.5 rounded-full font-normal">Unchanged</span>
+                                      <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-300/80 dark:bg-emerald-500/15 dark:text-emerald-400/80 dark:border-emerald-500/20 px-1.5 py-0.5 rounded-full font-normal">Unchanged</span>
                                     )}
                                   </span>
                                 ) : '-'}
@@ -1659,11 +1659,11 @@ const ProductMapping = () => {
                                 <button
                                   onClick={() => handleSyncStockProduct(mapping, originalIndex)}
                                   disabled={!mapping.matchedProduct || (mapping.isVariant && !mapping.matchedVariant) || stockSyncingStates[originalIndex] || stockSyncStatus[originalIndex] === 'success'}
-                                  className={`inline-flex items-center justify-center px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${stockSyncStatus[originalIndex] === 'success'
-                                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                  className={`inline-flex items-center justify-center px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${stockSyncStatus[originalIndex] === 'success'
+                                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30'
                                       : stockSyncStatus[originalIndex] === 'error'
-                                        ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
-                                        : 'bg-blue-600/50 text-white hover:bg-blue-600 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed'
+                                        ? 'bg-rose-50 text-rose-700 border border-rose-300 hover:bg-rose-100 dark:bg-red-500/20 dark:text-red-400 dark:border-red-500/30 dark:hover:bg-red-500/30'
+                                        : 'bg-blue-600 hover:bg-blue-700 text-white shadow-xs disabled:opacity-50 disabled:cursor-not-allowed'
                                     }`}
                                 >
                                   {stockSyncingStates[originalIndex] ? <FiLoader className="animate-spin mr-1.5" /> : stockSyncStatus[originalIndex] === 'success' ? <FiCheckCircle className="mr-1.5" /> : <FiRefreshCcw className="mr-1.5" />}
@@ -1682,12 +1682,12 @@ const ProductMapping = () => {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-bold text-slate-300 mb-2">Step 2: Sync All Stock Quantities</label>
+              <label className="block text-sm font-bold text-slate-800 dark:text-slate-300 mb-2">Step 2: Sync All Stock Quantities</label>
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
                   onClick={handleBulkSyncStock}
                   disabled={!stockUploadSuccess || isSyncingStock}
-                  className="flex-1 flex items-center justify-center px-6 py-3 text-white font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                  className="flex-1 flex items-center justify-center px-6 py-3 text-white font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md cursor-pointer"
                 >
                   {isSyncingStock ? <FiLoader className="animate-spin mr-2" /> : <FiRefreshCcw className="mr-2" />}
                   {isSyncingStock ? 'Syncing Stock...' : 'Bulk Sync Stock'}
@@ -1697,30 +1697,30 @@ const ProductMapping = () => {
           </div>
 
           {stockSyncResult && (
-            <div className="space-y-4 pt-4 border-t border-white/10">
-              <h3 className="text-lg font-bold text-white">Stock Sync Complete</h3>
+            <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-white/10">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Stock Sync Complete</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-slate-950/50 rounded-xl border border-white/20">
-                  <p className="text-sm text-slate-400">Products Synchronized</p>
-                  <p className="text-2xl font-bold text-emerald-400">{stockSyncResult.updatedProducts}</p>
+                <div className="p-4 bg-white/80 dark:bg-slate-950/50 rounded-xl border border-slate-200 dark:border-white/20 shadow-xs">
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Products Synchronized</p>
+                  <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{stockSyncResult.updatedProducts}</p>
                 </div>
-                <div className="p-4 bg-slate-950/50 rounded-xl border border-white/20">
-                  <p className="text-sm text-slate-400">Products Failed / Not Synced</p>
-                  <p className="text-2xl font-bold text-amber-400">{stockSyncResult.failedProducts}</p>
+                <div className="p-4 bg-white/80 dark:bg-slate-950/50 rounded-xl border border-slate-200 dark:border-white/20 shadow-xs">
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Products Failed / Not Synced</p>
+                  <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{stockSyncResult.failedProducts}</p>
                 </div>
               </div>
               {stockSyncResult.syncedLog && stockSyncResult.syncedLog.length > 0 && (
                 <div>
-                  <h4 className="text-md font-bold text-white mb-2">Successfully Synced Log</h4>
-                  <div className="max-h-60 overflow-y-auto bg-slate-900/50 p-2 rounded-lg custom-scrollbar">
-                    <ul className="text-sm text-slate-400 space-y-1">
+                  <h4 className="text-md font-bold text-slate-900 dark:text-white mb-2">Successfully Synced Log</h4>
+                  <div className="max-h-60 overflow-y-auto bg-slate-50/70 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 p-2 rounded-lg custom-scrollbar">
+                    <ul className="text-sm text-slate-700 dark:text-slate-400 space-y-1">
                       {stockSyncResult.syncedLog.map((item, index) => (
-                        <li key={index} className="p-2 bg-slate-950/50 rounded-xl border border-white/10 rounded flex justify-between">
-                          <span>{item.name}</span>
+                        <li key={index} className="p-2 bg-white dark:bg-slate-950/50 rounded-xl border border-slate-200/80 dark:border-white/10 flex justify-between shadow-xs">
+                          <span className="font-medium text-slate-800 dark:text-slate-200">{item.name}</span>
                           <span className="font-mono text-xs">
-                            <span className="text-slate-500 font-bold">{item.oldQuantity}</span>
-                            <span className="mx-2 text-slate-500">→</span>
-                            <span className="text-emerald-400 font-bold">{item.newQuantity}</span>
+                            <span className="text-slate-400 dark:text-slate-500 font-bold">{item.oldQuantity}</span>
+                            <span className="mx-2 text-slate-400 dark:text-slate-500">→</span>
+                            <span className="text-emerald-600 dark:text-emerald-400 font-bold">{item.newQuantity}</span>
                           </span>
                         </li>
                       ))}
@@ -1733,8 +1733,8 @@ const ProductMapping = () => {
         </>
 
         {error && (
-          <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 flex items-center">
-            <FiAlertTriangle className="mr-3 text-xl" />
+          <div className="p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-red-700 dark:text-red-400 flex items-center shadow-xs">
+            <FiAlertTriangle className="mr-3 text-xl shrink-0" />
             {error}
           </div>
         )}
@@ -1742,17 +1742,17 @@ const ProductMapping = () => {
 
       {/* Progress & Log Modal */}
       {showStatusModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-lg transition-all">
-          <div className="w-full max-w-lg bg-slate-950/25 border border-white/15 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
-            <div className="p-5 border-b border-white/10 flex justify-between items-center bg-slate-950/40">
-              <h3 className="font-bold text-white text-lg flex items-center gap-2">
-                <FiDatabase size={18} className={`text-blue-400 ${isSyncingInProgress ? 'animate-spin' : ''}`} />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 dark:bg-slate-950/50 backdrop-blur-lg transition-all">
+          <div className="w-full max-w-lg bg-transparent dark:bg-slate-950/90 border border-slate-200 dark:border-white/15 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] backdrop-blur-xl">
+            <div className="p-5 border-b border-slate-200 dark:border-white/10 flex justify-between items-center bg-slate-50/80 dark:bg-slate-950/40">
+              <h3 className="font-bold text-slate-900 dark:text-white text-lg flex items-center gap-2">
+                <FiDatabase size={18} className={`text-blue-600 dark:text-blue-400 ${isSyncingInProgress ? 'animate-spin' : ''}`} />
                 {statusModalTitle}
               </h3>
               {!isSyncingInProgress && (
                 <button
                   onClick={() => setShowStatusModal(false)}
-                  className="p-1.5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  className="p-1.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer"
                 >
                   <FiX size={18} />
                 </button>
@@ -1762,11 +1762,11 @@ const ProductMapping = () => {
             <div className="p-5 flex-1 overflow-y-auto space-y-4">
               {/* Progress Bar */}
               <div className="space-y-1.5">
-                <div className="flex justify-between text-xs font-semibold text-slate-300">
+                <div className="flex justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
                   <span>Progress</span>
                   <span>{syncProgress.current} / {syncProgress.total} items</span>
                 </div>
-                <div className="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-white/5">
+                <div className="w-full bg-slate-100 dark:bg-slate-950 rounded-full h-2.5 overflow-hidden border border-slate-200 dark:border-white/5">
                   <div
                     className="h-full rounded-full transition-all duration-300 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                     style={{ width: `${syncProgress.total > 0 ? (syncProgress.current / syncProgress.total) * 100 : 0}%` }}
@@ -1775,23 +1775,23 @@ const ProductMapping = () => {
               </div>
 
               {/* Status Header */}
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 Operation Logs
               </div>
 
               {/* Logs output */}
-              <div className="bg-slate-950/25 border border-white/5 rounded-2xl p-3 h-64 overflow-y-auto font-mono text-[10px] space-y-2">
+              <div className="bg-slate-50/80 dark:bg-slate-950/25 border border-slate-200 dark:border-white/5 rounded-2xl p-3 h-64 overflow-y-auto font-mono text-[10px] space-y-2">
                 {syncLogs.length === 0 ? (
-                  <div className="text-slate-600 italic">Starting bulk operation...</div>
+                  <div className="text-slate-400 dark:text-slate-600 italic">Starting bulk operation...</div>
                 ) : (
                   syncLogs.map((log, idx) => (
                     <div
                       key={idx}
                       className={`p-2 rounded-lg border flex flex-col gap-0.5 ${log.status === 'success'
-                          ? 'bg-emerald-950/20 border-emerald-500/10 text-emerald-400'
+                          ? 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-500/10 dark:text-emerald-400'
                           : log.status === 'pending'
-                            ? 'bg-blue-950/20 border-blue-500/10 text-blue-400'
-                            : 'bg-rose-950/20 border-rose-500/10 text-rose-400'
+                            ? 'bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/20 dark:border-blue-500/10 dark:text-blue-400'
+                            : 'bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/20 dark:border-rose-500/10 dark:text-rose-400'
                         }`}
                     >
                       <div className="flex justify-between font-bold text-[11px]">
@@ -1805,12 +1805,12 @@ const ProductMapping = () => {
               </div>
             </div>
 
-            <div className="p-5 border-t border-white/10 flex justify-end bg-slate-950/80">
+            <div className="p-5 border-t border-slate-200 dark:border-white/10 flex justify-end bg-slate-50/80 dark:bg-slate-950/80">
               <button
                 disabled={isSyncingInProgress}
                 onClick={() => setShowStatusModal(false)}
                 className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer ${isSyncingInProgress
-                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-white/5'
+                    ? 'bg-slate-200 text-slate-400 dark:bg-slate-800 dark:text-slate-500 cursor-not-allowed border border-slate-300 dark:border-white/5'
                     : 'bg-blue-600 hover:bg-blue-500 text-white'
                   }`}
               >

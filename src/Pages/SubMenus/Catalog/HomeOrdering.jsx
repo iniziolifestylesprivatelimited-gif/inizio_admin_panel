@@ -188,9 +188,9 @@ const HomeOrdering = () => {
       </div>
 
       {/* Main Container */}
-      <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col">
+      <div className="bg-transparent backdrop-blur-lg border border-white/10 shadow-md dark:shadow-black/50 rounded-3xl overflow-hidden flex flex-col">
         {/* Navigation Tabs */}
-        <div className="flex border-b border-white/10 bg-slate-900/50">
+        <div className="flex border-b border-white/10 bg-white/40 dark:bg-slate-900/50">
           <button
             onClick={() => setActiveTab('categories')}
             className={`flex items-center gap-2 px-6 py-4 text-sm font-bold transition-all relative cursor-pointer ${
@@ -245,7 +245,7 @@ const HomeOrdering = () => {
                 return (
                   <div 
                     key={item._id}
-                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-transparent border border-white/20 hover:border-white/10 rounded-2xl transition-all duration-300 gap-4 group"
+                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white/20 dark:bg-white/[0.03] border border-white/20 hover:border-white/10 rounded-2xl transition-all duration-300 gap-4 group"
                   >
                     <div className="flex items-center gap-4 flex-1">
                       {/* Avatar/Preview */}
@@ -301,7 +301,7 @@ const HomeOrdering = () => {
                           value={localVal}
                           min="1"
                           onChange={(e) => handleOrderChange(item._id, activeType, e.target.value)}
-                          className="w-20 px-3 py-2 bg-black/30 border border-white/10 rounded-xl text-white text-sm font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500/50 text-center"
+                          className="w-20 px-3 py-2 bg-white/40 dark:bg-black/30 border border-white/10 rounded-xl text-white text-sm font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500/50 text-center"
                           placeholder="Unset"
                         />
                         <button

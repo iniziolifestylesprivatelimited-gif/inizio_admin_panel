@@ -402,26 +402,26 @@ export default function QuantitySlabs() {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-slate-100 p-2 space-y-6">
+    <div className="min-h-screen bg-transparent text-slate-800 dark:text-slate-100 p-2 space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-white/10 pb-5">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
-            <span className="p-2.5 bg-blue-500/10 text-blue-400 rounded-2xl border border-blue-500/20">
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+            <span className="p-2.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-2xl border border-blue-200 dark:border-blue-500/20 shadow-xs">
               <FiSliders size={24} />
             </span>
             Bulk Quantity Slabs Manager
           </h1>
-          <p className="text-sm text-slate-400 mt-1.5">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5">
             Configure dynamic price discount slabs and apply them globally or conditionally to products and variants.
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={loadDefaultPresets}
-            className="px-4 py-2 text-xs font-bold bg-slate-900 border border-white/10 text-slate-300 rounded-xl hover:bg-slate-800 transition-all flex items-center gap-1.5 cursor-pointer shadow-lg"
+            className="px-4 py-2 text-xs font-bold bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs dark:shadow-lg"
           >
-            <FiInfo size={14} className="text-blue-400" />
+            <FiInfo size={14} className="text-blue-600 dark:text-blue-400" />
             Load 100+ & 500+ presets
           </button>
         </div>
@@ -431,15 +431,15 @@ export default function QuantitySlabs() {
         {/* Left Side: Configuration Builder (Col span 5) */}
         <div className="lg:col-span-5 flex flex-col h-full">
           {/* Slab Settings Box */}
-          <div className="bg-linear-to-br from-transparent to-blue-950/65 border border-white/10 backdrop-blur-2xl rounded-3xl p-5 md:p-6 shadow-xl flex flex-col justify-between h-full space-y-5">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+          <div className="dark:bg-linear-to-br dark:from-transparent dark:to-blue-950/65 border border-slate-200/80 dark:border-white/10 backdrop-blur-2xl rounded-3xl p-5 md:p-6 shadow-xl shadow-slate-200/50 dark:shadow-black/50 flex flex-col justify-between h-full space-y-5">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <span className="w-1.5 h-5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"></span>
               Slab Pricing Rules
             </h2>
 
             {/* Base Field dropdown */}
             <div className="space-y-2">
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 Discount Calculation Base Price
               </label>
               <CustomDropdown
@@ -452,40 +452,40 @@ export default function QuantitySlabs() {
                   { value: 'l2Price', label: 'L2 Price' },
                   { value: 'l3Price', label: 'L3 Price' }
                 ]}
-                statusColor="bg-slate-900 border-white/10 text-slate-200 hover:bg-slate-800 text-xs font-semibold py-2.5 rounded-xl"
+                statusColor="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold py-2.5 rounded-xl shadow-xs"
               />
             </div>
 
             {/* Slabs configuration block */}
             <div className="space-y-4">
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 Slab Configurations
               </label>
               
               {slabRules.length === 0 ? (
-                <div className="text-center py-6 bg-slate-950/40 border border-dashed border-white/10 rounded-2xl text-slate-500 text-sm">
+                <div className="text-center py-6 bg-slate-50/60 dark:bg-slate-950/40 border border-dashed border-slate-300 dark:border-white/10 rounded-2xl text-slate-400 dark:text-slate-500 text-sm">
                   No slab rules configured. Slabs will be cleared on apply.
                 </div>
               ) : (
                 <div className="space-y-4">
                   {slabRules.map((rule, idx) => (
-                    <div key={rule.id} className="relative p-4 bg-slate-950 border border-white/10 rounded-2xl space-y-3 shadow-md group">
+                    <div key={rule.id} className="relative p-4 bg-slate-50/80 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl space-y-3 shadow-xs dark:shadow-md group">
                       <button
                         onClick={() => removeRule(rule.id)}
-                        className="absolute top-3 right-3 p-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 rounded-lg transition-colors cursor-pointer"
+                        className="absolute top-3 right-3 p-1.5 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 dark:hover:text-red-300 rounded-lg transition-colors cursor-pointer"
                         title="Remove Rule"
                       >
                         <FiTrash2 size={13} />
                       </button>
 
-                      <div className="text-xs font-bold text-blue-400">
+                      <div className="text-xs font-bold text-blue-600 dark:text-blue-400">
                         Rule #{idx + 1}
                       </div>
 
                       {/* Conditions */}
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-slate-500 uppercase">Apply Condition</label>
+                          <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Apply Condition</label>
                           <CustomDropdown
                             value={rule.applyCondition}
                             onChange={(val) => updateRuleField(rule.id, 'applyCondition', val)}
@@ -493,18 +493,18 @@ export default function QuantitySlabs() {
                               { value: 'stock_ge', label: 'If Stock ≥' },
                               { value: 'always', label: 'Always Apply' }
                             ]}
-                            statusColor="bg-slate-900 border-white/10 text-slate-300 hover:bg-slate-800 text-xs py-1.5 px-2 rounded-lg"
+                            statusColor="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs py-1.5 px-2 rounded-lg shadow-xs"
                           />
                         </div>
                         {rule.applyCondition === 'stock_ge' && (
                           <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-slate-500 uppercase">Stock Threshold</label>
+                            <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Stock Threshold</label>
                             <input
                               type="number"
                               value={rule.minStock}
                               onChange={(e) => updateRuleField(rule.id, 'minStock', Number(e.target.value))}
                               placeholder="100"
-                              className="w-full px-2 py-1.5 bg-slate-900 border border-white/10 text-slate-200 rounded-lg text-xs"
+                              className="w-full px-2 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none"
                             />
                           </div>
                         )}
@@ -513,17 +513,17 @@ export default function QuantitySlabs() {
                       {/* Slab Details */}
                       <div className="grid grid-cols-3 gap-2">
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-slate-500 uppercase">Slab Min Qty</label>
+                          <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Slab Min Qty</label>
                           <input
                             type="number"
                             value={rule.minQty}
                             onChange={(e) => updateRuleField(rule.id, 'minQty', Number(e.target.value))}
                             placeholder="100"
-                            className="w-full px-2 py-1.5 bg-slate-900 border border-white/10 text-slate-200 rounded-lg text-xs"
+                            className="w-full px-2 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none"
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-slate-500 uppercase">Discount Type</label>
+                          <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Discount Type</label>
                           <CustomDropdown
                             value={rule.discountType}
                             onChange={(val) => updateRuleField(rule.id, 'discountType', val)}
@@ -531,24 +531,24 @@ export default function QuantitySlabs() {
                               { value: 'percentage', label: 'Percentage (%)' },
                               { value: 'flat', label: 'Flat (₹)' }
                             ]}
-                            statusColor="bg-slate-900 border-white/10 text-slate-300 hover:bg-slate-800 text-xs py-1.5 px-2 rounded-lg"
+                            statusColor="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs py-1.5 px-2 rounded-lg shadow-xs"
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-slate-500 uppercase">Value</label>
+                          <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Value</label>
                           <input
                             type="number"
                             value={rule.discountValue}
                             onChange={(e) => updateRuleField(rule.id, 'discountValue', Number(e.target.value))}
                             placeholder="1"
-                            className="w-full px-2 py-1.5 bg-slate-900 border border-white/10 text-slate-200 rounded-lg text-xs"
+                            className="w-full px-2 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none"
                           />
                         </div>
                       </div>
 
                       {/* Rounding Mode */}
                       <div className="space-y-1 pt-1">
-                        <label className="text-[10px] font-bold text-slate-500 uppercase">Rounding Mode</label>
+                        <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Rounding Mode</label>
                         <CustomDropdown
                           value={rule.roundMode}
                           onChange={(val) => updateRuleField(rule.id, 'roundMode', val)}
@@ -558,7 +558,7 @@ export default function QuantitySlabs() {
                             { value: 'floor', label: 'Floor / Always Round Down' },
                             { value: 'none', label: 'No Rounding' }
                           ]}
-                          statusColor="bg-slate-900 border-white/10 text-slate-300 hover:bg-slate-800 text-xs py-1.5 px-2 rounded-lg"
+                          statusColor="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs py-1.5 px-2 rounded-lg shadow-xs"
                         />
                       </div>
                     </div>
@@ -569,17 +569,17 @@ export default function QuantitySlabs() {
               <button
                 type="button"
                 onClick={addRule}
-                className="w-full py-2.5 border border-dashed border-blue-500/30 text-blue-400 bg-blue-950/10 hover:bg-blue-950/20 hover:border-blue-500/50 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full py-2.5 border border-dashed border-blue-400/50 dark:border-blue-500/30 text-blue-600 dark:text-blue-400 bg-blue-50/50 hover:bg-blue-50 dark:bg-blue-950/10 dark:hover:bg-blue-950/20 hover:border-blue-500/50 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
               >
                 <FiPlus size={14} /> Add Slab Rule
               </button>
             </div>
 
             {/* Overwrite Toggle */}
-            <div className="flex items-center justify-between p-4 bg-slate-950/50 border border-white/5 rounded-2xl">
+            <div className="flex items-center justify-between p-4 bg-slate-50/70 dark:bg-slate-950/50 border border-slate-200/80 dark:border-white/5 rounded-2xl">
               <div className="space-y-0.5 pr-2">
-                <div className="text-xs font-bold text-white">Overwrite existing slabs</div>
-                <div className="text-[10px] text-slate-400 leading-normal">
+                <div className="text-xs font-bold text-slate-800 dark:text-white">Overwrite existing slabs</div>
+                <div className="text-[10px] text-slate-500 dark:text-slate-400 leading-normal">
                   If checked, replaces existing product/variant quantity slabs with these computed ones. Otherwise, merges them.
                 </div>
               </div>
@@ -587,7 +587,7 @@ export default function QuantitySlabs() {
                 type="checkbox"
                 checked={replaceExisting}
                 onChange={(e) => setReplaceExisting(e.target.checked)}
-                className="w-4 h-4 rounded text-blue-500 bg-slate-800 border-white/10 focus:ring-blue-500 focus:ring-offset-slate-950 focus:ring-2 cursor-pointer"
+                className="w-4 h-4 rounded text-blue-600 bg-white dark:bg-slate-800 border-slate-300 dark:border-white/10 focus:ring-blue-500 focus:ring-offset-slate-950 focus:ring-2 cursor-pointer"
               />
             </div>
 
@@ -598,7 +598,7 @@ export default function QuantitySlabs() {
               className={`w-full py-3 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg transition-all text-sm cursor-pointer ${
                 selectedIds.size > 0 
                   ? 'bg-blue-600 hover:bg-blue-500 text-white hover:shadow-blue-500/10' 
-                  : 'bg-slate-800 text-slate-400 border border-white/5 cursor-not-allowed'
+                  : 'bg-slate-200 text-slate-400 dark:bg-slate-800 dark:text-slate-500 border border-slate-300 dark:border-white/5 cursor-not-allowed'
               }`}
             >
               <FiSave size={16} />
@@ -610,21 +610,21 @@ export default function QuantitySlabs() {
         {/* Right Side: Product Selection & Preview Grid (Col span 7) */}
         <div className="lg:col-span-7 flex flex-col h-full">
           {/* Products & Filters Box */}
-          <div className="bg-linear-to-br from-transparent to-blue-950/65 border border-white/10 backdrop-blur-2xl rounded-3xl p-5 md:p-6 shadow-xl flex flex-col justify-between h-full space-y-5">
-            <h2 className="text-lg font-bold text-white flex items-center justify-between">
+          <div className="dark:bg-linear-to-br dark:from-transparent dark:to-blue-950/65 border border-slate-200/80 dark:border-white/10 backdrop-blur-2xl rounded-3xl p-5 md:p-6 shadow-xl shadow-slate-200/50 dark:shadow-black/50 flex flex-col justify-between h-full space-y-5">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center justify-between">
               <span className="flex items-center gap-2">
                 <span className="w-1.5 h-5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"></span>
                 Select Products & View Previews
               </span>
               {selectedIds.size > 0 && (
-                <span className="text-xs px-2.5 py-1 bg-blue-500/15 border border-blue-500/30 text-blue-400 rounded-full font-bold">
+                <span className="text-xs px-2.5 py-1 bg-blue-50 dark:bg-blue-500/15 border border-blue-200 dark:border-blue-500/30 text-blue-700 dark:text-blue-400 rounded-full font-bold">
                   {selectedIds.size} Selected
                 </span>
               )}
             </h2>
 
             {/* Filters Section */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 items-center gap-3 bg-slate-950 border border-white/5 p-3 rounded-2xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 items-center gap-3 bg-slate-50/80 dark:bg-slate-950 border border-slate-200/80 dark:border-white/5 p-3 rounded-2xl">
               {/* Search */}
               <div className="col-span-1 sm:col-span-2 relative">
                 <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10" size={14} />
@@ -633,7 +633,7 @@ export default function QuantitySlabs() {
                   value={search}
                   onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
                   placeholder="Search by name, EAN..."
-                  className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                  className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500/50 shadow-xs"
                 />
               </div>
 
@@ -649,7 +649,7 @@ export default function QuantitySlabs() {
                     setCurrentPage(1);
                     setSelectedBrand(val);
                   }}
-                  statusColor="bg-slate-900/60 text-slate-300 border-white/10 hover:bg-slate-800/60 hover:text-white text-xs py-2 rounded-xl"
+                  statusColor="bg-white dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white text-xs py-2 rounded-xl shadow-xs"
                 />
               </div>
 
@@ -665,7 +665,7 @@ export default function QuantitySlabs() {
                     setCurrentPage(1);
                     setSelectedCategory(val);
                   }}
-                  statusColor="bg-slate-900/60 text-slate-300 border-white/10 hover:bg-slate-800/60 hover:text-white text-xs py-2 rounded-xl"
+                  statusColor="bg-white dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white text-xs py-2 rounded-xl shadow-xs"
                 />
               </div>
 
@@ -679,7 +679,7 @@ export default function QuantitySlabs() {
                     { value: 'has_variants', label: 'Has Variants Only' },
                     { value: 'no_variants', label: 'No Variants Only' }
                   ]}
-                  statusColor="bg-slate-900/60 text-slate-300 border-white/10 hover:bg-slate-800/60 hover:text-white text-xs py-2 rounded-xl"
+                  statusColor="bg-white dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white text-xs py-2 rounded-xl shadow-xs"
                 />
               </div>
 
@@ -694,34 +694,34 @@ export default function QuantitySlabs() {
                     { value: 'low_stock', label: 'Low Stock (< 100)' },
                     { value: 'out_of_stock', label: 'Out of Stock (= 0)' }
                   ]}
-                  statusColor="bg-slate-900/60 text-slate-300 border-white/10 hover:bg-slate-800/60 hover:text-white text-xs py-2 rounded-xl"
+                  statusColor="bg-white dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white text-xs py-2 rounded-xl shadow-xs"
                 />
               </div>
             </div>
 
             {/* List and Live Preview */}
             {loading ? (
-              <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-400">
+              <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-400 dark:text-slate-500">
                 <FiLoader className="animate-spin text-blue-500" size={28} />
                 <div className="text-sm">Loading products list...</div>
               </div>
             ) : filteredProducts.length === 0 ? (
-              <div className="text-center py-20 bg-slate-950/30 border border-white/5 rounded-3xl text-slate-400">
-                <FiBox size={32} className="mx-auto text-slate-600 mb-3" />
+              <div className="text-center py-20 bg-slate-50/60 dark:bg-slate-950/30 border border-slate-200 dark:border-white/5 rounded-3xl text-slate-500 dark:text-slate-400">
+                <FiBox size={32} className="mx-auto text-slate-400 dark:text-slate-600 mb-3" />
                 <div className="text-sm font-medium">No products match the selected criteria.</div>
               </div>
             ) : (
               <div className="space-y-4 flex-1 flex flex-wrap flex-col justify-between">
-                <div className="overflow-auto custom-scrollbar max-h-[700px] rounded-2xl border border-white/5 bg-slate-950/40 flex-1">
+                <div className="overflow-auto custom-scrollbar max-h-[700px] rounded-2xl border border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-slate-950/40 flex-1">
                   <table className="w-full text-left text-xs border-collapse">
-                    <thead className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-md shadow-md">
-                      <tr className="bg-slate-900/80 border-b border-white/5 text-slate-400 font-semibold">
+                    <thead className="sticky top-0 z-10 bg-slate-100/95 dark:bg-slate-900/95 backdrop-blur-md shadow-xs dark:shadow-md">
+                      <tr className="bg-slate-100/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-400 font-semibold">
                         <th className="p-3 w-10 text-center">
                           <input
                             type="checkbox"
                             checked={filteredProducts.length > 0 && filteredProducts.every(p => selectedIds.has(p._id))}
                             onChange={handleSelectAll}
-                            className="w-3.5 h-3.5 rounded text-blue-500 bg-slate-800 border-white/10 focus:ring-blue-500 cursor-pointer"
+                            className="w-3.5 h-3.5 rounded text-blue-600 bg-white dark:bg-slate-800 border-slate-300 dark:border-white/10 focus:ring-blue-500 cursor-pointer"
                           />
                         </th>
                         <th className="p-3">Product Name & Type</th>
@@ -730,7 +730,7 @@ export default function QuantitySlabs() {
                         <th className="p-3">Computed Slab Preview</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/5">
+                    <tbody className="divide-y divide-slate-400 dark:divide-white/5">
                       {currentItems.map((product) => {
                         const isSelected = selectedIds.has(product._id);
                         const hasVariants = product.variants && product.variants.length > 0;
@@ -756,8 +756,8 @@ export default function QuantitySlabs() {
                         return (
                           <tr 
                             key={product._id} 
-                            className={`hover:bg-white/[0.02] transition-colors ${
-                              isSelected ? 'bg-blue-500/[0.02]' : ''
+                            className={`hover:bg-slate-100/60 dark:hover:bg-white/[0.02] transition-colors ${
+                              isSelected ? 'bg-blue-50/60 dark:bg-blue-500/[0.02]' : ''
                             }`}
                           >
                             {/* Checkbox */}
@@ -766,21 +766,21 @@ export default function QuantitySlabs() {
                                 type="checkbox"
                                 checked={isSelected}
                                 onChange={() => handleSelectToggle(product._id)}
-                                className="w-3.5 h-3.5 rounded text-blue-500 bg-slate-800 border-white/10 focus:ring-blue-500 cursor-pointer"
+                                className="w-3.5 h-3.5 rounded text-blue-600 bg-white dark:bg-slate-800 border-slate-300 dark:border-white/10 focus:ring-blue-500 cursor-pointer"
                               />
                             </td>
 
                             {/* Name / Info */}
                             <td className="p-3 align-top max-w-[200px]">
                               <div>
-                                <div className="font-semibold text-slate-100 line-clamp-2">{product.name}</div>
+                                <div className="font-semibold text-slate-900 dark:text-slate-100 line-clamp-2">{product.name}</div>
                                 <div className="flex gap-1.5 items-center mt-1">
                                   {hasVariants ? (
-                                    <span className="px-1.5 py-0.5 bg-purple-500/10 border border-purple-500/30 text-purple-400 text-[9px] rounded font-bold uppercase">
+                                    <span className="px-1.5 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-500/10 dark:border-purple-500/30 dark:text-purple-400 text-[9px] rounded font-bold uppercase">
                                       Variants ({product.variants.length})
                                     </span>
                                   ) : (
-                                    <span className="px-1.5 py-0.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[9px] rounded font-bold uppercase">
+                                    <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20 dark:text-blue-400 text-[9px] rounded font-bold uppercase">
                                       Standard
                                     </span>
                                   )}
@@ -792,10 +792,10 @@ export default function QuantitySlabs() {
                             {/* Prices */}
                             <td className="p-3 align-top">
                               <div className="space-y-0.5">
-                                <div className="text-slate-400">
-                                  {basePriceField}: <span className="text-emerald-400 font-bold">₹{pBasePriceVal}</span>
+                                <div className="text-slate-600 dark:text-slate-400">
+                                  {basePriceField}: <span className="text-emerald-700 dark:text-emerald-400 font-bold">₹{pBasePriceVal}</span>
                                 </div>
-                                <div className="text-[10px] text-slate-500">
+                                <div className="text-[10px] text-slate-400 dark:text-slate-500">
                                   Base Price: ₹{product.basePrice || 0}
                                 </div>
                               </div>
@@ -803,7 +803,7 @@ export default function QuantitySlabs() {
 
                             {/* Stock */}
                             <td className="p-3 align-top font-medium">
-                              <span className={product.totalQuantity > 0 ? 'text-slate-300' : 'text-red-400 font-bold'}>
+                              <span className={product.totalQuantity > 0 ? 'text-slate-700 dark:text-slate-300 font-semibold' : 'text-rose-600 dark:text-red-400 font-bold'}>
                                 {product.totalQuantity || 0} pcs
                               </span>
                             </td>
@@ -812,21 +812,21 @@ export default function QuantitySlabs() {
                             <td className="p-3 align-top">
                               <div className="space-y-2">
                                 {slabsPreview.map((item, idx) => (
-                                  <div key={idx} className="bg-slate-900/60 p-1.5 rounded-lg border border-white/5">
+                                  <div key={idx} className="bg-white dark:bg-slate-900/60 p-1.5 rounded-lg border border-slate-200 dark:border-white/5 shadow-xs">
                                     {item.name && (
-                                      <div className="text-[9px] font-bold text-slate-400 mb-1 flex items-center justify-between">
+                                      <div className="text-[9px] font-bold text-slate-600 dark:text-slate-400 mb-1 flex items-center justify-between">
                                         <span>Variant: {item.name}</span>
-                                        <span className="text-slate-500">Stock: {item.stock}</span>
+                                        <span className="text-slate-400 dark:text-slate-500">Stock: {item.stock}</span>
                                       </div>
                                     )}
                                     {item.slabs.length === 0 ? (
-                                      <div className="text-[10px] text-slate-500 italic">No slabs matching rules</div>
+                                      <div className="text-[10px] text-slate-400 dark:text-slate-500 italic">No slabs matching rules</div>
                                     ) : (
                                       <div className="flex flex-wrap gap-1">
                                         {item.slabs.map((slab, sIdx) => (
                                           <span 
                                             key={sIdx} 
-                                            className="inline-block px-1.5 py-0.5 bg-blue-950 border border-blue-500/20 text-[10px] text-blue-300 rounded font-medium"
+                                            className="inline-block px-1.5 py-0.5 bg-blue-50 border border-blue-200 text-[10px] text-blue-700 dark:bg-blue-950 dark:border-blue-500/20 dark:text-blue-300 rounded font-medium"
                                           >
                                             {slab.minQty}+ &rarr; ₹{slab.price}
                                           </span>
@@ -846,15 +846,15 @@ export default function QuantitySlabs() {
 
                 {/* Pagination Controls */}
                 {!loading && filteredProducts.length > 0 && (
-                  <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
-                    <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
-                      Showing <span className="font-bold text-white">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-bold text-white">{Math.min(currentPage * itemsPerPage, filteredProducts.length)}</span> of <span className="font-bold text-white">{filteredProducts.length}</span> items
+                  <div className="p-4 border-t border-slate-200 dark:border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50 dark:bg-white/[0.02] backdrop-blur-md">
+                    <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 text-center sm:text-left">
+                      Showing <span className="font-bold text-slate-900 dark:text-white">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-bold text-slate-900 dark:text-white">{Math.min(currentPage * itemsPerPage, filteredProducts.length)}</span> of <span className="font-bold text-slate-900 dark:text-white">{filteredProducts.length}</span> items
                     </span>
                     <div className="flex space-x-2">
                       <button
                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                         disabled={currentPage === 1}
-                        className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                        className="px-3 sm:px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-950/20 dark:hover:bg-white/10 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200 dark:border-white/10 transform-gpu cursor-pointer shadow-xs"
                       >
                         &larr;
                       </button>
@@ -891,8 +891,8 @@ export default function QuantitySlabs() {
                                 page === currentPage
                                   ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
                                   : page === '...'
-                                  ? 'bg-transparent text-slate-500 border-transparent cursor-default'
-                                  : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
+                                  ? 'bg-transparent text-slate-400 dark:text-slate-500 border-transparent cursor-default'
+                                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100 hover:text-slate-900 dark:bg-slate-950/20 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10 dark:hover:text-white cursor-pointer shadow-xs'
                               }`}
                             >
                               {page}
@@ -903,7 +903,7 @@ export default function QuantitySlabs() {
                       <button
                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                         disabled={currentPage === totalPages || totalPages === 0}
-                        className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                        className="px-3 sm:px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-950/20 dark:hover:bg-white/10 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200 dark:border-white/10 transform-gpu cursor-pointer shadow-xs"
                       >
                         &rarr;
                       </button>
@@ -918,17 +918,17 @@ export default function QuantitySlabs() {
 
       {/* Progress & Log Modal */}
       {showStatusModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm transition-all">
-          <div className="w-full max-w-lg bg-linear-to-br from-transparent to-blue-950/65 border border-white/15 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
-            <div className="p-5 border-b border-white/10 flex justify-between items-center bg-slate-950/80">
-              <h3 className="font-bold text-white text-lg flex items-center gap-2">
-                <FiSliders size={18} className="text-blue-400 animate-spin" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 dark:bg-slate-950/50 backdrop-blur-lg transition-all">
+          <div className="w-full max-w-lg bg-transparent dark:bg-slate-950/90 border border-slate-200 dark:border-white/15 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] backdrop-blur-xl">
+            <div className="p-5 border-b border-slate-200 dark:border-white/10 flex justify-between items-center bg-slate-50/80 dark:bg-slate-950/80">
+              <h3 className="font-bold text-slate-900 dark:text-white text-lg flex items-center gap-2">
+                <FiSliders size={18} className="text-blue-600 dark:text-blue-400 animate-spin" />
                 Updating Pricing Slabs
               </h3>
               {!isUpdating && (
                 <button
                   onClick={() => setShowStatusModal(false)}
-                  className="p-1.5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  className="p-1.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer"
                 >
                   <FiX size={18} />
                 </button>
@@ -938,11 +938,11 @@ export default function QuantitySlabs() {
             <div className="p-5 flex-1 overflow-y-auto space-y-4">
               {/* Progress Bar */}
               <div className="space-y-1.5">
-                <div className="flex justify-between text-xs font-semibold text-slate-300">
+                <div className="flex justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
                   <span>Progress</span>
                   <span>{updateProgress.current} / {updateProgress.total} items</span>
                 </div>
-                <div className="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-white/5">
+                <div className="w-full bg-slate-100 dark:bg-slate-950 rounded-full h-2.5 overflow-hidden border border-slate-200 dark:border-white/5">
                   <div 
                     className="h-full rounded-full transition-all duration-300 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                     style={{ width: `${(updateProgress.current / updateProgress.total) * 100}%` }}
@@ -951,22 +951,22 @@ export default function QuantitySlabs() {
               </div>
 
               {/* Status Header */}
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 Operation Logs
               </div>
 
               {/* Logs output */}
-              <div className="bg-slate-950 border border-white/5 rounded-2xl p-3 h-64 overflow-y-auto font-mono text-[10px] space-y-2">
+              <div className="bg-slate-50/80 dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-2xl p-3 h-64 overflow-y-auto font-mono text-[10px] space-y-2">
                 {updateLogs.length === 0 ? (
-                  <div className="text-slate-600 italic">Starting bulk operation...</div>
+                  <div className="text-slate-400 dark:text-slate-600 italic">Starting bulk operation...</div>
                 ) : (
                   updateLogs.map((log, idx) => (
                     <div 
                       key={idx} 
                       className={`p-2 rounded-lg border flex flex-col gap-0.5 ${
                         log.status === 'success' 
-                          ? 'bg-emerald-950/20 border-emerald-500/10 text-emerald-400' 
-                          : 'bg-red-950/20 border-red-500/10 text-red-400'
+                          ? 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-500/10 dark:text-emerald-400' 
+                          : 'bg-rose-50 text-rose-800 border-rose-200 dark:bg-red-950/20 dark:border-red-500/10 dark:text-red-400'
                       }`}
                     >
                       <div className="flex justify-between font-bold text-[11px]">
@@ -980,13 +980,13 @@ export default function QuantitySlabs() {
               </div>
             </div>
 
-            <div className="p-5 border-t border-white/10 flex justify-end bg-slate-950/80">
+            <div className="p-5 border-t border-slate-200 dark:border-white/10 flex justify-end bg-slate-50/80 dark:bg-slate-950/80">
               <button
                 disabled={isUpdating}
                 onClick={() => setShowStatusModal(false)}
                 className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer ${
                   isUpdating 
-                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-white/5' 
+                    ? 'bg-slate-200 text-slate-400 dark:bg-slate-800 dark:text-slate-500 cursor-not-allowed border border-slate-300 dark:border-white/5' 
                     : 'bg-blue-600 hover:bg-blue-500 text-white'
                 }`}
               >

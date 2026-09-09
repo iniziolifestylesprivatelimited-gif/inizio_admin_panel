@@ -151,7 +151,7 @@ const InternetStrengthIndicator = ({ compact = true, className = '' }) => {
         label: 'Excellent',
         color: 'text-emerald-600 dark:text-emerald-400',
         barColor: 'bg-emerald-500',
-        badgeBg: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400',
+        badgeBg: 'bg-emerald-500/50 border-emerald-500/20 text-emerald-600 dark:text-emerald-400',
         dotColor: 'bg-emerald-500'
       };
     }

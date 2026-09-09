@@ -364,15 +364,15 @@ export default function BrokenImages() {
   };
 
   return (
-    <div className="relative space-y-4 min-h-full w-full z-0 isolate pb-14">
+    <div className="relative space-y-4 min-h-full w-full z-0 isolate pb-14 text-slate-800 dark:text-slate-100">
       {/* Toast Notification */}
       {toastMessage && (
         <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl backdrop-blur-xl border transition-all animate-in slide-in-from-bottom-5 duration-300 ${
           toastMessage.type === 'error'
-            ? 'bg-rose-950/95 border-rose-500/40 text-rose-200 shadow-rose-950/60'
-            : 'bg-emerald-950/95 border-emerald-500/40 text-emerald-200 shadow-emerald-950/60'
+            ? 'bg-rose-50 border-rose-200 text-rose-800 shadow-rose-950/10 dark:bg-rose-950/95 dark:border-rose-500/40 dark:text-rose-200 dark:shadow-rose-950/60'
+            : 'bg-emerald-50 border-emerald-200 text-emerald-800 shadow-emerald-950/10 dark:bg-emerald-950/95 dark:border-emerald-500/40 dark:text-emerald-200 dark:shadow-emerald-950/60'
         }`}>
-          {toastMessage.type === 'error' ? <FiAlertTriangle className="text-rose-400 shrink-0" size={18} /> : <FiCheckCircle className="text-emerald-400 shrink-0" size={18} />}
+          {toastMessage.type === 'error' ? <FiAlertTriangle className="text-rose-600 dark:text-rose-400 shrink-0" size={18} /> : <FiCheckCircle className="text-emerald-600 dark:text-emerald-400 shrink-0" size={18} />}
           <span className="text-xs md:text-sm font-semibold tracking-wide">{toastMessage.text}</span>
         </div>
       )}
@@ -385,22 +385,22 @@ export default function BrokenImages() {
         action={
           <div className="flex items-center gap-2.5 w-full sm:w-auto flex-wrap">
             {/* Live Indicator */}
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-900/60 border border-white/10 text-xs font-semibold text-slate-300 shadow-sm backdrop-blur-md">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-xs backdrop-blur-md">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <span className="text-[11px] text-slate-400">Live (15s)</span>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">Live (15s)</span>
             </div>
 
             {/* Refresh Button */}
             <button
               onClick={() => fetchBrokenImages(true)}
               disabled={refreshing || loading}
-              className="flex items-center justify-center gap-2 px-3.5 py-2 bg-slate-800/80 hover:bg-slate-700/80 border border-white/10 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer disabled:opacity-50 active:scale-95 shadow-sm"
+              className="flex items-center justify-center gap-2 px-3.5 py-2 bg-white dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-white/10 text-slate-700 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer disabled:opacity-50 active:scale-95 shadow-xs"
               title="Refresh broken images"
             >
-              <FiRefreshCw className={`${refreshing ? 'animate-spin text-blue-400' : ''}`} size={13} />
+              <FiRefreshCw className={`${refreshing ? 'animate-spin text-blue-500 dark:text-blue-400' : ''}`} size={13} />
               <span>Refresh</span>
             </button>
 
@@ -417,15 +417,15 @@ export default function BrokenImages() {
       />
 
       {/* Clean Control Bar: Status Tabs + Search + View Mode + Bulk Actions */}
-      <div className="p-3 md:p-3.5 rounded-2xl bg-slate-900/50 backdrop-blur-xl border border-white/10 z-10 relative flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 shadow-lg">
+      <div className="p-3 md:p-3.5 rounded-2xl bg-white/40 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 z-10 relative flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 shadow-xl dark:shadow-lg shadow-slate-200/50 dark:shadow-slate-950/50">
         {/* Status Filter Tabs with Instant Accurate Counts */}
-        <div className="flex items-center gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl overflow-x-auto no-scrollbar">
           {[
             { 
               id: 'PENDING', 
               label: 'Pending', 
               count: stats.pending, 
-              activeColor: 'bg-rose-500 text-white shadow-rose-500/25',
+              activeColor: 'bg-rose-600 text-white shadow-rose-600/25',
               dotColor: 'bg-rose-500'
             },
             { 
@@ -461,7 +461,7 @@ export default function BrokenImages() {
                 className={`flex items-center gap-2 px-3 py-1.5 md:px-3.5 md:py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                   isActive
                     ? `${tab.activeColor} shadow-md`
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/5'
                 }`}
               >
                 {tab.id === 'PENDING' && tab.count > 0 && !isActive && (
@@ -472,7 +472,7 @@ export default function BrokenImages() {
                 )}
                 <span>{tab.label}</span>
                 <span className={`px-2 py-0.5 rounded-md text-[11px] font-mono font-bold ${
-                  isActive ? 'bg-white/25 text-white' : 'bg-white/5 text-slate-300'
+                  isActive ? 'bg-white/25 text-white' : 'bg-slate-200/80 dark:bg-white/5 text-slate-700 dark:text-slate-300'
                 }`}>
                   {tab.count}
                 </span>
@@ -485,7 +485,7 @@ export default function BrokenImages() {
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Search Box */}
           <div className="relative flex-1 sm:w-64 sm:flex-initial">
-            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" size={13} />
+            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={13} />
             <input
               type="text"
               placeholder="Search product, URL, error..."
@@ -494,12 +494,12 @@ export default function BrokenImages() {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-9 pr-7 py-2 bg-black/40 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/60 transition-colors"
+              className="w-full pl-9 pr-7 py-2 bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500/60 transition-colors shadow-xs"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white text-xs p-1"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-white text-xs p-1 cursor-pointer"
                 title="Clear search"
               >
                 ✕
@@ -508,11 +508,11 @@ export default function BrokenImages() {
           </div>
 
           {/* View Mode Switcher */}
-          <div className="flex items-center p-1 bg-black/40 border border-white/10 rounded-xl">
+          <div className="flex items-center p-1 bg-slate-100 dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl">
             <button
               onClick={() => setViewMode('table')}
               className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                viewMode === 'table' ? 'bg-white/15 text-white' : 'text-slate-400 hover:text-white'
+                viewMode === 'table' ? 'bg-white dark:bg-white/15 text-slate-900 dark:text-white shadow-xs' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
               }`}
               title="Table View"
             >
@@ -521,7 +521,7 @@ export default function BrokenImages() {
             <button
               onClick={() => setViewMode('cards')}
               className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                viewMode === 'cards' ? 'bg-white/15 text-white' : 'text-slate-400 hover:text-white'
+                viewMode === 'cards' ? 'bg-white dark:bg-white/15 text-slate-900 dark:text-white shadow-xs' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
               }`}
               title="Grid Card View"
             >
@@ -532,13 +532,13 @@ export default function BrokenImages() {
           {/* Bulk Action Buttons (shown when items are selected) */}
           {selectedIds.size > 0 && (
             <div className="flex items-center gap-2 animate-in fade-in duration-200">
-              <span className="text-xs text-blue-400 font-bold px-2 py-1 bg-blue-500/10 rounded-lg border border-blue-500/20">
+              <span className="text-xs text-blue-700 dark:text-blue-400 font-bold px-2 py-1 bg-blue-50 dark:bg-blue-500/10 rounded-lg border border-blue-200 dark:border-blue-500/20">
                 {selectedIds.size} selected
               </span>
               <button
                 onClick={() => handleBulkUpdateStatus('RESOLVED')}
                 disabled={bulkActionLoading}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 rounded-xl text-xs font-bold transition-all cursor-pointer disabled:opacity-50 active:scale-95"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 dark:bg-emerald-500/20 dark:hover:bg-emerald-500/30 dark:border-emerald-500/40 dark:text-emerald-300 rounded-xl text-xs font-bold transition-all cursor-pointer disabled:opacity-50 active:scale-95 shadow-xs"
               >
                 <FiCheckCircle size={13} />
                 <span>Resolve</span>
@@ -546,14 +546,14 @@ export default function BrokenImages() {
               <button
                 onClick={() => handleBulkUpdateStatus('IGNORED')}
                 disabled={bulkActionLoading}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-white/10 text-slate-300 rounded-xl text-xs font-bold transition-all cursor-pointer disabled:opacity-50 active:scale-95"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-white/10 dark:text-slate-300 rounded-xl text-xs font-bold transition-all cursor-pointer disabled:opacity-50 active:scale-95 shadow-xs"
               >
                 <FiXCircle size={13} />
                 <span>Ignore</span>
               </button>
               <button
                 onClick={() => setSelectedIds(new Set())}
-                className="p-1.5 text-slate-400 hover:text-white text-xs cursor-pointer"
+                className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-white text-xs cursor-pointer"
                 title="Deselect All"
               >
                 ✕
@@ -564,18 +564,18 @@ export default function BrokenImages() {
       </div>
 
       {/* Main Content Area: Table or Card Grid */}
-      <div className="bg-slate-900/40 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-xl overflow-hidden z-10 relative">
+      <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-slate-950/50 overflow-hidden z-10 relative">
         {loading ? (
           <div className="p-6">
             <TableRowSkeleton columns={6} rows={6} />
           </div>
         ) : filteredItems.length === 0 ? (
           <div className="py-20 px-6 text-center">
-            <div className="w-16 h-16 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 mx-auto mb-4">
-              <FiCheckCircle className="text-emerald-400 text-3xl" />
+            <div className="w-16 h-16 rounded-3xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-400 dark:text-slate-500 mx-auto mb-4">
+              <FiCheckCircle className="text-emerald-500 dark:text-emerald-400 text-3xl" />
             </div>
-            <h3 className="text-lg font-bold text-white tracking-tight">No Broken Images Found</h3>
-            <p className="text-xs text-slate-400 mt-1.5 max-w-md mx-auto leading-relaxed">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">No Broken Images Found</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 max-w-md mx-auto leading-relaxed">
               {searchQuery
                 ? `No images match your search query "${searchQuery}".`
                 : activeTab === 'PENDING'
@@ -588,7 +588,7 @@ export default function BrokenImages() {
                   setSearchQuery('');
                   setActiveTab('PENDING');
                 }}
-                className="mt-5 px-4 py-2 bg-white/10 hover:bg-white/15 text-white text-xs font-bold rounded-xl transition-all cursor-pointer"
+                className="mt-5 px-4 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 dark:bg-white/10 dark:hover:bg-white/15 dark:border-transparent dark:text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs"
               >
                 Reset Filters
               </button>
@@ -601,26 +601,26 @@ export default function BrokenImages() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-white/10 bg-white/[0.02]">
+                <tr className="border-b border-slate-200 dark:border-white/10 bg-slate-100/90 dark:bg-white/[0.02]">
                   <th className="py-3.5 px-4 w-12 text-center">
                     <input
                       type="checkbox"
                       checked={isAllCurrentSelected}
                       onChange={handleToggleSelectAll}
-                      className="rounded border-white/20 bg-slate-900 text-blue-600 focus:ring-blue-500/20 cursor-pointer accent-blue-600"
+                      className="rounded border-slate-300 dark:border-white/20 bg-white dark:bg-slate-900 text-blue-600 focus:ring-blue-500/20 cursor-pointer accent-blue-600"
                     />
                   </th>
-                  <th className="py-3.5 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider w-16">Preview</th>
-                  <th className="py-3.5 px-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Product / Location</th>
-                  <th className="py-3.5 px-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Broken Image URL</th>
-                  <th className="py-3.5 px-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Diagnostic Reason</th>
-                  <th className="py-3.5 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider text-center">Hits</th>
-                  <th className="py-3.5 px-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Timestamp</th>
-                  <th className="py-3.5 px-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
-                  <th className="py-3.5 px-4 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider">Actions</th>
+                  <th className="py-3.5 px-3 text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider w-16">Preview</th>
+                  <th className="py-3.5 px-4 text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Product / Location</th>
+                  <th className="py-3.5 px-4 text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Broken Image URL</th>
+                  <th className="py-3.5 px-4 text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Diagnostic Reason</th>
+                  <th className="py-3.5 px-3 text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider text-center">Hits</th>
+                  <th className="py-3.5 px-4 text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Timestamp</th>
+                  <th className="py-3.5 px-4 text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Status</th>
+                  <th className="py-3.5 px-4 text-center text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-slate-200/80 dark:divide-white/5">
                 {currentItems.map((item, idx) => {
                   const itemId = item._id || item.id || `broken-img-${idx}`;
                   const isSelected = selectedIds.has(itemId);
@@ -643,8 +643,8 @@ export default function BrokenImages() {
                   return (
                     <tr
                       key={itemId}
-                      className={`hover:bg-white/[0.03] transition-colors group ${
-                        isSelected ? 'bg-blue-600/10' : ''
+                      className={`hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors group ${
+                        isSelected ? 'bg-blue-50/80 dark:bg-blue-600/10' : ''
                       }`}
                     >
                       {/* Checkbox */}
@@ -653,7 +653,7 @@ export default function BrokenImages() {
                           type="checkbox"
                           checked={isSelected}
                           onChange={(e) => handleToggleSelect(itemId, e)}
-                          className="rounded border-white/20 bg-slate-900 text-blue-600 focus:ring-blue-500/20 cursor-pointer accent-blue-600"
+                          className="rounded border-slate-300 dark:border-white/20 bg-white dark:bg-slate-900 text-blue-600 focus:ring-blue-500/20 cursor-pointer accent-blue-600"
                         />
                       </td>
 
@@ -661,7 +661,7 @@ export default function BrokenImages() {
                       <td className="py-3.5 px-3">
                         <div
                           onClick={() => setPreviewItem(item)}
-                          className="w-12 h-12 rounded-xl bg-slate-950/80 border border-white/15 p-1 flex items-center justify-center relative overflow-hidden group-hover:border-blue-500/40 transition-colors cursor-pointer shrink-0 shadow-inner"
+                          className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-950/80 border border-slate-200 dark:border-white/15 p-1 flex items-center justify-center relative overflow-hidden group-hover:border-blue-500/40 transition-colors cursor-pointer shrink-0 shadow-inner"
                           title="Click to inspect image"
                         >
                           <img
@@ -676,7 +676,7 @@ export default function BrokenImages() {
                               }
                             }}
                           />
-                          <div className="hidden absolute inset-0 bg-slate-900/90 text-rose-400 flex-col items-center justify-center text-[9px] font-bold p-1 text-center">
+                          <div className="hidden absolute inset-0 bg-rose-50/95 dark:bg-slate-900/90 text-rose-600 dark:text-rose-400 flex-col items-center justify-center text-[9px] font-bold p-1 text-center">
                             <FiAlertTriangle size={13} className="mb-0.5" />
                             <span>Error</span>
                           </div>
@@ -689,22 +689,22 @@ export default function BrokenImages() {
                           <div className="flex flex-col max-w-xs">
                             <span 
                               onClick={() => navigate(`/products/list?viewProductId=${matchedProduct._id}`)}
-                              className="text-xs md:text-sm font-bold text-white hover:text-blue-400 transition-colors truncate cursor-pointer flex items-center gap-1.5"
+                              className="text-xs md:text-sm font-bold text-slate-800 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate cursor-pointer flex items-center gap-1.5"
                               title={`Product: ${matchedProduct.name} (Click to open)`}
                             >
-                              <FiPackage className="text-blue-400 shrink-0 text-xs" />
+                              <FiPackage className="text-blue-500 dark:text-blue-400 shrink-0 text-xs" />
                               <span className="truncate">{matchedProduct.name}</span>
                             </span>
                             <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
+                              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 uppercase tracking-wider">
                                 Catalog Match
                               </span>
                               {matchedVariant?.name && (
-                                <span className="text-[9px] font-semibold text-blue-300 bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.2 rounded truncate max-w-[120px]" title={`Variant: ${matchedVariant.name}`}>
+                                <span className="text-[9px] font-semibold text-blue-700 bg-blue-50 border border-blue-200 dark:text-blue-300 dark:bg-blue-500/10 dark:border-blue-500/20 px-1.5 py-0.2 rounded truncate max-w-[120px]" title={`Variant: ${matchedVariant.name}`}>
                                   {matchedVariant.name}
                                 </span>
                               )}
-                              <span className="text-[10px] text-slate-500 font-medium">
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                                 on {screen}
                               </span>
                             </div>
@@ -713,13 +713,13 @@ export default function BrokenImages() {
                           <div className="flex flex-col max-w-xs">
                             <span 
                               onClick={() => setPreviewItem(item)}
-                              className="text-xs md:text-sm font-bold text-white group-hover:text-blue-400 transition-colors truncate cursor-pointer"
+                              className="text-xs md:text-sm font-bold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate cursor-pointer"
                               title={screen}
                             >
                               {screen}
                             </span>
                             <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 bg-white/5 border border-white/10 px-1.5 py-0.2 rounded">
+                              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 px-1.5 py-0.2 rounded">
                                 {entityType}
                               </span>
                               {entityId && (
@@ -728,14 +728,14 @@ export default function BrokenImages() {
                                     e.stopPropagation();
                                     if (entityType === 'product') navigate(`/products/list?viewProductId=${entityId}`);
                                   }}
-                                  className={`text-[10px] font-mono text-slate-400 bg-white/5 px-1.5 py-0.2 rounded border border-white/5 ${entityType === 'product' ? 'hover:text-blue-300 cursor-pointer' : ''}`}
+                                  className={`text-[10px] font-mono text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 px-1.5 py-0.2 rounded border border-slate-200 dark:border-white/5 ${entityType === 'product' ? 'hover:text-blue-600 dark:hover:text-blue-300 cursor-pointer' : ''}`}
                                   title={`Entity ID: ${entityId}`}
                                 >
                                   #{entityId.substring(Math.max(0, entityId.length - 8))}
                                 </span>
                               )}
                               {item.user && (
-                                <span className="text-[10px] text-slate-500 font-medium truncate max-w-[120px]">
+                                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium truncate max-w-[120px]">
                                   by {typeof item.user === 'object' ? (item.user.name || item.user.email || 'User') : item.user}
                                 </span>
                               )}
@@ -748,7 +748,7 @@ export default function BrokenImages() {
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-1.5 max-w-[200px] sm:max-w-xs">
                           <span
-                            className="text-xs font-mono text-slate-300 truncate select-all"
+                            className="text-xs font-mono text-slate-700 dark:text-slate-300 truncate select-all"
                             title={rawUrl}
                           >
                             {rawUrl ? rawUrl.split('/').pop() || rawUrl : '-'}
@@ -756,10 +756,10 @@ export default function BrokenImages() {
                           {rawUrl && (
                             <button
                               onClick={(e) => handleCopyUrl(rawUrl, e)}
-                              className="p-1.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer shrink-0"
+                              className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-400 dark:hover:text-white rounded-lg transition-colors cursor-pointer shrink-0 border border-slate-200/60 dark:border-transparent"
                               title="Copy URL"
                             >
-                              {copiedUrl === rawUrl ? <FiCheck className="text-emerald-400" size={12} /> : <FiCopy size={12} />}
+                              {copiedUrl === rawUrl ? <FiCheck className="text-emerald-500 dark:text-emerald-400" size={12} /> : <FiCopy size={12} />}
                             </button>
                           )}
                           {formattedUrl && (
@@ -768,7 +768,7 @@ export default function BrokenImages() {
                               target="_blank"
                               rel="noreferrer"
                               onClick={(e) => e.stopPropagation()}
-                              className="p-1.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-blue-400 rounded-lg transition-colors cursor-pointer shrink-0"
+                              className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-blue-600 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-400 dark:hover:text-blue-400 rounded-lg transition-colors cursor-pointer shrink-0 border border-slate-200/60 dark:border-transparent"
                               title="Open image in new tab"
                             >
                               <FiExternalLink size={12} />
@@ -779,27 +779,29 @@ export default function BrokenImages() {
 
                       {/* Error Diagnostic Reason */}
                       <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-1.5 text-xs text-rose-400 max-w-xs truncate" title={errorReason}>
-                          <span className="px-1.5 py-0.5 rounded bg-rose-500/10 border border-rose-500/20 text-[9px] font-bold uppercase tracking-wider shrink-0 font-mono text-rose-400">
+                        <div className="flex items-center gap-1.5 text-xs text-rose-600 dark:text-rose-400 max-w-xs truncate" title={errorReason}>
+                          <span className="px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/20 dark:text-rose-400 text-[9px] font-bold uppercase tracking-wider shrink-0 font-mono">
                             {errorReason.includes('404') ? '404' : errorReason.includes('500') ? '500' : 'ERR'}
                           </span>
-                          <span className="truncate text-slate-300 font-medium text-xs">{errorReason}</span>
+                          <span className="truncate text-slate-700 dark:text-slate-300 font-medium text-xs">{errorReason}</span>
                         </div>
                       </td>
 
                       {/* Hits Count */}
                       <td className="py-3.5 px-3 text-center">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-black font-mono ${
-                          reportCount > 3 ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'bg-white/5 text-slate-300 border border-white/10'
+                          reportCount > 3
+                            ? 'bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/30'
+                            : 'bg-slate-100 text-slate-700 border border-slate-200 dark:bg-white/5 dark:text-slate-300 dark:border-white/10'
                         }`}>
                           {reportCount}x
                         </span>
                       </td>
 
                       {/* Timestamp */}
-                      <td className="py-3.5 px-4 text-xs text-slate-400 whitespace-nowrap">
+                      <td className="py-3.5 px-4 text-xs text-slate-600 dark:text-slate-400 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
-                          <FiClock className="text-slate-500" size={12} />
+                          <FiClock className="text-slate-400 dark:text-slate-500" size={12} />
                           <span>{formatDateTimeDDMMYYYY(timestamp)}</span>
                         </div>
                       </td>
@@ -808,10 +810,10 @@ export default function BrokenImages() {
                       <td className="py-3.5 px-4">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider border ${
                           itemStatus === 'RESOLVED'
-                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'
                             : itemStatus === 'IGNORED'
-                              ? 'bg-slate-800 text-slate-400 border-white/10'
-                              : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                              ? 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-white/10'
+                              : 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20'
                         }`}>
                           {itemStatus === 'RESOLVED' && <FiCheckCircle size={11} />}
                           {itemStatus === 'IGNORED' && <FiXCircle size={11} />}
@@ -832,7 +834,7 @@ export default function BrokenImages() {
                             <button
                               onClick={(e) => handleUpdateStatus(itemId, 'RESOLVED', e)}
                               disabled={isUpdating}
-                              className="px-2.5 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/25 border border-emerald-500/25 text-emerald-400 hover:text-emerald-300 rounded-lg text-xs font-bold transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1 active:scale-95"
+                              className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/25 dark:border-emerald-500/25 dark:text-emerald-400 dark:hover:text-emerald-300 rounded-lg text-xs font-bold transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1 active:scale-95 shadow-xs"
                               title="Mark as Resolved"
                             >
                               <FiCheck size={12} />
@@ -844,7 +846,7 @@ export default function BrokenImages() {
                             <button
                               onClick={(e) => handleUpdateStatus(itemId, 'IGNORED', e)}
                               disabled={isUpdating}
-                              className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-white/10 text-slate-400 hover:text-white rounded-lg text-xs font-bold transition-all cursor-pointer disabled:opacity-50 active:scale-95"
+                              className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 border border-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-white/10 dark:text-slate-400 dark:hover:text-white rounded-lg text-xs font-bold transition-all cursor-pointer disabled:opacity-50 active:scale-95 shadow-xs"
                               title="Ignore / Mute error"
                             >
                               <span>Ignore</span>
@@ -855,7 +857,7 @@ export default function BrokenImages() {
                             <button
                               onClick={(e) => handleUpdateStatus(itemId, 'PENDING', e)}
                               disabled={isUpdating}
-                              className="px-2.5 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-400 hover:text-amber-300 rounded-lg text-xs font-bold transition-all cursor-pointer disabled:opacity-50 active:scale-95"
+                              className="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-500/10 dark:hover:bg-amber-500/20 dark:border-amber-500/20 dark:text-amber-400 dark:hover:text-amber-300 rounded-lg text-xs font-bold transition-all cursor-pointer disabled:opacity-50 active:scale-95 shadow-xs flex items-center gap-1"
                               title="Reopen incident"
                             >
                               <FiRotateCcw size={11} />
@@ -866,7 +868,7 @@ export default function BrokenImages() {
                           {matchedProduct && (
                             <button
                               onClick={() => navigate(`/products/variants/${matchedProduct._id}`)}
-                              className="p-1.5 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 hover:text-blue-300 rounded-lg transition-colors cursor-pointer"
+                              className="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:border-blue-500/20 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors cursor-pointer shadow-xs"
                               title="Edit product variants & images"
                             >
                               <FiSliders size={13} />
@@ -875,7 +877,7 @@ export default function BrokenImages() {
 
                           <button
                             onClick={() => setPreviewItem(item)}
-                            className="p-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 border border-slate-200 dark:bg-white/5 dark:hover:bg-white/10 dark:border-white/10 dark:text-slate-400 dark:hover:text-white rounded-lg transition-colors cursor-pointer shadow-xs"
                             title="Inspect details"
                           >
                             <FiEye size={13} />
@@ -915,8 +917,8 @@ export default function BrokenImages() {
                   key={itemId}
                   className={`p-4 rounded-2xl border transition-all duration-300 relative flex flex-col justify-between backdrop-blur-xl ${
                     isSelected
-                      ? 'bg-blue-600/10 border-blue-500/50 shadow-md shadow-blue-500/10'
-                      : 'bg-slate-900/60 border-white/10 hover:border-white/20'
+                      ? 'bg-blue-50/80 dark:bg-blue-600/10 border-blue-400 dark:border-blue-500/50 shadow-md shadow-blue-500/10'
+                      : 'bg-white/80 dark:bg-slate-900/60 border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 shadow-xs'
                   }`}
                 >
                   {/* Card Top */}
@@ -927,19 +929,19 @@ export default function BrokenImages() {
                           type="checkbox"
                           checked={isSelected}
                           onChange={(e) => handleToggleSelect(itemId, e)}
-                          className="rounded border-white/20 bg-slate-900 text-blue-600 focus:ring-blue-500/20 cursor-pointer accent-blue-600"
+                          className="rounded border-slate-300 dark:border-white/20 bg-white dark:bg-slate-900 text-blue-600 focus:ring-blue-500/20 cursor-pointer accent-blue-600"
                         />
                         <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider border ${
                           itemStatus === 'RESOLVED'
-                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'
                             : itemStatus === 'IGNORED'
-                              ? 'bg-slate-800 text-slate-400 border-white/10'
-                              : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                              ? 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-white/10'
+                              : 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20'
                         }`}>
                           {itemStatus}
                         </span>
                       </div>
-                      <span className="text-[10px] font-mono text-slate-500">
+                      <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400">
                         {formatDateTimeDDMMYYYY(timestamp)}
                       </span>
                     </div>
@@ -948,7 +950,7 @@ export default function BrokenImages() {
                     <div className="flex items-start gap-3">
                       <div
                         onClick={() => setPreviewItem(item)}
-                        className="w-16 h-16 rounded-xl bg-slate-950 border border-white/15 p-1 flex items-center justify-center relative overflow-hidden cursor-pointer shrink-0 shadow-inner group"
+                        className="w-16 h-16 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-white/15 p-1 flex items-center justify-center relative overflow-hidden cursor-pointer shrink-0 shadow-inner group"
                       >
                         <img
                           src={formattedUrl}
@@ -962,7 +964,7 @@ export default function BrokenImages() {
                             }
                           }}
                         />
-                        <div className="hidden absolute inset-0 bg-slate-900/90 text-rose-400 flex-col items-center justify-center text-[9px] font-bold p-1 text-center">
+                        <div className="hidden absolute inset-0 bg-rose-50/95 dark:bg-slate-900/90 text-rose-600 dark:text-rose-400 flex-col items-center justify-center text-[9px] font-bold p-1 text-center">
                           <FiAlertTriangle size={14} />
                           <span>404</span>
                         </div>
@@ -973,17 +975,17 @@ export default function BrokenImages() {
                           <>
                             <h4 
                               onClick={() => navigate(`/products/list?viewProductId=${matchedProduct._id}`)}
-                              className="text-xs font-bold text-white hover:text-blue-400 transition-colors truncate cursor-pointer flex items-center gap-1.5"
+                              className="text-xs font-bold text-slate-800 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate cursor-pointer flex items-center gap-1.5"
                             >
-                              <FiPackage className="text-blue-400 shrink-0 text-xs" />
+                              <FiPackage className="text-blue-500 dark:text-blue-400 shrink-0 text-xs" />
                               <span className="truncate">{matchedProduct.name}</span>
                             </h4>
                             <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase">
+                              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 uppercase">
                                 Catalog Match
                               </span>
                               {matchedVariant?.name && (
-                                <span className="text-[9px] font-semibold text-blue-300 bg-blue-500/10 px-1.5 py-0.2 rounded truncate max-w-[100px]">
+                                <span className="text-[9px] font-semibold text-blue-700 bg-blue-50 border border-blue-200 dark:text-blue-300 dark:bg-blue-500/10 dark:border-blue-500/20 px-1.5 py-0.2 rounded truncate max-w-[100px]">
                                   {matchedVariant.name}
                                 </span>
                               )}
@@ -991,37 +993,37 @@ export default function BrokenImages() {
                           </>
                         ) : (
                           <>
-                            <h4 className="text-xs font-bold text-white truncate">{screen}</h4>
-                            <span className="text-[9px] font-bold uppercase text-slate-400 bg-white/5 border border-white/10 px-1.5 py-0.2 rounded inline-block mt-1">
+                            <h4 className="text-xs font-bold text-slate-800 dark:text-white truncate">{screen}</h4>
+                            <span className="text-[9px] font-bold uppercase text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 px-1.5 py-0.2 rounded inline-block mt-1">
                               {entityType}
                             </span>
                           </>
                         )}
 
-                        <p className="text-[11px] font-mono text-rose-400 mt-1.5 truncate" title={errorReason}>
+                        <p className="text-[11px] font-mono text-rose-600 dark:text-rose-400 mt-1.5 truncate" title={errorReason}>
                           {errorReason}
                         </p>
                       </div>
                     </div>
 
                     {/* URL Snippet */}
-                    <div className="mt-3 p-2 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between gap-2">
-                      <span className="text-[11px] font-mono text-slate-400 truncate flex-1 select-all" title={rawUrl}>
+                    <div className="mt-3 p-2 rounded-xl bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/5 flex items-center justify-between gap-2">
+                      <span className="text-[11px] font-mono text-slate-600 dark:text-slate-400 truncate flex-1 select-all" title={rawUrl}>
                         {rawUrl || '-'}
                       </span>
                       <button
                         onClick={(e) => handleCopyUrl(rawUrl, e)}
-                        className="text-slate-500 hover:text-white p-1"
+                        className="text-slate-500 hover:text-slate-800 dark:text-slate-500 dark:hover:text-white p-1"
                         title="Copy"
                       >
-                        {copiedUrl === rawUrl ? <FiCheck className="text-emerald-400" size={12} /> : <FiCopy size={12} />}
+                        {copiedUrl === rawUrl ? <FiCheck className="text-emerald-500 dark:text-emerald-400" size={12} /> : <FiCopy size={12} />}
                       </button>
                     </div>
                   </div>
 
                   {/* Card Actions Footer */}
-                  <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-bold font-mono text-slate-400">
+                  <div className="mt-4 pt-3 border-t border-slate-200 dark:border-white/10 flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-bold font-mono text-slate-600 dark:text-slate-400">
                       {reportCount}x hits
                     </span>
 
@@ -1030,7 +1032,7 @@ export default function BrokenImages() {
                         <button
                           onClick={(e) => handleUpdateStatus(itemId, 'RESOLVED', e)}
                           disabled={isUpdating}
-                          className="px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 rounded-lg text-[11px] font-bold transition-all cursor-pointer"
+                          className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 dark:border-emerald-500/20 dark:text-emerald-400 rounded-lg text-[11px] font-bold transition-all cursor-pointer shadow-xs"
                         >
                           Resolve
                         </button>
@@ -1039,14 +1041,14 @@ export default function BrokenImages() {
                         <button
                           onClick={(e) => handleUpdateStatus(itemId, 'IGNORED', e)}
                           disabled={isUpdating}
-                          className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 border border-white/10 text-slate-400 hover:text-white rounded-lg text-[11px] font-bold transition-all cursor-pointer"
+                          className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 border border-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-white/10 dark:text-slate-400 dark:hover:text-white rounded-lg text-[11px] font-bold transition-all cursor-pointer shadow-xs"
                         >
                           Ignore
                         </button>
                       )}
                       <button
                         onClick={() => setPreviewItem(item)}
-                        className="p-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
+                        className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 border border-slate-200 dark:bg-white/5 dark:hover:bg-white/10 dark:border-white/10 dark:text-slate-400 dark:hover:text-white rounded-lg transition-colors cursor-pointer shadow-xs"
                         title="View Details"
                       >
                         <FiEye size={12} />
@@ -1061,16 +1063,16 @@ export default function BrokenImages() {
 
         {/* Pagination Footer */}
         {filteredItems.length > 0 && (
-          <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3.5 bg-white/[0.01]">
-            <div className="text-xs text-slate-400 font-medium">
-              Showing <span className="font-bold text-white font-mono">{((currentPage - 1) * itemsPerPage) + 1}</span> to <span className="font-bold text-white font-mono">{Math.min(currentPage * itemsPerPage, filteredItems.length)}</span> of <span className="font-bold text-white font-mono">{filteredItems.length}</span> reports
+          <div className="p-4 border-t border-slate-200 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3.5 bg-slate-50/50 dark:bg-white/[0.01]">
+            <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+              Showing <span className="font-bold text-slate-900 dark:text-white font-mono">{((currentPage - 1) * itemsPerPage) + 1}</span> to <span className="font-bold text-slate-900 dark:text-white font-mono">{Math.min(currentPage * itemsPerPage, filteredItems.length)}</span> of <span className="font-bold text-slate-900 dark:text-white font-mono">{filteredItems.length}</span> reports
             </div>
 
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="p-2 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
+                className="p-2 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer shadow-xs"
                 title="Previous Page"
               >
                 <FiChevronLeft size={14} />
@@ -1083,14 +1085,14 @@ export default function BrokenImages() {
                   return (
                     <React.Fragment key={page}>
                       {prev && page - prev > 1 && (
-                        <span className="px-2 text-slate-600 text-xs">...</span>
+                        <span className="px-2 text-slate-400 dark:text-slate-600 text-xs">...</span>
                       )}
                       <button
                         onClick={() => handlePageChange(page)}
                         className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                           currentPage === page
                             ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                            : 'bg-white/5 border border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'
+                            : 'bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white shadow-xs'
                         }`}
                       >
                         {page}
@@ -1102,7 +1104,7 @@ export default function BrokenImages() {
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="p-2 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
+                className="p-2 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer shadow-xs"
                 title="Next Page"
               >
                 <FiChevronRight size={14} />
@@ -1121,36 +1123,36 @@ export default function BrokenImages() {
 
         return (
           <div 
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+            className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
             onClick={() => setPreviewItem(null)}
           >
             <div 
-              className="bg-slate-900 border border-white/10 rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl p-5 sm:p-6 relative space-y-4 animate-in zoom-in-95 duration-200"
+              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl p-5 sm:p-6 relative space-y-4 animate-in zoom-in-95 duration-200 text-slate-800 dark:text-slate-100"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header */}
-              <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-4">
+              <div className="flex items-start justify-between gap-4 border-b border-slate-200 dark:border-white/10 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-400">
+                  <div className="p-2.5 rounded-2xl bg-rose-50 dark:bg-rose-500/15 border border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-400">
                     <FiAlertTriangle size={20} />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-white tracking-tight">Broken Image Diagnostics</h3>
-                    <p className="text-xs text-slate-400 mt-0.5">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Broken Image Diagnostics</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                       {modalMatchedProduct ? `Catalog: ${modalMatchedProduct.name}` : (previewItem.screenName ? `Screen: ${previewItem.screenName}` : 'Incident Details')}
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() => setPreviewItem(null)}
-                  className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer"
                 >
                   ✕
                 </button>
               </div>
 
               {/* Image Preview & Test Loader Box */}
-              <div className="w-full h-48 sm:h-56 rounded-2xl bg-slate-950 border border-white/10 flex items-center justify-center p-4 relative overflow-hidden">
+              <div className="w-full h-48 sm:h-56 rounded-2xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-white/10 flex items-center justify-center p-4 relative overflow-hidden">
                 <img
                   src={formatImageUrl(previewItem.imageUrl || previewItem.url || previewItem.image)}
                   alt="Diagnostic preview"
@@ -1163,12 +1165,12 @@ export default function BrokenImages() {
                     }
                   }}
                 />
-                <div className="hidden absolute inset-0 bg-slate-950/95 flex-col items-center justify-center gap-2 text-center p-4">
-                  <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+                <div className="hidden absolute inset-0 bg-slate-50/95 dark:bg-slate-950/95 flex-col items-center justify-center gap-2 text-center p-4">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 flex items-center justify-center text-rose-600 dark:text-rose-400">
                     <FiAlertTriangle size={22} />
                   </div>
-                  <p className="text-sm font-bold text-white">Image Failed to Render</p>
-                  <p className="text-xs text-slate-400 max-w-xs">
+                  <p className="text-sm font-bold text-slate-900 dark:text-white">Image Failed to Render</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs">
                     {previewItem.errorDetails || previewItem.reason || previewItem.errorMessage || 'HTTP request failed (404 / Network Error).'}
                   </p>
                 </div>
@@ -1177,9 +1179,9 @@ export default function BrokenImages() {
               {/* Info Fields */}
               <div className="space-y-2.5 text-xs">
                 {modalMatchedProduct && (
-                  <div className="p-3.5 bg-blue-500/10 border border-blue-500/20 rounded-2xl space-y-2">
+                  <div className="p-3.5 bg-blue-50/80 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-2xl space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-blue-300 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                      <span className="text-blue-700 dark:text-blue-300 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1.5">
                         <FiPackage size={12} />
                         Matched Catalog Product
                       </span>
@@ -1188,18 +1190,18 @@ export default function BrokenImages() {
                           setPreviewItem(null);
                           navigate(`/products/list?viewProductId=${modalMatchedProduct._id}`);
                         }}
-                        className="text-xs font-bold text-blue-400 hover:text-blue-300 underline cursor-pointer flex items-center gap-1"
+                        className="text-xs font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline cursor-pointer flex items-center gap-1"
                       >
                         <span>Open Catalog</span>
                         <FiArrowUpRight size={12} />
                       </button>
                     </div>
-                    <p className="text-white font-bold text-sm">{modalMatchedProduct.name}</p>
-                    <div className="flex items-center gap-2 text-[11px] text-slate-400 font-mono flex-wrap">
+                    <p className="text-slate-900 dark:text-white font-bold text-sm">{modalMatchedProduct.name}</p>
+                    <div className="flex items-center gap-2 text-[11px] text-slate-600 dark:text-slate-400 font-mono flex-wrap">
                       <span>ID: {modalMatchedProduct._id}</span>
-                      <CopyButton text={modalMatchedProduct._id} size={11} className="text-slate-400 hover:text-white" />
+                      <CopyButton text={modalMatchedProduct._id} size={11} className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white" />
                       {modalMatchedVariant?.name && (
-                        <span className="text-blue-300 bg-blue-500/20 px-2 py-0.5 rounded font-sans font-semibold text-[10px]">
+                        <span className="text-blue-700 bg-blue-100 dark:text-blue-300 dark:bg-blue-500/20 px-2 py-0.5 rounded font-sans font-semibold text-[10px]">
                           Variant: {modalMatchedVariant.name}
                         </span>
                       )}
@@ -1208,44 +1210,44 @@ export default function BrokenImages() {
                 )}
 
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5">
-                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Screen Name</span>
-                    <span className="text-white font-semibold text-xs mt-0.5 block">{previewItem.screenName || 'AppScreen'}</span>
+                  <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider block">Screen Name</span>
+                    <span className="text-slate-900 dark:text-white font-semibold text-xs mt-0.5 block">{previewItem.screenName || 'AppScreen'}</span>
                   </div>
 
-                  <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5">
-                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Report Count</span>
-                    <span className="text-white font-bold font-mono text-xs mt-0.5 block">{previewItem.reportCount || 1} hits logged</span>
+                  <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider block">Report Count</span>
+                    <span className="text-slate-900 dark:text-white font-bold font-mono text-xs mt-0.5 block">{previewItem.reportCount || 1} hits logged</span>
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center py-1.5 border-b border-white/5">
-                  <span className="text-slate-500 font-bold uppercase tracking-wider text-[10px]">Status</span>
+                <div className="flex justify-between items-center py-1.5 border-b border-slate-200 dark:border-white/5">
+                  <span className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px]">Status</span>
                   <span className={`font-bold uppercase text-xs ${
                     modalStatus === 'RESOLVED'
-                      ? 'text-emerald-400'
+                      ? 'text-emerald-600 dark:text-emerald-400'
                       : modalStatus === 'IGNORED'
-                        ? 'text-slate-400'
-                        : 'text-rose-400'
+                        ? 'text-slate-500 dark:text-slate-400'
+                        : 'text-rose-600 dark:text-rose-400'
                   }`}>
                     {modalStatus}
                   </span>
                 </div>
 
-                <div className="flex justify-between items-center py-1.5 border-b border-white/5">
-                  <span className="text-slate-500 font-bold uppercase tracking-wider text-[10px]">Last Incident</span>
-                  <span className="text-slate-300 font-mono text-xs">
+                <div className="flex justify-between items-center py-1.5 border-b border-slate-200 dark:border-white/5">
+                  <span className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px]">Last Incident</span>
+                  <span className="text-slate-700 dark:text-slate-300 font-mono text-xs">
                     {formatDateTimeDDMMYYYY(previewItem.lastReportedAt || previewItem.createdAt || previewItem.updatedAt)}
                   </span>
                 </div>
 
                 <div className="flex flex-col gap-1 py-1.5">
-                  <span className="text-slate-500 font-bold uppercase tracking-wider text-[10px]">Image Source URL</span>
-                  <div className="flex items-center gap-2 p-2.5 rounded-xl bg-black/40 border border-white/10 font-mono text-[11px] text-slate-300 select-all break-all">
+                  <span className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px]">Image Source URL</span>
+                  <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/10 font-mono text-[11px] text-slate-700 dark:text-slate-300 select-all break-all">
                     <span className="flex-1 truncate">{previewItem.imageUrl || previewItem.url || previewItem.image}</span>
                     <button
                       onClick={(e) => handleCopyUrl(previewItem.imageUrl || previewItem.url || previewItem.image, e)}
-                      className="p-1 text-slate-400 hover:text-white cursor-pointer"
+                      className="p-1 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white cursor-pointer"
                       title="Copy"
                     >
                       <FiCopy size={13} />
@@ -1254,7 +1256,7 @@ export default function BrokenImages() {
                       href={formatImageUrl(previewItem.imageUrl || previewItem.url || previewItem.image)}
                       target="_blank"
                       rel="noreferrer"
-                      className="p-1 text-slate-400 hover:text-blue-400 cursor-pointer"
+                      className="p-1 text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 cursor-pointer"
                       title="Open in new tab"
                     >
                       <FiExternalLink size={13} />
@@ -1264,7 +1266,7 @@ export default function BrokenImages() {
               </div>
 
               {/* Modal Actions */}
-              <div className="flex items-center justify-between gap-3 pt-3 border-t border-white/10">
+              <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-200 dark:border-white/10">
                 <div>
                   {modalMatchedProduct && (
                     <button
@@ -1272,7 +1274,7 @@ export default function BrokenImages() {
                         setPreviewItem(null);
                         navigate(`/products/variants/${modalMatchedProduct._id}`);
                       }}
-                      className="px-3 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-300 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+                      className="px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-600/20 dark:hover:bg-blue-600/30 dark:border-blue-500/30 dark:text-blue-300 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
                     >
                       <FiSliders size={13} />
                       <span>Edit Variants</span>
@@ -1283,7 +1285,7 @@ export default function BrokenImages() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={(e) => handleUpdateStatus(previewItem._id || previewItem.id, 'IGNORED', e)}
-                    className="px-3.5 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-bold rounded-xl text-xs transition-all cursor-pointer"
+                    className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 border border-slate-200 dark:bg-white/5 dark:hover:bg-white/10 dark:border-white/10 dark:text-slate-300 font-bold rounded-xl text-xs transition-all cursor-pointer shadow-xs"
                   >
                     Ignore
                   </button>

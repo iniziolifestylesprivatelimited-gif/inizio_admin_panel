@@ -100,8 +100,8 @@ const QuantityFilterDropdown = ({ qtyOp, qtyVal, onApply, onClear }) => {
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center justify-between gap-1.5 px-3 py-1 rounded-lg border cursor-pointer transition-all select-none ${
           isActive
-            ? 'bg-blue-600/20 text-blue-400 border-blue-500/40 font-extrabold shadow-sm'
-            : 'border-transparent text-slate-300 font-bold hover:text-white'
+            ? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/40 font-extrabold shadow-xs dark:shadow-sm'
+            : 'border-transparent text-slate-700 dark:text-slate-300 font-bold hover:text-slate-900 dark:hover:text-white'
         }`}
       >
         <span className="text-xs uppercase tracking-wider">
@@ -111,7 +111,7 @@ const QuantityFilterDropdown = ({ qtyOp, qtyVal, onApply, onClear }) => {
           <button
             type="button"
             onClick={handleClear}
-            className="p-0.5 hover:bg-white/10 rounded text-slate-400 hover:text-white transition-colors ml-0.5"
+            className="p-0.5 hover:bg-slate-200 dark:hover:bg-white/10 rounded text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors ml-0.5 cursor-pointer"
             title="Clear quantity filter"
           >
             <FiX size={12} />
@@ -133,15 +133,15 @@ const QuantityFilterDropdown = ({ qtyOp, qtyVal, onApply, onClear }) => {
             left: `${position.left}px`,
             zIndex: 999999
           }}
-          className="w-[270px] bg-slate-950/45 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl shadow-black p-4 animate-in fade-in slide-in-from-top-2 text-left backdrop-blur-3xl"
+          className="w-[270px] bg-white/95 dark:bg-slate-950/80 backdrop-blur-2xl border border-slate-200 dark:border-white/20 rounded-2xl shadow-2xl shadow-slate-300/50 dark:shadow-black p-4 animate-in fade-in slide-in-from-top-2 text-left"
         >
-          <div className="flex items-center justify-between border-b border-white/10 pb-2.5 mb-3">
-            <span className="text-xs font-bold text-white uppercase tracking-wider">Filter by Quantity</span>
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 pb-2.5 mb-3">
+            <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Filter by Quantity</span>
             {isActive && (
               <button
                 type="button"
                 onClick={handleClear}
-                className="text-[10px] font-bold text-rose-400 hover:text-rose-300 underline cursor-pointer"
+                className="text-[10px] font-bold text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 underline cursor-pointer"
               >
                 Reset
               </button>
@@ -150,8 +150,8 @@ const QuantityFilterDropdown = ({ qtyOp, qtyVal, onApply, onClear }) => {
 
           {/* Condition Operators */}
           <div className="space-y-1.5 mb-3">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Condition</span>
-            <div className="grid grid-cols-3 gap-1.5 p-1 bg-black/60 border border-white/10 rounded-xl">
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Condition</span>
+            <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 dark:bg-black/60 border border-slate-200 dark:border-white/10 rounded-xl">
               {[
                 { op: '>', label: 'Greater than (>)' },
                 { op: '=', label: 'Equal to (=)' },
@@ -164,7 +164,7 @@ const QuantityFilterDropdown = ({ qtyOp, qtyVal, onApply, onClear }) => {
                   className={`py-1.5 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer ${
                     localOp === op
                       ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                      : 'text-slate-400 hover:text-white hover:bg-white/5'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/5'
                   }`}
                   title={label}
                 >
@@ -177,7 +177,7 @@ const QuantityFilterDropdown = ({ qtyOp, qtyVal, onApply, onClear }) => {
           {/* Quantity Input Field */}
           <form onSubmit={handleApply} className="space-y-3">
             <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">
                 Quantity Number
               </span>
               <input
@@ -188,34 +188,34 @@ const QuantityFilterDropdown = ({ qtyOp, qtyVal, onApply, onClear }) => {
                 value={localVal}
                 onChange={(e) => setLocalVal(e.target.value)}
                 autoFocus
-                className="w-full px-3 py-2 bg-black/60 border border-white/15 rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-black/60 border border-slate-200 dark:border-white/15 rounded-xl text-xs font-mono text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:bg-white dark:focus:bg-black/80 transition-colors"
               />
             </div>
 
             {/* Quick Preset Buttons */}
-            <div className="flex items-center gap-1.5 flex-wrap pt-1 border-t border-white/10">
+            <div className="flex items-center gap-1.5 flex-wrap pt-1 border-t border-slate-200 dark:border-white/10">
               <button
                 type="button"
                 onClick={() => { setLocalOp('='); setLocalVal('0'); onApply('=', '0'); setIsOpen(false); }}
-                className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-300 dark:hover:text-white transition-colors cursor-pointer"
               >
                 = 0 (Out of stock)
               </button>
               <button
                 type="button"
                 onClick={() => { setLocalOp('>'); setLocalVal('0'); onApply('>', '0'); setIsOpen(false); }}
-                className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-300 dark:hover:text-white transition-colors cursor-pointer"
               >
                 &gt; 0 (In stock)
               </button>
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-2 pt-2 border-t border-white/10">
+            <div className="flex items-center gap-2 pt-2 border-t border-slate-200 dark:border-white/10">
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="flex-1 py-2 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-400 dark:hover:text-white text-xs font-bold rounded-xl transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -1643,26 +1643,26 @@ const ProductList = () => {
       };
 
       return (
-        <span className="text-slate-400 font-bold text-xs tracking-wide flex flex-col items-center gap-1.5 py-1">
+        <span className="font-bold text-xs tracking-wide flex flex-col items-center gap-1.5 py-1">
           {product.variants.map((v, i) => {
             const qty = Number(v.quantity) || 0;
             const isMatch = hasQtyFilter && checkMatches(qty);
             let colorClass = '';
             if (qty <= 0) {
-              colorClass = 'text-rose-400';
+              colorClass = 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20';
             } else if (qty <= 10) {
-              colorClass = 'text-amber-400';
+              colorClass = 'bg-amber-50 text-amber-800 border-amber-300/80 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20';
             } else {
-              colorClass = 'text-emerald-400';
+              colorClass = 'bg-emerald-50 text-emerald-800 border-emerald-300/80 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20';
             }
             const variantLabel = v.name ? `${v.name}: ` : '';
             return (
               <span
                 key={v._id || i}
-                className={`inline-flex items-center px-2 py-0.5 rounded border transition-all ${
+                className={`inline-flex items-center px-2 py-0.5 rounded-md border font-semibold transition-all ${
                   isMatch
-                    ? 'bg-blue-500/25 border-blue-400 text-blue-300 font-black shadow-sm ring-1 ring-blue-400/40'
-                    : `bg-white/5 border-white/5 ${colorClass}`
+                    ? 'bg-blue-100 border-blue-300 text-blue-800 dark:bg-blue-500/25 dark:border-blue-400 dark:text-blue-300 font-black shadow-sm ring-1 ring-blue-400/40'
+                    : colorClass
                 }`}
               >
                 {variantLabel}{qty}
@@ -1678,19 +1678,19 @@ const ProductList = () => {
       : null;
 
     if (qty === null) {
-      return <span className="text-slate-500 font-bold">-</span>;
+      return <span className="text-slate-400 dark:text-slate-500 font-bold">-</span>;
     }
 
     let colorClass = '';
     if (qty <= 0) {
-      colorClass = 'bg-rose-500/10 text-rose-400 border border-rose-500/20';
+      colorClass = 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20';
     } else if (qty <= 10) {
-      colorClass = 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+      colorClass = 'bg-amber-50 text-amber-800 border-amber-300/80 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20';
     } else {
-      colorClass = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+      colorClass = 'bg-emerald-50 text-emerald-800 border-emerald-300/80 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20';
     }
     return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${colorClass}`}>
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${colorClass}`}>
         {qty}
       </span>
     );
@@ -1737,18 +1737,18 @@ const ProductList = () => {
       const totalQty = product.variants.reduce((sum, v) => sum + (Number(v.quantity) || 0), 0);
       let colorClass = '';
       if (totalQty <= 0) {
-        colorClass = 'bg-rose-500/10 text-rose-400 border border-rose-500/20';
+        colorClass = 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20';
       } else if (totalQty <= 10) {
-        colorClass = 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+        colorClass = 'bg-amber-50 text-amber-800 border-amber-300/80 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20';
       } else {
-        colorClass = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+        colorClass = 'bg-emerald-50 text-emerald-800 border-emerald-300/80 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20';
       }
 
       const tooltipText = product.variants.map(v => `${v.name || 'Variant'}: ${v.quantity ?? 0}`).join('\n');
 
       return (
         <span
-          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${colorClass}`}
+          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold border ${colorClass}`}
           title={tooltipText}
         >
           {totalQty}
@@ -1761,19 +1761,19 @@ const ProductList = () => {
       : (product.quantity !== undefined ? Number(product.quantity) : null);
 
     if (qty === null) {
-      return <span className="text-slate-500 font-bold">-</span>;
+      return <span className="text-slate-400 dark:text-slate-500 font-bold">-</span>;
     }
 
     let colorClass = '';
     if (qty <= 0) {
-      colorClass = 'bg-rose-500/10 text-rose-400 border border-rose-500/20';
+      colorClass = 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20';
     } else if (qty <= 10) {
-      colorClass = 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+      colorClass = 'bg-amber-50 text-amber-800 border-amber-300/80 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20';
     } else {
-      colorClass = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+      colorClass = 'bg-emerald-50 text-emerald-800 border-emerald-300/80 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20';
     }
     return (
-      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${colorClass}`}>
+      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold border ${colorClass}`}>
         {qty}
       </span>
     );
@@ -1974,8 +1974,10 @@ const ProductList = () => {
       <div className="flex flex-col gap-4 mb-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight flex items-center gap-3"><FiPackage className='text-blue-400' />Product List</h1>
-            <p className="text-slate-400 font-medium mt-1">View and manage all products in your catalog.</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+              <FiPackage className='text-blue-600 dark:text-blue-400' />Product List
+            </h1>
+            <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">View and manage all products in your catalog.</p>
           </div>
           <div className="relative w-full sm:w-72">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 z-10" />
@@ -1984,13 +1986,13 @@ const ProductList = () => {
               placeholder="Search products..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full pl-10 pr-10 py-2.5 bg-black/20 border border-white/10 text-white placeholder-slate-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md transition-all text-sm font-medium"
+              className="w-full pl-10 pr-10 py-2.5 bg-white dark:bg-black/20 border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-black/40 shadow-xs dark:shadow-inner backdrop-blur-md transition-all text-sm font-medium"
             />
             {searchInput && (
               <button
                 type="button"
                 onClick={() => setSearchInput('')}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer"
               >
                 <FiX className="w-4 h-4" />
               </button>
@@ -2000,21 +2002,21 @@ const ProductList = () => {
       </div>
 
       {/* Action & Metrics Row */}
-      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 w-full border-t border-white/5 pt-4 mt-2">
+      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 w-full border-t border-slate-200/80 dark:border-white/5 pt-4 mt-2">
         {/* Left part: Total products info */}
-        <div className="flex flex-wrap gap-2 text-xs font-semibold text-slate-400 order-2 xl:order-1 w-full xl:w-auto">
-          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
-            Total Products: <strong className="text-white">{metricsSummary.totalProducts}</strong>
+        <div className="flex flex-wrap gap-2 text-xs font-semibold text-slate-600 dark:text-slate-400 order-2 xl:order-1 w-full xl:w-auto">
+          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-white/5 border border-slate-200/80 dark:border-white/10 rounded-full shadow-xs dark:shadow-none">
+            Total Products: <strong className="text-slate-900 dark:text-white">{metricsSummary.totalProducts}</strong>
           </span>
-          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
-            Products with Variants: <strong className="text-white">{metricsSummary.productsWithVariants}</strong>
+          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-white/5 border border-slate-200/80 dark:border-white/10 rounded-full shadow-xs dark:shadow-none">
+            Products with Variants: <strong className="text-slate-900 dark:text-white">{metricsSummary.productsWithVariants}</strong>
           </span>
-          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
-            Total Items (incl. Variants): <strong className="text-white">{metricsSummary.totalItems}</strong>
+          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-white/5 border border-slate-200/80 dark:border-white/10 rounded-full shadow-xs dark:shadow-none">
+            Total Items (incl. Variants): <strong className="text-slate-900 dark:text-white">{metricsSummary.totalItems}</strong>
           </span>
           {(searchTerm || selectedBrand || selectedCategory || selectedStockStatus || qtyVal) && (
-            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full">
-              Found: <strong className="text-white">{filteredProducts.length}</strong> (incl. Variants: <strong className="text-white">{filteredItemsCount}</strong>)
+            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 rounded-full">
+              Found: <strong className="text-slate-900 dark:text-white">{filteredProducts.length}</strong> (incl. Variants: <strong className="text-slate-900 dark:text-white">{filteredItemsCount}</strong>)
             </span>
           )}
         </div>
@@ -2033,7 +2035,7 @@ const ProductList = () => {
                     setIsDeleteMode(false);
                   }
                 }}
-                className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-[14px] md:text-[13px] text-white font-bold rounded-xl transition-all shadow-lg shadow-rose-500/10 cursor-pointer text-sm"
+                className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-[14px] md:text-[13px] text-white font-bold rounded-xl transition-all shadow-lg shadow-rose-500/20 cursor-pointer text-sm"
               >
                 <FiTrash2 className="mr-2" />
                 Confirm Delete ({selectedProducts.length})
@@ -2043,7 +2045,7 @@ const ProductList = () => {
                   setIsDeleteMode(false);
                   setSelectedProducts([]);
                 }}
-                className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl transition-all border border-white/10 cursor-pointer text-sm shadow-md"
+                className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 font-bold rounded-xl transition-all border border-slate-200 dark:border-white/10 cursor-pointer text-sm shadow-xs dark:shadow-md"
               >
                 <FiX className="mr-2" />
                 Cancel
@@ -2084,7 +2086,7 @@ const ProductList = () => {
                       setSelectedProducts([]);
                     }
                   }}
-                  statusColor="bg-slate-800 text-slate-300 border-white/10 hover:bg-slate-700 hover:text-white"
+                  statusColor="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white shadow-xs dark:shadow-none"
                 />
                 <input
                   type="file"
@@ -2097,14 +2099,14 @@ const ProductList = () => {
 
               <button
                 onClick={handleExportCustomDetails}
-                className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-emerald-600/50 text-[14px] md:text-[13px] text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/5 cursor-pointer"
+                className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-[14px] md:text-[13px] text-white font-bold rounded-xl transition-all shadow-md shadow-emerald-500/20 cursor-pointer"
                 title="Export Product Details with Variants"
               >
                 <FiDownload className="mr-2" />
                 Export Details
               </button>
 
-              <button onClick={openAddModal} className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-blue-600/50 text-[14px] md:text-[13px] text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/5 cursor-pointer">
+              <button onClick={openAddModal} className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-[14px] md:text-[13px] text-white font-bold rounded-xl transition-all shadow-md shadow-blue-500/20 cursor-pointer">
                 <FiPlus className="mr-2" />
                 Add Product
               </button>
@@ -2114,13 +2116,13 @@ const ProductList = () => {
       </div>
 
       {/* Catalog Tabs & View Switcher */}
-      <div className="flex border-b border-white/10 justify-between items-center mb-4 flex-wrap gap-4">
+      <div className="flex border-b border-slate-200/80 dark:border-white/10 justify-between items-center mb-4 flex-wrap gap-4">
         <div className="flex gap-6">
           <button
             onClick={() => { setCatalogTab('active'); setSearchParams(prev => { prev.set('page', '1'); return prev; }); }}
             className={`pb-3 font-bold text-sm transition-all cursor-pointer ${catalogTab === 'active'
-                ? 'text-blue-400 border-b-2 border-blue-400 font-extrabold'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 font-extrabold'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
           >
             Active Catalog ({metricsSummary.activeCount})
@@ -2128,8 +2130,8 @@ const ProductList = () => {
           <button
             onClick={() => { setCatalogTab('deactivated'); setSearchParams(prev => { prev.set('page', '1'); return prev; }); }}
             className={`pb-3 font-bold text-sm transition-all cursor-pointer ${catalogTab === 'deactivated'
-                ? 'text-rose-400 border-b-2 border-rose-400 font-extrabold'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'text-rose-600 dark:text-rose-400 border-b-2 border-rose-600 dark:border-rose-400 font-extrabold'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
           >
             Deactivated Items ({metricsSummary.deactivatedCount})
@@ -2138,14 +2140,14 @@ const ProductList = () => {
 
         {/* View Mode Switcher */}
         <div className="flex items-center pb-2">
-          <div className="flex items-center bg-black/40 p-1 rounded-xl border border-white/10 shadow-inner backdrop-blur-md">
+          <div className="flex items-center bg-slate-100/80 dark:bg-black/40 p-1 rounded-xl border border-slate-200/80 dark:border-white/10 shadow-xs dark:shadow-inner backdrop-blur-md">
             <button
               type="button"
               onClick={() => handleViewModeChange('grid')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 viewMode === 'grid'
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-white/5'
               }`}
               title="App-style Grid View"
             >
@@ -2158,7 +2160,7 @@ const ProductList = () => {
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 viewMode === 'table'
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-white/5'
               }`}
               title="Table View"
             >
@@ -2186,17 +2188,17 @@ const ProductList = () => {
       )}
 
       {/* Products Display Section */}
-      <div key={`product-view-wrapper-${viewMode}`} className="border border-white/10 shadow-2xl shadow-black/50 rounded-2xl md:rounded-3xl overflow-hidden flex flex-col h-full animate-in fade-in duration-200">
+      <div key={`product-view-wrapper-${viewMode}`} className="border border-slate-200/80 dark:border-white/10 bg-transparent shadow-xl dark:shadow-2xl shadow-slate-200/50 dark:shadow-black/50 rounded-2xl md:rounded-3xl overflow-hidden flex flex-col h-full animate-in fade-in duration-200">
         {viewMode === 'table' ? (
           <div className="overflow-auto custom-scrollbar max-h-[70vh]">
             <table className="w-full text-left border-collapse whitespace-nowrap">
-            <thead className="sticky top-0 z-20 bg-white/[0.03] backdrop-blur-md border-b border-white/10 text-slate-300 text-sm shadow-md">
+            <thead className="sticky top-0 z-20 bg-white/80 dark:bg-white/[0.03] backdrop-blur-md border-b border-slate-200/80 dark:border-white/10 text-slate-600 dark:text-slate-300 text-sm shadow-xs dark:shadow-md">
               <tr className="align-middle">
                 {isDeleteMode && (
                   <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs w-10 text-center animate-in fade-in slide-in-from-left-2 duration-200">
                     <input
                       type="checkbox"
-                      className="w-4 h-4 rounded border-slate-500 bg-slate-800 text-blue-500 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-slate-900 transition-all cursor-pointer accent-blue-500 scheme-dark"
+                      className="w-4 h-4 rounded border-slate-300 dark:border-slate-500 bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-500 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900 transition-all cursor-pointer accent-blue-600"
                       checked={currentProducts.length > 0 && currentProducts.every(p => selectedProducts.includes(p._id))}
                       onChange={handleSelectAll}
                     />
@@ -2212,7 +2214,7 @@ const ProductList = () => {
                       ...brands.map(b => ({ value: b._id, label: b.name }))
                     ]}
                     defaultLabel="Brand"
-                    statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedBrand ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'}`}
+                    statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-slate-900 dark:hover:text-white ${selectedBrand ? 'text-blue-600 dark:text-blue-400 font-extrabold' : 'text-slate-700 dark:text-slate-300 font-bold'}`}
                   />
                 </th>
                 <th className="px-4 py-3 font-medium uppercase tracking-wider text-xs min-w-auto">
@@ -2224,45 +2226,45 @@ const ProductList = () => {
                       ...categories.map(c => ({ value: c._id, label: c.name }))
                     ]}
                     defaultLabel="Category"
-                    statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-white ${selectedCategory ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'}`}
+                    statusColor={`!border-transparent !px-0 !py-1 text-xs select-none hover:text-slate-900 dark:hover:text-white ${selectedCategory ? 'text-blue-600 dark:text-blue-400 font-extrabold' : 'text-slate-700 dark:text-slate-300 font-bold'}`}
                   />
                 </th>
                 <th
                   onClick={() => handleSortChange('name')}
-                  className="px-4 py-2 mt-2 flex items-end justify-center font-medium uppercase tracking-wider text-xs cursor-pointer select-none hover:text-white transition-colors"
+                  className="px-4 py-2 mt-2 flex items-end justify-center font-medium uppercase tracking-wider text-xs cursor-pointer select-none hover:text-slate-900 dark:hover:text-white transition-colors"
                 >
                   <div className="flex items-center gap-1">
-                    <span className={sortKey === 'name' ? 'text-blue-400 font-extrabold' : ''}>Product Name</span>
+                    <span className={sortKey === 'name' ? 'text-blue-600 dark:text-blue-400 font-extrabold' : ''}>Product Name</span>
                     {sortKey === 'name' ? (
-                      sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                      sortOrder === 'asc' ? <span className="text-blue-600 dark:text-blue-400">▲</span> : <span className="text-blue-600 dark:text-blue-400">▼</span>
                     ) : (
-                      <span className="text-slate-500">⇅</span>
+                      <span className="text-slate-400 dark:text-slate-500">⇅</span>
                     )}
                   </div>
                 </th>
                 <th
                   onClick={() => handleSortChange('basePrice')}
-                  className="px-4 py-3 font-medium uppercase tracking-wider text-xs cursor-pointer select-none hover:text-white transition-colors"
+                  className="px-4 py-3 font-medium uppercase tracking-wider text-xs cursor-pointer select-none hover:text-slate-900 dark:hover:text-white transition-colors"
                 >
                   <div className="flex items-center gap-1">
-                    <span className={sortKey === 'basePrice' ? 'text-blue-400 font-extrabold' : ''}>Base Price</span>
+                    <span className={sortKey === 'basePrice' ? 'text-blue-600 dark:text-blue-400 font-extrabold' : ''}>Base Price</span>
                     {sortKey === 'basePrice' ? (
-                      sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                      sortOrder === 'asc' ? <span className="text-blue-600 dark:text-blue-400">▲</span> : <span className="text-blue-600 dark:text-blue-400">▼</span>
                     ) : (
-                      <span className="text-slate-500">⇅</span>
+                      <span className="text-slate-400 dark:text-slate-500">⇅</span>
                     )}
                   </div>
                 </th>
                 <th
                   onClick={() => handleSortChange('offerPrice')}
-                  className="px-4 py-3 font-medium uppercase tracking-wider text-xs cursor-pointer select-none hover:text-white transition-colors"
+                  className="px-4 py-3 font-medium uppercase tracking-wider text-xs cursor-pointer select-none hover:text-slate-900 dark:hover:text-white transition-colors"
                 >
                   <div className="flex items-center gap-1">
-                    <span className={sortKey === 'offerPrice' ? 'text-blue-400 font-extrabold' : ''}>Offer Price</span>
+                    <span className={sortKey === 'offerPrice' ? 'text-blue-600 dark:text-blue-400 font-extrabold' : ''}>Offer Price</span>
                     {sortKey === 'offerPrice' ? (
-                      sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                      sortOrder === 'asc' ? <span className="text-blue-600 dark:text-blue-400">▲</span> : <span className="text-blue-600 dark:text-blue-400">▼</span>
                     ) : (
-                      <span className="text-slate-500">⇅</span>
+                      <span className="text-slate-400 dark:text-slate-500">⇅</span>
                     )}
                   </div>
                 </th>
@@ -2276,14 +2278,14 @@ const ProductList = () => {
                 </th>
                 <th
                   onClick={() => handleSortChange('variants')}
-                  className="px-4 py-3 font-medium uppercase tracking-wider text-xs cursor-pointer select-none hover:text-white transition-colors text-center"
+                  className="px-4 py-3 font-medium uppercase tracking-wider text-xs cursor-pointer select-none hover:text-slate-900 dark:hover:text-white transition-colors text-center"
                 >
                   <div className="flex items-center justify-center gap-1">
-                    <span className={sortKey === 'variants' ? 'text-blue-400 font-extrabold' : ''}>Variants</span>
+                    <span className={sortKey === 'variants' ? 'text-blue-600 dark:text-blue-400 font-extrabold' : ''}>Variants</span>
                     {sortKey === 'variants' ? (
-                      sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                      sortOrder === 'asc' ? <span className="text-blue-600 dark:text-blue-400">▲</span> : <span className="text-blue-600 dark:text-blue-400">▼</span>
                     ) : (
-                      <span className="text-slate-500">⇅</span>
+                      <span className="text-slate-400 dark:text-slate-500">⇅</span>
                     )}
                   </div>
                 </th>
@@ -2294,7 +2296,7 @@ const ProductList = () => {
                     {(selectedBrand || selectedCategory || selectedStockStatus || qtyVal || sortKey) && (
                       <button
                         onClick={handleClearFilters}
-                        className="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold rounded border border-white/10 transition-all cursor-pointer hover:text-white ml-2"
+                        className="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 dark:hover:text-white text-[10px] font-bold rounded border border-slate-200 dark:border-white/10 transition-all cursor-pointer ml-2 shadow-xs dark:shadow-none"
                         title="Clear All Filters"
                       >
                         Reset
@@ -2304,11 +2306,11 @@ const ProductList = () => {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/10">
+            <tbody className="divide-y divide-slate-200/60 dark:divide-white/10">
               {loading ? (
                 <tr>
-                  <td colSpan={isDeleteMode ? 11 : 10} className="px-6 py-12 text-center text-slate-400 font-medium">
-                    <FiLoader className="animate-spin text-3xl mx-auto mb-3 text-blue-400" />
+                  <td colSpan={isDeleteMode ? 11 : 10} className="px-6 py-12 text-center text-slate-500 dark:text-slate-400 font-medium">
+                    <FiLoader className="animate-spin text-3xl mx-auto mb-3 text-blue-600 dark:text-blue-400" />
                     Loading products...
                   </td>
                 </tr>
@@ -2318,23 +2320,23 @@ const ProductList = () => {
                     <tr
                       key={product._id || index}
                       onClick={() => openDetailsView(product)}
-                      className="hover:bg-white/[0.02] cursor-pointer transition-colors group"
+                      className="hover:bg-slate-100/50 dark:hover:bg-white/[0.02] cursor-pointer transition-colors group"
                     >
                       {isDeleteMode && (
                         <td className="px-4 py-3 text-center animate-in fade-in slide-in-from-left-2 duration-200">
                           <input
                             type="checkbox"
-                            className="w-4 h-4 rounded border-slate-500 bg-slate-800 text-blue-500 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-slate-900 transition-all cursor-pointer accent-blue-500 scheme-dark"
+                            className="w-4 h-4 rounded border-slate-300 dark:border-slate-500 bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-500 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900 transition-all cursor-pointer accent-blue-600"
                             checked={selectedProducts.includes(product._id)}
                             onChange={() => handleSelectProduct(product._id)}
                             onClick={(e) => e.stopPropagation()}
                           />
                         </td>
                       )}
-                      <td className="px-4 py-3 text-sm font-medium text-slate-400">{indexOfFirstItem + index + 1}</td>
-                      <td className="px-4 py-3 text-sm text-slate-300 font-medium">{getBrandName(product.brand)}</td>
-                      <td className="px-4 py-3 text-sm text-slate-300 font-medium">{getCategoryName(product.category)}</td>
-                      <td className="px-4 py-3 text-sm text-white font-bold">
+                      <td className="px-4 py-3 text-sm font-medium text-slate-500 dark:text-slate-400">{indexOfFirstItem + index + 1}</td>
+                      <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300 font-medium">{getBrandName(product.brand)}</td>
+                      <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300 font-medium">{getCategoryName(product.category)}</td>
+                      <td className="px-4 py-3 text-sm text-slate-900 dark:text-white font-bold">
                         <div className="flex items-center gap-3">
                           {(() => {
                             let variantImages = [];
@@ -2372,7 +2374,7 @@ const ProductList = () => {
                             return thumb ? (
                               <div
                                 onClick={(e) => { e.stopPropagation(); openImageView(product); }}
-                                className="w-12 h-12 bg-white rounded-lg overflow-hidden border border-white/10 cursor-pointer hover:border-blue-500 transition-colors relative group/img shrink-0 animate-in fade-in zoom-in-95 duration-200"
+                                className="w-12 h-12 bg-white rounded-lg overflow-hidden border border-slate-200 dark:border-white/10 cursor-pointer hover:border-blue-500 transition-colors relative group/img shrink-0 animate-in fade-in zoom-in-95 duration-200"
                                 title="Click to view images"
                               >
                                 <ProgressiveImage
@@ -2389,7 +2391,7 @@ const ProductList = () => {
                             ) : (
                               <div
                                 onClick={(e) => { e.stopPropagation(); openImageView(product); }}
-                                className="w-12 h-12 bg-slate-800 text-slate-500 hover:bg-slate-700 hover:text-white rounded-lg border border-white/10 flex flex-col items-center justify-center transition-colors cursor-pointer shrink-0"
+                                className="w-12 h-12 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-white rounded-lg border border-slate-200 dark:border-white/10 flex flex-col items-center justify-center transition-colors cursor-pointer shrink-0"
                                 title="No Images"
                               >
                                 <FiImage className="text-lg" />
@@ -2397,16 +2399,16 @@ const ProductList = () => {
                             );
                           })()}
                           <div>
-                            <div>{product.name || '-'}</div>
+                            <div className="text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{product.name || '-'}</div>
                             <div className="flex items-center gap-1 mt-0.5">
-                              <span className="text-xs text-slate-600 font-bold font-mono">{product._id}</span>
+                              <span className="text-xs text-slate-500 dark:text-slate-500 font-bold font-mono">{product._id}</span>
                               <CopyButton text={product._id} />
                             </div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-400 font-bold">{product.basePrice ?? '-'}</td>
-                      <td className="px-4 py-3 text-sm text-emerald-400 font-bold">
+                      <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-400 font-bold">{product.basePrice ?? '-'}</td>
+                      <td className="px-4 py-3 text-sm text-emerald-700 dark:text-emerald-400 font-bold">
                         <div className="flex items-end gap-1.5 flex-wrap">
                           <span>{product.offerPrice ?? '-'}</span>
                           {(() => {
@@ -2415,7 +2417,7 @@ const ProductList = () => {
                             if (base > 0 && offer > 0 && base > offer) {
                               const off = Math.round(((base - offer) / base) * 100);
                               return (
-                                <span className="text-[8px] font-extrabold px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 whitespace-nowrap">
+                                <span className="text-[8px] font-extrabold px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20 whitespace-nowrap">
                                   {off}% off
                                 </span>
                               );
@@ -2425,11 +2427,11 @@ const ProductList = () => {
                         </div>
                         <div className="flex flex-wrap gap-1 mt-1">
                           {product.isActive === false ? (
-                            <span className="inline-block text-[9px] font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-1.5 py-0.5 rounded">
+                            <span className="inline-block text-[9px] font-bold text-rose-700 dark:text-rose-400 bg-rose-50 border border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/20 px-1.5 py-0.5 rounded">
                               Deactivated Product
                             </span>
                           ) : product.variants && product.variants.some(v => v.isActive === false) ? (
-                            <span className="inline-block text-[9px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded">
+                            <span className="inline-block text-[9px] font-bold text-amber-800 dark:text-amber-400 bg-amber-50 border border-amber-300/80 dark:bg-amber-500/10 dark:border-amber-500/20 px-1.5 py-0.5 rounded">
                               {product.variants.filter(v => v.isActive === false).length} Variant(s) Inactive
                             </span>
                           ) : null}
@@ -2439,35 +2441,35 @@ const ProductList = () => {
                             if (validSlabs.length === 0) return null;
                             return (
                               <span
-                                className="inline-flex items-center gap-1 text-[9px] font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.5 rounded"
+                                className="inline-flex items-center gap-1 text-[9px] font-bold text-blue-700 dark:text-blue-400 bg-blue-50 border border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20 px-1.5 py-0.5 rounded"
                                 title={validSlabs.map(qp => `Qty: ${qp.minQty}+ → ₹${qp.price}`).join('\n')}
                               >
-                                <span className="w-1 h-1 rounded-full bg-blue-400 animate-pulse"></span>
+                                <span className="w-1 h-1 rounded-full bg-blue-500 dark:bg-blue-400 animate-pulse"></span>
                                 {validSlabs.length} Qty Slab{validSlabs.length > 1 ? 's' : ''}
                               </span>
                             );
                           })()}
 
                           {product.variants && product.variants.some(v => (v.quantityPricing || []).some(qp => Number(qp.minQty) > 0 && Number(qp.price) > 0)) && (
-                            <span className="inline-flex items-center gap-1 text-[9px] font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.5 rounded">
-                              <span className="w-1 h-1 rounded-full bg-indigo-400 animate-pulse"></span>
+                            <span className="inline-flex items-center gap-1 text-[9px] font-bold text-indigo-700 dark:text-indigo-400 bg-indigo-50 border border-indigo-200 dark:bg-indigo-500/10 dark:border-indigo-500/20 px-1.5 py-0.5 rounded">
+                              <span className="w-1 h-1 rounded-full bg-indigo-500 dark:bg-indigo-400 animate-pulse"></span>
                               Variant Slabs
                             </span>
                           )}
                         </div>
                       </td>
                       <td className="px-4 py-3 text-center">{getQuantityBadge(product)}</td>
-                      <td className="px-4 py-3 text-sm text-slate-400 text-center">{product.variants ? product.variants.length > 1 ? `${product.variants.length}` : `0` : '-'}</td>
-                      <td className="px-4 py-3 text-[11px] text-slate-400 font-medium leading-relaxed">
+                      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 text-center">{product.variants ? product.variants.length > 1 ? `${product.variants.length}` : `0` : '-'}</td>
+                      <td className="px-4 py-3 text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
                         <div className="flex flex-col gap-0.5">
-                          <div><span className="text-[9px] text-slate-500 font-bold uppercase mr-1">Created:</span>{formatDateTimeDDMMYYYY(product.createdAt)}</div>
-                          <div><span className="text-[9px] text-slate-500 font-bold uppercase mr-1">Updated:</span>{formatDateTimeDDMMYYYY(product.updatedAt)}</div>
+                          <div><span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase mr-1">Created:</span>{formatDateTimeDDMMYYYY(product.createdAt)}</div>
+                          <div><span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase mr-1">Updated:</span>{formatDateTimeDDMMYYYY(product.updatedAt)}</div>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-center space-x-2">
                         <button
                           onClick={(e) => { e.stopPropagation(); setProductToDelete(product); setDeleteConfirmOpen(true); }}
-                          className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-900/30 rounded-lg transition-colors cursor-pointer"
+                          className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-red-400 hover:bg-rose-50 dark:hover:bg-red-900/30 rounded-lg transition-colors cursor-pointer"
                           title="Delete Product"
                         >
                           <FiTrash2 />
@@ -2478,7 +2480,7 @@ const ProductList = () => {
                 })
               ) : (
                 <tr>
-                  <td colSpan={isDeleteMode ? 11 : 10} className="px-6 py-12 text-center text-slate-400 font-medium">
+                  <td colSpan={isDeleteMode ? 11 : 10} className="px-6 py-12 text-center text-slate-500 dark:text-slate-400 font-medium">
                     {searchTerm ? 'No products matching your search.' : 'No products found. Add your first product.'}
                   </td>
                 </tr>
@@ -2489,7 +2491,7 @@ const ProductList = () => {
       ) : (
         <div className="flex flex-col h-full">
           {/* Grid View Filter Bar */}
-          <div className="p-3 sm:p-4 bg-white/[0.02] border-b border-white/10 flex flex-wrap items-center justify-between gap-3">
+          <div className="p-3 sm:p-4 bg-white/40 dark:bg-white/[0.02] border-b border-slate-200/80 dark:border-white/10 flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2.5">
               {/* Brand Filter */}
               <div className="w-36 sm:w-44">
@@ -2501,8 +2503,8 @@ const ProductList = () => {
                     ...brands.map(b => ({ value: b._id, label: b.name }))
                   ]}
                   defaultLabel="Brand"
-                  statusColor={`bg-slate-900/90 border-white/10 text-xs font-semibold py-2 px-3 rounded-xl hover:bg-slate-800 transition-colors ${
-                    selectedBrand ? 'text-blue-400 font-extrabold border-blue-500/40' : 'text-slate-300'
+                  statusColor={`bg-white dark:bg-slate-900/90 border-slate-200/80 dark:border-white/10 text-xs font-semibold py-2 px-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-xs dark:shadow-none ${
+                    selectedBrand ? 'text-blue-600 dark:text-blue-400 font-extrabold border-blue-500/40' : 'text-slate-700 dark:text-slate-300'
                   }`}
                 />
               </div>
@@ -2517,8 +2519,8 @@ const ProductList = () => {
                     ...categories.map(c => ({ value: c._id, label: c.name }))
                   ]}
                   defaultLabel="Category"
-                  statusColor={`bg-slate-900/90 border-white/10 text-xs font-semibold py-2 px-3 rounded-xl hover:bg-slate-800 transition-colors ${
-                    selectedCategory ? 'text-blue-400 font-extrabold border-blue-500/40' : 'text-slate-300'
+                  statusColor={`bg-white dark:bg-slate-900/90 border-slate-200/80 dark:border-white/10 text-xs font-semibold py-2 px-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-xs dark:shadow-none ${
+                    selectedCategory ? 'text-blue-600 dark:text-blue-400 font-extrabold border-blue-500/40' : 'text-slate-700 dark:text-slate-300'
                   }`}
                 />
               </div>
@@ -2567,8 +2569,8 @@ const ProductList = () => {
                     { value: 'variants_asc', label: 'Variants: Fewest First' }
                   ]}
                   defaultLabel="Sort: Default"
-                  statusColor={`bg-slate-900/90 border-white/10 text-xs font-semibold py-2 px-3 rounded-xl hover:bg-slate-800 transition-colors ${
-                    sortKey ? 'text-blue-400 font-extrabold border-blue-500/40' : 'text-slate-300'
+                  statusColor={`bg-white dark:bg-slate-900/90 border-slate-200/80 dark:border-white/10 text-xs font-semibold py-2 px-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-xs dark:shadow-none ${
+                    sortKey ? 'text-blue-600 dark:text-blue-400 font-extrabold border-blue-500/40' : 'text-slate-700 dark:text-slate-300'
                   }`}
                 />
               </div>
@@ -2578,7 +2580,7 @@ const ProductList = () => {
                 <button
                   type="button"
                   onClick={handleClearFilters}
-                  className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-rose-400 hover:text-rose-300 text-xs font-bold rounded-xl border border-rose-500/20 transition-all cursor-pointer flex items-center gap-1.5 shrink-0 shadow-sm"
+                  className="px-3 py-2 bg-white hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 text-xs font-bold rounded-xl border border-rose-200 dark:border-rose-500/20 transition-all cursor-pointer flex items-center gap-1.5 shrink-0 shadow-xs dark:shadow-sm"
                   title="Clear All Filters"
                 >
                   <FiX size={13} />
@@ -2592,7 +2594,7 @@ const ProductList = () => {
               <button
                 type="button"
                 onClick={handleSelectAll}
-                className="px-3 py-2 bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white text-xs font-bold rounded-xl border border-blue-500/30 transition-all cursor-pointer"
+                className="px-3 py-2 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white dark:bg-blue-600/20 dark:hover:bg-blue-600 dark:text-blue-300 dark:hover:text-white text-xs font-bold rounded-xl border border-blue-200 dark:border-blue-500/30 transition-all cursor-pointer"
               >
                 {currentProducts.length > 0 && currentProducts.every(p => selectedProducts.includes(p._id))
                   ? 'Deselect Page'
@@ -2601,14 +2603,14 @@ const ProductList = () => {
             )}
           </div>
 
-          <div className="overflow-y-auto custom-scrollbar max-h-auto p-4 sm:p-5 md:p-6">
+          <div className="overflow-y-auto custom-scrollbar max-h-auto p-2.5 sm:p-5 md:p-6">
           {loading ? (
-            <div className="py-24 text-center text-slate-400 font-medium">
-              <FiLoader className="animate-spin text-3xl mx-auto mb-3 text-blue-400" />
+            <div className="py-24 text-center text-slate-500 dark:text-slate-400 font-medium">
+              <FiLoader className="animate-spin text-3xl mx-auto mb-3 text-blue-600 dark:text-blue-400" />
               Loading products...
             </div>
           ) : currentProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-4 md:gap-5">
               {currentProducts.map((product, index) => {
                 const { thumb, totalImgs } = getProductImageInfo(product);
                 const base = Number(product.basePrice);
@@ -2623,21 +2625,21 @@ const ProductList = () => {
                   <div
                     key={product._id || index}
                     onClick={() => openDetailsView(product)}
-                    className={`group relative flex flex-col bg-slate-900/60 hover:bg-slate-800/80 border rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer transform hover:-translate-y-1 ${
+                    className={`group relative flex flex-col bg-white/50 dark:bg-slate-900/60 hover:bg-white dark:hover:bg-slate-800/80 border rounded-xl sm:rounded-2xl overflow-hidden shadow-xs hover:shadow-xl dark:shadow-lg dark:hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer transform hover:-translate-y-1 ${
                       isDeleteMode && selectedProducts.includes(product._id)
                         ? 'border-blue-500 ring-2 ring-blue-500/30'
-                        : 'border-white/10 hover:border-blue-500/40'
+                        : 'border-slate-200/80 dark:border-white/10 hover:border-blue-500/40'
                     }`}
                   >
                     {/* Delete mode checkbox overlay */}
                     {isDeleteMode && (
                       <div
-                        className="absolute top-2.5 left-2.5 z-20"
+                        className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 z-20"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <input
                           type="checkbox"
-                          className="w-5 h-5 rounded border-slate-500 bg-slate-800 text-blue-500 focus:ring-blue-500/50 cursor-pointer accent-blue-500 scheme-dark shadow-md"
+                          className="w-4 h-4 sm:w-5 sm:h-5 rounded border-slate-300 dark:border-slate-500 bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-500 focus:ring-blue-500/50 cursor-pointer accent-blue-600 shadow-md"
                           checked={selectedProducts.includes(product._id)}
                           onChange={() => handleSelectProduct(product._id)}
                         />
@@ -2645,7 +2647,7 @@ const ProductList = () => {
                     )}
 
                     {/* Product Image Area */}
-                    <div className="relative aspect-square w-full bg-white overflow-hidden flex items-center justify-center border-b border-white/5">
+                    <div className="relative aspect-square w-full bg-slate-50 dark:bg-white overflow-hidden flex items-center justify-center border-b border-slate-200/80 dark:border-white/5">
                       {thumb ? (
                         <ProgressiveImage
                           src={getImageUrl(thumb, { width: 400, quality: 75 })}
@@ -2653,37 +2655,37 @@ const ProductList = () => {
                           className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
                         />
                       ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-slate-600 bg-slate-950/40">
-                          <FiImage size={36} />
-                          <span className="text-[10px] mt-1.5 font-semibold text-slate-500">No Image</span>
+                        <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-600 bg-slate-100 dark:bg-slate-950/40">
+                          <FiImage className="text-2xl sm:text-4xl" />
+                          <span className="text-[9px] sm:text-[10px] mt-1 font-semibold text-slate-400 dark:text-slate-500">No Image</span>
                         </div>
                       )}
 
                       {/* Top Floating Badges */}
-                      <div className="absolute top-2.5 right-2.5 flex flex-col items-end gap-1.5 z-10 pointer-events-none">
+                      <div className="absolute top-1.5 right-1.5 sm:top-2.5 sm:right-2.5 flex flex-col items-end gap-1 sm:gap-1.5 z-10 pointer-events-none">
                         {hasDiscount && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500 text-white shadow-lg shadow-rose-500/30 tracking-wide">
+                          <span className="px-1.5 py-0.5 sm:px-2 rounded-full text-[8px] sm:text-[10px] font-black bg-rose-500 text-white shadow-lg shadow-rose-500/30 tracking-wide">
                             {discountPercent}% OFF
                           </span>
                         )}
                         {isInactive && (
-                          <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-rose-950/90 text-rose-300 border border-rose-500/30 shadow">
+                          <span className="px-1.5 py-0.5 sm:px-2 rounded-md text-[8px] sm:text-[9px] font-bold bg-rose-100 text-rose-800 border border-rose-300 dark:bg-rose-950/90 dark:text-rose-300 dark:border-rose-500/30 shadow">
                             Deactivated
                           </span>
                         )}
                         {!isInactive && inactiveVariantsCount > 0 && (
-                          <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-amber-950/90 text-amber-300 border border-amber-500/30 shadow">
+                          <span className="px-1.5 py-0.5 sm:px-2 rounded-md text-[8px] sm:text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-950/90 dark:text-amber-300 dark:border-amber-500/30 shadow">
                             {inactiveVariantsCount} Variant{inactiveVariantsCount > 1 ? 's' : ''} Off
                           </span>
                         )}
                       </div>
 
                       {/* Multi-image chip & quick image view */}
-                      <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between pointer-events-none">
+                      <div className="absolute bottom-1.5 left-1.5 right-1.5 sm:bottom-2 sm:left-2 sm:right-2 flex items-center justify-between pointer-events-none">
                         {totalImgs > 1 ? (
-                          <span className="bg-slate-950/80 backdrop-blur-md border border-white/10 text-[10px] font-bold text-white px-2 py-0.5 rounded-md shadow flex items-center gap-1">
-                            <FiImage size={11} className="text-blue-400" />
-                            {totalImgs} photos
+                          <span className="bg-slate-950/80 backdrop-blur-md border border-white/10 text-[9px] sm:text-[10px] font-bold text-white px-1.5 sm:px-2 py-0.5 rounded-md shadow flex items-center gap-1">
+                            <FiImage size={10} className="text-blue-400" />
+                            <span>{totalImgs} photos</span>
                           </span>
                         ) : <span />}
 
@@ -2694,65 +2696,65 @@ const ProductList = () => {
                               e.stopPropagation();
                               openImageView(product);
                             }}
-                            className="pointer-events-auto p-1.5 rounded-lg bg-slate-900/80 hover:bg-blue-600 text-white border border-white/15 transition-all shadow-md cursor-pointer hover:scale-105"
+                            className="pointer-events-auto p-1 sm:p-1.5 rounded-lg bg-white/90 hover:bg-blue-600 text-slate-700 hover:text-white dark:bg-slate-900/80 dark:hover:bg-blue-600 dark:text-white border border-slate-200 dark:border-white/15 transition-all shadow-md cursor-pointer hover:scale-105"
                             title="View all images"
                           >
-                            <FiEye size={13} />
+                            <FiEye size={12} className="sm:text-sm" />
                           </button>
                         )}
                       </div>
                     </div>
 
                     {/* Card Content Area */}
-                    <div className="p-3.5 flex flex-col flex-1 justify-between gap-3">
-                      <div className="space-y-1.5">
+                    <div className="p-2.5 sm:p-3.5 flex flex-col flex-1 justify-between gap-2 sm:gap-3">
+                      <div className="space-y-1 sm:space-y-1.5">
                         {/* Brand & Category */}
-                        <div className="flex items-center justify-between text-[11px] gap-2">
-                          <span className="text-blue-400 font-bold uppercase tracking-wider truncate">
+                        <div className="flex items-center justify-between text-[10px] sm:text-[11px] gap-1 sm:gap-2">
+                          <span className="text-blue-600 dark:text-blue-400 font-bold uppercase tracking-wider truncate">
                             {getBrandName(product.brand) || 'Brand'}
                           </span>
-                          <span className="text-slate-400 font-medium truncate text-right">
+                          <span className="text-slate-500 dark:text-slate-400 font-medium truncate text-right">
                             {getCategoryName(product.category) || 'Category'}
                           </span>
                         </div>
 
                         {/* Product Name */}
                         <h3
-                          className="text-sm font-bold text-white leading-snug line-clamp-2 group-hover:text-blue-300 transition-colors"
+                          className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white leading-snug line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors"
                           title={product.name}
                         >
                           {product.name || 'Untitled Product'}
                         </h3>
 
                         {/* Product ID */}
-                        <div className="flex items-center gap-1 text-[10px] text-slate-500 font-mono" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-slate-500 font-mono" onClick={(e) => e.stopPropagation()}>
                           <span className="truncate">{product._id}</span>
                           <CopyButton text={product._id} />
                         </div>
                       </div>
 
                       {/* Pricing & Slabs */}
-                      <div className="space-y-2 pt-1 border-t border-white/5">
-                        <div className="flex items-baseline gap-2 flex-wrap">
-                          <span className="text-base font-black text-emerald-400 tracking-tight">
+                      <div className="space-y-1.5 sm:space-y-2 pt-1 border-t border-slate-200/80 dark:border-white/5">
+                        <div className="flex items-baseline gap-1.5 sm:gap-2 flex-wrap">
+                          <span className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 tracking-tight">
                             ₹{product.offerPrice ?? '-'}
                           </span>
                           {product.basePrice && product.basePrice !== product.offerPrice && (
-                            <span className="text-xs font-semibold text-slate-500 line-through">
+                            <span className="text-[10px] sm:text-xs font-semibold text-slate-400 dark:text-slate-500 line-through">
                               ₹{product.basePrice}
                             </span>
                           )}
                         </div>
 
                         {/* Stock & Slabs badges */}
-                        <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
-                          <div className="flex items-center gap-1.5 flex-wrap">
+                        <div className="flex items-center justify-between gap-1 sm:gap-2 flex-wrap text-xs">
+                          <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
                             {/* Quantity Badge: display count only */}
                             {getGridQuantityBadge(product)}
 
                             {validSlabs.length > 0 && (
                               <span
-                                className="inline-flex items-center gap-1 text-[9px] font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.5 rounded"
+                                className="inline-flex items-center gap-1 text-[8px] sm:text-[9px] font-bold text-blue-700 dark:text-blue-400 bg-blue-50 border border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20 px-1 sm:px-1.5 py-0.5 rounded"
                                 title={validSlabs.map(qp => `Qty: ${qp.minQty}+ → ₹${qp.price}`).join('\n')}
                               >
                                 {validSlabs.length} Slab{validSlabs.length > 1 ? 's' : ''}
@@ -2762,7 +2764,7 @@ const ProductList = () => {
 
                           {/* Variant count */}
                           {product.variants && product.variants.length > 0 && (
-                            <span className="text-[10px] text-slate-400 font-bold bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
+                            <span className="text-[9px] sm:text-[10px] text-slate-600 dark:text-slate-400 font-bold bg-slate-100 dark:bg-white/5 px-1.5 sm:px-2 py-0.5 rounded-full border border-slate-200 dark:border-white/5">
                               {product.variants.length} var{product.variants.length > 1 ? 's' : ''}
                             </span>
                           )}
@@ -2770,16 +2772,16 @@ const ProductList = () => {
                       </div>
 
                       {/* Card Actions Footer */}
-                      <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2 text-xs">
+                      <div className="pt-1.5 sm:pt-2 border-t border-slate-200/80 dark:border-white/5 flex items-center justify-between gap-1.5 sm:gap-2 text-xs">
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             openDetailsView(product);
                           }}
-                          className="flex-1 py-1.5 px-2.5 bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white rounded-lg font-bold text-xs transition-all text-center cursor-pointer flex items-center justify-center gap-1.5"
+                          className="flex-1 py-1.5 px-2 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white dark:bg-blue-600/20 dark:hover:bg-blue-600 dark:text-blue-300 dark:hover:text-white rounded-lg font-bold text-[11px] sm:text-xs transition-all text-center cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 border border-blue-200 dark:border-transparent"
                         >
-                          <FiEdit2 size={12} />
+                          <FiEdit2 size={11} className="sm:text-xs" />
                           <span>Manage</span>
                         </button>
 
@@ -2790,10 +2792,10 @@ const ProductList = () => {
                             setProductToDelete(product);
                             setDeleteConfirmOpen(true);
                           }}
-                          className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-rose-500/20"
+                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:text-rose-400 dark:hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-rose-200 dark:hover:border-rose-500/20"
                           title="Delete Product"
                         >
-                          <FiTrash2 size={14} />
+                          <FiTrash2 size={13} className="sm:text-sm" />
                         </button>
                       </div>
                     </div>
@@ -2802,7 +2804,7 @@ const ProductList = () => {
               })}
             </div>
           ) : (
-            <div className="py-24 text-center text-slate-400 font-medium">
+            <div className="py-24 text-center text-slate-500 dark:text-slate-400 font-medium">
               {searchTerm ? 'No products matching your search.' : 'No products found. Add your first product.'}
             </div>
           )}
@@ -2812,9 +2814,9 @@ const ProductList = () => {
 
         {/* Pagination */}
         {!loading && filteredProducts.length > 0 && (
-          <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
-            <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
-              Showing <span className="font-bold text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastItem, sortedProducts.length)}</span> of <span className="font-bold text-white">{sortedProducts.length}</span> products
+          <div className="p-4 border-t border-slate-200/80 dark:border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/40 dark:bg-white/[0.02] backdrop-blur-md">
+            <span className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 text-center sm:text-left">
+              Showing <span className="font-bold text-slate-900 dark:text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-slate-900 dark:text-white">{Math.min(indexOfLastItem, sortedProducts.length)}</span> of <span className="font-bold text-slate-900 dark:text-white">{sortedProducts.length}</span> products
             </span>
             <div className="flex space-x-2">
               <button
@@ -2825,7 +2827,7 @@ const ProductList = () => {
                   });
                 }}
                 disabled={currentPage === 1}
-                className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                className="px-3 sm:px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-950/20 dark:hover:bg-white/10 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200 dark:border-white/10 transform-gpu cursor-pointer shadow-xs dark:shadow-none"
               >
                 &larr;
               </button>
@@ -2866,8 +2868,8 @@ const ProductList = () => {
                       className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${page === currentPage
                           ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
                           : page === '...'
-                            ? 'bg-transparent text-slate-500 border-transparent cursor-default'
-                            : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
+                            ? 'bg-transparent text-slate-400 dark:text-slate-500 border-transparent cursor-default'
+                            : 'bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 dark:bg-slate-950/20 dark:hover:bg-white/10 dark:text-slate-300 dark:hover:text-white border-slate-200 dark:border-white/10 cursor-pointer shadow-xs dark:shadow-none'
                         }`}
                     >
                       {page}
@@ -2883,7 +2885,7 @@ const ProductList = () => {
                   });
                 }}
                 disabled={currentPage === totalPages || totalPages === 0}
-                className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                className="px-3 sm:px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-950/20 dark:hover:bg-white/10 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200 dark:border-white/10 transform-gpu cursor-pointer shadow-xs dark:shadow-none"
               >
                 &rarr;
               </button>
@@ -2895,13 +2897,13 @@ const ProductList = () => {
       {/* Product Details Modal */}
       {isDetailsModalOpen && currentProductForView && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={() => setIsDetailsModalOpen(false)}></div>
-          <div className="relative bg-slate-950/50 border border-white/20 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 dark:bg-slate-950/50 backdrop-blur-lg" onClick={() => setIsDetailsModalOpen(false)}></div>
+          <div className="relative bg-transparent dark:bg-slate-950/50 border border-slate-200 dark:border-white/20 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-200">
             {/* Floating Close Button */}
             <button
               type="button"
               onClick={() => setIsDetailsModalOpen(false)}
-              className="absolute top-3.5 right-3.5 z-30 p-2 text-slate-400 hover:text-white bg-slate-900/80 hover:bg-slate-800 border border-white/10 rounded-full transition-all shadow-lg cursor-pointer"
+              className="absolute top-3.5 right-3.5 z-30 p-2 text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200 dark:text-slate-400 dark:hover:text-white dark:bg-slate-900/80 dark:hover:bg-slate-800 dark:border-white/10 rounded-full transition-all shadow-lg cursor-pointer"
               title="Close"
             >
               <FiX className="text-xl" />
@@ -2910,41 +2912,40 @@ const ProductList = () => {
             <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
 
               {/* General Information */}
-              <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15">
-                {/* <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-2"><span className="w-1.5 h-5 bg-blue-500 rounded-full"></span>General Information</h3> */}
+              <div className="bg-white/40 dark:bg-white/[0.03] p-5 rounded-2xl border border-slate-200 dark:border-white/15">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="md:col-span-2 space-y-4">
                     <div>
-                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Product Name</p>
-                      <p className="text-white font-medium text-lg">{currentProductForView.name || 'N/A'}</p>
+                      <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Product Name</p>
+                      <p className="text-slate-900 dark:text-white font-medium text-lg">{currentProductForView.name || 'N/A'}</p>
                       <div className="flex items-center gap-1.5 mt-1">
                         <span className='text-xs text-slate-500 font-mono'>{currentProductForView._id}</span>
-                        <CopyButton text={currentProductForView._id} className="text-slate-500 hover:text-slate-300" size={10} />
+                        <CopyButton text={currentProductForView._id} className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300" size={10} />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Brand</p>
-                        <p className="text-white font-medium">{getBrandName(currentProductForView.brand)}</p>
+                        <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Brand</p>
+                        <p className="text-slate-900 dark:text-white font-medium">{getBrandName(currentProductForView.brand)}</p>
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Category</p>
-                        <p className="text-white font-medium">{getCategoryName(currentProductForView.category)}</p>
+                        <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Category</p>
+                        <p className="text-slate-900 dark:text-white font-medium">{getCategoryName(currentProductForView.category)}</p>
                       </div>
 
                       <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Status</p>
+                        <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Status</p>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${currentProductForView.isActive !== false ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${currentProductForView.isActive !== false ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'}`}>
                             {currentProductForView.isActive !== false ? 'Active' : 'Inactive'}
                           </span>
                           <button
                             onClick={() => handleToggleActive(currentProductForView.isActive === false)}
                             disabled={isTogglingActive}
                             className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${currentProductForView.isActive !== false
-                                ? 'bg-rose-600/20 text-rose-400 border-rose-500/30 hover:bg-rose-600/30'
-                                : 'bg-emerald-600/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-600/30'
+                                ? 'bg-rose-50 dark:bg-rose-600/20 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-500/30 hover:bg-rose-100 dark:hover:bg-rose-600/30'
+                                : 'bg-emerald-50 dark:bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/30 hover:bg-emerald-100 dark:hover:bg-emerald-600/30'
                               }`}
                           >
                             {isTogglingActive ? 'Updating...' : (currentProductForView.isActive !== false ? 'Deactivate' : 'Activate')}
@@ -2952,25 +2953,25 @@ const ProductList = () => {
                         </div>
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Created At</p>
-                        <p className="text-white font-medium text-sm">{formatDateTimeDDMMYYYY(currentProductForView.createdAt)}</p>
+                        <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Created At</p>
+                        <p className="text-slate-900 dark:text-white font-medium text-sm">{formatDateTimeDDMMYYYY(currentProductForView.createdAt)}</p>
                       </div>
 
                       <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">EAN Number</p>
-                        <p className="text-white font-medium">{currentProductForView.eanNumber || 'N/A'}</p>
+                        <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">EAN Number</p>
+                        <p className="text-slate-900 dark:text-white font-medium">{currentProductForView.eanNumber || 'N/A'}</p>
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Updated At</p>
-                        <p className="text-white font-medium text-sm">{formatDateTimeDDMMYYYY(currentProductForView.updatedAt)}</p>
+                        <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Updated At</p>
+                        <p className="text-slate-900 dark:text-white font-medium text-sm">{formatDateTimeDDMMYYYY(currentProductForView.updatedAt)}</p>
                       </div>
                     </div>
                   </div>
 
                   {/* Product Image in Previous Column Position */}
                   <div className="flex flex-col items-center justify-start">
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 self-start">Product Image</p>
-                    <div className="w-full h-44 sm:h-52 md:h-full max-h-56 rounded-2xl border border-white/10 overflow-hidden bg-white p-2 flex items-center justify-center">
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 self-start">Product Image</p>
+                    <div className="w-full h-44 sm:h-52 md:h-full max-h-56 rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden bg-white p-2 flex items-center justify-center">
                       {(() => {
                         const firstImage = (currentProductForView.images && currentProductForView.images.length > 0 && currentProductForView.images[0]) ||
                           (currentProductForView.variants && currentProductForView.variants.length > 0 && currentProductForView.variants[0]?.images && currentProductForView.variants[0]?.images[0]);
@@ -2982,8 +2983,8 @@ const ProductList = () => {
                             fallback="https://placehold.co/200x200?text=No+Image"
                           />
                         ) : (
-                          <div className="flex flex-col items-center justify-center text-slate-500 gap-2">
-                            <FiPackage className="text-3xl text-slate-600" />
+                          <div className="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 gap-2">
+                            <FiPackage className="text-3xl text-slate-400 dark:text-slate-600" />
                             <span className="text-xs italic">No image available</span>
                           </div>
                         );
@@ -2994,28 +2995,30 @@ const ProductList = () => {
               </div>
 
               {/* Pricing & Inventory */}
-              <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15">
-                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/15 pb-2"><span className="w-1.5 h-5 bg-emerald-500 rounded-full"></span>Pricing & Inventory</h3>
+              <div className="bg-white/40 dark:bg-white/[0.03] p-5 rounded-2xl border border-slate-200 dark:border-white/15">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2 border-b border-slate-200 dark:border-white/15 pb-2">
+                  <span className="w-1.5 h-5 bg-emerald-500 rounded-full"></span>Pricing & Inventory
+                </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-5">
                   <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Total Quantity</p>
-                    <p className="text-white font-medium">{currentProductForView.totalQuantity || '0'}</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Total Quantity</p>
+                    <p className="text-slate-900 dark:text-white font-medium">{currentProductForView.totalQuantity || '0'}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Base Price</p>
-                    <p className="text-white font-medium">₹{currentProductForView.basePrice || '0'}</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Base Price</p>
+                    <p className="text-slate-900 dark:text-white font-medium">₹{currentProductForView.basePrice || '0'}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Offer Price</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Offer Price</p>
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <p className="text-emerald-400 font-bold">₹{currentProductForView.offerPrice || '0'}</p>
+                      <p className="text-emerald-600 dark:text-emerald-400 font-bold">₹{currentProductForView.offerPrice || '0'}</p>
                       {(() => {
                         const base = Number(currentProductForView.basePrice);
                         const offer = Number(currentProductForView.offerPrice);
                         if (base > 0 && offer > 0 && base > offer) {
                           const off = Math.round(((base - offer) / base) * 100);
                           return (
-                            <span className="text-[8px] font-extrabold px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 whitespace-nowrap">
+                            <span className="text-[8px] font-extrabold px-1.5 py-0.5 rounded bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 whitespace-nowrap">
                               {off}% off
                             </span>
                           );
@@ -3025,60 +3028,64 @@ const ProductList = () => {
                     </div>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">L1 Price</p>
-                    <p className="text-blue-300 font-medium">₹{currentProductForView.l1Price || '0'}</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">L1 Price</p>
+                    <p className="text-blue-600 dark:text-blue-300 font-medium">₹{currentProductForView.l1Price || '0'}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">L2 Price</p>
-                    <p className="text-blue-300 font-medium">₹{currentProductForView.l2Price || '0'}</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">L2 Price</p>
+                    <p className="text-blue-600 dark:text-blue-300 font-medium">₹{currentProductForView.l2Price || '0'}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">L3 Price</p>
-                    <p className="text-blue-300 font-medium">₹{currentProductForView.l3Price || '0'}</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">L3 Price</p>
+                    <p className="text-blue-600 dark:text-blue-300 font-medium">₹{currentProductForView.l3Price || '0'}</p>
                   </div>
                 </div>
               </div>
 
               {/* Extended Details */}
-              <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15 space-y-4">
-                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/15 pb-2"><span className="w-1.5 h-5 bg-amber-500 rounded-full"></span>Descriptions & Policies</h3>
+              <div className="bg-white/20 dark:bg-white/[0.03] p-5 rounded-2xl border border-slate-200 dark:border-white/15 space-y-4">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2 border-b border-slate-200 dark:border-white/15 pb-2">
+                  <span className="w-1.5 h-5 bg-amber-500 rounded-full"></span>Descriptions & Policies
+                </h3>
                 <div>
-                  <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Description</p>
-                  <p className="text-slate-300 text-sm whitespace-pre-wrap">{currentProductForView.description || 'N/A'}</p>
+                  <p className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Description</p>
+                  <p className="text-slate-700 dark:text-slate-300 text-sm whitespace-pre-wrap">{currentProductForView.description || 'N/A'}</p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Details</p>
-                    <p className="text-slate-300 text-sm whitespace-pre-wrap">{currentProductForView.details || 'N/A'}</p>
+                    <p className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Details</p>
+                    <p className="text-slate-700 dark:text-slate-300 text-sm whitespace-pre-wrap">{currentProductForView.details || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Expert Notes</p>
-                    <p className="text-slate-300 text-sm whitespace-pre-wrap">{currentProductForView.expertNotes || 'N/A'}</p>
+                    <p className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Expert Notes</p>
+                    <p className="text-slate-700 dark:text-slate-300 text-sm whitespace-pre-wrap">{currentProductForView.expertNotes || 'N/A'}</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-white/15 pt-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-slate-500 dark:border-white/15 pt-4">
                   <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Warranty</p>
-                    <p className="text-slate-300 text-sm">{currentProductForView.warranty || 'N/A'}</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Warranty</p>
+                    <p className="text-slate-700 dark:text-slate-300 text-sm">{currentProductForView.warranty || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Return Policy</p>
-                    <p className="text-slate-300 text-sm">{currentProductForView.sevenDaysReturn || 'N/A'}</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Return Policy</p>
+                    <p className="text-slate-700 dark:text-slate-300 text-sm">{currentProductForView.sevenDaysReturn || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Cancellation Policy</p>
-                    <p className="text-slate-300 text-sm">{currentProductForView.cancellationPolicy || 'N/A'}</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Cancellation Policy</p>
+                    <p className="text-slate-700 dark:text-slate-300 text-sm">{currentProductForView.cancellationPolicy || 'N/A'}</p>
                   </div>
                 </div>
               </div>
 
               {/* Images */}
-              <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15">
-                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/15 pb-2"><span className="w-1.5 h-5 bg-purple-500 rounded-full"></span>Product Images</h3>
+              <div className="bg-white/20 dark:bg-white/[0.03] p-5 rounded-2xl border border-slate-200 dark:border-white/15">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2 border-b border-slate-500 dark:border-white/15 pb-2">
+                  <span className="w-1.5 h-5 bg-purple-500 rounded-full"></span>Product Images
+                </h3>
                 {currentProductForView.images && currentProductForView.images.length > 0 ? (
                   <div className="flex flex-wrap gap-4">
                     {currentProductForView.images.map((url, i) => (
-                      <div key={i} className="relative w-24 h-24 border border-white/15 rounded-xl overflow-hidden bg-slate-800 flex items-center justify-center">
+                      <div key={i} className="relative w-24 h-24 border border-slate-200 dark:border-white/15 rounded-xl overflow-hidden bg-white dark:bg-slate-800 flex items-center justify-center shadow-xs">
                         <ProgressiveImage
                           src={getImageUrl(url, { width: 250, quality: 60 })}
                           alt={`Image ${i + 1}`}
@@ -3088,7 +3095,7 @@ const ProductList = () => {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-slate-400 text-sm italic">No images available.</p>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm italic">No images available.</p>
                 )}
               </div>
 
@@ -3096,13 +3103,13 @@ const ProductList = () => {
               <div className="mt-2">
                 <button
                   onClick={() => setIsVariantsExpanded(!isVariantsExpanded)}
-                  className="w-full flex items-center justify-between px-5 py-4 bg-white/[0.03] border border-white/15 rounded-2xl hover:bg-slate-900/30 transition-colors cursor-pointer"
+                  className="w-full flex items-center justify-between px-5 py-4 bg-white/40 dark:bg-white/[0.03] border border-slate-200 dark:border-white/15 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors cursor-pointer shadow-xs"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-full bg-blue-900/50 flex items-center justify-center text-blue-400 font-bold text-sm">
+                    <span className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-sm">
                       {currentProductForView.variants?.length || 0}
                     </span>
-                    <span className="font-bold text-white text-lg">Product Variants</span>
+                    <span className="font-bold text-slate-900 dark:text-white text-lg">Product Variants</span>
                   </div>
                   {isVariantsExpanded ? <FiChevronUp className="text-slate-400 text-xl" /> : <FiChevronDown className="text-slate-400 text-xl" />}
                 </button>
@@ -3111,11 +3118,11 @@ const ProductList = () => {
                   <div className="mt-3 space-y-3">
                     {currentProductForView.variants && currentProductForView.variants.length > 0 ? (
                       currentProductForView.variants.map((variant, idx) => (
-                        <div key={idx} className="p-5 bg-white/[0.03] border border-white/15 rounded-2xl space-y-4">
-                          <div className="flex justify-between items-center border-b border-white/15 pb-2 mb-3">
+                        <div key={idx} className="p-5 bg-white/40 dark:bg-white/[0.03] border border-slate-200 dark:border-white/15 rounded-2xl space-y-4 shadow-xs">
+                          <div className="flex justify-between items-center border-b border-slate-500 dark:border-white/15 pb-2 mb-3">
                             <div className="flex items-center gap-2">
-                              <span className="text-sm font-bold text-white uppercase tracking-wider">Variant #{idx + 1}</span>
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${variant.isActive !== false ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
+                              <span className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Variant #{idx + 1}</span>
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${variant.isActive !== false ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'}`}>
                                 {variant.isActive !== false ? 'Active' : 'Inactive'}
                               </span>
                             </div>
@@ -3124,8 +3131,8 @@ const ProductList = () => {
                               onClick={() => handleToggleVariantActive(variant._id, variant.isActive !== false)}
                               disabled={togglingVariantId !== null}
                               className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${variant.isActive !== false
-                                  ? 'bg-rose-600/20 text-rose-400 border-rose-500/30 hover:bg-rose-600/30'
-                                  : 'bg-emerald-600/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-600/30'
+                                  ? 'bg-rose-50 dark:bg-rose-600/20 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-500/30 hover:bg-rose-100 dark:hover:bg-rose-600/30'
+                                  : 'bg-emerald-50 dark:bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/30 hover:bg-emerald-100 dark:hover:bg-emerald-600/30'
                                 }`}
                             >
                               {togglingVariantId === variant._id ? 'Updating...' : (variant.isActive !== false ? 'Deactivate' : 'Activate')}
@@ -3133,32 +3140,32 @@ const ProductList = () => {
                           </div>
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
                             <div>
-                              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1 font-bold">Variant Name</p>
-                              <p className="text-sm text-white font-medium">{variant.name || 'N/A'}</p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 font-bold">Variant Name</p>
+                              <p className="text-sm text-slate-900 dark:text-white font-medium">{variant.name || 'N/A'}</p>
                               <div className="flex items-center gap-1 mt-0.5">
-                                <span className='text-xs text-slate-600 font-mono'>{variant._id}</span>
-                                <CopyButton text={variant._id} className="text-slate-600 hover:text-slate-300" size={10} />
+                                <span className='text-xs text-slate-500 font-mono'>{variant._id}</span>
+                                <CopyButton text={variant._id} className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300" size={10} />
                               </div>
                             </div>
                             <div>
-                              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1 font-bold">Quantity</p>
-                              <p className="text-sm text-white font-medium">{variant.quantity || '0'}</p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 font-bold">Quantity</p>
+                              <p className="text-sm text-slate-900 dark:text-white font-medium">{variant.quantity || '0'}</p>
                             </div>
                             <div>
-                              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1 font-bold">Price</p>
-                              <p className="text-sm text-white font-medium">₹{variant.price || '0'}</p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 font-bold">Price</p>
+                              <p className="text-sm text-slate-900 dark:text-white font-medium">₹{variant.price || '0'}</p>
                             </div>
                             <div>
-                              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1 font-bold">Offer Price</p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 font-bold">Offer Price</p>
                               <div className="flex items-center gap-1.5 flex-wrap">
-                                <p className="text-sm text-emerald-400 font-bold">₹{variant.offerPrice || '0'}</p>
+                                <p className="text-sm text-emerald-600 dark:text-emerald-400 font-bold">₹{variant.offerPrice || '0'}</p>
                                 {(() => {
                                   const base = Number(variant.price || variant.basePrice);
                                   const offer = Number(variant.offerPrice);
                                   if (base > 0 && offer > 0 && base > offer) {
                                     const off = Math.round(((base - offer) / base) * 100);
                                     return (
-                                      <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 whitespace-nowrap">
+                                      <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap">
                                         {off}% off
                                       </span>
                                     );
@@ -3168,35 +3175,35 @@ const ProductList = () => {
                               </div>
                             </div>
                           </div>
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 pt-3 border-t border-white/15">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 pt-3 border-t border-slate-500 dark:border-white/15">
                             <div>
-                              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1 font-bold">L1 Price</p>
-                              <p className="text-sm text-blue-300 font-medium">₹{variant.l1Price || '0'}</p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 font-bold">L1 Price</p>
+                              <p className="text-sm text-blue-600 dark:text-blue-300 font-medium">₹{variant.l1Price || '0'}</p>
                             </div>
                             <div>
-                              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1 font-bold">L2 Price</p>
-                              <p className="text-sm text-blue-300 font-medium">₹{variant.l2Price || '0'}</p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 font-bold">L2 Price</p>
+                              <p className="text-sm text-blue-600 dark:text-blue-300 font-medium">₹{variant.l2Price || '0'}</p>
                             </div>
                             <div>
-                              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1 font-bold">L3 Price</p>
-                              <p className="text-sm text-blue-300 font-medium">₹{variant.l3Price || '0'}</p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 font-bold">L3 Price</p>
+                              <p className="text-sm text-blue-600 dark:text-blue-300 font-medium">₹{variant.l3Price || '0'}</p>
                             </div>
                             <div>
-                              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1 font-bold">Quantity Pricing Slabs</p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 font-bold">Quantity Pricing Slabs</p>
                               {variant.quantityPricing && variant.quantityPricing.length > 0 ? (
-                                <div className="text-xs text-slate-300 space-y-1">
+                                <div className="text-xs text-slate-700 dark:text-slate-300 space-y-1">
                                   {variant.quantityPricing.map((qp, qpi) => (
                                     <div key={qpi}>Qty: {qp.minQty}+ → ₹{qp.price}</div>
                                   ))}
                                 </div>
                               ) : (
-                                <p className="text-xs text-slate-500 italic">None</p>
+                                <p className="text-xs text-slate-400 dark:text-slate-500 italic">None</p>
                               )}
                             </div>
                           </div>
 
                           {/* Variant Images */}
-                          <div className="pt-3 border-t border-white/15">
+                          <div className="pt-3 border-t border-slate-500 dark:border-white/15">
                             {(() => {
                               let variantImgs = [];
                               if (Array.isArray(variant.images)) {
@@ -3214,9 +3221,9 @@ const ProductList = () => {
                               return (
                                 <div>
                                   <div className="flex items-center gap-2 mb-2">
-                                    <p className="text-xs text-slate-500 uppercase tracking-wider font-bold">Variant Images</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">Variant Images</p>
                                     {variantImgs.length > 0 && (
-                                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                                         {variantImgs.length} {variantImgs.length === 1 ? 'image' : 'images'}
                                       </span>
                                     )}
@@ -3226,7 +3233,7 @@ const ProductList = () => {
                                       {variantImgs.map((url, imgIdx) => (
                                         <div
                                           key={imgIdx}
-                                          className="relative w-16 h-16 sm:w-20 sm:h-20 border border-white/10 rounded-xl overflow-hidden bg-slate-800 flex items-center justify-center group/img shrink-0 shadow-sm hover:border-blue-500/40 transition-colors"
+                                          className="relative w-16 h-16 sm:w-20 sm:h-20 border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden bg-white dark:bg-slate-800 flex items-center justify-center group/img shrink-0 shadow-sm hover:border-blue-500/40 transition-colors"
                                         >
                                           <ProgressiveImage
                                             src={getImageUrl(url, { width: 200, quality: 60 })}
@@ -3237,7 +3244,7 @@ const ProductList = () => {
                                       ))}
                                     </div>
                                   ) : (
-                                    <p className="text-xs text-slate-500 italic">No images for this variant.</p>
+                                    <p className="text-xs text-slate-400 dark:text-slate-500 italic">No images for this variant.</p>
                                   )}
                                 </div>
                               );
@@ -3246,7 +3253,7 @@ const ProductList = () => {
                         </div>
                       ))
                     ) : (
-                      <div className="p-6 text-center text-slate-400 bg-slate-800/30 rounded-2xl border border-white/5">
+                      <div className="p-6 text-center text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/30 rounded-2xl border border-slate-200 dark:border-white/5">
                         No variants added for this product.
                       </div>
                     )}
@@ -3274,17 +3281,17 @@ const ProductList = () => {
       {/* Add Product Modal */}
       {isAddModalOpen && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={closeAddModal}></div>
-          <div className="relative bg-slate-950/25 border border-white/20 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 dark:bg-slate-950/50 backdrop-blur-lg" onClick={closeAddModal}></div>
+          <div className="relative bg-transparent dark:bg-slate-950/25 border border-slate-200 dark:border-white/20 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
 
-            <div className="flex justify-between items-center px-6 py-4 border-b border-white/20 bg-white/[0.03]">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-200 dark:border-white/20 bg-slate-50/80 dark:bg-white/[0.03]">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-900/50 text-blue-400 flex items-center justify-center text-lg">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400 flex items-center justify-center text-lg">
                   <FiPlus />
                 </div>
-                <h2 className="text-xl font-bold text-white">Add New Product</h2>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Add New Product</h2>
               </div>
-              <button onClick={closeAddModal} className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors">
+              <button onClick={closeAddModal} className="p-2 text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200 dark:text-slate-400 dark:hover:text-white dark:bg-slate-800/80 dark:hover:bg-slate-800 dark:border-white/10 rounded-full transition-colors">
                 <FiX className="text-xl" />
               </button>
             </div>
@@ -3293,82 +3300,82 @@ const ProductList = () => {
               <form id="addProductForm" onSubmit={handleAddSubmit} className="space-y-6">
 
                 {/* General Information */}
-                <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15">
-                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/20 pb-2"><span className="w-1.5 h-5 bg-blue-500 rounded-full"></span>General Information</h3>
+                <div className="bg-white/40 dark:bg-white/[0.03] p-5 rounded-2xl border border-slate-200 dark:border-white/15">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2 border-b border-slate-200 dark:border-white/20 pb-2"><span className="w-1.5 h-5 bg-blue-500 rounded-full"></span>General Information</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Brand</label>
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Brand</label>
                       <CustomDropdown
                         value={addFormData.brand}
                         onChange={(val) => setAddFormData(prev => ({ ...prev, brand: val }))}
                         options={[{ value: '', label: 'Select Brand' }, ...brands.map(b => ({ value: b._id, label: b.name }))]}
-                        statusColor="bg-slate-900/50 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50"
+                        statusColor="bg-white dark:bg-slate-900/50 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Category</label>
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Category</label>
                       <CustomDropdown
                         value={addFormData.category}
                         onChange={(val) => setAddFormData(prev => ({ ...prev, category: val }))}
                         options={[{ value: '', label: 'Select Category' }, ...categories.map(c => ({ value: c._id, label: c.name }))]}
-                        statusColor="bg-slate-900/50 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50"
+                        statusColor="bg-white dark:bg-slate-900/50 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50"
                       />
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Product Name</label>
-                      <input type="text" name="name" value={addFormData.name} onChange={handleAddChange} required className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500" />
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Product Name</label>
+                      <input type="text" name="name" value={addFormData.name} onChange={handleAddChange} required className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500" />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">EAN Number</label>
-                      <input type="number" name="eanNumber" value={addFormData.eanNumber} onChange={handleAddChange} required className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500  scheme-dark" />
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">EAN Number</label>
+                      <input type="number" name="eanNumber" value={addFormData.eanNumber} onChange={handleAddChange} required className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500 scheme-light dark:scheme-dark" />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Total Quantity</label>
-                      <input type="number" name="totalQuantity" value={addFormData.totalQuantity} onChange={handleAddChange} required className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500  scheme-dark" />
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Total Quantity</label>
+                      <input type="number" name="totalQuantity" value={addFormData.totalQuantity} onChange={handleAddChange} required className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500 scheme-light dark:scheme-dark" />
                     </div>
                   </div>
                 </div>
 
                 {/* Pricing & Inventory */}
-                <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15">
-                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/20 pb-2"><span className="w-1.5 h-5 bg-emerald-500 rounded-full"></span>Pricing & Inventory</h3>
+                <div className="bg-white/40 dark:bg-white/[0.03] p-5 rounded-2xl border border-slate-200 dark:border-white/15">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2 border-b border-slate-200 dark:border-white/20 pb-2"><span className="w-1.5 h-5 bg-emerald-500 rounded-full"></span>Pricing & Inventory</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Base Price</label>
-                      <input type="number" name="basePrice" value={addFormData.basePrice} onChange={handleAddChange} required className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500  scheme-dark" />
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Base Price</label>
+                      <input type="number" name="basePrice" value={addFormData.basePrice} onChange={handleAddChange} required className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500 scheme-light dark:scheme-dark" />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Offer Price</label>
-                      <input type="number" name="offerPrice" value={addFormData.offerPrice} onChange={handleAddChange} className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500  scheme-dark" />
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Offer Price</label>
+                      <input type="number" name="offerPrice" value={addFormData.offerPrice} onChange={handleAddChange} className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500 scheme-light dark:scheme-dark" />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">L1 Price</label>
-                      <input type="number" name="l1Price" value={addFormData.l1Price} onChange={handleAddChange} className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500  scheme-dark" />
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">L1 Price</label>
+                      <input type="number" name="l1Price" value={addFormData.l1Price} onChange={handleAddChange} className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500 scheme-light dark:scheme-dark" />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">L2 Price</label>
-                      <input type="number" name="l2Price" value={addFormData.l2Price} onChange={handleAddChange} className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500  scheme-dark" />
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">L2 Price</label>
+                      <input type="number" name="l2Price" value={addFormData.l2Price} onChange={handleAddChange} className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500 scheme-light dark:scheme-dark" />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">L3 Price</label>
-                      <input type="number" name="l3Price" value={addFormData.l3Price} onChange={handleAddChange} className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500  scheme-dark" />
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">L3 Price</label>
+                      <input type="number" name="l3Price" value={addFormData.l3Price} onChange={handleAddChange} className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500 scheme-light dark:scheme-dark" />
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Quantity Pricing Slabs</label>
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Quantity Pricing Slabs</label>
                       {(addFormData.quantityPricing || []).map((qp, qpIndex) => (
                         <div key={qpIndex} className="flex items-center gap-3 mb-3">
                           <div className="flex-1">
-                            <input type="number" value={qp.minQty} onChange={e => handleQuantityPricingChange(qpIndex, 'minQty', e.target.value)} placeholder="Minimum Quantity" className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500 text-white  scheme-dark" />
+                            <input type="number" value={qp.minQty} onChange={e => handleQuantityPricingChange(qpIndex, 'minQty', e.target.value)} placeholder="Minimum Quantity" className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500 text-slate-900 dark:text-white scheme-light dark:scheme-dark" />
                           </div>
                           <div className="flex-1">
-                            <input type="number" value={qp.price} onChange={e => handleQuantityPricingChange(qpIndex, 'price', e.target.value)} placeholder="Price per unit" className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500 text-white  scheme-dark" />
+                            <input type="number" value={qp.price} onChange={e => handleQuantityPricingChange(qpIndex, 'price', e.target.value)} placeholder="Price per unit" className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500 text-slate-900 dark:text-white scheme-light dark:scheme-dark" />
                           </div>
-                          <button type="button" onClick={() => handleRemoveQuantityPricing(qpIndex)} className="p-2.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 rounded-xl transition-colors shrink-0 cursor-pointer" title="Remove Slab">
+                          <button type="button" onClick={() => handleRemoveQuantityPricing(qpIndex)} className="p-2.5 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 dark:hover:text-red-300 rounded-xl transition-colors shrink-0 cursor-pointer" title="Remove Slab">
                             <FiTrash2 />
                           </button>
                         </div>
                       ))}
-                      <button type="button" onClick={() => handleAddQuantityPricing()} className="px-4 py-2 mt-1 bg-blue-900/30 text-blue-400 text-xs font-bold rounded-lg hover:bg-blue-900/50 transition-colors border border-blue-500/30 cursor-pointer">
+                      <button type="button" onClick={() => handleAddQuantityPricing()} className="px-4 py-2 mt-1 bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 text-xs font-bold rounded-lg dark:hover:bg-blue-900/50 transition-colors dark:border-blue-500/30 cursor-pointer">
                         + Add Quantity Slab
                       </button>
                     </div>
@@ -3376,48 +3383,48 @@ const ProductList = () => {
                 </div>
 
                 {/* Descriptions & Policies */}
-                <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15">
-                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/20 pb-2"><span className="w-1.5 h-5 bg-amber-500 rounded-full"></span>Descriptions & Policies</h3>
+                <div className="bg-white/40 dark:bg-white/[0.03] p-5 rounded-2xl border border-slate-200 dark:border-white/15">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2 border-b border-slate-200 dark:border-white/20 pb-2"><span className="w-1.5 h-5 bg-amber-500 rounded-full"></span>Descriptions & Policies</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div className="sm:col-span-2">
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Warranty</label>
-                      <input type="text" name="warranty" value={addFormData.warranty} onChange={handleAddChange} className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500" />
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Warranty</label>
+                      <input type="text" name="warranty" value={addFormData.warranty} onChange={handleAddChange} className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500" />
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">7 Days Return Policy</label>
-                      <input type="text" name="sevenDaysReturn" value={addFormData.sevenDaysReturn} onChange={handleAddChange} className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500" />
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">7 Days Return Policy</label>
+                      <input type="text" name="sevenDaysReturn" value={addFormData.sevenDaysReturn} onChange={handleAddChange} className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500" />
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Description</label>
-                      <textarea name="description" value={addFormData.description} onChange={handleAddChange} rows="3" className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium resize-none placeholder-slate-500"></textarea>
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Description</label>
+                      <textarea name="description" value={addFormData.description} onChange={handleAddChange} rows="3" className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium resize-none placeholder-slate-400 dark:placeholder-slate-500"></textarea>
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Details</label>
-                      <textarea name="details" value={addFormData.details} onChange={handleAddChange} rows="3" className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium resize-none placeholder-slate-500"></textarea>
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Details</label>
+                      <textarea name="details" value={addFormData.details} onChange={handleAddChange} rows="3" className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium resize-none placeholder-slate-400 dark:placeholder-slate-500"></textarea>
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Expert Notes</label>
-                      <textarea name="expertNotes" value={addFormData.expertNotes} onChange={handleAddChange} rows="3" className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium resize-none placeholder-slate-500"></textarea>
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Expert Notes</label>
+                      <textarea name="expertNotes" value={addFormData.expertNotes} onChange={handleAddChange} rows="3" className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium resize-none placeholder-slate-400 dark:placeholder-slate-500"></textarea>
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Cancellation Policy</label>
-                      <textarea name="cancellationPolicy" value={addFormData.cancellationPolicy} onChange={handleAddChange} rows="3" className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium resize-none placeholder-slate-500"></textarea>
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Cancellation Policy</label>
+                      <textarea name="cancellationPolicy" value={addFormData.cancellationPolicy} onChange={handleAddChange} rows="3" className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium resize-none placeholder-slate-400 dark:placeholder-slate-500"></textarea>
                     </div>
                   </div>
                 </div>
 
                 {/* Images */}
-                <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15">
-                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/20 pb-2"><span className="w-1.5 h-5 bg-purple-500 rounded-full"></span>Product Images</h3>
+                <div className="bg-white/40 dark:bg-white/[0.03] p-5 rounded-2xl border border-slate-200 dark:border-white/15">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2 border-b border-slate-200 dark:border-white/20 pb-2"><span className="w-1.5 h-5 bg-purple-500 rounded-full"></span>Product Images</h3>
                   <div className="grid grid-cols-1 gap-5">
                     {/* Image URLs Section */}
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Image URLs (comma separated)</label>
-                      <input type="text" name="image_urls" value={addFormData.image_urls} onChange={handleAddChange} placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg" className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500" />
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Image URLs (comma separated)</label>
+                      <input type="text" name="image_urls" value={addFormData.image_urls} onChange={handleAddChange} placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg" className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500" />
                       {addFormData.image_urls && addFormData.image_urls.split(',').filter(url => url.trim()).length > 0 && (
                         <div className="flex flex-wrap gap-3 mt-3">
                           {addFormData.image_urls.split(',').map((url, i) => url.trim() && (
-                            <div key={i} className="relative w-16 h-16 border border-white/10 rounded-lg overflow-hidden bg-slate-800 shadow-sm shrink-0 flex items-center justify-center">
+                            <div key={i} className="relative w-16 h-16 border border-slate-200 dark:border-white/10 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 shadow-sm shrink-0 flex items-center justify-center">
                               <ProgressiveImage
                                 src={getImageUrl(url.trim(), { width: 150, quality: 60 })}
                                 alt={`Preview ${i}`}
@@ -3428,91 +3435,39 @@ const ProductList = () => {
                         </div>
                       )}
                     </div>
-
-                    {/* Image Upload Section */}
-                    {/* <div>
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Upload Image Files</label>
-                      <div 
-                        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                        onDragLeave={() => setIsDragging(false)}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          setIsDragging(false);
-                          const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-                          if (files.length > 0) {
-                            setAddProductImageFiles([...addProductImageFiles, ...files]);
-                          }
-                        }}
-                        onClick={() => document.getElementById('product-add-images-input').click()}
-                        className={`w-full h-36 border-2 border-dashed rounded-2xl flex flex-col justify-center items-center gap-2 cursor-pointer transition-all duration-300 relative overflow-hidden group select-none ${
-                          isDragging 
-                            ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/20' 
-                            : 'border-white/10 hover:border-blue-500/40 hover:bg-white/5'
-                        }`}
-                      >
-                        <input 
-                          id="product-add-images-input"
-                          type="file" 
-                          multiple 
-                          accept="image/*"
-                          onChange={(e) => setAddProductImageFiles([...addProductImageFiles, ...Array.from(e.target.files)])}
-                          className="hidden"
-                        />
-                        <FiImage size={24} className="text-slate-400 group-hover:text-blue-400 transition-colors" />
-                        <span className="text-xs font-medium text-slate-300 group-hover:text-white transition-colors">Drag & drop product images here, or <span className="text-blue-400 group-hover:underline">browse</span></span>
-                        <span className="text-[10px] text-slate-500">Supports multiple files (JPG, PNG, WEBP)</span>
-                      </div>
-                      {addProductImageFiles.length > 0 && (
-                        <div className="flex flex-wrap gap-4 mt-4 p-4 bg-slate-950/30 border border-white/10 rounded-xl">
-                          {addProductImageFiles.map((file, i) => (
-                            <div key={i} className="relative w-28 h-28 border border-white/10 rounded-xl overflow-hidden group bg-slate-800 shadow-sm flex items-center justify-center">
-                              <img src={URL.createObjectURL(file)} alt="Preview" className="max-w-full max-h-full object-contain bg-white p-2" />
-                              <button 
-                                type="button"
-                                onClick={() => setAddProductImageFiles(addProductImageFiles.filter((_, index) => index !== i))}
-                                className="absolute top-2 right-2 bg-slate-900/90 text-red-400 hover:bg-red-600 hover:text-white p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-sm cursor-pointer"
-                                title="Remove File"
-                              >
-                                <FiTrash2 size={14} />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div> */}
                   </div>
                 </div>
 
                 {/* Product Variants */}
-                <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/15 space-y-6">
-                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/20 pb-2"><span className="w-1.5 h-5 bg-blue-500 rounded-full"></span>Product Variants</h3>
+                <div className="bg-white/40 dark:bg-white/[0.03] p-5 rounded-2xl border border-slate-200 dark:border-white/15 space-y-6">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2 border-b border-slate-200 dark:border-white/20 pb-2"><span className="w-1.5 h-5 bg-blue-500 rounded-full"></span>Product Variants</h3>
                   <div className="space-y-4">
                     {addVariants.map((variant, index) => (
-                      <div key={index} className="bg-transparent border border-white/10 shadow-lg shadow-black/50 rounded-2xl overflow-hidden group">
+                      <div key={index} className="bg-white/20 dark:bg-transparent border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-lg dark:shadow-black/50 rounded-2xl overflow-hidden group">
                         {/* Accordion Header */}
                         <div
-                          className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors bg-slate-800/50"
+                          className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-100/50 dark:hover:bg-white/5 transition-colors bg-slate-100/60 dark:bg-slate-800/50"
                           onClick={() => setExpandedAddVariantIndex(expandedAddVariantIndex === index ? null : index)}
                         >
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-blue-900/50 flex items-center justify-center text-blue-400 font-bold text-sm">
+                            <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400 flex items-center justify-center font-bold text-sm">
                               {index + 1}
                             </div>
-                            <h3 className="text-sm font-bold text-white">
-                              {variant.name || <span className="text-slate-500 italic">Unnamed Variant</span>}
+                            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                              {variant.name || <span className="text-slate-400 dark:text-slate-500 italic">Unnamed Variant</span>}
                             </h3>
                           </div>
 
                           <div className="flex items-center gap-4">
                             <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-                              <button type="button" onClick={(e) => { e.stopPropagation(); handleMoveVariantUp(index); }} disabled={index === 0} className="p-2 text-slate-400 hover:text-blue-400 rounded-lg disabled:opacity-30 transition-colors cursor-pointer" title="Move Up"><FiArrowUp /></button>
-                              <button type="button" onClick={(e) => { e.stopPropagation(); handleMoveVariantDown(index); }} disabled={index === addVariants.length - 1} className="p-2 text-slate-400 hover:text-blue-400 rounded-lg disabled:opacity-30 transition-colors cursor-pointer" title="Move Down"><FiArrowDown /></button>
-                              <div className="w-px h-5 bg-white/10 mx-1"></div>
-                              <button type="button" onClick={(e) => { e.stopPropagation(); handleDuplicateVariant(index); }} className="p-2 text-slate-400 hover:text-emerald-400 rounded-lg transition-colors cursor-pointer" title="Duplicate Variant"><FiCopy /></button>
-                              <button type="button" onClick={(e) => { e.stopPropagation(); handleRemoveVariant(index); }} className="p-2 text-slate-400 hover:text-red-400 rounded-lg transition-colors cursor-pointer" title="Delete Variant"><FiTrash2 /></button>
+                              <button type="button" onClick={(e) => { e.stopPropagation(); handleMoveVariantUp(index); }} disabled={index === 0} className="p-2 text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 rounded-lg disabled:opacity-30 transition-colors cursor-pointer" title="Move Up"><FiArrowUp /></button>
+                              <button type="button" onClick={(e) => { e.stopPropagation(); handleMoveVariantDown(index); }} disabled={index === addVariants.length - 1} className="p-2 text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 rounded-lg disabled:opacity-30 transition-colors cursor-pointer" title="Move Down"><FiArrowDown /></button>
+                              <div className="w-px h-5 bg-slate-200 dark:bg-white/10 mx-1"></div>
+                              <button type="button" onClick={(e) => { e.stopPropagation(); handleDuplicateVariant(index); }} className="p-2 text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 rounded-lg transition-colors cursor-pointer" title="Duplicate Variant"><FiCopy /></button>
+                              <button type="button" onClick={(e) => { e.stopPropagation(); handleRemoveVariant(index); }} className="p-2 text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 rounded-lg transition-colors cursor-pointer" title="Delete Variant"><FiTrash2 /></button>
                             </div>
-                            <div className="w-px h-6 bg-white/10"></div>
-                            <div className="p-1 text-slate-400">
+                            <div className="w-px h-6 bg-slate-200 dark:bg-white/10"></div>
+                            <div className="p-1 text-slate-400 dark:text-slate-500">
                               {expandedAddVariantIndex === index ? <FiChevronUp className="text-xl" /> : <FiChevronDown className="text-xl" />}
                             </div>
                           </div>
@@ -3520,65 +3475,65 @@ const ProductList = () => {
 
                         {/* Accordion Content */}
                         {expandedAddVariantIndex === index && (
-                          <div className="p-6 border-t border-white/10 bg-black/20">
+                          <div className="p-6 border-t border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20">
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
                               <div className="sm:col-span-2 md:col-span-3">
-                                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Variant Name</label>
-                                <input type="text" value={variant.name} onChange={e => handleVariantChange(index, 'name', e.target.value)} placeholder="e.g. Active Black" required className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500 text-white" />
+                                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Variant Name</label>
+                                <input type="text" value={variant.name} onChange={e => handleVariantChange(index, 'name', e.target.value)} placeholder="e.g. Active Black" required className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500 text-slate-900 dark:text-white" />
                               </div>
 
                               <div>
-                                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Quantity</label>
-                                <input type="number" value={variant.quantity} onChange={e => handleVariantChange(index, 'quantity', e.target.value)} className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500 text-white scheme-dark" />
+                                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Quantity</label>
+                                <input type="number" value={variant.quantity} onChange={e => handleVariantChange(index, 'quantity', e.target.value)} className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500 text-slate-900 dark:text-white scheme-light dark:scheme-dark" />
                               </div>
                               <div>
-                                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Price</label>
-                                <input type="number" value={variant.price} onChange={e => handleVariantChange(index, 'price', e.target.value)} className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500 text-white scheme-dark" />
+                                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Price</label>
+                                <input type="number" value={variant.price} onChange={e => handleVariantChange(index, 'price', e.target.value)} className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500 text-slate-900 dark:text-white scheme-light dark:scheme-dark" />
                               </div>
                               <div>
-                                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Offer Price</label>
-                                <input type="number" value={variant.offerPrice} onChange={e => handleVariantChange(index, 'offerPrice', e.target.value)} className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500 text-white scheme-dark" />
+                                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Offer Price</label>
+                                <input type="number" value={variant.offerPrice} onChange={e => handleVariantChange(index, 'offerPrice', e.target.value)} className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500 text-slate-900 dark:text-white scheme-light dark:scheme-dark" />
                               </div>
                               <div>
-                                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">L1 Price</label>
-                                <input type="number" value={variant.l1Price} onChange={e => handleVariantChange(index, 'l1Price', e.target.value)} className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500 text-white scheme-dark" />
+                                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">L1 Price</label>
+                                <input type="number" value={variant.l1Price} onChange={e => handleVariantChange(index, 'l1Price', e.target.value)} className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500 text-slate-900 dark:text-white scheme-light dark:scheme-dark" />
                               </div>
                               <div>
-                                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">L2 Price</label>
-                                <input type="number" value={variant.l2Price} onChange={e => handleVariantChange(index, 'l2Price', e.target.value)} className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500 text-white scheme-dark" />
+                                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">L2 Price</label>
+                                <input type="number" value={variant.l2Price} onChange={e => handleVariantChange(index, 'l2Price', e.target.value)} className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500 text-slate-900 dark:text-white scheme-light dark:scheme-dark" />
                               </div>
                               <div>
-                                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">L3 Price</label>
-                                <input type="number" value={variant.l3Price} onChange={e => handleVariantChange(index, 'l3Price', e.target.value)} className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500 text-white scheme-dark" />
+                                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">L3 Price</label>
+                                <input type="number" value={variant.l3Price} onChange={e => handleVariantChange(index, 'l3Price', e.target.value)} className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500 text-slate-900 dark:text-white scheme-light dark:scheme-dark" />
                               </div>
 
                               <div className="sm:col-span-2 md:col-span-3">
-                                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Quantity Pricing Slabs</label>
+                                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Quantity Pricing Slabs</label>
                                 {(variant.quantityPricing || []).map((qp, qpIndex) => (
                                   <div key={qpIndex} className="flex items-center gap-3 mb-3">
                                     <div className="flex-1">
-                                      <input type="number" value={qp.minQty} onChange={e => handleVariantQuantityPricingChange(index, qpIndex, 'minQty', e.target.value)} placeholder="Minimum Quantity" className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500 text-white scheme-dark" />
+                                      <input type="number" value={qp.minQty} onChange={e => handleVariantQuantityPricingChange(index, qpIndex, 'minQty', e.target.value)} placeholder="Minimum Quantity" className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500 text-slate-900 dark:text-white scheme-light dark:scheme-dark" />
                                     </div>
                                     <div className="flex-1">
-                                      <input type="number" value={qp.price} onChange={e => handleVariantQuantityPricingChange(index, qpIndex, 'price', e.target.value)} placeholder="Price per unit" className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500 text-white scheme-dark" />
+                                      <input type="number" value={qp.price} onChange={e => handleVariantQuantityPricingChange(index, qpIndex, 'price', e.target.value)} placeholder="Price per unit" className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500 text-slate-900 dark:text-white scheme-light dark:scheme-dark" />
                                     </div>
-                                    <button type="button" onClick={() => handleRemoveVariantQuantityPricing(index, qpIndex)} className="p-2.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 rounded-xl transition-colors shrink-0 cursor-pointer" title="Remove Slab">
+                                    <button type="button" onClick={() => handleRemoveVariantQuantityPricing(index, qpIndex)} className="p-2.5 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 dark:hover:text-red-300 rounded-xl transition-colors shrink-0 cursor-pointer" title="Remove Slab">
                                       <FiTrash2 />
                                     </button>
                                   </div>
                                 ))}
-                                <button type="button" onClick={() => handleAddVariantQuantityPricing(index)} className="px-4 py-2 mt-1 bg-blue-900/30 text-blue-400 text-xs font-bold rounded-lg hover:bg-blue-900/50 transition-colors border border-blue-500/30 cursor-pointer">
+                                <button type="button" onClick={() => handleAddVariantQuantityPricing(index)} className="px-4 py-2 mt-1 bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 text-xs font-bold rounded-lg dark:hover:bg-blue-900/50 transition-colors dark:border-blue-500/30 cursor-pointer">
                                   + Add Quantity Slab
                                 </button>
                               </div>
 
                               <div className="sm:col-span-2 md:col-span-3">
-                                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Image URLs (comma separated)</label>
-                                <input type="text" value={variant.image_urls} onChange={e => handleVariantChange(index, 'image_urls', e.target.value)} placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg" className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500 text-white" />
+                                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Image URLs (comma separated)</label>
+                                <input type="text" value={variant.image_urls} onChange={e => handleVariantChange(index, 'image_urls', e.target.value)} placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg" className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500 text-slate-900 dark:text-white" />
                                 {variant.image_urls && variant.image_urls.split(',').filter(url => url.trim()).length > 0 && (
                                   <div className="flex flex-wrap gap-3 mt-3">
                                     {variant.image_urls.split(',').map((url, i) => url.trim() && (
-                                      <div key={i} className="w-16 h-16 border border-white/10 rounded-lg overflow-hidden bg-slate-800 shadow-sm shrink-0 flex items-center justify-center">
+                                      <div key={i} className="w-16 h-16 border border-slate-200 dark:border-white/10 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 shadow-sm shrink-0 flex items-center justify-center">
                                         <ProgressiveImage
                                           src={getImageUrl(url.trim(), { width: 150, quality: 60 })}
                                           alt={`Preview ${i}`}
@@ -3596,16 +3551,16 @@ const ProductList = () => {
                     ))}
                   </div>
 
-                  <button type="button" onClick={handleAddVariant} className="w-full py-4 border-2 border-dashed border-blue-500/30 rounded-2xl text-blue-400 font-bold hover:bg-blue-900/20 hover:border-blue-400 transition-colors flex items-center justify-center cursor-pointer">
+                  <button type="button" onClick={handleAddVariant} className="w-full py-4 border-2 border-dashed border-blue-300 dark:border-blue-500/30 rounded-2xl text-blue-600 dark:text-blue-400 font-bold hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-400 transition-colors flex items-center justify-center cursor-pointer">
                     <FiPlus className="mr-2 text-xl" /> Add Product Variant
                   </button>
                 </div>
               </form>
             </div>
 
-            <div className="px-4 sm:px-6 py-4 border-t border-white/10 bg-white/[0.03] flex flex-col sm:flex-row justify-end gap-3 shrink-0">
-              <button onClick={closeAddModal} className="w-full sm:w-auto px-5 py-2.5 text-slate-300 font-bold rounded-xl hover:bg-slate-800 transition-colors">Cancel</button>
-              <button type="submit" form="addProductForm" className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30">
+            <div className="px-4 sm:px-6 py-4 border-t border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-white/[0.03] flex flex-col sm:flex-row justify-end gap-3 shrink-0">
+              <button onClick={closeAddModal} className="w-full sm:w-auto px-5 py-2.5 text-slate-600 hover:text-slate-900 hover:bg-slate-200 dark:text-slate-300 font-bold rounded-xl dark:hover:bg-slate-800 transition-colors">Cancel</button>
+              <button type="submit" form="addProductForm" className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/30">
                 <FiPlus className="mr-2" />
                 Add Product
               </button>
@@ -3617,19 +3572,19 @@ const ProductList = () => {
       {/* Deactivate Products Conditions Modal */}
       {isDeactivateModalOpen && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={() => !isBulkUpdating && setIsDeactivateModalOpen(false)}></div>
-          <div className="relative bg-slate-950/50 border border-white/20 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-white/[0.03]">
+          <div className="absolute inset-0 dark:bg-slate-950/50 backdrop-blur-lg" onClick={() => !isBulkUpdating && setIsDeactivateModalOpen(false)}></div>
+          <div className="relative bg-transparent dark:bg-slate-950/50 border border-slate-200 dark:border-white/20 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-white/[0.03]">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-red-900/50 text-red-400 flex items-center justify-center text-lg">
+                <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 dark:bg-red-900/50 dark:text-red-400 flex items-center justify-center text-lg">
                   <FiTrash2 />
                 </div>
-                <h2 className="text-xl font-bold text-white">Deactivate Products</h2>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Deactivate Products</h2>
               </div>
               <button
                 onClick={() => setIsDeactivateModalOpen(false)}
                 disabled={isBulkUpdating}
-                className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors"
+                className="p-2 text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200 dark:text-slate-400 dark:hover:text-white dark:bg-slate-800/80 dark:hover:bg-slate-800 dark:border-white/10 rounded-full transition-colors"
               >
                 <FiX className="text-xl" />
               </button>
@@ -3637,7 +3592,7 @@ const ProductList = () => {
 
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Condition</label>
+                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Select Condition</label>
                 <CustomDropdown
                   value={deactivateCondition}
                   onChange={(val) => setDeactivateCondition(val)}
@@ -3647,14 +3602,14 @@ const ProductList = () => {
                     { value: 'category', label: 'Specific Category' },
                     { value: 'all', label: 'All Products' }
                   ]}
-                  statusColor="bg-slate-900/50 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50"
+                  statusColor="bg-white dark:bg-slate-900/50 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50"
                 />
               </div>
 
               {deactivateCondition === 'quantity' && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Quantity Condition</label>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Quantity Condition</label>
                     <CustomDropdown
                       value={deactivateQuantityOperator}
                       onChange={(val) => setDeactivateQuantityOperator(val)}
@@ -3666,11 +3621,11 @@ const ProductList = () => {
                         { value: 'eq', label: 'Is equal to' },
                         { value: 'neq', label: 'Is not equal to' }
                       ]}
-                      statusColor="bg-slate-900/50 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50"
+                      statusColor="bg-white dark:bg-slate-900/50 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Quantity Threshold</label>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Quantity Threshold</label>
                     <input
                       type="number"
                       value={deactivateQuantityValue}
@@ -3678,13 +3633,13 @@ const ProductList = () => {
                       disabled={isBulkUpdating}
                       required
                       placeholder="e.g. 10"
-                      className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500"
+                      className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500 scheme-light dark:scheme-dark"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Deactivation Scope</label>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Deactivation Scope</label>
                     <div className="flex items-center gap-6 mt-1">
-                      <label className="flex items-center gap-2 text-sm text-slate-300 font-bold cursor-pointer select-none">
+                      <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 font-bold cursor-pointer select-none">
                         <input
                           type="radio"
                           name="deactivateScope"
@@ -3692,11 +3647,11 @@ const ProductList = () => {
                           checked={deactivateScope === 'product'}
                           onChange={() => setDeactivateScope('product')}
                           disabled={isBulkUpdating}
-                          className="w-4 h-4 text-blue-500 bg-slate-800 border-white/10 focus:ring-blue-500 accent-blue-500"
+                          className="w-4 h-4 text-blue-500 bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-white/10 focus:ring-blue-500 accent-blue-500"
                         />
                         Entire Product
                       </label>
-                      <label className="flex items-center gap-2 text-sm text-slate-300 font-bold cursor-pointer select-none">
+                      <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 font-bold cursor-pointer select-none">
                         <input
                           type="radio"
                           name="deactivateScope"
@@ -3704,7 +3659,7 @@ const ProductList = () => {
                           checked={deactivateScope === 'variants'}
                           onChange={() => setDeactivateScope('variants')}
                           disabled={isBulkUpdating}
-                          className="w-4 h-4 text-blue-500 bg-slate-800 border-white/10 focus:ring-blue-500 accent-blue-500"
+                          className="w-4 h-4 text-blue-500 bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-white/10 focus:ring-blue-500 accent-blue-500"
                         />
                         Variants Only
                       </label>
@@ -3715,7 +3670,7 @@ const ProductList = () => {
 
               {deactivateCondition === 'brand' && (
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Brand</label>
+                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Select Brand</label>
                   <CustomDropdown
                     value={selectedDeactivateBrand}
                     onChange={(val) => setSelectedDeactivateBrand(val)}
@@ -3724,14 +3679,14 @@ const ProductList = () => {
                       ...brands.map(b => ({ value: b._id, label: b.name }))
                     ]}
                     defaultLabel="Choose a Brand"
-                    statusColor="bg-slate-900/50 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50"
+                    statusColor="bg-white dark:bg-slate-900/50 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50"
                   />
                 </div>
               )}
 
               {deactivateCondition === 'category' && (
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Category</label>
+                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Select Category</label>
                   <CustomDropdown
                     value={selectedDeactivateCategory}
                     onChange={(val) => setSelectedDeactivateCategory(val)}
@@ -3740,17 +3695,17 @@ const ProductList = () => {
                       ...categories.map(c => ({ value: c._id, label: c.name }))
                     ]}
                     defaultLabel="Choose a Category"
-                    statusColor="bg-slate-900/50 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50"
+                    statusColor="bg-white dark:bg-slate-900/50 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50"
                   />
                 </div>
               )}
             </div>
 
-            <div className="px-6 py-4 border-t border-white/10 bg-white/[0.03] flex flex-col sm:flex-row justify-end gap-3">
+            <div className="px-6 py-4 border-t border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-white/[0.03] flex flex-col sm:flex-row justify-end gap-3">
               <button
                 onClick={() => setIsDeactivateModalOpen(false)}
                 disabled={isBulkUpdating}
-                className="w-full sm:w-auto px-5 py-2.5 text-slate-300 font-bold rounded-xl hover:bg-slate-800 transition-colors"
+                className="w-full sm:w-auto px-5 py-2.5 text-slate-600 hover:text-slate-900 hover:bg-slate-200 dark:text-slate-300 font-bold rounded-xl dark:hover:bg-slate-800 transition-colors"
               >
                 Cancel
               </button>
@@ -3779,20 +3734,20 @@ const ProductList = () => {
       {/* Activate Products Conditions Modal */}
       {isActivateModalOpen && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={() => !isBulkUpdating && setIsActivateModalOpen(false)}></div>
+          <div className="absolute inset-0 dark:bg-slate-950/50 backdrop-blur-lg" onClick={() => !isBulkUpdating && setIsActivateModalOpen(false)}></div>
 
-          <div className="relative bg-slate-950/50 border border-white/20 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-white/[0.03]">
+          <div className="relative bg-transparent dark:bg-slate-950/50 border border-slate-200 dark:border-white/20 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-white/[0.03]">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-900/50 text-emerald-400 flex items-center justify-center text-lg">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-900/50 dark:text-emerald-400 flex items-center justify-center text-lg">
                   <FiCheck />
                 </div>
-                <h2 className="text-xl font-bold text-white">Activate Products</h2>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Activate Products</h2>
               </div>
               <button
                 onClick={() => setIsActivateModalOpen(false)}
                 disabled={isBulkUpdating}
-                className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors"
+                className="p-2 text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200 dark:text-slate-400 dark:hover:text-white dark:bg-slate-800/80 dark:hover:bg-slate-800 dark:border-white/10 rounded-full transition-colors"
               >
                 <FiX className="text-xl" />
               </button>
@@ -3800,7 +3755,7 @@ const ProductList = () => {
 
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Condition</label>
+                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Select Condition</label>
                 <CustomDropdown
                   value={activateCondition}
                   onChange={(val) => setActivateCondition(val)}
@@ -3810,14 +3765,14 @@ const ProductList = () => {
                     { value: 'category', label: 'Specific Category' },
                     { value: 'all', label: 'All Products' }
                   ]}
-                  statusColor="bg-slate-900/50 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50"
+                  statusColor="bg-white dark:bg-slate-900/50 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50"
                 />
               </div>
 
               {activateCondition === 'quantity' && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Quantity Condition</label>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Quantity Condition</label>
                     <CustomDropdown
                       value={activateQuantityOperator}
                       onChange={(val) => setActivateQuantityOperator(val)}
@@ -3829,11 +3784,11 @@ const ProductList = () => {
                         { value: 'eq', label: 'Is equal to' },
                         { value: 'neq', label: 'Is not equal to' }
                       ]}
-                      statusColor="bg-slate-900/50 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50"
+                      statusColor="bg-white dark:bg-slate-900/50 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Quantity Threshold</label>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Quantity Threshold</label>
                     <input
                       type="number"
                       value={activateQuantityValue}
@@ -3841,13 +3796,13 @@ const ProductList = () => {
                       disabled={isBulkUpdating}
                       required
                       placeholder="e.g. 1"
-                      className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-500"
+                      className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500 scheme-light dark:scheme-dark"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Activation Scope</label>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Activation Scope</label>
                     <div className="flex items-center gap-6 mt-1">
-                      <label className="flex items-center gap-2 text-sm text-slate-300 font-bold cursor-pointer select-none">
+                      <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 font-bold cursor-pointer select-none">
                         <input
                           type="radio"
                           name="activateScope"
@@ -3855,11 +3810,11 @@ const ProductList = () => {
                           checked={activateScope === 'product'}
                           onChange={() => setActivateScope('product')}
                           disabled={isBulkUpdating}
-                          className="w-4 h-4 text-blue-500 bg-slate-800 border-white/10 focus:ring-blue-500 accent-blue-500"
+                          className="w-4 h-4 text-blue-500 bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-white/10 focus:ring-blue-500 accent-blue-500"
                         />
                         Entire Product
                       </label>
-                      <label className="flex items-center gap-2 text-sm text-slate-300 font-bold cursor-pointer select-none">
+                      <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 font-bold cursor-pointer select-none">
                         <input
                           type="radio"
                           name="activateScope"
@@ -3867,7 +3822,7 @@ const ProductList = () => {
                           checked={activateScope === 'variants'}
                           onChange={() => setActivateScope('variants')}
                           disabled={isBulkUpdating}
-                          className="w-4 h-4 text-blue-500 bg-slate-800 border-white/10 focus:ring-blue-500 accent-blue-500"
+                          className="w-4 h-4 text-blue-500 bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-white/10 focus:ring-blue-500 accent-blue-500"
                         />
                         Variants Only
                       </label>
@@ -3878,7 +3833,7 @@ const ProductList = () => {
 
               {activateCondition === 'brand' && (
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Brand</label>
+                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Select Brand</label>
                   <CustomDropdown
                     value={selectedActivateBrand}
                     onChange={(val) => setSelectedActivateBrand(val)}
@@ -3887,14 +3842,14 @@ const ProductList = () => {
                       ...brands.map(b => ({ value: b._id, label: b.name }))
                     ]}
                     defaultLabel="Choose a Brand"
-                    statusColor="bg-slate-900/50 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50"
+                    statusColor="bg-white dark:bg-slate-900/50 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50"
                   />
                 </div>
               )}
 
               {activateCondition === 'category' && (
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Category</label>
+                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Select Category</label>
                   <CustomDropdown
                     value={selectedActivateCategory}
                     onChange={(val) => setSelectedActivateCategory(val)}
@@ -3903,17 +3858,17 @@ const ProductList = () => {
                       ...categories.map(c => ({ value: c._id, label: c.name }))
                     ]}
                     defaultLabel="Choose a Category"
-                    statusColor="bg-slate-900/50 border-white/10 text-white focus:ring-2 focus:ring-blue-500/50"
+                    statusColor="bg-white dark:bg-slate-900/50 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50"
                   />
                 </div>
               )}
             </div>
 
-            <div className="px-6 py-4 border-t border-white/10 bg-white/[0.03] flex flex-col sm:flex-row justify-end gap-3">
+            <div className="px-6 py-4 border-t border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-white/[0.03] flex flex-col sm:flex-row justify-end gap-3">
               <button
                 onClick={() => setIsActivateModalOpen(false)}
                 disabled={isBulkUpdating}
-                className="w-full sm:w-auto px-5 py-2.5 text-slate-300 font-bold rounded-xl hover:bg-slate-800 transition-colors"
+                className="w-full sm:w-auto px-5 py-2.5 text-slate-600 hover:text-slate-900 hover:bg-slate-200 dark:text-slate-300 font-bold rounded-xl dark:hover:bg-slate-800 transition-colors"
               >
                 Cancel
               </button>
@@ -3942,13 +3897,13 @@ const ProductList = () => {
       {/* Image View Modal */}
       {isImageViewOpen && currentProductForView && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={() => setIsImageViewOpen(false)}></div>
-          <div className="relative bg-slate-950/25 border border-white/20 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 dark:bg-slate-950/50 backdrop-blur-lg" onClick={() => setIsImageViewOpen(false)}></div>
+          <div className="relative bg-transparent dark:bg-slate-950/25 border border-slate-200 dark:border-white/20 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
             {/* Floating Close Button */}
             <button
               type="button"
               onClick={() => setIsImageViewOpen(false)}
-              className="absolute top-3.5 right-3.5 z-30 p-2 text-slate-400 hover:text-white bg-slate-900/80 hover:bg-slate-800 border border-white/10 rounded-full transition-all shadow-lg cursor-pointer"
+              className="absolute top-3.5 right-3.5 z-30 p-2 text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200 dark:text-slate-400 dark:hover:text-white dark:bg-slate-900/80 dark:hover:bg-slate-800 dark:border-white/10 rounded-full transition-all shadow-lg cursor-pointer"
               title="Close"
             >
               <FiX className="text-xl" />
@@ -3991,12 +3946,12 @@ const ProductList = () => {
                 <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-5">
                   {/* Product Context Banner */}
                   <div className="flex items-center gap-3 pr-10">
-                    <div className="w-10 h-10 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center text-lg shrink-0 border border-blue-500/20">
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400 flex items-center justify-center text-lg shrink-0 border border-blue-200 dark:border-blue-500/20">
                       <FiImage />
                     </div>
                     <div className="min-w-0">
-                      <h2 className="text-base sm:text-lg font-bold text-white truncate">{currentProductForView.name || 'Product Images'}</h2>
-                      <p className="text-[11px] text-slate-400 font-medium">
+                      <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white truncate">{currentProductForView.name || 'Product Images'}</h2>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                         {hasVariants ? `${variantGroups.length} Variant${variantGroups.length === 1 ? '' : 's'} Available` : 'Main Product Images'}
                       </p>
                     </div>
@@ -4009,7 +3964,7 @@ const ProductList = () => {
                         {mainImages.map((url, i) => (
                           <div
                             key={`main-${i}`}
-                            className="relative aspect-square border border-white/15 rounded-2xl overflow-hidden bg-white p-2 flex items-center justify-center shadow-sm group hover:border-blue-500/40 transition-all"
+                            className="relative aspect-square border border-slate-200 dark:border-white/15 rounded-2xl overflow-hidden bg-white p-2 flex items-center justify-center shadow-sm group hover:border-blue-500/40 transition-all"
                           >
                             <ProgressiveImage
                               src={getImageUrl(url, { width: 450, quality: 70 })}
@@ -4020,8 +3975,8 @@ const ProductList = () => {
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-16 text-slate-400 bg-white/[0.02] border border-white/10 rounded-2xl">
-                        <FiImage className="text-4xl mx-auto mb-2 opacity-40 text-slate-500" />
+                      <div className="text-center py-16 text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-2xl">
+                        <FiImage className="text-4xl mx-auto mb-2 opacity-40 text-slate-400 dark:text-slate-500" />
                         <p className="text-sm font-semibold">No images available for this product.</p>
                       </div>
                     )
@@ -4045,13 +4000,15 @@ const ProductList = () => {
                               }`}
                             >
                               <span
-                                className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs ring-1 ring-white/20"
+                                className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs ring-1 ring-black/10 dark:ring-white/20"
                                 style={{ backgroundColor: colorStyle.hex }}
                               />
                               <span>{group.name}</span>
                               {group.images.length > 0 && (
                                 <span className={`px-1.5 py-0.25 rounded-full text-[10px] font-black ${
-                                  isSelected ? 'bg-black/30 text-white' : 'bg-black/40 text-slate-300 border border-white/10'
+                                  isSelected
+                                    ? 'bg-black/20 text-white'
+                                    : 'bg-black/5 text-slate-800 dark:bg-black/40 dark:text-slate-300 border border-black/10 dark:border-white/10'
                                 }`}>
                                   {group.images.length}
                                 </span>
@@ -4066,8 +4023,8 @@ const ProductList = () => {
                         const currentGroup = variantGroups[selectedVariantImageIndex] || variantGroups[0];
                         if (!currentGroup || currentGroup.images.length === 0) {
                           return (
-                            <div className="text-center py-16 text-slate-400 bg-white/[0.02] border border-white/10 rounded-2xl">
-                              <FiImage className="text-4xl mx-auto mb-2 opacity-40 text-slate-500" />
+                            <div className="text-center py-16 text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-2xl">
+                              <FiImage className="text-4xl mx-auto mb-2 opacity-40 text-slate-400 dark:text-slate-500" />
                               <p className="text-sm font-semibold">No images available for {currentGroup?.name || 'this variant'}.</p>
                             </div>
                           );
@@ -4078,7 +4035,7 @@ const ProductList = () => {
                             {currentGroup.images.map((url, i) => (
                               <div
                                 key={`${selectedVariantImageIndex}-${i}`}
-                                className="relative aspect-square border border-white/15 rounded-2xl overflow-hidden bg-white p-2 flex items-center justify-center shadow-sm group hover:border-blue-500/40 transition-all"
+                                className="relative aspect-square border border-slate-200 dark:border-white/15 rounded-2xl overflow-hidden bg-white p-2 flex items-center justify-center shadow-sm group hover:border-blue-500/40 transition-all"
                               >
                                 <ProgressiveImage
                                   src={getImageUrl(url, { width: 450, quality: 70 })}
@@ -4102,26 +4059,26 @@ const ProductList = () => {
       {/* Delete Confirmation Modal */}
       {deleteConfirmOpen && productToDelete && createPortal(
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setProductToDelete(null); setTypedConfirmName(''); }}></div>
-          <div className="relative bg-slate-950/25 border border-red-500/20 rounded-2xl p-6 shadow-red-500/20 shadow-2xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+          <div className="absolute inset-0 dark:bg-slate-950/50 backdrop-blur-lg animate-fade-in" onClick={() => { setDeleteConfirmOpen(false); setProductToDelete(null); setTypedConfirmName(''); }}></div>
+          <div className="relative bg-white/40 dark:bg-slate-950/95 border border-red-500/30 rounded-2xl p-6 shadow-2xl shadow-red-500/10 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
               <FiAlertCircle className="text-red-500 animate-pulse" /> Confirm Deletion
             </h3>
-            <p className="text-slate-400 text-sm mb-4 leading-relaxed">
-              This action cannot be undone. To permanently delete the product <strong className="text-white">"{productToDelete.name}"</strong>, please type its name below to proceed:
+            <p className="text-slate-600 dark:text-slate-400 text-sm mb-4 leading-relaxed">
+              This action cannot be undone. To permanently delete the product <strong className="text-slate-900 dark:text-white">"{productToDelete.name}"</strong>, please type its name below to proceed:
             </p>
             <input
               type="text"
               placeholder="Type product name to confirm"
               value={typedConfirmName}
               onChange={(e) => setTypedConfirmName(e.target.value)}
-              className="w-full px-4 py-2.5 bg-black/20 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-sm font-medium mb-5"
+              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-sm font-medium mb-5"
             />
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => { setDeleteConfirmOpen(false); setProductToDelete(null); setTypedConfirmName(''); }}
-                className="flex-1 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors text-sm"
+                className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 font-bold rounded-xl transition-colors text-sm"
               >
                 Cancel
               </button>
@@ -4147,18 +4104,18 @@ const ProductList = () => {
       {/* Custom Alert Modal */}
       {alertOpen && createPortal(
         <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg animate-fade-in" onClick={() => setAlertOpen(false)}></div>
-          <div className="relative bg-slate-950/25 border border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-              <FiInfo className="text-blue-400" /> Alert
+          <div className="absolute inset-0 dark:bg-slate-950/50 backdrop-blur-lg animate-fade-in" onClick={() => setAlertOpen(false)}></div>
+          <div className="relative bg-white/40 dark:bg-slate-950/95 border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+              <FiInfo className="text-blue-500 dark:text-blue-400" /> Alert
             </h3>
-            <p className="text-slate-300 text-sm mb-5 leading-relaxed">
+            <p className="text-slate-600 dark:text-slate-300 text-sm mb-5 leading-relaxed">
               {alertMessage}
             </p>
             <button
               type="button"
               onClick={() => setAlertOpen(false)}
-              className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors text-sm shadow-lg shadow-blue-600/10"
+              className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-colors text-sm shadow-lg shadow-blue-600/10"
             >
               OK
             </button>

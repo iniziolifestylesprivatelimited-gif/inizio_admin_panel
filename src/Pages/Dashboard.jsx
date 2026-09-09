@@ -2848,8 +2848,8 @@ const Dashboard = () => {
 
       {/* Push Alerts Permissions Modal */}
       {isNotificationsModalOpen && createPortal(
-        <div className="fixed inset-0 bg-slate-900/40 dark:bg-slate-950/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-linear-to-br dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/95 border border-slate-200 dark:border-white/10 shadow-2xl rounded-3xl p-6 max-w-md w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 dark:bg-slate-950/50 backdrop-blur-lg flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
+          <div className="bg-transparent dark:bg-slate-950/25 dark:via-slate-900 dark:to-blue-950/95 border border-slate-200 dark:border-white/10 shadow-2xl rounded-3xl p-6 max-w-md w-full relative overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="absolute inset-0 bg-linear-to-b from-slate-100/50 dark:from-white/5 to-transparent pointer-events-none"></div>
 
             <div className="flex justify-between items-start mb-5 relative z-1000">
@@ -2920,7 +2920,7 @@ const Dashboard = () => {
                   return (
                     <div
                       key={u._id || u.email || index}
-                      className="flex items-center justify-between bg-slate-50/80 hover:bg-slate-100/80 dark:bg-transparent backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 p-3 rounded-xl hover:border-slate-300 dark:hover:border-white/20 transition-colors animate-in fade-in duration-150"
+                      className="flex items-center justify-between bg-white/40 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 dark:bg-transparent backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 p-3 rounded-xl hover:border-slate-300 dark:hover:border-white/20 transition-colors animate-in fade-in duration-150"
                     >
                       <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
                         <div className={`w-8 h-8 rounded-lg border text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-inner ${isEnabled
