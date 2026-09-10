@@ -333,14 +333,14 @@ const CampaignStats = () => {
     const recipients = recipientsMap[campaignId];
     if (recipients === undefined) {
       return (
-        <div className="flex items-center gap-1.5 text-slate-500 text-xs font-medium justify-center">
-          <div className="w-3.5 h-3.5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
+        <div className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500 text-xs font-medium justify-center">
+          <div className="w-3.5 h-3.5 border-2 border-indigo-500 dark:border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
           <span>Loading...</span>
         </div>
       );
     }
     if (recipients.length === 0) {
-      return <span className="text-slate-500 text-xs font-semibold">No users</span>;
+      return <span className="text-slate-400 dark:text-slate-500 text-xs font-semibold">No users</span>;
     }
     
     const names = recipients.map(r => r.user?.name || r.user?.email || r.user?.phone || 'N/A');
@@ -353,7 +353,7 @@ const CampaignStats = () => {
         {displayedNames.map((name, idx) => (
           <span 
             key={idx} 
-            className="px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 rounded text-indigo-300 text-[10px] font-semibold"
+            className="px-2 py-0.5 bg-indigo-50 border border-indigo-200 rounded text-indigo-700 dark:bg-indigo-500/10 dark:border-indigo-500/20 dark:text-indigo-300 text-[10px] font-semibold"
             title={name}
           >
             {name}
@@ -361,7 +361,7 @@ const CampaignStats = () => {
         ))}
         {remaining > 0 && (
           <span 
-            className="px-2 py-0.5 bg-indigo-500/20 border border-indigo-500/30 rounded text-indigo-400 text-[10px] font-bold"
+            className="px-2 py-0.5 bg-indigo-100 border border-indigo-300 rounded text-indigo-800 dark:bg-indigo-500/20 dark:border-indigo-500/30 dark:text-indigo-400 text-[10px] font-bold"
             title={names.slice(limit).join(', ')}
           >
             +{remaining} more
@@ -375,8 +375,8 @@ const CampaignStats = () => {
     const anyLoading = group.members.some(m => recipientsMap[m.campaignId] === undefined);
     if (anyLoading) {
       return (
-        <div className="flex items-center gap-1.5 text-slate-500 text-xs font-medium justify-center">
-          <div className="w-3.5 h-3.5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
+        <div className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500 text-xs font-medium justify-center">
+          <div className="w-3.5 h-3.5 border-2 border-indigo-500 dark:border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
           <span>Loading...</span>
         </div>
       );
@@ -394,7 +394,7 @@ const CampaignStats = () => {
     });
 
     if (allNames.length === 0) {
-      return <span className="text-slate-500 text-xs font-semibold">No users</span>;
+      return <span className="text-slate-400 dark:text-slate-500 text-xs font-semibold">No users</span>;
     }
 
     const limit = 5;
@@ -406,7 +406,7 @@ const CampaignStats = () => {
         {displayedNames.map((name, idx) => (
           <span 
             key={idx} 
-            className="px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 rounded text-indigo-300 text-[10px] font-semibold"
+            className="px-2 py-0.5 bg-indigo-50 border border-indigo-200 rounded text-indigo-700 dark:bg-indigo-500/10 dark:border-indigo-500/20 dark:text-indigo-300 text-[10px] font-semibold"
             title={name}
           >
             {name}
@@ -414,7 +414,7 @@ const CampaignStats = () => {
         ))}
         {remaining > 0 && (
           <span 
-            className="px-2 py-0.5 bg-indigo-500/20 border border-indigo-500/30 rounded text-indigo-400 text-[10px] font-bold"
+            className="px-2 py-0.5 bg-indigo-100 border border-indigo-300 rounded text-indigo-800 dark:bg-indigo-500/20 dark:border-indigo-500/30 dark:text-indigo-400 text-[10px] font-bold"
             title={allNames.slice(limit).join(', ')}
           >
             +{remaining} more
@@ -429,11 +429,11 @@ const CampaignStats = () => {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black text-white tracking-tight flex items-center gap-3">
-            <MdHistory className="text-blue-400 shrink-0" />
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+            <MdHistory className="text-blue-600 dark:text-blue-400 shrink-0" />
             <span>Campaign Statistics</span>
           </h1>
-          <p className="text-xs md:text-sm text-slate-400 mt-1.5 font-medium leading-relaxed">
+          <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 mt-1.5 font-medium leading-relaxed">
             Review notification histories, check delivery status, and analyze click-through rates.
           </p>
         </div>
@@ -447,13 +447,13 @@ const CampaignStats = () => {
               placeholder="Search campaigns by title, message, ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-10 py-2.5 bg-black/20 border border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner text-white placeholder-slate-400 text-sm font-medium transition-all backdrop-blur-md"
+              className="w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-black/40 shadow-inner text-slate-900 dark:text-white placeholder-slate-400 text-sm font-medium transition-all backdrop-blur-md"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
               >
                 <FiX size={14} />
               </button>
@@ -463,7 +463,7 @@ const CampaignStats = () => {
             onClick={fetchData} 
             disabled={loading}
             title="Refresh Stats"
-            className="flex items-center justify-center p-2.5 sm:px-4 sm:py-2.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 font-bold rounded-2xl border border-blue-500/30 transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 shrink-0 cursor-pointer h-[42px]"
+            className="flex items-center justify-center p-2.5 sm:px-4 sm:py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-600/20 dark:hover:bg-blue-600/30 dark:text-blue-400 font-bold rounded-2xl border border-blue-200 dark:border-blue-500/30 transition-all shadow-md hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 shrink-0 cursor-pointer h-[42px]"
           >
             <MdRefresh className={`text-xl ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -480,37 +480,41 @@ const CampaignStats = () => {
               title: "Total Campaigns",
               value: totalCampaigns,
               icon: FiBarChart2,
-              color: "text-blue-400",
-              bg: "bg-blue-500/20",
+              color: "text-blue-600 dark:text-blue-400",
+              valueColor: "text-blue-500 dark:text-white",
+              bg: "bg-blue-50 dark:bg-blue-500/20",
               fromColor: "from-blue-500/25",
-              hoverBorder: "hover:border-blue-500/30"
+              hoverBorder: "hover:border-blue-500/40"
             },
             {
               title: "Total Notifications Sent",
               value: totalSent.toLocaleString(),
               icon: FiSend,
-              color: "text-indigo-400",
-              bg: "bg-indigo-500/20",
+              color: "text-indigo-600 dark:text-indigo-400",
+              valueColor: "text-indigo-500 dark:text-white",
+              bg: "bg-indigo-50 dark:bg-indigo-500/20",
               fromColor: "from-indigo-500/25",
-              hoverBorder: "hover:border-indigo-500/30"
+              hoverBorder: "hover:border-indigo-500/40"
             },
             {
               title: "Avg. Delivery Rate",
               value: avgDeliveryRate,
               icon: FiCheckCircle,
-              color: "text-emerald-400",
-              bg: "bg-emerald-500/20",
+              color: "text-emerald-600 dark:text-emerald-400",
+              valueColor: "text-emerald-500 dark:text-white",
+              bg: "bg-emerald-50 dark:bg-emerald-500/20",
               fromColor: "from-emerald-500/25",
-              hoverBorder: "hover:border-emerald-500/30"
+              hoverBorder: "hover:border-emerald-500/40"
             },
             {
               title: "Avg. Click-Through Rate",
               value: avgClickRate,
               icon: FiActivity,
-              color: "text-rose-400",
-              bg: "bg-rose-500/20",
+              color: "text-rose-600 dark:text-rose-400",
+              valueColor: "text-rose-500 dark:text-white",
+              bg: "bg-rose-50 dark:bg-rose-500/20",
               fromColor: "from-rose-500/25",
-              hoverBorder: "hover:border-rose-500/30"
+              hoverBorder: "hover:border-rose-500/40"
             }
           ].map((metric, index) => (
             <Card
@@ -525,7 +529,7 @@ const CampaignStats = () => {
                     {metric.title}
                   </h3>
                   <p
-                    className="text-xl sm:text-2xl xl:text-3xl font-extrabold text-white mt-1 tracking-tight truncate"
+                    className={`text-xl sm:text-2xl xl:text-3xl font-extrabold mt-1 tracking-tight truncate ${metric.valueColor || 'text-slate-900 dark:text-white'}`}
                     title={metric.value.toString()}
                   >
                     {metric.value}
@@ -541,7 +545,7 @@ const CampaignStats = () => {
       )}
 
       {error && (
-        <div className="text-red-400 bg-red-900/20 p-4 rounded-xl border border-red-500/30 flex items-center">
+        <div className="text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 p-4 rounded-xl border border-rose-200 dark:border-rose-500/30 flex items-center">
           <FiAlertCircle className="mr-2 text-lg" /> {error}
         </div>
       )}
@@ -551,9 +555,9 @@ const CampaignStats = () => {
           <TableRowSkeleton columns={5} rows={5} />
         </Card>
       ) : sortedGroups.length === 0 ? (
-        <div className="py-16 flex flex-col items-center justify-center rounded-3xl border border-dashed border-white/20">
-          <MdHistory className="text-5xl text-slate-500 mb-4" />
-          <p className="text-slate-400 font-medium">No campaign statistics found matching the current filters.</p>
+        <div className="py-16 flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 dark:border-white/20">
+          <MdHistory className="text-5xl text-slate-400 dark:text-slate-500 mb-4" />
+          <p className="text-slate-500 dark:text-slate-400 font-medium">No campaign statistics found matching the current filters.</p>
           {(metricFilter !== 'all' || statusFilter !== 'all' || searchQuery) && (
             <button
               onClick={() => {
@@ -563,30 +567,30 @@ const CampaignStats = () => {
                 setSortOrder('desc');
                 setSearchQuery('');
               }}
-              className="mt-3 px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 font-bold rounded-xl border border-blue-500/30 text-xs transition-colors cursor-pointer"
+              className="mt-3 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-600/20 dark:hover:bg-blue-600/30 dark:text-blue-400 font-bold rounded-xl border border-blue-200 dark:border-blue-500/30 text-xs transition-colors cursor-pointer"
             >
               Reset Filters
             </button>
           )}
         </div>
       ) : (
-        <div className="border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full">
+        <div className="bg-white/10 dark:bg-transparent border border-slate-200/80 dark:border-white/10 shadow-md dark:shadow-2xl shadow-slate-200/50 dark:shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full">
           <div className="overflow-auto custom-scrollbar max-h-[60vh]">
             <table className="w-full text-left border-collapse whitespace-nowrap min-w-200">
-              <thead className="sticky top-0 z-20 bg-white/[0.03] backdrop-blur-md shadow-md border-b border-white/10">
-                <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-slate-400">
+              <thead className="sticky top-0 z-20 bg-white/40 dark:bg-white/[0.03] backdrop-blur-md shadow-xs border-b border-slate-200/80 dark:border-white/10">
+                <tr className="border-b border-slate-200/80 dark:border-white/10 text-xs uppercase tracking-wider text-slate-600 dark:text-slate-400">
                   <th className="p-4 font-bold text-center">S.No</th>
                   <th className="p-4 font-bold">Campaign</th>
                   <th 
                     onClick={() => handleSortChange('createdAt')}
-                    className="p-4 font-bold cursor-pointer select-none hover:text-white transition-colors"
+                    className="p-4 font-bold cursor-pointer select-none hover:text-slate-900 dark:hover:text-white transition-colors"
                   >
                     <div className="flex items-center gap-1">
-                      <span className={sortBy === 'createdAt' ? 'text-blue-400 font-extrabold' : ''}>Message & Date</span>
+                      <span className={sortBy === 'createdAt' ? 'text-blue-600 dark:text-blue-400 font-extrabold' : ''}>Message & Date</span>
                       {sortBy === 'createdAt' ? (
-                        sortOrder === 'asc' ? <span className="text-blue-400">▲</span> : <span className="text-blue-400">▼</span>
+                        sortOrder === 'asc' ? <span className="text-blue-600 dark:text-blue-400">▲</span> : <span className="text-blue-600 dark:text-blue-400">▼</span>
                       ) : (
-                        <span className="text-slate-600">⇅</span>
+                        <span className="text-slate-400 dark:text-slate-600">⇅</span>
                       )}
                     </div>
                   </th>
@@ -598,15 +602,15 @@ const CampaignStats = () => {
                         onChange={handleMetricFilterChange}
                         options={metricOptions}
                         defaultLabel="Sent / Received / Clicked"
-                        statusColor={`!border-none !bg-tranparent !py-1.5 !px-3 text-xs select-none hover:text-white ${
-                          metricFilter !== 'all' ? 'text-blue-400 font-extrabold' : 'text-slate-300 font-bold'
+                        statusColor={`!border-none !bg-transparent !py-1.5 !px-3 text-xs select-none ${
+                          metricFilter !== 'all' ? 'text-blue-600 dark:text-blue-400 font-extrabold' : 'text-slate-700 dark:text-slate-300 font-bold hover:text-slate-900 dark:hover:text-white'
                         }`}
                       />
                     </div>
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                 {currentGroups.map((group, index) => {
                   const item = group.representative;
                   const isGrouped = group.members.length > 1;
@@ -616,38 +620,38 @@ const CampaignStats = () => {
                     <React.Fragment key={group.groupKey}>
                       <tr 
                         onClick={() => navigate(`/campaign-stats/${item.campaignId}`, { state: { from: '/campaign-stats' } })}
-                        className="hover:bg-white/[0.02] cursor-pointer transition-colors group"
+                        className="hover:bg-slate-50/60 dark:hover:bg-white/[0.02] cursor-pointer transition-colors group"
                       >
-                        <td className="p-4 text-sm text-slate-400 text-center font-medium">
+                        <td className="p-4 text-sm text-slate-500 dark:text-slate-400 text-center font-medium">
                           {indexOfFirstItem + index + 1}
                         </td>
-                        <td className="p-4 text-sm font-medium text-white">
+                        <td className="p-4 text-sm font-medium text-slate-900 dark:text-white">
                           <div className="flex items-center gap-3">
                             {item.imageUrl ? (
                               <img 
                                 src={item.imageUrl} 
                                 alt="Campaign" 
-                                className="w-10 h-10 rounded-lg object-cover border border-white/10"
+                                className="w-10 h-10 rounded-lg object-cover border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-slate-800"
                                 onError={(e) => { e.target.src = 'https://placehold.co/40x40?text=Img'; }} 
                               />
                             ) : (
-                              <div className="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center border border-blue-500/20 shrink-0">
+                              <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 flex items-center justify-center border border-blue-200 dark:border-blue-500/20 shrink-0">
                                 <MdImage className="text-xl" />
                               </div>
                             )}
                             <div className="flex flex-col min-w-0">
-                              <span className="font-bold text-white group-hover:text-blue-400 transition-colors truncate max-w-[200px]" title={item.title}>
+                              <span className="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate max-w-[200px]" title={item.title}>
                                 {item.title || 'Untitled Notification'}
                               </span>
                               <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className="text-[10px] text-slate-500 font-mono">ID: {item.campaignId}</span>
+                                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">ID: {item.campaignId}</span>
                                 {isGrouped && (
                                   <span 
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       toggleGroupExpand(group.groupKey);
                                     }}
-                                    className="px-1.5 py-0.2 text-[9px] font-bold bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 rounded border border-indigo-500/30 transition-colors"
+                                    className="px-1.5 py-0.2 text-[9px] font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-500/20 dark:text-indigo-300 dark:hover:bg-indigo-500/30 rounded border border-indigo-200 dark:border-indigo-500/30 transition-colors"
                                   >
                                     {isExpanded ? '▲ hide' : `▼ +${group.members.length - 1} platform`}
                                   </span>
@@ -657,10 +661,10 @@ const CampaignStats = () => {
                           </div>
                         </td>
                         <td className="p-4 text-sm max-w-[260px]">
-                          <p className="text-slate-300 text-xs truncate leading-relaxed" title={item.message}>
+                          <p className="text-slate-700 dark:text-slate-300 text-xs truncate leading-relaxed" title={item.message}>
                             {item.message || 'No description'}
                           </p>
-                          <span className="text-slate-500 text-[11px] block mt-0.5">
+                          <span className="text-slate-400 dark:text-slate-500 text-[11px] block mt-0.5">
                             {item.createdAt ? formatDateTimeDDMMYYYY(item.createdAt) : 'N/A'}
                           </span>
                         </td>
@@ -670,10 +674,10 @@ const CampaignStats = () => {
                         <td className="p-4 text-sm text-center">
                           <div className="inline-flex flex-col items-stretch gap-1.5 min-w-[160px]">
                             <div className="flex justify-between items-center text-xs">
-                              <span className="text-slate-400 font-medium">Sent: <strong className="text-white font-bold">{group.totalSent}</strong></span>
-                              <span className="text-blue-400 font-extrabold text-xs">{group.clickRate}</span>
+                              <span className="text-slate-500 dark:text-slate-400 font-medium">Sent: <strong className="text-slate-800 dark:text-white font-bold">{group.totalSent}</strong></span>
+                              <span className="text-blue-600 dark:text-blue-400 font-extrabold text-xs">{group.clickRate}</span>
                             </div>
-                            <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden flex">
+                            <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden flex">
                               <div 
                                 className="bg-emerald-500 h-full transition-all duration-500" 
                                 style={{ width: `${parseFloat(group.deliveryRate) || 0}%` }}
@@ -685,14 +689,14 @@ const CampaignStats = () => {
                                 title={`Clicked: ${group.clickRate}`}
                               />
                             </div>
-                            <div className="flex justify-between items-center text-[10px] text-slate-500">
+                            <div className="flex justify-between items-center text-[10px] text-slate-500 dark:text-slate-400">
                               <span className="flex items-center gap-1">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-                                Recv: <strong className="text-slate-300 font-semibold">{group.totalReceived}</strong>
+                                Recv: <strong className="text-slate-700 dark:text-slate-300 font-semibold">{group.totalReceived}</strong>
                               </span>
                               <span className="flex items-center gap-1">
                                 <span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block" />
-                                Clicks: <strong className="text-slate-300 font-semibold">{group.totalClicked}</strong>
+                                Clicks: <strong className="text-slate-700 dark:text-slate-300 font-semibold">{group.totalClicked}</strong>
                               </span>
                             </div>
                           </div>
@@ -702,10 +706,10 @@ const CampaignStats = () => {
                         <tr 
                           key={member.campaignId}
                           onClick={() => navigate(`/campaign-stats/${member.campaignId}`)}
-                          className="bg-white/[0.015] hover:bg-white/[0.03] cursor-pointer transition-colors border-l-2 border-indigo-500/40"
+                          className="bg-slate-50/50 hover:bg-slate-100/50 dark:bg-white/[0.015] dark:hover:bg-white/[0.03] cursor-pointer transition-colors border-l-2 border-indigo-500/40"
                         >
                           <td className="p-3 text-center">
-                            <span className="text-[10px] text-slate-600 font-mono">{mIdx + 1}</span>
+                            <span className="text-[10px] text-slate-400 dark:text-slate-600 font-mono">{mIdx + 1}</span>
                           </td>
                           <td className="p-3 pl-6 text-sm">
                             <div className="flex items-center gap-2">
@@ -723,17 +727,17 @@ const CampaignStats = () => {
                           </td>
                           <td className="p-3 text-center">
                             <div className="inline-flex flex-col items-stretch gap-1 min-w-[140px]">
-                              <div className="flex justify-between text-[10px] text-slate-500">
-                                <span>Sent: <strong className="text-white">{member.totalSent || 0}</strong></span>
-                                <span className="text-blue-400 font-bold">{member.clickRate || '0%'}</span>
+                              <div className="flex justify-between text-[10px] text-slate-500 dark:text-slate-400">
+                                <span>Sent: <strong className="text-slate-800 dark:text-white">{member.totalSent || 0}</strong></span>
+                                <span className="text-blue-600 dark:text-blue-400 font-bold">{member.clickRate || '0%'}</span>
                               </div>
-                              <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden flex">
+                              <div className="w-full h-1 bg-slate-200 dark:bg-white/5 rounded-full overflow-hidden flex">
                                 <div className="bg-emerald-500 h-full" style={{ width: `${parseFloat(member.deliveryRate) || 0}%` }} />
                                 <div className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" style={{ width: `${parseFloat(member.clickRate) || 0}%` }} />
                               </div>
-                              <div className="flex justify-between text-[9px] text-slate-600">
-                                <span>Recv: <strong className="text-emerald-400">{member.totalReceived || 0}</strong></span>
-                                <span>Clicks: <strong className="text-blue-400">{member.totalClicked || 0}</strong></span>
+                              <div className="flex justify-between text-[9px] text-slate-500 dark:text-slate-600">
+                                <span>Recv: <strong className="text-emerald-600 dark:text-emerald-400">{member.totalReceived || 0}</strong></span>
+                                <span>Clicks: <strong className="text-blue-600 dark:text-blue-400">{member.totalClicked || 0}</strong></span>
                               </div>
                             </div>
                           </td>
@@ -746,15 +750,15 @@ const CampaignStats = () => {
             </table>
           </div>
           {!loading && sortedGroups.length > 0 && (
-            <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
-              <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
-                Showing <span className="font-bold text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastItem, sortedGroups.length)}</span> of <span className="font-bold text-white">{sortedGroups.length}</span> campaigns
+            <div className="p-4 border-t border-slate-200/80 dark:border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/40 dark:bg-white/[0.02] backdrop-blur-md">
+              <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 text-center sm:text-left">
+                Showing <span className="font-bold text-slate-900 dark:text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-slate-900 dark:text-white">{Math.min(indexOfLastItem, sortedGroups.length)}</span> of <span className="font-bold text-slate-900 dark:text-white">{sortedGroups.length}</span> campaigns
               </span>
               <div className="flex space-x-2">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                  className="px-3 sm:px-4 py-2 bg-white hover:bg-slate-100 dark:bg-slate-950/20 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200 dark:border-white/10 transform-gpu cursor-pointer shadow-xs"
                 >
                   &larr;
                 </button>
@@ -791,8 +795,8 @@ const CampaignStats = () => {
                           page === currentPage
                             ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
                             : page === '...'
-                            ? 'bg-transparent text-slate-500 border-transparent cursor-default'
-                            : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
+                            ? 'bg-transparent text-slate-400 dark:text-slate-500 border-transparent cursor-default'
+                            : 'bg-white hover:bg-slate-100 dark:bg-slate-950/20 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-white/10 dark:hover:bg-white/10 dark:hover:text-white cursor-pointer shadow-xs'
                         }`}
                       >
                         {page}
@@ -803,7 +807,7 @@ const CampaignStats = () => {
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages || totalPages === 0}
-                  className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                  className="px-3 sm:px-4 py-2 bg-white hover:bg-slate-100 dark:bg-slate-950/20 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200 dark:border-white/10 transform-gpu cursor-pointer shadow-xs"
                 >
                   &rarr;
                 </button>

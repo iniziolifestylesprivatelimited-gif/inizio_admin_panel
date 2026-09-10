@@ -399,32 +399,32 @@ const Maintenance = () => {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-            <FiSettings className="text-blue-400" />
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+            <FiSettings className="text-blue-600 dark:text-blue-400" />
             System Configuration
           </h1>
-          <p className="text-slate-400 font-medium mt-1">Manage application downtime and platform-specific updates.</p>
+          <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Manage application downtime and platform-specific updates.</p>
         </div>
         <div className="flex gap-3 items-center">
-          {(loading || updateLoading) && <FiRefreshCw className="text-blue-400 animate-spin" size={20} />}
+          {(loading || updateLoading) && <FiRefreshCw className="text-blue-600 dark:text-blue-400 animate-spin" size={20} />}
           <div className="flex flex-wrap gap-2 items-center">
             {globalActive && (
-              <span className="flex items-center px-3 py-1.5 bg-red-500/20 border border-red-500/30 rounded-xl text-red-300 text-xs font-bold animate-pulse shadow-lg shadow-red-500/10">
+              <span className="flex items-center px-3 py-1.5 bg-red-50 dark:bg-red-500/20 border border-red-200 dark:border-red-500/30 rounded-xl text-red-600 dark:text-red-300 text-xs font-bold animate-pulse shadow-sm dark:shadow-lg shadow-red-500/10">
                 <FiAlertTriangle className="mr-1.5" /> Global Active
               </span>
             )}
             {androidActive && (
-              <span className="flex items-center px-3 py-1.5 bg-green-500/20 border border-green-500/30 rounded-xl text-green-300 text-xs font-bold animate-pulse shadow-lg shadow-green-500/10">
+              <span className="flex items-center px-3 py-1.5 bg-green-50 dark:bg-green-500/20 border border-green-200 dark:border-green-500/30 rounded-xl text-green-600 dark:text-green-300 text-xs font-bold animate-pulse shadow-sm dark:shadow-lg shadow-green-500/10">
                 <FaAndroid className="mr-1.5" /> Android Active
               </span>
             )}
             {iosActive && (
-              <span className="flex items-center px-3 py-1.5 bg-blue-500/20 border border-blue-500/30 rounded-xl text-blue-300 text-xs font-bold animate-pulse shadow-lg shadow-blue-500/10">
+              <span className="flex items-center px-3 py-1.5 bg-blue-50 dark:bg-blue-500/20 border border-blue-200 dark:border-blue-500/30 rounded-xl text-blue-600 dark:text-blue-300 text-xs font-bold animate-pulse shadow-sm dark:shadow-lg shadow-blue-500/10">
                 <FaApple className="mr-1.5" /> iOS Active
               </span>
             )}
             {(!globalActive && !androidActive && !iosActive) && (
-              <span className="flex items-center px-3 py-1.5 bg-slate-500/10 border border-slate-500/20 rounded-xl text-slate-400 text-xs font-bold">
+              <span className="flex items-center px-3 py-1.5 bg-slate-100 dark:bg-slate-500/10 border border-slate-200 dark:border-slate-500/20 rounded-xl text-slate-600 dark:text-slate-400 text-xs font-bold">
                 No Active Maintenance
               </span>
             )}
@@ -437,31 +437,31 @@ const Maintenance = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
         {/* SECTION 1: Configure Downtime */}
-        <div className="bg-white/[0.01] border border-white/10 shadow-2xl rounded-3xl p-6 sm:p-8">
-          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-            <FiClock className="text-blue-400" /> Configure Downtime
+        <div className="bg-white/40 dark:bg-white/[0.01] backdrop-blur-xl border border-slate-200/80 dark:border-white/10 shadow-xl dark:shadow-2xl rounded-3xl p-6 sm:p-8">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+            <FiClock className="text-blue-600 dark:text-blue-400" /> Configure Downtime
           </h2>
 
           {/* Tab Selector */}
-          <div className="flex bg-slate-900/60 p-1 rounded-xl mb-6 border border-white/5">
+          <div className="flex bg-slate-100 dark:bg-slate-900/60 p-1 rounded-xl mb-6 border border-slate-200 dark:border-white/5">
             <button
               type="button"
               onClick={() => setActiveTab('global')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === 'global' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === 'global' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}
             >
               <FiGlobe size={14} /> Global
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('android')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === 'android' ? 'bg-green-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === 'android' ? 'bg-green-600 text-white shadow-md' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}
             >
               <FaAndroid size={14} /> Android
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('ios')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === 'ios' ? 'bg-white text-black shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === 'ios' ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-md' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'}`}
             >
               <FaApple size={14} /> iOS
             </button>
@@ -469,7 +469,7 @@ const Maintenance = () => {
 
           <form onSubmit={handleStart} className="space-y-6">
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
                 Display Message to {activeTab === 'global' ? 'All' : activeTab === 'android' ? 'Android' : 'iOS'} Users
               </label>
               <textarea
@@ -482,13 +482,13 @@ const Maintenance = () => {
                 disabled={(activeTab === 'global' ? globalActive : activeTab === 'android' ? androidActive : iosActive) || loading}
                 placeholder={`e.g. Inizio ${activeTab === 'global' ? 'App' : activeTab === 'android' ? 'Android' : 'iOS'} is currently under maintenance.`}
                 rows="3"
-                className={`w-full px-4 py-3 bg-slate-950/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-slate-500 transition-all text-sm font-medium resize-none ${((activeTab === 'global' ? globalActive : activeTab === 'android' ? androidActive : iosActive) || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`w-full px-4 py-3 bg-white dark:bg-slate-950/50 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all text-sm font-medium resize-none ${((activeTab === 'global' ? globalActive : activeTab === 'android' ? androidActive : iosActive) || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}
               ></textarea>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Start Date (Optional)</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Start Date (Optional)</label>
                 <div className={(activeTab === 'global' ? globalActive : activeTab === 'android' ? androidActive : iosActive) || loading ? 'pointer-events-none opacity-50' : ''}>
                   <CustomDatePicker
                     label="Date"
@@ -501,7 +501,7 @@ const Maintenance = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Start Time (Optional)</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Start Time (Optional)</label>
                 <div className={(activeTab === 'global' ? globalActive : activeTab === 'android' ? androidActive : iosActive) || loading ? 'pointer-events-none opacity-50' : ''}>
                   <CustomTimePicker
                     label="Time"
@@ -513,7 +513,7 @@ const Maintenance = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">End Date (Optional)</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">End Date (Optional)</label>
                 <div className={(activeTab === 'global' ? globalActive : activeTab === 'android' ? androidActive : iosActive) || loading ? 'pointer-events-none opacity-50' : ''}>
                   <CustomDatePicker
                     label="Date"
@@ -526,7 +526,7 @@ const Maintenance = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">End Time (Optional)</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">End Time (Optional)</label>
                 <div className={(activeTab === 'global' ? globalActive : activeTab === 'android' ? androidActive : iosActive) || loading ? 'pointer-events-none opacity-50' : ''}>
                   <CustomTimePicker
                     label="Time"
@@ -539,9 +539,9 @@ const Maintenance = () => {
               </div>
             </div>
 
-            <div className="my-6 py-6 bg-slate-950/60 rounded-2xl border border-white/5 flex flex-col items-center justify-center shadow-inner">
-              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">{timerLabel}</p>
-              <div className={`text-4xl font-mono font-bold tracking-widest ${(activeTab === 'global' ? globalActive : activeTab === 'android' ? androidActive : iosActive) ? 'text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.6)]' : 'text-slate-600'}`}>
+            <div className="my-6 py-6 bg-slate-50/80 dark:bg-slate-950/60 rounded-2xl border border-slate-200/80 dark:border-white/5 flex flex-col items-center justify-center shadow-inner">
+              <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">{timerLabel}</p>
+              <div className={`text-4xl font-mono font-bold tracking-widest ${(activeTab === 'global' ? globalActive : activeTab === 'android' ? androidActive : iosActive) ? 'text-red-500 dark:text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.6)]' : 'text-slate-400 dark:text-slate-600'}`}>
                 {timeLeft}
               </div>
             </div>
@@ -550,7 +550,7 @@ const Maintenance = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-bold py-3.5 px-4 rounded-xl transition-all duration-300 flex justify-center items-center gap-2 cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                className="w-full disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-bold py-3.5 px-4 rounded-xl transition-all duration-300 flex justify-center items-center gap-2 cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md shadow-blue-500/20"
               >
                 <FiPlay /> {loading ? 'Updating...' : `Start ${activeTab === 'global' ? 'Global' : activeTab === 'android' ? 'Android' : 'iOS'} Maintenance`}
               </button>
@@ -560,7 +560,7 @@ const Maintenance = () => {
                   type="button"
                   onClick={() => handleStop(false)}
                   disabled={loading}
-                  className="flex-1 disabled:bg-red-800 disabled:cursor-not-allowed text-white font-medium py-3.5 px-4 rounded-xl transition-all duration-300 flex justify-center items-center gap-2 cursor-pointer bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700"
+                  className="flex-1 disabled:bg-red-800 disabled:cursor-not-allowed text-white font-medium py-3.5 px-4 rounded-xl transition-all duration-300 flex justify-center items-center gap-2 cursor-pointer bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 shadow-md shadow-red-500/20"
                 >
                   <FiSquare /> {loading ? 'Updating...' : 'Stop Maintenance'}
                 </button>
@@ -569,7 +569,7 @@ const Maintenance = () => {
                     type="button"
                     onClick={handleStopAll}
                     disabled={loading}
-                    className="flex-1 bg-slate-800 hover:bg-slate-700 disabled:bg-slate-900 disabled:cursor-not-allowed text-slate-300 hover:text-white font-medium py-3.5 px-4 rounded-xl border border-white/10 transition-all duration-300 flex justify-center items-center gap-2 cursor-pointer"
+                    className="flex-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 disabled:bg-slate-200 dark:disabled:bg-slate-900 disabled:cursor-not-allowed text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white font-medium py-3.5 px-4 rounded-xl border border-slate-200 dark:border-white/10 transition-all duration-300 flex justify-center items-center gap-2 cursor-pointer shadow-xs"
                   >
                     <FiTrash2 /> Stop All Maintenance
                   </button>
@@ -580,31 +580,31 @@ const Maintenance = () => {
         </div>
 
         {/* SECTION 2: Maintenance History */}
-        <div className="bg-white/[0.01] backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl p-6 sm:p-8 flex flex-col h-full">
-          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2 shrink-0">
-            <FiCalendar className="text-blue-400" /> Maintenance Logs
+        <div className="bg-white/40 dark:bg-white/[0.01] backdrop-blur-xl border border-slate-200/80 dark:border-white/10 shadow-xl dark:shadow-2xl rounded-3xl p-6 sm:p-8 flex flex-col h-full">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2 shrink-0">
+            <FiCalendar className="text-blue-600 dark:text-blue-400" /> Maintenance Logs
           </h2>
 
           <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar flex-1 max-h-125">
             {history.length === 0 ? (
-              <p className="text-slate-400 italic text-center py-12">No maintenance history available.</p>
+              <p className="text-slate-400 dark:text-slate-500 italic text-center py-12">No maintenance history available.</p>
             ) : (
               history.map((item) => (
-                <div key={item.id} className="p-5 border border-white/5 rounded-2xl bg-slate-950/20 hover:bg-white/5 transition-all relative group">
+                <div key={item.id} className="p-5 border border-slate-200/80 dark:border-white/5 rounded-2xl bg-white/60 dark:bg-slate-950/20 hover:bg-slate-50/80 dark:hover:bg-white/5 transition-all relative group shadow-xs">
                   <div className="pr-8">
-                    <h3 className="font-bold text-white tracking-tight leading-tight">{item.message}</h3>
+                    <h3 className="font-bold text-slate-900 dark:text-white tracking-tight leading-tight">{item.message}</h3>
 
-                    <div className="flex flex-col gap-1 mt-3 text-xs text-slate-300 font-medium">
-                      <span><span className="text-slate-500">Started:</span> {item.startTime}</span>
-                      <span><span className="text-slate-500">Ended:</span> {item.endTime}</span>
+                    <div className="flex flex-col gap-1 mt-3 text-xs text-slate-600 dark:text-slate-300 font-medium">
+                      <span><span className="text-slate-400 dark:text-slate-500">Started:</span> {item.startTime}</span>
+                      <span><span className="text-slate-400 dark:text-slate-500">Ended:</span> {item.endTime}</span>
                     </div>
 
                     <div className="mt-4 flex items-center">
                       <span className={`px-2.5 py-1 rounded-md capitalize font-bold tracking-wide text-[10px]
-                        ${item.status === 'Active' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
-                          item.status === 'Scheduled' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' :
-                            item.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
-                              'bg-amber-500/20 text-amber-300 border border-amber-500/30'}`}
+                        ${item.status === 'Active' ? 'bg-red-50 text-red-600 border border-red-200 dark:bg-red-500/20 dark:text-red-300 dark:border-red-500/30' :
+                          item.status === 'Scheduled' ? 'bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30' :
+                            item.status === 'Completed' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30' :
+                              'bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/30'}`}
                       >
                         {item.status}
                       </span>
@@ -613,7 +613,7 @@ const Maintenance = () => {
 
                   <button
                     onClick={() => handleDelete(item.id)}
-                    className="absolute top-4 right-4 text-slate-500 hover:text-red-400 p-2 rounded-xl hover:bg-red-500/20 transition-all opacity-0 group-hover:opacity-100"
+                    className="absolute top-4 right-4 text-slate-400 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-400 p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/20 transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
                     title="Delete Log"
                   >
                     <FiTrash2 size={18} />
@@ -627,15 +627,15 @@ const Maintenance = () => {
       </div>
 
       {/* SECTION 3: App Version & Updates (Platform Split) */}
-      <form onSubmit={handleSaveAppVersion} className="bg-slate-950/50 border border-white/10 shadow-2xl rounded-3xl p-6 sm:p-8 mt-8">
+      <form onSubmit={handleSaveAppVersion} className="bg-white/40 dark:bg-slate-950/50 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 shadow-xl dark:shadow-2xl rounded-3xl p-6 sm:p-8 mt-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <FiSmartphone className="text-blue-400" /> App Version & Updates
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <FiSmartphone className="text-blue-600 dark:text-blue-400" /> App Version & Updates
           </h2>
           <button
             type="submit"
             disabled={updateLoading}
-            className="disabled:bg-emerald-800 disabled:cursor-not-allowed text-white font-bold py-2 px-6 rounded-xl transition-all duration-300 flex justify-center items-center gap-2 text-sm bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
+            className="disabled:bg-emerald-800 disabled:cursor-not-allowed text-white font-bold py-2 px-6 rounded-xl transition-all duration-300 flex justify-center items-center gap-2 text-sm bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 shadow-md shadow-emerald-500/20 cursor-pointer"
           >
             <FiSave /> {updateLoading ? 'Saving...' : 'Save Configuration'}
           </button>
@@ -644,25 +644,25 @@ const Maintenance = () => {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
 
           {/* ANDROID CONFIG */}
-          <div className="bg-white/[0.01] p-5 rounded-2xl border border-white/5 shadow-md shadow-emerald-800/50">
-            <h3 className="text-lg font-bold text-green-400 mb-5 flex items-center gap-2">
+          <div className="bg-white/70 dark:bg-white/[0.01] p-5 rounded-2xl border border-slate-200/80 dark:border-white/5 shadow-xs dark:shadow-md dark:shadow-emerald-800/50">
+            <h3 className="text-lg font-bold text-green-600 dark:text-green-400 mb-5 flex items-center gap-2">
               <FaAndroid size={20} /> Android Configuration
             </h3>
 
             <div className="space-y-5">
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Latest Version</label>
+                  <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Latest Version</label>
                   <input
                     type="text"
                     value={androidConfig.latestVersion}
                     onChange={(e) => handleConfigChange('android', 'latestVersion', e.target.value)}
                     placeholder="e.g. 1.0.0"
-                    className="w-full px-3 py-2.5 bg-slate-900/50 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-white transition-all text-sm"
+                    className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all text-sm"
                   />
                 </div>
-                <div className="flex flex-col justify-center items-center bg-slate-900/50 px-4 py-2 rounded-lg border border-white/5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Force Update</label>
+                <div className="flex flex-col justify-center items-center bg-slate-50 dark:bg-slate-900/50 px-4 py-2 rounded-lg border border-slate-200 dark:border-white/5">
+                  <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Force Update</label>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
@@ -670,66 +670,66 @@ const Maintenance = () => {
                       checked={androidConfig.forceUpdate}
                       onChange={(e) => handleConfigChange('android', 'forceUpdate', e.target.checked)}
                     />
-                    <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500"></div>
+                    <div className="w-9 h-5 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500"></div>
                   </label>
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Update Title</label>
+                <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Update Title</label>
                 <input
                   type="text"
                   value={androidConfig.updateTitle}
                   onChange={(e) => handleConfigChange('android', 'updateTitle', e.target.value)}
                   placeholder="Update Available"
-                  className="w-full px-3 py-2.5 bg-slate-900/50 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-white transition-all text-sm"
+                  className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Update Message</label>
+                <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Update Message</label>
                 <textarea
                   value={androidConfig.updateMessage}
                   onChange={(e) => handleConfigChange('android', 'updateMessage', e.target.value)}
                   placeholder="A newer version is available."
                   rows="2"
-                  className="w-full px-3 py-2.5 bg-slate-900/50 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-white transition-all text-sm resize-none"
+                  className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all text-sm resize-none"
                 ></textarea>
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Play Store URL</label>
+                <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Play Store URL</label>
                 <input
                   type="text"
                   value={androidConfig.storeUrl}
                   onChange={(e) => handleConfigChange('android', 'storeUrl', e.target.value)}
                   placeholder="https://play.google.com/store/apps/details?id=..."
-                  className="w-full px-3 py-2.5 bg-slate-900/50 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-white transition-all text-sm"
+                  className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all text-sm"
                 />
               </div>
             </div>
           </div>
 
           {/* IOS CONFIG */}
-          <div className="bg-white/[0.01] p-5 rounded-2xl border border-white/5 shadow-md shadow-blue-800/50">
-            <h3 className="text-lg font-bold text-blue-400 mb-5 flex items-center gap-2">
+          <div className="bg-white/70 dark:bg-white/[0.01] p-5 rounded-2xl border border-slate-200/80 dark:border-white/5 shadow-xs dark:shadow-md dark:shadow-blue-800/50">
+            <h3 className="text-lg font-bold text-blue-600 dark:text-blue-400 mb-5 flex items-center gap-2">
               <FaApple size={22} className="mb-0.5" /> iOS Configuration
             </h3>
 
             <div className="space-y-5">
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Latest Version</label>
+                  <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Latest Version</label>
                   <input
                     type="text"
                     value={iosConfig.latestVersion}
                     onChange={(e) => handleConfigChange('ios', 'latestVersion', e.target.value)}
                     placeholder="e.g. 1.0.0"
-                    className="w-full px-3 py-2.5 bg-slate-900/50 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white transition-all text-sm"
+                    className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all text-sm"
                   />
                 </div>
-                <div className="flex flex-col justify-center items-center bg-slate-900/50 px-4 py-2 rounded-lg border border-white/5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Force Update</label>
+                <div className="flex flex-col justify-center items-center bg-slate-50 dark:bg-slate-900/50 px-4 py-2 rounded-lg border border-slate-200 dark:border-white/5">
+                  <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Force Update</label>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
@@ -737,41 +737,41 @@ const Maintenance = () => {
                       checked={iosConfig.forceUpdate}
                       onChange={(e) => handleConfigChange('ios', 'forceUpdate', e.target.checked)}
                     />
-                    <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500"></div>
+                    <div className="w-9 h-5 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500"></div>
                   </label>
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Update Title</label>
+                <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Update Title</label>
                 <input
                   type="text"
                   value={iosConfig.updateTitle}
                   onChange={(e) => handleConfigChange('ios', 'updateTitle', e.target.value)}
                   placeholder="Update Available"
-                  className="w-full px-3 py-2.5 bg-slate-900/50 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white transition-all text-sm"
+                  className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Update Message</label>
+                <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Update Message</label>
                 <textarea
                   value={iosConfig.updateMessage}
                   onChange={(e) => handleConfigChange('ios', 'updateMessage', e.target.value)}
                   placeholder="A newer version is available."
                   rows="2"
-                  className="w-full px-3 py-2.5 bg-slate-900/50 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white transition-all text-sm resize-none"
+                  className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all text-sm resize-none"
                 ></textarea>
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">App Store URL</label>
+                <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">App Store URL</label>
                 <input
                   type="text"
                   value={iosConfig.storeUrl}
                   onChange={(e) => handleConfigChange('ios', 'storeUrl', e.target.value)}
                   placeholder="https://apps.apple.com/app/id..."
-                  className="w-full px-3 py-2.5 bg-slate-900/50 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white transition-all text-sm"
+                  className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all text-sm"
                 />
               </div>
             </div>

@@ -2678,6 +2678,15 @@ const ActivityDetails = () => {
     );
   }
 
+  const isActivityMetricCard = [
+    'logins',
+    'logouts',
+    'product-views',
+    'brand-views',
+    'category-views',
+    'search-queries'
+  ].includes(type);
+
   return (
     <div className="relative space-y-6 min-h-full w-full z-0 isolate pb-10">
 
@@ -2701,16 +2710,18 @@ const ActivityDetails = () => {
                 {header.title}
               </h1>
 
-              {/* Selected Date / Interval Badge */}
-              <div className="px-3 py-1.5 rounded-xl bg-blue-500/10 dark:bg-blue-500/15 border border-blue-500/20 dark:border-blue-500/30 text-blue-600 dark:text-blue-300 text-xs font-bold flex items-center gap-2 shadow-xs dark:shadow-sm">
-                <FiCalendar size={14} className="text-blue-500 dark:text-blue-400 shrink-0" />
-                <span>
-                  {queryBreakdown === 'true' && queryBreakdownInterval === 'day' ? 'Daily Breakdown' :
-                    queryBreakdown === 'true' && queryBreakdownInterval === 'month' ? 'Monthly Breakdown' :
-                      queryStartDate && queryEndDate ? `${queryStartDate}  ➔  ${queryEndDate}` :
-                        `${startDate}  ➔  ${endDate}`}
-                </span>
-              </div>
+              {/* Selected Date / Interval Badge - Only for the 6 activity metric cards */}
+              {isActivityMetricCard && (
+                <div className="px-3 py-1.5 rounded-xl bg-blue-500/10 dark:bg-blue-500/15 border border-blue-500/20 dark:border-blue-500/30 text-blue-600 dark:text-blue-300 text-xs font-bold flex items-center gap-2 shadow-xs dark:shadow-sm">
+                  <FiCalendar size={14} className="text-blue-500 dark:text-blue-400 shrink-0" />
+                  <span>
+                    {queryBreakdown === 'true' && queryBreakdownInterval === 'day' ? 'Daily Breakdown' :
+                      queryBreakdown === 'true' && queryBreakdownInterval === 'month' ? 'Monthly Breakdown' :
+                        queryStartDate && queryEndDate ? `${queryStartDate}  ➔  ${queryEndDate}` :
+                          `${startDate}  ➔  ${endDate}`}
+                  </span>
+                </div>
+              )}
             </div>
             <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 mt-1.5 font-medium leading-relaxed max-w-2xl">
               {header.desc}
@@ -2784,7 +2795,7 @@ const ActivityDetails = () => {
                   <h3 className={`${isSearch ? 'text-amber-500 dark:text-amber-400' : 'text-blue-500 dark:text-blue-400'} text-xs sm:text-sm font-bold tracking-wide truncate`}>
                     {cardTitle}
                   </h3>
-                  <p className="text-xl sm:text-2xl xl:text-3xl font-extrabold text-slate-900 dark:text-white mt-1 tracking-tight truncate">
+                  <p className={`text-xl sm:text-2xl xl:text-3xl font-extrabold mt-1 tracking-tight truncate ${isSearch ? 'text-amber-500 dark:text-white' : 'text-blue-500 dark:text-white'}`}>
                     {cardCount.toLocaleString()}{' '}
                     <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
                       {isSearch ? 'Searches' : 'Views'}
@@ -2813,6 +2824,7 @@ const ActivityDetails = () => {
               value: data.length,
               icon: FiUsers,
               color: "text-blue-500 dark:text-blue-400",
+              valueColor: "text-blue-500 dark:text-white",
               bg: "bg-blue-500/20",
               fromColor: "from-blue-500/25",
               hoverBorder: "hover:border-blue-500/30"
@@ -2822,6 +2834,7 @@ const ActivityDetails = () => {
               value: `${data.filter(u => u.isOnline).length} Active`,
               icon: FiActivity,
               color: "text-emerald-500 dark:text-emerald-400",
+              valueColor: "text-emerald-500 dark:text-white",
               bg: "bg-emerald-500/20",
               fromColor: "from-emerald-500/25",
               hoverBorder: "hover:border-emerald-500/30"
@@ -2831,6 +2844,7 @@ const ActivityDetails = () => {
               value: `${data.filter(u => u.notificationsEnabled).length} Users`,
               icon: FiBell,
               color: "text-purple-500 dark:text-purple-400",
+              valueColor: "text-purple-500 dark:text-white",
               bg: "bg-purple-500/20",
               fromColor: "from-purple-500/25",
               hoverBorder: "hover:border-purple-500/30"
@@ -2840,6 +2854,7 @@ const ActivityDetails = () => {
               value: `${data.filter(u => u.isAppLockEnabled).length} Users`,
               icon: FiShield,
               color: "text-rose-500 dark:text-rose-400",
+              valueColor: "text-rose-500 dark:text-white",
               bg: "bg-rose-500/20",
               fromColor: "from-rose-500/25",
               hoverBorder: "hover:border-rose-500/30"
@@ -2857,7 +2872,7 @@ const ActivityDetails = () => {
                     {metric.title}
                   </h3>
                   <p
-                    className="text-xl sm:text-2xl xl:text-3xl font-extrabold text-slate-900 dark:text-white mt-1 tracking-tight truncate"
+                    className={`text-xl sm:text-2xl xl:text-3xl font-extrabold mt-1 tracking-tight truncate ${metric.valueColor || 'text-slate-900 dark:text-white'}`}
                     title={metric.value ? metric.value.toString() : ''}
                   >
                     {metric.value}
@@ -2882,6 +2897,7 @@ const ActivityDetails = () => {
                 value: extraData.cartMetrics?.activeCartsCount || 0,
                 icon: FiShoppingBag,
                 color: "text-amber-500 dark:text-amber-400",
+                valueColor: "text-amber-500 dark:text-white",
                 bg: "bg-amber-500/20",
                 fromColor: "from-amber-500/25",
                 hoverBorder: "hover:!border-amber-500/30"
@@ -2891,6 +2907,7 @@ const ActivityDetails = () => {
                 value: extraData.cartMetrics?.totalQuantitiesInCarts || 0,
                 icon: FiLayers,
                 color: "text-blue-500 dark:text-blue-400",
+                valueColor: "text-blue-500 dark:text-white",
                 bg: "bg-blue-500/20",
                 fromColor: "from-blue-500/25",
                 hoverBorder: "hover:border-blue-500/30"
@@ -2900,6 +2917,7 @@ const ActivityDetails = () => {
                 value: extraData.funnel?.cartAdds || 0,
                 icon: FiBox,
                 color: "text-emerald-500 dark:text-emerald-400",
+                valueColor: "text-emerald-500 dark:text-white",
                 bg: "bg-emerald-500/20",
                 fromColor: "from-emerald-500/25",
                 hoverBorder: "hover:border-emerald-500/30"
@@ -2909,6 +2927,7 @@ const ActivityDetails = () => {
                 value: extraData.funnel?.checkoutInitiations || 0,
                 icon: FiTrendingUp,
                 color: "text-indigo-500 dark:text-indigo-400",
+                valueColor: "text-indigo-500 dark:text-white",
                 bg: "bg-indigo-500/20",
                 fromColor: "from-indigo-500/25",
                 hoverBorder: "hover:border-indigo-500/30"
@@ -2918,6 +2937,7 @@ const ActivityDetails = () => {
                 value: extraData.funnel?.checkoutSuccesses || 0,
                 icon: FiCheck,
                 color: "text-purple-500 dark:text-purple-400",
+                valueColor: "text-purple-500 dark:text-white",
                 bg: "bg-purple-500/20",
                 fromColor: "from-purple-500/25",
                 hoverBorder: "hover:border-purple-500/30"
@@ -2935,7 +2955,7 @@ const ActivityDetails = () => {
                       {metric.title}
                     </h3>
                     <p
-                      className="text-lg sm:text-xl font-black text-slate-900 dark:text-white mt-1 tracking-tight truncate"
+                      className={`text-lg sm:text-xl font-black mt-1 tracking-tight truncate ${metric.valueColor || 'text-slate-900 dark:text-white'}`}
                       title={metric.value ? metric.value.toString() : ''}
                     >
                       {metric.value}

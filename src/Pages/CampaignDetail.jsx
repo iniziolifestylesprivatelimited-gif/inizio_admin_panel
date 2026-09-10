@@ -126,7 +126,7 @@ const CampaignDetail = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <button 
             onClick={() => navigate(fromPath)}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-white/5 hover:border-white/10 transition-all cursor-pointer shadow-md"
+            className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl border border-slate-200 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10 transition-all cursor-pointer shadow-xs"
           >
             <FiArrowLeft size={14} /> Back to List
           </button>
@@ -134,9 +134,9 @@ const CampaignDetail = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1">
             <Card className="h-96 animate-pulse flex flex-col gap-4">
-              <div className="h-8 bg-white/5 rounded-xl w-3/4" />
-              <div className="h-6 bg-white/5 rounded-xl w-1/2" />
-              <div className="h-40 bg-white/5 rounded-xl w-full" />
+              <div className="h-8 bg-slate-200 dark:bg-white/5 rounded-xl w-3/4" />
+              <div className="h-6 bg-slate-200 dark:bg-white/5 rounded-xl w-1/2" />
+              <div className="h-40 bg-slate-200 dark:bg-white/5 rounded-xl w-full" />
             </Card>
           </div>
           <div className="lg:col-span-2 space-y-6">
@@ -155,11 +155,11 @@ const CampaignDetail = () => {
       <div className="space-y-6">
         <button 
           onClick={() => navigate(fromPath)} 
-          className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
+          className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors"
         >
           <FiArrowLeft /> Back to List
         </button>
-        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 flex items-center gap-3 text-sm">
+        <div className="p-4 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-500/30 rounded-xl text-rose-600 dark:text-rose-400 flex items-center gap-3 text-sm">
           <FiAlertCircle size={18} />
           <span>{error || 'Campaign details not found.'}</span>
         </div>
@@ -202,7 +202,7 @@ const CampaignDetail = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <button 
           onClick={() => navigate(fromPath)}
-          className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-white/5 hover:border-white/10 transition-all cursor-pointer shadow-md"
+          className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl border border-slate-200 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10 transition-all cursor-pointer shadow-xs"
         >
           <FiArrowLeft size={14} /> Back to List
         </button>
@@ -214,18 +214,18 @@ const CampaignDetail = () => {
         {/* Left Column: Campaign Details Block */}
         <div className="lg:col-span-1 space-y-6">
           <Card className="space-y-4">
-            <h2 className="text-xl font-bold text-white tracking-tight leading-snug">{campaignDetail.title}</h2>
-            <span className="inline-block text-xs text-slate-400 font-semibold bg-white/5 px-2.5 py-1 rounded-md border border-white/10">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight leading-snug">{campaignDetail.title}</h2>
+            <span className="inline-block text-xs text-slate-600 dark:text-slate-400 font-semibold bg-slate-100 dark:bg-white/5 px-2.5 py-1 rounded-md border border-slate-200 dark:border-white/10">
               {campaignDetail.createdAt ? new Date(campaignDetail.createdAt).toLocaleString([], { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
             </span>
-            <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{campaignDetail.message}</p>
+            <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">{campaignDetail.message}</p>
             
             {campaignDetail.imageUrl && (
-              <div className="relative w-full rounded-2xl overflow-hidden border border-white/10 bg-slate-900/50 flex items-center justify-center p-2">
+              <div className="relative w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-slate-900/50 flex items-center justify-center p-2">
                 <img 
                   src={getImageUrl(campaignDetail.imageUrl)} 
                   alt="Campaign media" 
-                  className="bg-white max-h-56 w-auto object-cover rounded-xl shadow-lg border border-white/5"
+                  className="bg-white max-h-56 w-auto object-cover rounded-xl shadow-lg border border-slate-200/80 dark:border-white/5"
                   onError={(e) => e.target.src='https://placehold.co/300x150?text=Error+Loading+Image'} 
                 />
               </div>
@@ -233,17 +233,17 @@ const CampaignDetail = () => {
 
             {/* Click Action Target Summary */}
             {campaignDetail.clickAction && campaignDetail.clickAction !== 'none' && (
-              <div className="p-4 bg-black/25 border border-white/5 rounded-2xl space-y-2">
+              <div className="p-4 bg-slate-50 dark:bg-black/25 border border-slate-200/80 dark:border-white/5 rounded-2xl space-y-2">
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Campaign Link Action</p>
                 <div className="text-sm space-y-1.5">
-                  <div className="text-slate-300 font-bold uppercase flex items-center gap-1.5 text-xs">
-                    <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px] font-extrabold border border-blue-500/20 uppercase tracking-wide">
+                  <div className="text-slate-700 dark:text-slate-300 font-bold uppercase flex items-center gap-1.5 text-xs">
+                    <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 text-[10px] font-extrabold border border-blue-200 dark:border-blue-500/20 uppercase tracking-wide">
                       {campaignDetail.clickAction}
                     </span>
                   </div>
                   {campaignDetail.actionId && (
-                    <div className="text-xs text-slate-400">
-                      Target Name: <span className="font-semibold text-slate-200">{getActionTargetName(campaignDetail.clickAction, campaignDetail.actionId)}</span>
+                    <div className="text-xs text-slate-500 dark:text-slate-400">
+                      Target Name: <span className="font-semibold text-slate-800 dark:text-slate-200">{getActionTargetName(campaignDetail.clickAction, campaignDetail.actionId)}</span>
                     </div>
                   )}
                 </div>
@@ -262,30 +262,33 @@ const CampaignDetail = () => {
                 title: "Total Sent",
                 value: campaignDetail.totalSent ?? campaignDetail.stats?.totalSent ?? 0,
                 icon: FiSend,
-                color: "text-indigo-400",
-                bg: "bg-indigo-500/20",
+                color: "text-indigo-600 dark:text-indigo-400",
+                valueColor: "text-indigo-500 dark:text-white",
+                bg: "bg-indigo-50 dark:bg-indigo-500/20",
                 fromColor: "from-indigo-500/25",
-                hoverBorder: "hover:border-indigo-500/30"
+                hoverBorder: "hover:border-indigo-500/40"
               },
               {
                 title: "Total Delivered",
                 value: campaignDetail.totalReceived ?? campaignDetail.stats?.totalReceived ?? 0,
                 subText: campaignDetail.deliveryRate ?? campaignDetail.stats?.deliveryRate ?? '0%',
                 icon: FiCheckCircle,
-                color: "text-emerald-400",
-                bg: "bg-emerald-500/20",
+                color: "text-emerald-600 dark:text-emerald-400",
+                valueColor: "text-emerald-500 dark:text-white",
+                bg: "bg-emerald-50 dark:bg-emerald-500/20",
                 fromColor: "from-emerald-500/25",
-                hoverBorder: "hover:border-emerald-500/30"
+                hoverBorder: "hover:border-emerald-500/40"
               },
               {
                 title: "Total Clicked",
                 value: campaignDetail.totalClicked ?? campaignDetail.stats?.totalClicked ?? 0,
                 subText: campaignDetail.clickRate ?? campaignDetail.stats?.clickRate ?? '0%',
                 icon: FiActivity,
-                color: "text-blue-400",
-                bg: "bg-blue-500/20",
+                color: "text-blue-600 dark:text-blue-400",
+                valueColor: "text-blue-500 dark:text-white",
+                bg: "bg-blue-50 dark:bg-blue-500/20",
                 fromColor: "from-blue-500/25",
-                hoverBorder: "hover:border-blue-500/30"
+                hoverBorder: "hover:border-blue-500/40"
               }
             ].map((metric, index) => (
               <Card
@@ -300,13 +303,13 @@ const CampaignDetail = () => {
                       {metric.title}
                     </h3>
                     <p
-                      className="text-xl sm:text-2xl xl:text-3xl font-extrabold text-white mt-1 tracking-tight truncate"
+                      className={`text-xl sm:text-2xl xl:text-3xl font-extrabold mt-1 tracking-tight truncate ${metric.valueColor || 'text-slate-900 dark:text-white'}`}
                       title={metric.value ? metric.value.toString() : ''}
                     >
                       {metric.value}
                     </p>
                     {metric.subText && (
-                      <span className="text-[11px] font-bold text-slate-400 block mt-0.5">
+                      <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block mt-0.5">
                         ({metric.subText})
                       </span>
                     )}
@@ -320,10 +323,10 @@ const CampaignDetail = () => {
           </div>
 
           {/* Recipient Activity Table Card */}
-          <div className="border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col">
+          <div className="bg-transparent border border-slate-200/80 dark:border-white/10 shadow-md dark:shadow-2xl shadow-slate-200/50 dark:shadow-black/50 rounded-3xl overflow-hidden flex flex-col">
             
             {/* Table Search & Tab Filters */}
-            <div className="p-5 sm:p-6 border-b border-white/10 space-y-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="p-5 sm:p-6 border-b border-slate-200/80 dark:border-white/10 space-y-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div className="flex flex-wrap gap-2">
                 {['all', 'Sent', 'Received', 'Clicked'].map((status) => (
                   <button
@@ -331,8 +334,8 @@ const CampaignDetail = () => {
                     onClick={() => setStatusFilter(status)}
                     className={`px-3.5 py-1.5 text-xs font-bold rounded-xl border transition-all cursor-pointer ${
                       statusFilter === status 
-                        ? 'bg-blue-600/20 text-blue-400 border-blue-500/30 shadow-md shadow-blue-500/5' 
-                        : 'bg-transparent text-slate-400 border-white/5 hover:border-white/10 hover:text-slate-200'
+                        ? 'bg-blue-50 text-blue-600 border-blue-200 shadow-xs dark:bg-blue-600/20 dark:text-blue-400 dark:border-blue-500/30' 
+                        : 'bg-transparent text-slate-500 hover:text-slate-900 border-slate-200 hover:border-slate-300 dark:text-slate-400 dark:border-white/5 dark:hover:border-white/10 dark:hover:text-slate-200'
                     }`}
                   >
                     {status === 'all' ? 'All Logs' : status} ({
@@ -352,13 +355,13 @@ const CampaignDetail = () => {
                   placeholder="Search recipients..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-10 py-2 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner text-xs text-white placeholder-slate-500 font-medium transition-all"
+                  className="w-full pl-10 pr-10 py-2 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-black/40 shadow-inner text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-medium transition-all"
                 />
                 {searchTerm && (
                   <button
                     type="button"
                     onClick={() => setSearchTerm('')}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
                   >
                     <FiX className="w-3.5 h-3.5" />
                   </button>
@@ -369,8 +372,8 @@ const CampaignDetail = () => {
             {/* Recipients Data Table */}
             <div className="overflow-auto custom-scrollbar max-h-[60vh]">
               <table className="w-full text-left border-collapse whitespace-nowrap min-w-125">
-                <thead className="sticky top-0 z-20 bg-white/[0.03] backdrop-blur-md shadow-md border-b border-white/10">
-                  <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-slate-400">
+                <thead className="sticky top-0 z-20 bg-white/40 dark:bg-white/[0.03] backdrop-blur-md shadow-xs border-b border-slate-200/80 dark:border-white/10">
+                  <tr className="border-b border-slate-200/80 dark:border-white/10 text-xs uppercase tracking-wider text-slate-600 dark:text-slate-400">
                     <th className="px-6 py-4 font-bold w-16 text-center">S.No.</th>
                     <th className="px-6 py-4 font-bold">Recipient Details</th>
                     <th className="px-6 py-4 font-bold">User ID</th>
@@ -378,29 +381,29 @@ const CampaignDetail = () => {
                     <th className="px-6 py-4 font-bold text-center">Activity Date</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                   {currentRecipients.length > 0 ? (
                     currentRecipients.map((rec, index) => {
                       const status = getRecipientStatus(rec);
-                      let badgeClass = 'bg-slate-700/10 text-slate-400 border-slate-600/20';
+                      let badgeClass = 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-700/10 dark:text-slate-400 dark:border-slate-600/20';
                       let activityDate = 'N/A';
 
                       if (status === 'Clicked') {
-                        badgeClass = 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+                        badgeClass = 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20';
                         activityDate = rec.clickedAt ? new Date(rec.clickedAt).toLocaleString([], { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
                       } else if (status === 'Received') {
-                        badgeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+                        badgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20';
                         activityDate = rec.receivedAt ? new Date(rec.receivedAt).toLocaleString([], { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
                       } else {
                         activityDate = campaignDetail.createdAt ? new Date(campaignDetail.createdAt).toLocaleString([], { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
                       }
 
                       return (
-                        <tr key={index} className="hover:bg-white/[0.02] transition-colors">
-                          <td className="px-6 py-4 text-xs font-medium text-slate-400 text-center">{indexOfFirstItem + index + 1}</td>
-                          <td className="px-6 py-4 text-sm font-medium text-white">
+                        <tr key={index} className="hover:bg-slate-50/60 dark:hover:bg-white/[0.02] transition-colors">
+                          <td className="px-6 py-4 text-xs font-medium text-slate-500 dark:text-slate-400 text-center">{indexOfFirstItem + index + 1}</td>
+                          <td className="px-6 py-4 text-sm font-medium text-slate-900 dark:text-white">
                             <div className="flex flex-col text-left">
-                              <span className="font-bold text-white">{rec.user?.name || 'Unknown User'}</span>
+                              <span className="font-bold text-slate-900 dark:text-white">{rec.user?.name || 'Unknown User'}</span>
                               <div className="flex flex-wrap items-center gap-x-2 text-[10px] text-slate-500 font-semibold mt-0.5">
                                 {rec.user?.email && <span>{rec.user.email}</span>}
                                 {rec.user?.email && rec.user?.phone && <span>•</span>}
@@ -408,7 +411,7 @@ const CampaignDetail = () => {
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-xs font-mono text-slate-300">
+                          <td className="px-6 py-4 text-xs font-mono text-slate-600 dark:text-slate-300">
                             {rec.user?.userId || 'N/A'}
                           </td>
                           <td className="px-6 py-4 text-center">
@@ -416,7 +419,7 @@ const CampaignDetail = () => {
                               {status}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-xs text-slate-300 font-medium text-center">
+                          <td className="px-6 py-4 text-xs text-slate-600 dark:text-slate-300 font-medium text-center">
                             {activityDate}
                           </td>
                         </tr>
@@ -435,15 +438,15 @@ const CampaignDetail = () => {
 
             {/* Pagination Controls */}
             {!loading && filteredRecipients.length > 0 && (
-              <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
-                <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
-                  Showing <span className="font-bold text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastItem, filteredRecipients.length)}</span> of <span className="font-bold text-white">{filteredRecipients.length}</span> recipients
+              <div className="p-4 border-t border-slate-200/80 dark:border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/40 dark:bg-white/[0.02] backdrop-blur-md">
+                <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 text-center sm:text-left">
+                  Showing <span className="font-bold text-slate-900 dark:text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-slate-900 dark:text-white">{Math.min(indexOfLastItem, filteredRecipients.length)}</span> of <span className="font-bold text-slate-900 dark:text-white">{filteredRecipients.length}</span> recipients
                 </span>
                 <div className="flex space-x-2">
                   <button
                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
-                    className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                    className="px-3 sm:px-4 py-2 bg-white hover:bg-slate-100 dark:bg-slate-950/20 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200 dark:border-white/10 transform-gpu cursor-pointer shadow-xs"
                   >
                     &larr;
                   </button>
@@ -480,8 +483,8 @@ const CampaignDetail = () => {
                             page === currentPage
                               ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
                               : page === '...'
-                              ? 'bg-transparent text-slate-500 border-transparent cursor-default'
-                              : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
+                              ? 'bg-transparent text-slate-400 dark:text-slate-500 border-transparent cursor-default'
+                              : 'bg-white hover:bg-slate-100 dark:bg-slate-950/20 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-white/10 dark:hover:bg-white/10 dark:hover:text-white cursor-pointer shadow-xs'
                           }`}
                         >
                           {page}
@@ -492,7 +495,7 @@ const CampaignDetail = () => {
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages || totalPages === 0}
-                    className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                    className="px-3 sm:px-4 py-2 bg-white hover:bg-slate-100 dark:bg-slate-950/20 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200 dark:border-white/10 transform-gpu cursor-pointer shadow-xs"
                   >
                     &rarr;
                   </button>

@@ -382,45 +382,45 @@ const Notifications = () => {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
         {/* Left Side: Compose Notification */}
         <Card className="xl:col-span-8 sm:p-8 h-fit !overflow-visible z-10">
-          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-            <MdSend className="text-blue-400" /> Send Notification
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+            <MdSend className="text-blue-600 dark:text-blue-400" /> Send Notification
           </h2>
 
           <form onSubmit={handleSendNotification} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
-              <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">Title</label>
+              <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">Title</label>
               <input
                 type="text"
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Notification Title"
-                className="w-full px-3.5 py-2 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 transition-all text-sm font-medium"
+                className="w-full px-3.5 py-2 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-black/40 shadow-inner backdrop-blur-md text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all text-sm font-medium"
               />
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">Description</label>
+              <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">Description</label>
               <textarea
                 required
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Notification message..."
                 rows="2.5"
-                className="w-full px-3.5 py-2 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 transition-all text-sm font-medium resize-none"
+                className="w-full px-3.5 py-2 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-black/40 shadow-inner backdrop-blur-md text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all text-sm font-medium resize-none"
               ></textarea>
             </div>
 
             {/* Platform Targeting */}
             <div className="md:col-span-1">
-              <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">Target Platform</label>
+              <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">Target Platform</label>
               <div className="grid grid-cols-3 gap-1.5">
                 <button
                   type="button"
                   onClick={() => setPlatform('all')}
                   className={`flex items-center justify-center gap-1 py-2 px-1 rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${platform === 'all'
-                      ? 'bg-blue-600/30 border-blue-500/50 text-blue-300 ring-1 ring-blue-500/40'
-                      : 'bg-black/20 border-white/10 text-slate-400 hover:bg-white/5 hover:text-white'
+                      ? 'bg-blue-50 border-blue-300 text-blue-700 ring-1 ring-blue-500/30 dark:bg-blue-600/30 dark:border-blue-500/50 dark:text-blue-300 dark:ring-blue-500/40'
+                      : 'bg-slate-100 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
                     }`}
                 >
                   <FiGlobe className="text-sm shrink-0" />
@@ -430,8 +430,8 @@ const Notifications = () => {
                   type="button"
                   onClick={() => setPlatform('android')}
                   className={`flex items-center justify-center gap-1 py-2 px-1 rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${platform === 'android'
-                      ? 'bg-emerald-600/25 border-emerald-500/50 text-emerald-300 ring-1 ring-emerald-500/40'
-                      : 'bg-black/20 border-white/10 text-slate-400 hover:bg-white/5 hover:text-white'
+                      ? 'bg-emerald-50 border-emerald-300 text-emerald-700 ring-1 ring-emerald-500/30 dark:bg-emerald-600/25 dark:border-emerald-500/50 dark:text-emerald-300 dark:ring-emerald-500/40'
+                      : 'bg-slate-100 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
                     }`}
                 >
                   <DiAndroid className='text-sm shrink-0' />
@@ -441,8 +441,8 @@ const Notifications = () => {
                   type="button"
                   onClick={() => setPlatform('ios')}
                   className={`flex items-center justify-center gap-1 py-2 px-1 rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${platform === 'ios'
-                      ? 'bg-white border-slate-400/50 text-black ring-1 ring-slate-400/40'
-                      : 'bg-black/20 border-white/10 text-slate-400 hover:bg-white/5 hover:text-white'
+                      ? 'bg-slate-900 border-slate-700 text-white ring-1 ring-slate-800 dark:bg-white dark:border-slate-400/50 dark:text-black dark:ring-slate-400/40'
+                      : 'bg-slate-100 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
                     }`}
                 >
                   <DiApple className="text-sm shrink-0" />
@@ -452,24 +452,24 @@ const Notifications = () => {
             </div>
 
             <div ref={audienceDropdownRef} className="md:col-span-1">
-              <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">Select Target Audience</label>
+              <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">Select Target Audience</label>
 
               {/* Custom Select Trigger */}
               <div className="relative">
                 <div
                   onClick={() => setIsAudienceDropdownOpen(!isAudienceDropdownOpen)}
-                  className={`w-full px-3.5 py-2 bg-black/20 border ${isAudienceDropdownOpen ? 'border-blue-500/50 bg-black/40 ring-2 ring-blue-500/50' : 'border-white/10'} rounded-xl shadow-inner backdrop-blur-md text-white transition-all text-sm font-medium capitalize flex justify-between items-center cursor-pointer select-none`}
+                  className={`w-full px-3.5 py-2 bg-slate-50 dark:bg-black/20 border ${isAudienceDropdownOpen ? 'border-blue-500/50 bg-white dark:bg-black/40 ring-2 ring-blue-500/50' : 'border-slate-200 dark:border-white/10'} rounded-xl shadow-inner backdrop-blur-md text-slate-900 dark:text-white transition-all text-sm font-medium capitalize flex justify-between items-center cursor-pointer select-none`}
                 >
                   <div className="flex items-center gap-2">
                     {getAudienceIcon(targetType)}
                     <span>{targetType}</span>
                   </div>
-                  <MdKeyboardArrowDown className={`text-xl text-slate-400 transition-transform duration-300 ${isAudienceDropdownOpen ? 'rotate-180 text-blue-400' : ''}`} />
+                  <MdKeyboardArrowDown className={`text-xl text-slate-400 transition-transform duration-300 ${isAudienceDropdownOpen ? 'rotate-180 text-blue-500 dark:text-blue-400' : ''}`} />
                 </div>
 
                 {/* Custom Select Options Dropdown */}
                 {isAudienceDropdownOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden z-2500 animate-in fade-in slide-in-from-top-2">
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl shadow-slate-200/50 dark:shadow-black/50 overflow-hidden z-2500 animate-in fade-in slide-in-from-top-2">
                     {['All Users', 'Single User', 'Selected Users'].map((type) => (
                       <div
                         key={type}
@@ -480,7 +480,7 @@ const Notifications = () => {
                           setCustomerSearchTerm('');
                           setIsCustomerDropdownOpen(false);
                         }}
-                        className={`px-4 py-2.5 text-sm font-medium cursor-pointer transition-colors flex items-center gap-2.5 ${targetType === type ? 'bg-blue-600/35 text-blue-200 border-l-2 border-blue-500 font-semibold' : 'text-slate-300 hover:bg-white/5 hover:text-white'}`}
+                        className={`px-4 py-2.5 text-sm font-medium cursor-pointer transition-colors flex items-center gap-2.5 ${targetType === type ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-500 font-semibold dark:bg-blue-600/35 dark:text-blue-200' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'}`}
                       >
                         {getAudienceIcon(type)}
                         <span>{type}</span>
@@ -494,7 +494,7 @@ const Notifications = () => {
             {/* Target Customers selector inline */}
             {targetType !== 'All Users' && (
               <div ref={customerDropdownRef} className="md:col-span-2 relative">
-                <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                   {targetType === 'Single User' ? 'Select Customer' : 'Select Customers'}
                 </label>
 
@@ -507,14 +507,14 @@ const Notifications = () => {
                       const hasAndroid = cust.devices?.some(d => d.devicePlatform?.toLowerCase() === 'android');
                       const hasIos = cust.devices?.some(d => d.devicePlatform?.toLowerCase() === 'ios');
                       return (
-                        <span key={id} className="inline-flex items-center px-2.5 py-1 bg-blue-600/30 text-blue-400 border border-blue-500/20 text-xs font-semibold rounded-full gap-1 animate-in fade-in">
+                        <span key={id} className="inline-flex items-center px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-600/30 dark:text-blue-400 dark:border-blue-500/20 text-xs font-semibold rounded-full gap-1 animate-in fade-in">
                           {cust.name || cust.email}
-                          {hasAndroid && <span className="text-[9px] text-emerald-400 font-bold" title="Android Registered Device"><DiAndroid /></span>}
-                          {hasIos && <span className="text-[9px] text-indigo-300 font-bold" title="iOS Registered Device"><DiApple /></span>}
+                          {hasAndroid && <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold" title="Android Registered Device"><DiAndroid /></span>}
+                          {hasIos && <span className="text-[9px] text-indigo-600 dark:text-indigo-300 font-bold" title="iOS Registered Device"><DiApple /></span>}
                           <button
                             type="button"
                             onClick={() => setSelectedCustomerIds(prev => prev.filter(x => x !== id))}
-                            className="hover:text-red-400 transition-colors text-sm font-bold focus:outline-none ml-1"
+                            className="hover:text-red-500 dark:hover:text-red-400 transition-colors text-sm font-bold focus:outline-none ml-1 cursor-pointer"
                           >
                             ×
                           </button>
@@ -536,7 +536,7 @@ const Notifications = () => {
                       }}
                       onFocus={() => setIsCustomerDropdownOpen(true)}
                       placeholder={targetType === 'Single User' ? "Search customer name or email..." : "Search and add customers..."}
-                      className="w-full px-3.5 py-2 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 transition-all text-sm font-medium"
+                      className="w-full px-3.5 py-2 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-black/40 shadow-inner backdrop-blur-md text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all text-sm font-medium"
                     />
                     {customerSearchTerm && (
                       <button
@@ -545,7 +545,7 @@ const Notifications = () => {
                           setCustomerSearchTerm('');
                           setIsCustomerDropdownOpen(false);
                         }}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
                       >
                         ×
                       </button>
@@ -555,7 +555,7 @@ const Notifications = () => {
 
                 {/* Dropdown Menu */}
                 {isCustomerDropdownOpen && (
-                  <div className="absolute z-40 mt-1 w-full bg-slate-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-48">
+                  <div className="absolute z-40 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-48">
                     <div className="overflow-y-auto max-h-44 custom-scrollbar">
                       {(() => {
                         const filtered = customers.filter(c => {
@@ -572,7 +572,7 @@ const Notifications = () => {
                         });
 
                         if (filtered.length === 0) {
-                          return <div className="px-4 py-2.5 text-xs text-slate-500 text-center">No matching customers found</div>;
+                          return <div className="px-4 py-2.5 text-xs text-slate-400 dark:text-slate-500 text-center">No matching customers found</div>;
                         }
 
                         return filtered.map(cust => (
@@ -587,18 +587,18 @@ const Notifications = () => {
                               setCustomerSearchTerm('');
                               setIsCustomerDropdownOpen(false);
                             }}
-                            className="px-3.5 py-2 text-xs cursor-pointer hover:bg-white/5 transition-colors text-left flex justify-between items-center border-b border-white/5 last:border-b-0"
+                            className="px-3.5 py-2 text-xs cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors text-left flex justify-between items-center border-b border-slate-100 dark:border-white/5 last:border-b-0"
                           >
                             <div className="flex flex-col min-w-0">
-                              <span className="font-bold text-white block truncate">{cust.name || 'No Name'}</span>
-                              <span className="text-[10px] text-slate-400 truncate">{cust.email || 'No Email'}</span>
+                              <span className="font-bold text-slate-900 dark:text-white block truncate">{cust.name || 'No Name'}</span>
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{cust.email || 'No Email'}</span>
                             </div>
                             <div className="flex gap-1 shrink-0 ml-2">
                               {cust.devices?.some(d => d.devicePlatform?.toLowerCase() === 'android') && (
-                                <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-green-500/10 text-green-400 border border-green-500/20 uppercase">Android</span>
+                                <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-green-50 text-green-700 border border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20 uppercase">Android</span>
                               )}
                               {cust.devices?.some(d => d.devicePlatform?.toLowerCase() === 'ios') && (
-                                <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-white text-black border border-slate-500/20 uppercase font-mono">iOS</span>
+                                <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-slate-100 text-slate-800 border border-slate-200 dark:bg-white dark:text-black dark:border-slate-500/20 uppercase font-mono">iOS</span>
                               )}
                             </div>
                           </div>
@@ -611,11 +611,11 @@ const Notifications = () => {
             )}
 
             {/* Target users summary warning label */}
-            <div className="md:col-span-2 flex items-center gap-1.5 text-[10px] font-bold text-slate-400 bg-white/[0.02] border border-white/5 rounded-lg px-3 py-1.5 select-none">
-              <FiCheck className="text-emerald-500 shrink-0" />
+            <div className="md:col-span-2 flex items-center gap-1.5 text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-lg px-3 py-1.5 select-none">
+              <FiCheck className="text-emerald-600 dark:text-emerald-500 shrink-0" />
               <span>
                 Targeting:{' '}
-                <strong className="text-white">
+                <strong className="text-slate-800 dark:text-white">
                   {targetType === 'All Users' ? (
                     platform === 'all' ? customers.length :
                       platform === 'android' ? customers.filter(c => c.devices?.some(d => d.devicePlatform?.toLowerCase() === 'android')).length :
@@ -630,19 +630,19 @@ const Notifications = () => {
             </div>
 
             <div className="md:col-span-1">
-              <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">Image URL (Optional)</label>
+              <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">Image URL (Optional)</label>
               <div className="relative">
                 <input
                   type="text"
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
                   placeholder="https://example.com/image.png"
-                  className="w-full pl-9 pr-4 py-2 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 transition-all text-sm font-medium"
+                  className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-black/40 shadow-inner backdrop-blur-md text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all text-sm font-medium"
                 />
                 <MdImage className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-base" />
               </div>
               {imageUrl.trim() && (
-                <div className="mt-2.5 relative w-full max-w-xs h-24 rounded-xl overflow-hidden border border-white/10 bg-slate-800/50 flex items-center justify-center">
+                <div className="mt-2.5 relative w-full max-w-xs h-24 rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-slate-800/50 flex items-center justify-center">
                   <img src={imageUrl.trim()} alt="Preview" className="max-w-full max-h-full object-contain" onError={(e) => e.target.src = 'https://placehold.co/300x150?text=Invalid+Image+URL'} />
                 </div>
               )}
@@ -650,7 +650,7 @@ const Notifications = () => {
 
             {/* Click Action Dropdown */}
             <div className="md:col-span-1">
-              <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">Click Action (Optional)</label>
+              <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">Click Action (Optional)</label>
               <div className="relative">
                 <CustomDropdown
                   value={clickAction}
@@ -661,26 +661,24 @@ const Notifications = () => {
                     setIsActionDropdownOpen(false);
                   }}
                   options={clickActionOptions}
-                  statusColor="pl-9 py-2 text-white border-white/10 bg-black/20 text-sm font-medium rounded-xl"
+                  statusColor="pl-9 py-2 text-slate-900 dark:text-white border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm font-medium rounded-xl shadow-inner backdrop-blur-md"
                 />
                 <FiLink className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none z-10" />
               </div>
             </div>
 
-
-
             {/* Click Action Dynamic Fields */}
             {clickAction !== 'none' && clickAction !== 'home' && (
-              <div className="md:col-span-2 p-3 bg-black/25 border border-white/5 rounded-xl animate-in slide-in-from-bottom-2">
+              <div className="md:col-span-2 p-3 bg-slate-50/80 dark:bg-black/25 border border-slate-200/80 dark:border-white/5 rounded-xl animate-in slide-in-from-bottom-2">
                 {clickAction === 'external' && (
                   <>
-                    <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">External URL</label>
+                    <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">External URL</label>
                     <input
                       type="url"
                       required
                       value={actionId}
                       onChange={(e) => setActionId(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 transition-all text-sm font-medium"
+                      className="w-full px-3.5 py-2 bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-black/40 shadow-inner backdrop-blur-md text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all text-sm font-medium"
                       placeholder="https://..."
                     />
                   </>
@@ -688,7 +686,7 @@ const Notifications = () => {
 
                 {clickAction === 'category' && (
                   <>
-                    <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">Select Category</label>
+                    <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">Select Category</label>
                     <div className="relative">
                       <CustomDropdown
                         value={actionId}
@@ -697,7 +695,7 @@ const Notifications = () => {
                           { value: '', label: '-- Select Category --' },
                           ...categories.map(cat => ({ value: cat._id, label: cat.name }))
                         ]}
-                        statusColor="pl-9 py-2 text-white border-white/10 bg-black/20 text-sm font-medium rounded-xl"
+                        statusColor="pl-9 py-2 text-slate-900 dark:text-white border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm font-medium rounded-xl shadow-inner backdrop-blur-md"
                       />
                       <FiLayers className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none z-10" />
                     </div>
@@ -706,7 +704,7 @@ const Notifications = () => {
 
                 {clickAction === 'brand' && (
                   <>
-                    <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">Select Brand</label>
+                    <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">Select Brand</label>
                     <div className="relative">
                       <CustomDropdown
                         value={actionId}
@@ -715,7 +713,7 @@ const Notifications = () => {
                           { value: '', label: '-- Select Brand --' },
                           ...brands.map(brand => ({ value: brand._id, label: brand.name }))
                         ]}
-                        statusColor="pl-9 py-2 text-white border-white/10 bg-black/20 text-sm font-medium rounded-xl"
+                        statusColor="pl-9 py-2 text-slate-900 dark:text-white border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm font-medium rounded-xl shadow-inner backdrop-blur-md"
                       />
                       <FiTrendingUp className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none z-10" />
                     </div>
@@ -725,14 +723,14 @@ const Notifications = () => {
                 {clickAction === 'product' && (
                   <div className="relative space-y-3">
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">Select Product</label>
+                      <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">Select Product</label>
 
                       {/* Dropdown Display Box */}
                       <div
                         onClick={() => setIsActionDropdownOpen(!isActionDropdownOpen)}
-                        className="w-full px-3.5 py-2 bg-black/20 border border-white/10 rounded-xl focus-within:ring-2 focus-within:ring-blue-500/50 cursor-pointer flex justify-between items-center shadow-inner backdrop-blur-md text-white transition-all text-sm font-medium"
+                        className="w-full px-3.5 py-2 bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus-within:ring-2 focus-within:ring-blue-500/50 cursor-pointer flex justify-between items-center shadow-inner backdrop-blur-md text-slate-900 dark:text-white transition-all text-sm font-medium"
                       >
-                        <span className={actionId ? "text-white font-medium truncate" : "text-slate-500"}>
+                        <span className={actionId ? "text-slate-900 dark:text-white font-medium truncate" : "text-slate-400 dark:text-slate-500"}>
                           {actionId
                             ? (products.find(p => p._id === actionId)?.name || 'Select a Product')
                             : 'Select a Product'}
@@ -742,14 +740,14 @@ const Notifications = () => {
 
                       {/* Dropdown Menu */}
                       {isActionDropdownOpen && (
-                        <div className="absolute z-50 mt-1 w-full bg-slate-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-52">
-                          <div className="p-2 border-b border-white/10 bg-slate-800/50">
+                        <div className="absolute z-50 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-52">
+                          <div className="p-2 border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50">
                             <input
                               type="text"
                               value={searchTerm}
                               onChange={(e) => setSearchTerm(e.target.value)}
                               placeholder="Type to search product..."
-                              className="w-full px-3 py-1.5 bg-black/40 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-slate-500"
+                              className="w-full px-3 py-1.5 bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-lg text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-slate-400 dark:placeholder-slate-500"
                               onClick={(e) => e.stopPropagation()}
                               autoFocus
                             />
@@ -760,23 +758,23 @@ const Notifications = () => {
                               products
                                 .filter(p => p.name?.toLowerCase().includes(searchTerm.toLowerCase()))
                                 .map(prod => (
-                                  <div
-                                    key={prod._id}
-                                    onClick={() => {
-                                      setActionId(prod._id);
-                                      setIsActionDropdownOpen(false);
-                                      setSearchTerm('');
-                                      if (Array.isArray(prod.images) && prod.images.length > 0) {
-                                        setImageUrl(prod.images[0]);
-                                      }
-                                    }}
-                                    className={`px-3.5 py-1.5 text-xs cursor-pointer hover:bg-blue-600/30 hover:text-white transition-colors ${actionId === prod._id ? 'bg-blue-600/50 text-white font-semibold' : 'text-slate-300'}`}
-                                  >
-                                    {prod.name}
-                                  </div>
+                                   <div
+                                     key={prod._id}
+                                     onClick={() => {
+                                       setActionId(prod._id);
+                                       setIsActionDropdownOpen(false);
+                                       setSearchTerm('');
+                                       if (Array.isArray(prod.images) && prod.images.length > 0) {
+                                         setImageUrl(prod.images[0]);
+                                       }
+                                     }}
+                                     className={`px-3.5 py-1.5 text-xs cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-600/30 hover:text-blue-600 dark:hover:text-white transition-colors ${actionId === prod._id ? 'bg-blue-50 text-blue-600 dark:bg-blue-600/50 dark:text-white font-semibold' : 'text-slate-700 dark:text-slate-300'}`}
+                                   >
+                                     {prod.name}
+                                   </div>
                                 ))
                             ) : (
-                              <div className="px-4 py-2 text-xs text-slate-500 text-center">No products found</div>
+                              <div className="px-4 py-2 text-xs text-slate-400 dark:text-slate-500 text-center">No products found</div>
                             )}
                           </div>
                         </div>
@@ -788,8 +786,8 @@ const Notifications = () => {
                       const selectedProduct = products.find(p => p._id === actionId);
                       if (!selectedProduct || !Array.isArray(selectedProduct.images) || selectedProduct.images.length === 0) return null;
                       return (
-                        <div className="space-y-1.5 pt-1.5 border-t border-white/5">
-                          <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">Select Product Image</label>
+                        <div className="space-y-1.5 pt-1.5 border-t border-slate-200/80 dark:border-white/5">
+                          <label className="block text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Select Product Image</label>
                           <div className="flex flex-wrap gap-2">
                             {selectedProduct.images.map((img, idx) => {
                               const isSelected = imageUrl === img;
@@ -797,7 +795,7 @@ const Notifications = () => {
                                 <div
                                   key={idx}
                                   onClick={() => setImageUrl(img)}
-                                  className={`w-12 h-12 rounded-lg overflow-hidden border cursor-pointer bg-white flex items-center justify-center p-0.5 transition-all hover:scale-105 ${isSelected ? 'border-blue-500 ring-1 ring-blue-500/30' : 'border-white/10 hover:border-white/30'
+                                  className={`w-12 h-12 rounded-lg overflow-hidden border cursor-pointer bg-white flex items-center justify-center p-0.5 transition-all hover:scale-105 ${isSelected ? 'border-blue-500 ring-1 ring-blue-500/30' : 'border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/30'
                                     }`}
                                 >
                                   <img src={img} alt={`Product ${idx}`} className="max-w-full max-h-full object-contain" />
@@ -817,7 +815,7 @@ const Notifications = () => {
               <button
                 type="submit"
                 disabled={isSending}
-                className="w-full text-white font-bold py-2.5 px-4 rounded-xl transition-all duration-300 flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-sm"
+                className="w-full text-white font-bold py-2.5 px-4 rounded-xl transition-all duration-300 flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md shadow-blue-600/25 text-sm"
               >
                 {isSending ? (
                   <div className="flex items-center gap-2">
@@ -836,7 +834,7 @@ const Notifications = () => {
 
         {/* Right Side: Phone simulator container */}
         <Card className="xl:col-span-4 sm:p-8 h-fit flex flex-col items-center justify-start gap-4">
-          <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Live Preview</label>
+          <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Live Preview</label>
           <div className="w-full max-w-[270px] aspect-[9/18.5] bg-gradient-to-b from-blue-900/60 via-slate-900 to-black border-[6px] border-slate-800 rounded-[36px] shadow-2xl relative overflow-hidden flex flex-col animate-in fade-in duration-300 select-none">
             {/* Notch / Dynamic Island */}
             {platform === 'ios' ? (
@@ -905,9 +903,9 @@ const Notifications = () => {
                   });
                 }
               }}
-              className="w-full max-w-[270px] py-2 px-3 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-98"
+              className="w-full max-w-[270px] py-2 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-98"
             >
-              <MdNotificationsActive className="text-blue-400" size={15} />
+              <MdNotificationsActive className="text-blue-600 dark:text-blue-400" size={15} />
               Test on this Browser
             </button>
           )}
@@ -916,16 +914,16 @@ const Notifications = () => {
         {/* Bottom Section: Notification History */}
         <Card className="xl:col-span-12 !p-0 overflow-hidden flex flex-col">
           {/* Table Header & Controls */}
-          <div className="p-5 sm:p-6 pb-4 border-b border-white/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="p-5 sm:p-6 pb-4 border-b border-slate-200/80 dark:border-white/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
+              <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 dark:bg-blue-500/10 dark:border-blue-500/20 dark:text-blue-400">
                 <MdHistory size={22} />
               </div>
               <div>
-                <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight flex items-center gap-2">
+                <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
                   Notification History
                 </h2>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   View and manage previously sent push notification campaigns
                 </p>
               </div>
@@ -940,13 +938,13 @@ const Notifications = () => {
                   placeholder="Search by title, message or ID..."
                   value={historySearchQuery}
                   onChange={(e) => setHistorySearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-9 py-2 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 text-xs font-medium transition-all"
+                  className="w-full pl-10 pr-9 py-2 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-black/40 shadow-inner backdrop-blur-md text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-xs font-medium transition-all"
                 />
                 {historySearchQuery && (
                   <button
                     type="button"
                     onClick={() => setHistorySearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
                   >
                     <FiX size={14} />
                   </button>
@@ -956,7 +954,7 @@ const Notifications = () => {
               <button
                 onClick={fetchCampaignHistory}
                 disabled={loadingHistory}
-                className="p-2 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-all disabled:opacity-50 cursor-pointer shrink-0"
+                className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 rounded-xl border border-slate-200 dark:border-white/10 transition-all disabled:opacity-50 cursor-pointer shrink-0"
                 title="Refresh History"
               >
                 <MdRefresh size={18} className={loadingHistory ? "animate-spin" : ""} />
@@ -965,7 +963,7 @@ const Notifications = () => {
           </div>
 
           {errorHistory && (
-            <div className="m-4 text-red-400 bg-red-900/20 p-4 rounded-xl border border-red-500/30 flex items-center">
+            <div className="m-4 text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 p-4 rounded-xl border border-rose-200 dark:border-rose-500/30 flex items-center">
               <FiAlertCircle className="mr-2 text-lg shrink-0" /> {errorHistory}
             </div>
           )}
@@ -973,7 +971,7 @@ const Notifications = () => {
           {/* Table Container */}
           <div className="overflow-x-auto custom-scrollbar flex-1">
             <table className="w-full text-left border-collapse whitespace-nowrap min-w-[900px]">
-              <thead className="sticky top-0 z-10 bg-white/[0.03] backdrop-blur-md shadow-sm border-b border-white/10 text-[11px] uppercase tracking-wider text-slate-400">
+              <thead className="sticky top-0 z-10 bg-slate-50/80 dark:bg-white/[0.03] backdrop-blur-md shadow-xs border-b border-slate-200/80 dark:border-white/10 text-[11px] uppercase tracking-wider text-slate-600 dark:text-slate-400">
                 <tr>
                   <th className="p-4 font-bold text-center w-14">S.No</th>
                   <th className="p-4 font-bold">Campaign</th>
@@ -984,7 +982,7 @@ const Notifications = () => {
                   <th className="p-4 font-bold text-center">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5 text-sm">
+              <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-sm">
                 {loadingHistory && campaigns.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="p-6">
@@ -994,8 +992,8 @@ const Notifications = () => {
                 ) : campaigns.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="py-16 text-center">
-                      <div className="flex flex-col items-center justify-center text-slate-400">
-                        <MdHistory className="text-4xl text-slate-500 mb-2" />
+                      <div className="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400">
+                        <MdHistory className="text-4xl text-slate-400 dark:text-slate-500 mb-2" />
                         <p className="font-medium text-sm">No notification history found.</p>
                       </div>
                     </td>
@@ -1003,12 +1001,12 @@ const Notifications = () => {
                 ) : filteredCampaigns.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="py-16 text-center">
-                      <div className="flex flex-col items-center justify-center text-slate-400">
-                        <FiSearch className="text-4xl text-slate-500 mb-2" />
+                      <div className="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400">
+                        <FiSearch className="text-4xl text-slate-400 dark:text-slate-500 mb-2" />
                         <p className="font-medium text-sm">No matching notifications found.</p>
                         <button
                           onClick={() => setHistorySearchQuery('')}
-                          className="mt-3 px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 font-bold rounded-lg border border-blue-500/30 text-xs transition-colors cursor-pointer"
+                          className="mt-3 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-600/20 dark:hover:bg-blue-600/30 dark:text-blue-400 font-bold rounded-lg border border-blue-200 dark:border-blue-500/30 text-xs transition-colors cursor-pointer"
                         >
                           Clear Search
                         </button>
@@ -1024,10 +1022,10 @@ const Notifications = () => {
                       <tr
                         key={item.campaignId || index}
                         onClick={() => navigate(`/campaign-stats/${item.campaignId}`, { state: { from: '/notifications' } })}
-                        className="hover:bg-white/[0.03] cursor-pointer transition-colors group"
+                        className="hover:bg-slate-50/60 dark:hover:bg-white/[0.03] cursor-pointer transition-colors group"
                       >
                         {/* S.No */}
-                        <td className="p-4 text-xs text-slate-400 text-center font-medium">
+                        <td className="p-4 text-xs text-slate-500 dark:text-slate-400 text-center font-medium">
                           {rowNumber}
                         </td>
 
@@ -1038,19 +1036,19 @@ const Notifications = () => {
                               <img
                                 src={item.imageUrl}
                                 alt="Notification media"
-                                className="w-10 h-10 rounded-lg object-cover border border-white/10 shrink-0 bg-slate-800"
+                                className="w-10 h-10 rounded-lg object-cover border border-slate-200 dark:border-white/10 shrink-0 bg-slate-100 dark:bg-slate-800"
                                 onError={(e) => { e.target.src = 'https://placehold.co/40x40?text=Img'; }}
                               />
                             ) : (
-                              <div className="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center border border-blue-500/20 shrink-0">
+                              <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 flex items-center justify-center border border-blue-200 dark:border-blue-500/20 shrink-0">
                                 <MdImage className="text-lg" />
                               </div>
                             )}
                             <div className="flex flex-col min-w-0 max-w-[220px]">
-                              <span className="font-bold text-white text-xs sm:text-sm truncate group-hover:text-blue-400 transition-colors" title={item.title}>
+                              <span className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" title={item.title}>
                                 {item.title}
                               </span>
-                              <span className="text-[10px] text-slate-500 font-mono tracking-wider truncate mt-0.5" title={item.campaignId}>
+                              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono tracking-wider truncate mt-0.5" title={item.campaignId}>
                                 ID: {item.campaignId}
                               </span>
                             </div>
@@ -1059,30 +1057,13 @@ const Notifications = () => {
 
                         {/* Message & Date */}
                         <td className="p-4 max-w-[280px]">
-                          <p className="text-xs text-slate-300 truncate whitespace-normal line-clamp-2 leading-relaxed" title={item.message}>
+                          <p className="text-xs text-slate-700 dark:text-slate-300 truncate whitespace-normal line-clamp-2 leading-relaxed" title={item.message}>
                             {item.message}
                           </p>
-                          <div className="text-[10px] text-slate-500 font-semibold mt-1">
+                          <div className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-1">
                             {item.createdAt ? formatDateTimeDDMMYYYY(item.createdAt) : '-'}
                           </div>
                         </td>
-
-                        {/* Platform */}
-                        {/* <td className="p-4 text-center">
-                          {plat === 'android' ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-green-500/10 text-green-400 border border-green-500/20">
-                              <DiAndroid size={13} /> Android
-                            </span>
-                          ) : plat === 'ios' ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-slate-500/10 text-slate-300 border border-slate-500/20">
-                              <DiApple size={13} /> iOS
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                              <FiGlobe size={11} /> All Platforms
-                            </span>
-                          )}
-                        </td> */}
 
                         {/* Sent To */}
                         <td className="p-4">
@@ -1090,16 +1071,16 @@ const Notifications = () => {
                             const recipients = recipientsMap[item.campaignId];
                             if (recipients === undefined) {
                               return (
-                                <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-500">
-                                  <span className="w-2.5 h-2.5 border border-slate-500 border-t-transparent rounded-full animate-spin"></span>
+                                <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500">
+                                  <span className="w-2.5 h-2.5 border border-slate-400 dark:border-slate-500 border-t-transparent rounded-full animate-spin"></span>
                                   Loading...
                                 </span>
                               );
                             }
                             if (recipients.length === 0) {
                               return (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-slate-300 font-semibold text-[11px]">
-                                  <FiUsers className="text-blue-400" size={12} /> All Users
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 font-semibold text-[11px]">
+                                  <FiUsers className="text-blue-600 dark:text-blue-400" size={12} /> All Users
                                 </span>
                               );
                             }
@@ -1113,7 +1094,7 @@ const Notifications = () => {
                                 {displayedNames.map((name, idx) => (
                                   <span
                                     key={idx}
-                                    className="px-2 py-0.5 bg-blue-500/10 border border-blue-500/20 rounded text-blue-300 font-medium text-[11px] truncate max-w-[110px]"
+                                    className="px-2 py-0.5 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded text-blue-700 dark:text-blue-300 font-medium text-[11px] truncate max-w-[110px]"
                                     title={name}
                                   >
                                     {name}
@@ -1121,7 +1102,7 @@ const Notifications = () => {
                                 ))}
                                 {remaining > 0 && (
                                   <span
-                                    className="px-1.5 py-0.5 bg-blue-500/20 border border-blue-500/30 rounded text-blue-400 font-bold text-[10px]"
+                                    className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-500/20 border border-blue-200 dark:border-blue-500/30 rounded text-blue-800 dark:text-blue-400 font-bold text-[10px]"
                                     title={names.slice(limit).join(', ')}
                                   >
                                     +{remaining}
@@ -1132,30 +1113,12 @@ const Notifications = () => {
                           })()}
                         </td>
 
-                        {/* Click Action */}
-                        {/* <td className="p-4">
-                          {item.clickAction && item.clickAction !== 'none' ? (
-                            <div className="flex flex-col items-start gap-1">
-                              <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px] font-bold border border-blue-500/20 uppercase tracking-wide">
-                                {item.clickAction}
-                              </span>
-                              {item.actionId && (
-                                <span className="text-[10px] text-slate-400 font-medium truncate max-w-[140px]" title={getActionTargetName(item.clickAction, item.actionId)}>
-                                  {getActionTargetName(item.clickAction, item.actionId)}
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-slate-500 text-xs font-medium">None</span>
-                          )}
-                        </td> */}
-
                         {/* Actions */}
                         <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-center gap-1.5">
                             <button
                               onClick={() => handleReuse(item)}
-                              className="p-1.5 sm:px-2.5 sm:py-1.5 bg-blue-600/15 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg border border-blue-500/20 transition-all text-xs font-semibold cursor-pointer flex items-center gap-1.5 active:scale-95"
+                              className="p-1.5 sm:px-2.5 sm:py-1.5 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white dark:bg-blue-600/15 dark:hover:bg-blue-600 dark:text-blue-400 dark:hover:text-white rounded-lg border border-blue-200 dark:border-blue-500/20 transition-all text-xs font-semibold cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-xs"
                               title="Reuse Notification Content"
                             >
                               <FiCopy size={12} />
@@ -1163,10 +1126,10 @@ const Notifications = () => {
                             </button>
                             <button
                               onClick={() => navigate(`/campaign-stats/${item.campaignId}`, { state: { from: '/notifications' } })}
-                              className="p-1.5 sm:px-2.5 sm:py-1.5 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-lg border border-white/10 transition-all text-xs font-semibold cursor-pointer flex items-center gap-1.5 active:scale-95"
+                              className="p-1.5 sm:px-2.5 sm:py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-300 dark:hover:text-white rounded-lg border border-slate-200 dark:border-white/10 transition-all text-xs font-semibold cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-xs"
                               title="View Campaign Statistics"
                             >
-                              <FiBarChart2 size={12} className="text-indigo-400" />
+                              <FiBarChart2 size={12} className="text-indigo-500 dark:text-indigo-400" />
                               <span className="hidden sm:inline">Stats</span>
                             </button>
                           </div>
@@ -1181,15 +1144,15 @@ const Notifications = () => {
 
           {/* Pagination Controls */}
           {!loadingHistory && filteredCampaigns.length > 0 && (
-            <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
-              <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
-                Showing <span className="font-bold text-white">{indexOfFirstHistoryItem + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastHistoryItem, filteredCampaigns.length)}</span> of <span className="font-bold text-white">{filteredCampaigns.length}</span> notifications
+            <div className="p-4 border-t border-slate-200/80 dark:border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/80 dark:bg-white/[0.02] backdrop-blur-md">
+              <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 text-center sm:text-left">
+                Showing <span className="font-bold text-slate-900 dark:text-white">{indexOfFirstHistoryItem + 1}</span> to <span className="font-bold text-slate-900 dark:text-white">{Math.min(indexOfLastHistoryItem, filteredCampaigns.length)}</span> of <span className="font-bold text-slate-900 dark:text-white">{filteredCampaigns.length}</span> notifications
               </span>
               <div className="flex space-x-2">
                 <button
                   onClick={() => setCurrentHistoryPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentHistoryPage === 1}
-                  className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                  className="px-3 sm:px-4 py-2 bg-white hover:bg-slate-100 dark:bg-slate-950/20 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200 dark:border-white/10 transform-gpu cursor-pointer shadow-xs"
                 >
                   &larr;
                 </button>
@@ -1226,8 +1189,8 @@ const Notifications = () => {
                           page === currentHistoryPage
                             ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
                             : page === '...'
-                            ? 'bg-transparent text-slate-500 border-transparent cursor-default'
-                            : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
+                            ? 'bg-transparent text-slate-400 dark:text-slate-500 border-transparent cursor-default'
+                            : 'bg-white hover:bg-slate-100 dark:bg-slate-950/20 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-white/10 dark:hover:bg-white/10 dark:hover:text-white cursor-pointer shadow-xs'
                         }`}
                       >
                         {page}
@@ -1238,7 +1201,7 @@ const Notifications = () => {
                 <button
                   onClick={() => setCurrentHistoryPage(prev => Math.min(prev + 1, totalHistoryPages))}
                   disabled={currentHistoryPage === totalHistoryPages || totalHistoryPages === 0}
-                  className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                  className="px-3 sm:px-4 py-2 bg-white hover:bg-slate-100 dark:bg-slate-950/20 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200 dark:border-white/10 transform-gpu cursor-pointer shadow-xs"
                 >
                   &rarr;
                 </button>

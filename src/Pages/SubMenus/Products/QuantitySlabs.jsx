@@ -431,7 +431,7 @@ export default function QuantitySlabs() {
         {/* Left Side: Configuration Builder (Col span 5) */}
         <div className="lg:col-span-5 flex flex-col h-full">
           {/* Slab Settings Box */}
-          <div className="dark:bg-linear-to-br dark:from-transparent dark:to-blue-950/65 border border-slate-200/80 dark:border-white/10 backdrop-blur-2xl rounded-3xl p-5 md:p-6 shadow-xl shadow-slate-200/50 dark:shadow-black/50 flex flex-col justify-between h-full space-y-5">
+          <div className="bg-white/40 dark:bg-transparent border border-slate-200/80 dark:border-white/10 backdrop-blur-2xl rounded-3xl p-5 md:p-6 shadow-xl shadow-slate-200/50 dark:shadow-black/50 flex flex-col justify-between h-full space-y-5">
             <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <span className="w-1.5 h-5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"></span>
               Slab Pricing Rules
@@ -610,7 +610,7 @@ export default function QuantitySlabs() {
         {/* Right Side: Product Selection & Preview Grid (Col span 7) */}
         <div className="lg:col-span-7 flex flex-col h-full">
           {/* Products & Filters Box */}
-          <div className="dark:bg-linear-to-br dark:from-transparent dark:to-blue-950/65 border border-slate-200/80 dark:border-white/10 backdrop-blur-2xl rounded-3xl p-5 md:p-6 shadow-xl shadow-slate-200/50 dark:shadow-black/50 flex flex-col justify-between h-full space-y-5">
+          <div className="bg-white/40 dark:bg-transparent border border-slate-200/80 dark:border-white/10 backdrop-blur-2xl rounded-3xl p-5 md:p-6 shadow-xl shadow-slate-200/50 dark:shadow-black/50 flex flex-col justify-between h-full space-y-5">
             <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center justify-between">
               <span className="flex items-center gap-2">
                 <span className="w-1.5 h-5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"></span>
@@ -730,7 +730,7 @@ export default function QuantitySlabs() {
                         <th className="p-3">Computed Slab Preview</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-400 dark:divide-white/5">
+                    <tbody className="divide-y divide-slate-200 dark:divide-white/5">
                       {currentItems.map((product) => {
                         const isSelected = selectedIds.has(product._id);
                         const hasVariants = product.variants && product.variants.length > 0;
@@ -918,8 +918,8 @@ export default function QuantitySlabs() {
 
       {/* Progress & Log Modal */}
       {showStatusModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 dark:bg-slate-950/50 backdrop-blur-lg transition-all">
-          <div className="w-full max-w-lg bg-transparent dark:bg-slate-950/90 border border-slate-200 dark:border-white/15 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] backdrop-blur-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-slate-950/50 backdrop-blur-lg transition-all">
+          <div className="w-full max-w-lg bg-white/95 dark:bg-slate-950/90 border border-slate-200 dark:border-white/15 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] backdrop-blur-xl">
             <div className="p-5 border-b border-slate-200 dark:border-white/10 flex justify-between items-center bg-slate-50/80 dark:bg-slate-950/80">
               <h3 className="font-bold text-slate-900 dark:text-white text-lg flex items-center gap-2">
                 <FiSliders size={18} className="text-blue-600 dark:text-blue-400 animate-spin" />

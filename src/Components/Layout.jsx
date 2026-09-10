@@ -1306,7 +1306,7 @@ const Layout = () => {
           transform transition-all duration-300 ease-in-out lg:translate-x-0 overflow-hidden
           ${isDark 
             ? 'bg-slate-950/50 backdrop-blur-2xl border-r border-white/10 shadow-2xl shadow-black/50' 
-            : 'bg-white/10 backdrop-blur-xl border-r border-slate-200/80 shadow-xl shadow-slate-900/5'
+            : 'bg-white/10 backdrop-blur-2xl border-r border-slate-200/80 shadow-xl shadow-slate-900/5'
           }
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
           ${isExpanded ? 'w-72' : 'lg:w-20 w-72'}
@@ -1750,7 +1750,7 @@ const Layout = () => {
                 className="flex items-center cursor-pointer group"
                 onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
               >
-                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-inner">
+                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center !text-white font-bold text-xs shadow-inner">
                   {user.email ? user.email.charAt(0).toUpperCase() : 'U'}
                 </div>
                 <div className="ml-3 hidden md:block">

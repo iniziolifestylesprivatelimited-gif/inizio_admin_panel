@@ -126,35 +126,35 @@ const CustomDatePicker = ({ value, onChange, min, max, label, align = 'right', c
     <div ref={containerRef} className={`relative select-none ${className}`}>
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between gap-2 bg-slate-800/80 border border-white/10 hover:border-blue-500/35 hover:bg-slate-800 transition-all cursor-pointer rounded-xl px-3 py-2 w-full h-[38px]"
+        className="flex items-center justify-between gap-2 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/10 hover:border-blue-500/35 dark:hover:border-blue-500/35 transition-all cursor-pointer rounded-xl px-3 py-2 w-full h-[38px] shadow-xs"
       >
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-slate-400 font-bold uppercase select-none">{label}:</span>
-          <span className="text-xs text-white font-bold font-mono min-w-[76px] text-left">
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase select-none">{label}:</span>
+          <span className="text-xs text-slate-900 dark:text-white font-bold font-mono min-w-[76px] text-left">
             {getDisplayValue()}
           </span>
         </div>
-        <FiCalendar className="text-blue-400 hover:text-blue-300 transition-colors text-xs pointer-events-none" />
+        <FiCalendar className="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors text-xs pointer-events-none" />
       </div>
 
       {isOpen && (
-        <div className={`absolute ${align === 'left' ? 'left-0' : 'right-0'} top-full mt-2 bg-slate-950/95 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 shadow-2xl w-64 z-50 animate-in fade-in zoom-in-95 duration-150`}>
+        <div className={`absolute ${align === 'left' ? 'left-0' : 'right-0'} top-full mt-2 bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-2xl p-4 shadow-xl dark:shadow-2xl w-64 z-50 animate-in fade-in zoom-in-95 duration-150`}>
           {/* Header */}
           <div className="flex items-center justify-between mb-3">
             <button
               type="button"
               onClick={handlePrevMonth}
-              className="p-1 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-all cursor-pointer"
+              className="p-1 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all cursor-pointer"
             >
               <FiChevronLeft size={16} />
             </button>
-            <span className="text-xs font-black text-white uppercase tracking-wider">
+            <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
               {months[month]} {year}
             </span>
             <button
               type="button"
               onClick={handleNextMonth}
-              className="p-1 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-all cursor-pointer"
+              className="p-1 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all cursor-pointer"
             >
               <FiChevronRight size={16} />
             </button>
@@ -163,7 +163,7 @@ const CustomDatePicker = ({ value, onChange, min, max, label, align = 'right', c
           {/* Weekdays */}
           <div className="grid grid-cols-7 gap-1 mb-1 text-center">
             {daysOfWeek.map((day) => (
-              <span key={day} className="text-[9px] font-black text-slate-500 uppercase">
+              <span key={day} className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase">
                 {day}
               </span>
             ))}
@@ -190,10 +190,10 @@ const CustomDatePicker = ({ value, onChange, min, max, label, align = 'right', c
                     selected
                       ? 'bg-blue-600 text-white shadow-md shadow-blue-600/35 border border-blue-500/35'
                       : disabled
-                      ? 'text-slate-700 cursor-not-allowed opacity-30'
+                      ? 'text-slate-300 dark:text-slate-700 cursor-not-allowed opacity-30'
                       : today
-                      ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                      : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                      ? 'bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20'
+                      : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white'
                   }`}
                 >
                   {day}

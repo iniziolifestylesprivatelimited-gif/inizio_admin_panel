@@ -77,23 +77,23 @@ const CustomTimePicker = ({ value, onChange, label, align = 'right', className =
       {/* Trigger Button */}
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between gap-2 bg-slate-800/80 border border-white/10 hover:border-blue-500/35 hover:bg-slate-800 transition-all cursor-pointer rounded-xl px-3 py-2 w-full h-[38px]"
+        className="flex items-center justify-between gap-2 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/10 hover:border-blue-500/35 dark:hover:border-blue-500/35 transition-all cursor-pointer rounded-xl px-3 py-2 w-full h-[38px] shadow-xs"
       >
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-slate-400 font-bold uppercase select-none">{label}:</span>
-          <span className="text-xs text-white font-bold font-mono min-w-[76px] text-left">
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase select-none">{label}:</span>
+          <span className="text-xs text-slate-900 dark:text-white font-bold font-mono min-w-[76px] text-left">
             {getDisplayValue()}
           </span>
         </div>
-        <FiClock className="text-blue-400 hover:text-blue-300 transition-colors text-xs pointer-events-none" />
+        <FiClock className="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors text-xs pointer-events-none" />
       </div>
 
       {/* Dropdown Popup */}
       {isOpen && (
-        <div className={`absolute ${align === 'left' ? 'left-0' : 'right-0'} top-full mt-2 bg-slate-950/95 backdrop-blur-2xl border border-white/10 rounded-2xl p-3 shadow-2xl w-60 z-50 animate-in fade-in zoom-in-95 duration-150 flex gap-3`}>
+        <div className={`absolute ${align === 'left' ? 'left-0' : 'right-0'} top-full mt-2 bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-2xl p-3 shadow-xl dark:shadow-2xl w-60 z-50 animate-in fade-in zoom-in-95 duration-150 flex gap-3`}>
           {/* Hours column */}
           <div className="flex flex-col flex-1">
-            <span className="text-[9px] font-black text-slate-500 uppercase text-center mb-1.5 select-none">Hour</span>
+            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase text-center mb-1.5 select-none">Hour</span>
             <div className="flex flex-col gap-0.5 overflow-y-auto max-h-36 pr-1 no-scrollbar">
               {hours.map((h) => (
                 <button
@@ -103,7 +103,7 @@ const CustomTimePicker = ({ value, onChange, label, align = 'right', className =
                   className={`py-1 text-xs font-bold rounded-lg transition-all text-center cursor-pointer ${
                     hour12 === h
                       ? 'bg-blue-600 text-white shadow-md'
-                      : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                      : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white'
                   }`}
                 >
                   {String(h).padStart(2, '0')}
@@ -114,7 +114,7 @@ const CustomTimePicker = ({ value, onChange, label, align = 'right', className =
 
           {/* Minutes column */}
           <div className="flex flex-col flex-1">
-            <span className="text-[9px] font-black text-slate-500 uppercase text-center mb-1.5 select-none">Min</span>
+            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase text-center mb-1.5 select-none">Min</span>
             <div className="flex flex-col gap-0.5 overflow-y-auto max-h-36 pr-1 no-scrollbar">
               {minutes.map((m) => {
                 const minVal = parseInt(m, 10);
@@ -126,7 +126,7 @@ const CustomTimePicker = ({ value, onChange, label, align = 'right', className =
                     className={`py-1 text-xs font-bold rounded-lg transition-all text-center cursor-pointer ${
                       minute === minVal
                         ? 'bg-blue-600 text-white shadow-md'
-                        : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                        : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white'
                     }`}
                   >
                     {m}
@@ -137,14 +137,14 @@ const CustomTimePicker = ({ value, onChange, label, align = 'right', className =
           </div>
 
           {/* AM/PM Period column */}
-          <div className="flex flex-col justify-center gap-1.5 w-12 border-l border-white/10 pl-3">
+          <div className="flex flex-col justify-center gap-1.5 w-12 border-l border-slate-200 dark:border-white/10 pl-3">
             <button
               type="button"
               onClick={() => handleSelectPeriod('AM')}
               className={`py-2 text-xs font-black rounded-lg transition-all text-center cursor-pointer ${
                 period === 'AM'
                   ? 'bg-blue-600 text-white shadow-md'
-                  : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                  : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white'
               }`}
             >
               AM
@@ -155,7 +155,7 @@ const CustomTimePicker = ({ value, onChange, label, align = 'right', className =
               className={`py-2 text-xs font-black rounded-lg transition-all text-center cursor-pointer ${
                 period === 'PM'
                   ? 'bg-blue-600 text-white shadow-md'
-                  : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                  : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white'
               }`}
             >
               PM

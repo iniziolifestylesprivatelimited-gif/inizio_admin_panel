@@ -27,13 +27,13 @@ const CopyIdBadge = ({ id }) => {
     <button
       type="button"
       onClick={handleCopy}
-      className="px-2 py-0.5 text-[10px] text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg flex items-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0"
+      className="px-2 py-0.5 text-[10px] text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-lg flex items-center gap-1 cursor-pointer transition-all active:scale-95 shrink-0"
       title={copied ? "Copied ID!" : "Click to copy Quote ID"}
     >
       {copied ? (
         <>
-          <FiCheck className="text-emerald-400" size={10} />
-          <span className="text-emerald-400 font-bold">Copied</span>
+          <FiCheck className="text-emerald-600 dark:text-emerald-400" size={10} />
+          <span className="text-emerald-600 dark:text-emerald-400 font-bold">Copied</span>
         </>
       ) : (
         <span className="font-mono opacity-80">#{id ? id.substring(id.length - 6).toUpperCase() : ''}</span>
@@ -213,16 +213,16 @@ const Quotes = () => {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-            <FiFileText className="text-blue-400" />
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+            <FiFileText className="text-blue-600 dark:text-blue-400" />
             Quotes Requests
           </h1>
-          <p className="text-slate-400 font-medium mt-1">Review custom bulk pricing quotes and manage status changes.</p>
+          <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Review custom bulk pricing quotes and manage status changes.</p>
         </div>
 
         {/* Search Filter Box */}
         <div className="relative w-72">
-          <FiSearch className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-slate-400 z-10" />
+          <FiSearch className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 z-10" />
           <input
             type="text"
             placeholder="Search by client name, email, phone, or product requested..."
@@ -231,7 +231,7 @@ const Quotes = () => {
               setSearchTerm(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full pl-10 pr-4 py-3 bg-slate-950/30 border border-white/10 text-white rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md transition-all text-sm font-medium placeholder-slate-400"
+            className="w-full pl-10 pr-4 py-3 bg-white/80 dark:bg-slate-950/30 border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md transition-all text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500 shadow-xs dark:shadow-none"
           />
         </div>
       </div>
@@ -243,46 +243,51 @@ const Quotes = () => {
             title: 'Total Quotes',
             value: stats.total,
             icon: FiFileText,
-            color: 'text-blue-400',
-            bg: 'bg-blue-500/20',
+            color: 'text-blue-600 dark:text-blue-400',
+            valueColor: 'text-blue-500 dark:text-white',
+            bg: 'bg-blue-50 dark:bg-blue-500/20',
             fromColor: 'from-blue-500/25',
-            hoverBorder: 'hover:border-blue-500/30'
+            hoverBorder: 'hover:border-blue-500/40'
           },
           {
             title: 'Pending',
             value: stats.pending,
             icon: FiClock,
-            color: 'text-amber-400',
-            bg: 'bg-amber-500/20',
+            color: 'text-amber-600 dark:text-amber-400',
+            valueColor: 'text-amber-500 dark:text-white',
+            bg: 'bg-amber-50 dark:bg-amber-500/20',
             fromColor: 'from-amber-500/25',
-            hoverBorder: 'hover:!border-amber-500/30'
+            hoverBorder: 'hover:!border-amber-500/40'
           },
           {
             title: 'Contacted',
             value: stats.contacted,
             icon: FiPhoneCall,
-            color: 'text-sky-400',
-            bg: 'bg-sky-500/20',
+            color: 'text-sky-600 dark:text-sky-400',
+            valueColor: 'text-sky-500 dark:text-white',
+            bg: 'bg-sky-50 dark:bg-sky-500/20',
             fromColor: 'from-sky-500/25',
-            hoverBorder: 'hover:border-sky-500/30'
+            hoverBorder: 'hover:border-sky-500/40'
           },
           {
             title: 'Resolved',
             value: stats.resolved,
             icon: FiCheckCircle,
-            color: 'text-emerald-400',
-            bg: 'bg-emerald-500/20',
+            color: 'text-emerald-600 dark:text-emerald-400',
+            valueColor: 'text-emerald-500 dark:text-white',
+            bg: 'bg-emerald-50 dark:bg-emerald-500/20',
             fromColor: 'from-emerald-500/25',
-            hoverBorder: 'hover:border-emerald-500/30'
+            hoverBorder: 'hover:border-emerald-500/40'
           },
           {
             title: 'Rejected',
             value: stats.rejected,
             icon: FiXCircle,
-            color: 'text-rose-400',
-            bg: 'bg-rose-500/20',
+            color: 'text-rose-600 dark:text-rose-400',
+            valueColor: 'text-rose-500 dark:text-white',
+            bg: 'bg-rose-50 dark:bg-rose-500/20',
             fromColor: 'from-rose-500/25',
-            hoverBorder: 'hover:border-rose-500/30'
+            hoverBorder: 'hover:border-rose-500/40'
           }
         ].map((metric, index) => (
           <Card
@@ -297,7 +302,7 @@ const Quotes = () => {
                   {metric.title}
                 </h3>
                 <p
-                  className="text-xl sm:text-2xl xl:text-3xl font-extrabold text-white mt-1 tracking-tight truncate"
+                  className={`text-xl sm:text-2xl xl:text-3xl font-extrabold mt-1 tracking-tight truncate ${metric.valueColor || 'text-slate-900 dark:text-white'}`}
                   title={metric.value.toString()}
                 >
                   {metric.value}
@@ -314,7 +319,7 @@ const Quotes = () => {
       {/* Filter & View Mode Controls Bar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         {/* Status Quick Filters */}
-        <div className="flex bg-slate-900/80 border border-white/10 rounded-2xl p-1 gap-1 overflow-x-auto custom-scrollbar max-w-full">
+        <div className="flex bg-white/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-white/10 rounded-2xl p-1 gap-1 overflow-x-auto custom-scrollbar max-w-full shadow-xs dark:shadow-none">
           {[
             { id: 'all', label: 'All', count: stats.total },
             { id: 'pending', label: 'Pending', count: stats.pending },
@@ -330,11 +335,11 @@ const Quotes = () => {
               }}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${statusFilter === tab.id
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                : 'text-slate-400 hover:text-white hover:bg-white/5'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
                 }`}
             >
               <span>{tab.label}</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${statusFilter === tab.id ? 'bg-white/20 text-white' : 'bg-white/5 text-slate-400'}`}>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${statusFilter === tab.id ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400'}`}>
                 {tab.count}
               </span>
             </button>
@@ -342,10 +347,10 @@ const Quotes = () => {
         </div>
 
         {/* View Mode Toggle */}
-        <div className="flex items-center gap-1 bg-slate-900/80 border border-white/10 rounded-2xl p-1 shrink-0 self-end sm:self-auto">
+        <div className="flex items-center gap-1 bg-white/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-white/10 rounded-2xl p-1 shrink-0 self-end sm:self-auto shadow-xs dark:shadow-none">
           <button
             onClick={() => setViewMode('grid')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${viewMode === 'grid' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${viewMode === 'grid' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
               }`}
             title="Card Grid View"
           >
@@ -354,7 +359,7 @@ const Quotes = () => {
           </button>
           <button
             onClick={() => setViewMode('table')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${viewMode === 'table' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${viewMode === 'table' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
               }`}
             title="Table View"
           >
@@ -367,26 +372,26 @@ const Quotes = () => {
       {/* Main View (Grid Cards or Table) */}
       {loading ? (
         <div className="py-24 flex flex-col justify-center items-center gap-2">
-          <FiLoader className="animate-spin text-3xl text-blue-400" />
+          <FiLoader className="animate-spin text-3xl text-blue-600 dark:text-blue-400" />
           <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Retrieving quote requests...</span>
         </div>
       ) : error ? (
-        <div className="bg-rose-500/15 border border-rose-500/25 p-5 rounded-2xl text-center text-rose-400 text-sm font-bold flex items-center justify-center gap-2 max-w-lg mx-auto">
+        <div className="bg-rose-50 dark:bg-rose-500/15 border border-rose-200 dark:border-rose-500/25 p-5 rounded-2xl text-center text-rose-600 dark:text-rose-400 text-sm font-bold flex items-center justify-center gap-2 max-w-lg mx-auto shadow-xs">
           <FiAlertCircle size={18} />
           <span>{error}</span>
         </div>
       ) : filteredQuotes.length === 0 ? (
-        <div className="py-24 flex flex-col justify-center items-center border border-dashed border-white/10 rounded-3xl text-slate-500 p-6 text-center max-w-lg mx-auto">
-          <FiFileText size={40} className="text-slate-600 mb-3" />
+        <div className="py-24 flex flex-col justify-center items-center border border-dashed border-slate-300 dark:border-white/10 rounded-3xl text-slate-500 p-6 text-center max-w-lg mx-auto">
+          <FiFileText size={40} className="text-slate-400 dark:text-slate-600 mb-3" />
           <span className="text-sm font-bold">No custom quote requests matched your active filters.</span>
         </div>
       ) : viewMode === 'table' ? (
         /* ================= TABLE VIEW ================= */
-        <div className="border border-white/10 rounded-2xl overflow-hidden shadow-xl flex flex-col h-full">
+        <div className="border border-slate-200/80 dark:border-white/10 bg-transparent backdrop-blur-2xl rounded-2xl overflow-hidden shadow-xl dark:shadow-2xl shadow-slate-200/50 dark:shadow-black/50 flex flex-col h-full">
           <div className="overflow-auto custom-scrollbar max-h-[65vh]">
             <table className="w-full text-left border-collapse whitespace-nowrap min-w-200">
-              <thead className="sticky top-0 z-20 bg-white/[0.03] backdrop-blur-md shadow-md border-b border-white/10">
-                <tr className="border-b border-white/10 text-[11px] uppercase tracking-wider text-slate-400">
+              <thead className="sticky top-0 z-20 bg-slate-100/80 dark:bg-white/[0.03] backdrop-blur-md shadow-xs dark:shadow-md border-b border-slate-200/80 dark:border-white/10">
+                <tr className="border-b border-slate-200/80 dark:border-white/10 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   <th className="p-3.5 font-bold text-center">S.No</th>
                   <th className="p-3.5 font-bold">Date & ID</th>
                   <th className="p-3.5 font-bold">Requester</th>
@@ -399,7 +404,7 @@ const Quotes = () => {
                   <th className="p-3.5 font-bold text-center">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5 text-xs">
+              <tbody className="divide-y divide-slate-200/80 dark:divide-white/5 text-xs">
                 {currentQuotes.map((q, idx) => {
                   const clientName = q.name || q.user?.name || 'Unknown Client';
                   const clientPhone = q.phone || q.user?.phone;
@@ -414,37 +419,37 @@ const Quotes = () => {
                   const getStatusConfig = (status) => {
                     switch (status?.toLowerCase()) {
                       case 'contacted':
-                        return { label: 'Contacted', badgeClass: 'bg-sky-500/15 text-sky-400 border-sky-500/30', icon: FiPhone };
+                        return { label: 'Contacted', badgeClass: 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-500/15 dark:text-sky-400 dark:border-sky-500/30', icon: FiPhone };
                       case 'resolved':
-                        return { label: 'Resolved', badgeClass: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30', icon: FiCheckCircle };
+                        return { label: 'Resolved', badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/30', icon: FiCheckCircle };
                       case 'rejected':
-                        return { label: 'Rejected', badgeClass: 'bg-rose-500/15 text-rose-400 border-rose-500/30', icon: FiXCircle };
+                        return { label: 'Rejected', badgeClass: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/15 dark:text-rose-400 dark:border-rose-500/30', icon: FiXCircle };
                       case 'pending':
                       default:
-                        return { label: 'Pending', badgeClass: 'bg-amber-500/15 text-amber-400 border-amber-500/30', icon: FiClock };
+                        return { label: 'Pending', badgeClass: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-400 dark:border-amber-500/30', icon: FiClock };
                     }
                   };
                   const statusConfig = getStatusConfig(q.status);
                   const StatusIcon = statusConfig.icon;
 
                   return (
-                    <tr key={q._id} className="hover:bg-white/[0.03] transition-colors">
-                      <td className="p-3.5 text-center font-mono text-slate-400 font-bold">{indexOfFirstItem + idx + 1}</td>
+                    <tr key={q._id} className="hover:bg-slate-100/60 dark:hover:bg-white/[0.03] transition-colors">
+                      <td className="p-3.5 text-center font-mono text-slate-500 dark:text-slate-400 font-bold">{indexOfFirstItem + idx + 1}</td>
                       <td className="p-3.5">
                         <div className="flex flex-col gap-1">
-                          <span className="font-mono text-xs text-white font-bold">{formatDateDDMMYYYY(q.createdAt)}</span>
+                          <span className="font-mono text-xs text-slate-900 dark:text-white font-bold">{formatDateDDMMYYYY(q.createdAt)}</span>
                           <CopyIdBadge id={q._id} />
                         </div>
                       </td>
                       <td className="p-3.5">
                         <div className="flex flex-col">
-                          <span className="font-bold text-white text-xs">{clientName}</span>
-                          <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
+                          <span className="font-bold text-slate-900 dark:text-white text-xs">{clientName}</span>
+                          <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                             {clientPhone && <span className="font-mono">{clientPhone}</span>}
                             {clientEmail && (
                               <GmailLink
                                 email={clientEmail}
-                                className="text-slate-500 hover:text-blue-400 font-mono text-[11px] truncate max-w-[120px]"
+                                className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 font-mono text-[11px] truncate max-w-[120px]"
                               />
                             )}
                           </div>
@@ -456,21 +461,21 @@ const Quotes = () => {
                             <OptimizedImage
                               src={productImage}
                               alt={productName}
-                              className="w-8 h-8 rounded-lg object-cover bg-white border border-white/10 shrink-0"
+                              className="w-8 h-8 rounded-lg object-cover bg-white border border-slate-200 dark:border-white/10 shrink-0"
                             />
                           )}
                           <span
                             onClick={() => prodId && setViewModalProductId(prodId)}
-                            className={`truncate font-semibold text-white ${prodId ? 'hover:text-blue-400 cursor-pointer' : ''}`}
+                            className={`truncate font-semibold text-slate-900 dark:text-white ${prodId ? 'hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer' : ''}`}
                             title={productName}
                           >
                             {productName}
                           </span>
                         </div>
                       </td>
-                      <td className="p-3.5 text-center font-mono font-bold text-white">{quantity.toLocaleString()}</td>
-                      <td className="p-3.5 text-right font-mono font-bold text-amber-400">₹{expected.toLocaleString()}</td>
-                      <td className="p-3.5 text-right font-mono font-black text-emerald-400 text-sm">₹{totalExpectedValue.toLocaleString()}</td>
+                      <td className="p-3.5 text-center font-mono font-bold text-slate-900 dark:text-white">{quantity.toLocaleString()}</td>
+                      <td className="p-3.5 text-right font-mono font-bold text-amber-600 dark:text-amber-400">₹{expected.toLocaleString()}</td>
+                      <td className="p-3.5 text-right font-mono font-black text-emerald-600 dark:text-emerald-400 text-sm">₹{totalExpectedValue.toLocaleString()}</td>
                       <td className="p-3.5 text-center">
                         <span className={`inline-flex items-center gap-1 text-[10px] font-extrabold px-2.5 py-1 rounded-xl border uppercase tracking-wider ${statusConfig.badgeClass}`}>
                           <StatusIcon size={11} className="shrink-0" />
@@ -479,25 +484,25 @@ const Quotes = () => {
                       </td>
                       <td className="p-3.5 max-w-[180px]">
                         {q.message ? (
-                          <p className="truncate text-[11px] text-slate-300 italic" title={q.message}>"{q.message}"</p>
+                          <p className="truncate text-[11px] text-slate-700 dark:text-slate-300 italic" title={q.message}>"{q.message}"</p>
                         ) : q.adminNotes ? (
-                          <p className="truncate text-[11px] text-blue-300" title={q.adminNotes}>{q.adminNotes}</p>
+                          <p className="truncate text-[11px] text-blue-700 dark:text-blue-300" title={q.adminNotes}>{q.adminNotes}</p>
                         ) : (
-                          <span className="text-slate-600 text-[11px]">-</span>
+                          <span className="text-slate-400 dark:text-slate-600 text-[11px]">-</span>
                         )}
                       </td>
                       <td className="p-3.5 text-center">
                         <div className="flex items-center justify-center gap-1.5">
                           <button
                             onClick={() => openEditModal(q)}
-                            className="px-2.5 py-1.5 bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg font-bold text-[11px] transition-all flex items-center gap-1 cursor-pointer"
+                            className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white dark:bg-blue-600/20 dark:hover:bg-blue-600 dark:text-blue-400 dark:hover:text-white rounded-lg font-bold text-[11px] transition-all flex items-center gap-1 cursor-pointer border border-blue-200 dark:border-transparent"
                             title="Edit Status"
                           >
                             <FiEdit2 size={11} /> Update
                           </button>
                           <button
                             onClick={() => openDeleteModal(q)}
-                            className="p-1.5 bg-rose-500/10 hover:bg-rose-600 text-rose-400 hover:text-white rounded-lg transition-all cursor-pointer"
+                            className="p-1.5 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white dark:bg-rose-500/10 dark:hover:bg-rose-600 dark:text-rose-400 dark:hover:text-white rounded-lg transition-all cursor-pointer border border-rose-200 dark:border-transparent"
                             title="Delete Quote"
                           >
                             <FiTrash2 size={13} />
@@ -513,15 +518,15 @@ const Quotes = () => {
 
           {/* Table Pagination */}
           {!loading && filteredQuotes.length > 0 && (
-            <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
-              <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
-                Showing <span className="font-bold text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastItem, filteredQuotes.length)}</span> of <span className="font-bold text-white">{filteredQuotes.length}</span> quotes
+            <div className="p-4 border-t border-slate-200/80 dark:border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50 dark:bg-white/[0.02] backdrop-blur-md">
+              <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 text-center sm:text-left">
+                Showing <span className="font-bold text-slate-900 dark:text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-slate-900 dark:text-white">{Math.min(indexOfLastItem, filteredQuotes.length)}</span> of <span className="font-bold text-slate-900 dark:text-white">{filteredQuotes.length}</span> quotes
               </span>
               <div className="flex space-x-2">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                  className="px-3 sm:px-4 py-2 bg-white dark:bg-slate-950/20 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200 dark:border-white/10 transform-gpu cursor-pointer shadow-xs dark:shadow-none"
                 >
                   &larr;
                 </button>
@@ -557,8 +562,8 @@ const Quotes = () => {
                         className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${page === currentPage
                           ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
                           : page === '...'
-                            ? 'bg-transparent text-slate-500 border-transparent cursor-default'
-                            : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
+                            ? 'bg-transparent text-slate-400 dark:text-slate-500 border-transparent cursor-default'
+                            : 'bg-white dark:bg-slate-950/20 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white cursor-pointer'
                           }`}
                       >
                         {page}
@@ -569,7 +574,7 @@ const Quotes = () => {
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages || totalPages === 0}
-                  className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                  className="px-3 sm:px-4 py-2 bg-white dark:bg-slate-950/20 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200 dark:border-white/10 transform-gpu cursor-pointer shadow-xs dark:shadow-none"
                 >
                   &rarr;
                 </button>
@@ -601,31 +606,31 @@ const Quotes = () => {
                   case 'contacted':
                     return {
                       label: 'Contacted',
-                      badgeClass: 'bg-sky-500/15 text-sky-400 border-sky-500/30',
+                      badgeClass: 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-500/15 dark:text-sky-400 dark:border-sky-500/30',
                       icon: FiPhone,
-                      accentBorder: 'hover:border-sky-500/40'
+                      accentBorder: 'hover:border-sky-500/50'
                     };
                   case 'resolved':
                     return {
                       label: 'Resolved',
-                      badgeClass: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+                      badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/30',
                       icon: FiCheckCircle,
-                      accentBorder: 'hover:border-emerald-500/40'
+                      accentBorder: 'hover:border-emerald-500/50'
                     };
                   case 'rejected':
                     return {
                       label: 'Rejected',
-                      badgeClass: 'bg-rose-500/15 text-rose-400 border-rose-500/30',
+                      badgeClass: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/15 dark:text-rose-400 dark:border-rose-500/30',
                       icon: FiXCircle,
-                      accentBorder: 'hover:border-rose-500/40'
+                      accentBorder: 'hover:border-rose-500/50'
                     };
                   case 'pending':
                   default:
                     return {
                       label: 'Pending',
-                      badgeClass: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+                      badgeClass: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-400 dark:border-amber-500/30',
                       icon: FiClock,
-                      accentBorder: 'hover:border-amber-500/40'
+                      accentBorder: 'hover:border-amber-500/50'
                     };
                 }
               };
@@ -636,18 +641,18 @@ const Quotes = () => {
               return (
                 <div
                   key={q._id}
-                  className={`bg-linear-to-br from-transparent to-blue-950/65 border border-white/10 ${statusConfig.accentBorder} rounded-2xl p-4 flex flex-col justify-between transition-all duration-200 shadow-xl hover:shadow-2xl hover:shadow-black/50 group h-full space-y-3.5 relative`}
+                  className={`bg-white/20 dark:bg-transparent dark:bg-linear-to-br dark:from-transparent dark:to-blue-950/65 border border-slate-200/80 dark:border-white/10 ${statusConfig.accentBorder} rounded-2xl p-4 flex flex-col justify-between transition-all duration-200 shadow-md dark:shadow-xl hover:shadow-xl dark:hover:shadow-2xl hover:shadow-slate-300/50 dark:hover:shadow-black/50 group h-full space-y-3.5 relative backdrop-blur-xl`}
                 >
                   {/* Section 1: Header Row (Status & Date & Copy ID) */}
-                  <div className="flex justify-between items-center pb-2.5 border-b border-white/10">
+                  <div className="flex justify-between items-center pb-2.5 border-b border-slate-200/80 dark:border-white/10">
                     <div className="flex items-center gap-2">
                       <span className={`inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-lg border uppercase tracking-wider ${statusConfig.badgeClass}`}>
                         <StatusIcon size={11} className="shrink-0" />
                         {statusConfig.label}
                       </span>
                       {q.createdAt && (
-                        <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1">
-                          <FiCalendar size={11} className="text-slate-500" />
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1">
+                          <FiCalendar size={11} className="text-slate-400 dark:text-slate-500" />
                           {formatDateDDMMYYYY(q.createdAt)}
                         </span>
                       )}
@@ -657,35 +662,35 @@ const Quotes = () => {
 
                   {/* Section 2: Customer / Requester Profile */}
                   <div className="flex items-center gap-3 text-left">
-                    <div className="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-400 font-black flex items-center justify-center text-sm shrink-0 shadow-inner">
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-600/20 dark:border-blue-500/30 dark:text-blue-400 font-black flex items-center justify-center text-sm shrink-0 shadow-inner">
                       {clientName.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h3 className="text-white text-sm font-bold truncate group-hover:text-blue-400 transition-colors" title={clientName}>
+                      <h3 className="text-slate-900 dark:text-white text-sm font-bold truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" title={clientName}>
                         {clientName}
                       </h3>
-                      <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
+                      <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                         {clientPhone ? (
                           <a
                             href={`tel:${clientPhone}`}
-                            className="flex items-center gap-1 hover:text-blue-400 transition-colors font-mono text-[11px]"
+                            className="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-mono text-[11px]"
                             title={`Call ${clientPhone}`}
                           >
-                            <FiPhone size={10} className="text-slate-500" />
+                            <FiPhone size={10} className="text-slate-400 dark:text-slate-500" />
                             <span>{clientPhone}</span>
                           </a>
                         ) : (
-                          <span className="text-slate-600 text-[11px]">No phone</span>
+                          <span className="text-slate-400 dark:text-slate-600 text-[11px]">No phone</span>
                         )}
                         {clientEmail && (
                           <>
-                            <span className="text-slate-600">•</span>
+                            <span className="text-slate-300 dark:text-slate-600">•</span>
                             <GmailLink
                               email={clientEmail}
                               showIcon={true}
                               iconSize={10}
-                              iconClassName="text-slate-500"
-                              className="hover:text-blue-400 transition-colors font-mono text-[11px] truncate max-w-[130px] text-slate-300"
+                              iconClassName="text-slate-400 dark:text-slate-500"
+                              className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-mono text-[11px] truncate max-w-[130px] text-slate-600 dark:text-slate-300"
                             />
                           </>
                         )}
@@ -694,11 +699,11 @@ const Quotes = () => {
                   </div>
 
                   {/* Section 3: Product Info */}
-                  <div className="flex items-center gap-3 bg-slate-950/60 border border-white/5 rounded-xl p-2.5 text-left">
+                  <div className="flex items-center gap-3 bg-slate-50/80 dark:bg-slate-950/60 border border-slate-200/80 dark:border-white/5 rounded-xl p-2.5 text-left">
                     {productImage ? (
                       <div
                         onClick={() => { if (prodId) setViewModalProductId(prodId); }}
-                        className={`w-10 h-10 bg-white rounded-lg overflow-hidden shrink-0 border border-white/10 p-0.5 ${prodId ? 'cursor-pointer hover:border-blue-500 hover:scale-105 transition-all' : ''}`}
+                        className={`w-10 h-10 bg-white rounded-lg overflow-hidden shrink-0 border border-slate-200 dark:border-white/10 p-0.5 ${prodId ? 'cursor-pointer hover:border-blue-500 hover:scale-105 transition-all' : ''}`}
                         title={prodId ? "View Product Details" : undefined}
                       >
                         <OptimizedImage src={productImage} alt={productName} width={100} quality={65} className="w-full h-full object-contain" />
@@ -706,7 +711,7 @@ const Quotes = () => {
                     ) : (
                       <div
                         onClick={() => { if (prodId) setViewModalProductId(prodId); }}
-                        className={`w-10 h-10 rounded-lg bg-slate-800 text-slate-500 flex items-center justify-center shrink-0 border border-white/10 ${prodId ? 'cursor-pointer hover:border-blue-500 hover:scale-105 transition-all' : ''}`}
+                        className={`w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex items-center justify-center shrink-0 border border-slate-200 dark:border-white/10 ${prodId ? 'cursor-pointer hover:border-blue-500 hover:scale-105 transition-all' : ''}`}
                         title={prodId ? "View Product Details" : undefined}
                       >
                         <FiTag size={16} />
@@ -715,61 +720,61 @@ const Quotes = () => {
                     <div className="min-w-0 flex-1">
                       <h4
                         onClick={() => { if (prodId) setViewModalProductId(prodId); }}
-                        className={`text-xs font-bold text-white truncate ${prodId ? 'hover:text-blue-400 cursor-pointer' : ''}`}
+                        className={`text-xs font-bold text-slate-900 dark:text-white truncate ${prodId ? 'hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer' : ''}`}
                         title={productName}
                       >
                         {productName}
                       </h4>
-                      <div className="flex items-center gap-2 mt-0.5 text-[10px] text-slate-400">
+                      <div className="flex items-center gap-2 mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">
                         {offerPrice > 0 ? (
-                          <span>Offer: <strong className="text-slate-300 font-mono">₹{offerPrice.toLocaleString()}</strong></span>
+                          <span>Offer: <strong className="text-slate-700 dark:text-slate-300 font-mono">₹{offerPrice.toLocaleString()}</strong></span>
                         ) : null}
                         {basePrice > 0 ? (
-                          <span>MRP: <strong className="text-slate-500 line-through font-mono">₹{basePrice.toLocaleString()}</strong></span>
+                          <span>MRP: <strong className="text-slate-400 dark:text-slate-500 line-through font-mono">₹{basePrice.toLocaleString()}</strong></span>
                         ) : null}
                       </div>
                     </div>
                   </div>
 
                   {/* Section 4: 3-Column Financial Metric Strip */}
-                  <div className="grid grid-cols-3 gap-1.5 bg-slate-950/80 border border-white/10 rounded-xl p-2.5 text-center">
-                    <div className="border-r border-white/5 pr-1">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Quantity</span>
-                      <span className="text-xs font-extrabold text-white font-mono mt-0.5 block">{quantity.toLocaleString()}</span>
+                  <div className="grid grid-cols-3 gap-1.5 bg-slate-50/90 dark:bg-slate-950/80 border border-slate-200/80 dark:border-white/10 rounded-xl p-2.5 text-center">
+                    <div className="border-r border-slate-200 dark:border-white/5 pr-1">
+                      <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Quantity</span>
+                      <span className="text-xs font-extrabold text-slate-900 dark:text-white font-mono mt-0.5 block">{quantity.toLocaleString()}</span>
                     </div>
-                    <div className="border-r border-white/5 pr-1">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Target / Unit</span>
-                      <span className="text-xs font-extrabold text-amber-400 font-mono mt-0.5 block">₹{expected.toLocaleString()}</span>
+                    <div className="border-r border-slate-200 dark:border-white/5 pr-1">
+                      <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Target / Unit</span>
+                      <span className="text-xs font-extrabold text-amber-600 dark:text-amber-400 font-mono mt-0.5 block">₹{expected.toLocaleString()}</span>
                     </div>
                     <div className="pl-1">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total Deal</span>
-                      <span className="text-xs font-black text-emerald-400 font-mono mt-0.5 block">₹{totalExpectedValue.toLocaleString()}</span>
+                      <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Total Deal</span>
+                      <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5 block">₹{totalExpectedValue.toLocaleString()}</span>
                     </div>
                   </div>
 
                   {/* Section 5: Notes Container with Clean Fixed Layout */}
-                  <div className="min-h-[44px] flex flex-col justify-center bg-slate-950/40 border border-white/5 rounded-xl px-3 py-2 text-xs text-left">
+                  <div className="min-h-[44px] flex flex-col justify-center bg-slate-50/60 dark:bg-slate-950/40 border border-slate-200/60 dark:border-white/5 rounded-xl px-3 py-2 text-xs text-left">
                     {q.message ? (
                       <div className="flex items-start gap-2">
-                        <FiMessageSquare size={12} className="text-slate-400 shrink-0 mt-0.5" />
-                        <p className="text-[11px] italic text-slate-300 line-clamp-1" title={q.message}>
+                        <FiMessageSquare size={12} className="text-slate-400 dark:text-slate-500 shrink-0 mt-0.5" />
+                        <p className="text-[11px] italic text-slate-700 dark:text-slate-300 line-clamp-1" title={q.message}>
                           "{q.message}"
                         </p>
                       </div>
                     ) : q.adminNotes ? (
                       <div className="flex items-start gap-2">
-                        <FiFileText size={12} className="text-blue-400 shrink-0 mt-0.5" />
-                        <p className="text-[11px] text-blue-300 line-clamp-1" title={q.adminNotes}>
+                        <FiFileText size={12} className="text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                        <p className="text-[11px] text-blue-700 dark:text-blue-300 line-clamp-1" title={q.adminNotes}>
                           {q.adminNotes}
                         </p>
                       </div>
                     ) : (
-                      <span className="text-[11px] text-slate-600 italic">No notes provided</span>
+                      <span className="text-[11px] text-slate-400 dark:text-slate-600 italic">No notes provided</span>
                     )}
                     {q.message && q.adminNotes && (
-                      <div className="flex items-start gap-2 mt-1 pt-1 border-t border-white/5">
-                        <FiFileText size={12} className="text-blue-400 shrink-0 mt-0.5" />
-                        <p className="text-[11px] text-blue-300 line-clamp-1" title={q.adminNotes}>
+                      <div className="flex items-start gap-2 mt-1 pt-1 border-t border-slate-200 dark:border-white/5">
+                        <FiFileText size={12} className="text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                        <p className="text-[11px] text-blue-700 dark:text-blue-300 line-clamp-1" title={q.adminNotes}>
                           {q.adminNotes}
                         </p>
                       </div>
@@ -777,7 +782,7 @@ const Quotes = () => {
                   </div>
 
                   {/* Section 6: Action Footer */}
-                  <div className="flex items-center gap-2 pt-2 border-t border-white/10 mt-auto">
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-200/80 dark:border-white/10 mt-auto">
                     <button
                       onClick={() => openEditModal(q)}
                       className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm shadow-blue-600/30 active:scale-95"
@@ -786,7 +791,7 @@ const Quotes = () => {
                     </button>
                     <button
                       onClick={() => openDeleteModal(q)}
-                      className="p-2 bg-rose-500/10 hover:bg-rose-600 border border-rose-500/20 hover:border-rose-500 text-rose-400 hover:text-white rounded-xl transition-all cursor-pointer flex items-center justify-center active:scale-95"
+                      className="p-2 bg-rose-50 hover:bg-rose-600 border border-rose-200 hover:border-rose-600 text-rose-600 hover:text-white dark:bg-rose-500/10 dark:hover:bg-rose-600 dark:border-rose-500/20 dark:hover:border-rose-500 dark:text-rose-400 dark:hover:text-white rounded-xl transition-all cursor-pointer flex items-center justify-center active:scale-95"
                       title="Delete Quote"
                     >
                       <FiTrash2 size={13} />
@@ -799,15 +804,15 @@ const Quotes = () => {
 
           {/* Cards Pagination */}
           {!loading && filteredQuotes.length > 0 && (
-            <div className="p-4 border border-white/10 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
-              <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
-                Showing <span className="font-bold text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastItem, filteredQuotes.length)}</span> of <span className="font-bold text-white">{filteredQuotes.length}</span> quotes
+            <div className="p-4 border border-slate-200/80 dark:border-white/10 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/40 dark:bg-white/[0.02] backdrop-blur-md shadow-xs dark:shadow-none">
+              <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 text-center sm:text-left">
+                Showing <span className="font-bold text-slate-900 dark:text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-slate-900 dark:text-white">{Math.min(indexOfLastItem, filteredQuotes.length)}</span> of <span className="font-bold text-slate-900 dark:text-white">{filteredQuotes.length}</span> quotes
               </span>
               <div className="flex space-x-2">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                  className="px-3 sm:px-4 py-2 bg-white dark:bg-slate-950/20 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200 dark:border-white/10 transform-gpu cursor-pointer shadow-xs dark:shadow-none"
                 >
                   &larr;
                 </button>
@@ -843,8 +848,8 @@ const Quotes = () => {
                         className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${page === currentPage
                           ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
                           : page === '...'
-                            ? 'bg-transparent text-slate-500 border-transparent cursor-default'
-                            : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
+                            ? 'bg-transparent text-slate-400 dark:text-slate-500 border-transparent cursor-default'
+                            : 'bg-white dark:bg-slate-950/20 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white cursor-pointer'
                           }`}
                       >
                         {page}
@@ -855,7 +860,7 @@ const Quotes = () => {
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages || totalPages === 0}
-                  className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                  className="px-3 sm:px-4 py-2 bg-white dark:bg-slate-950/20 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200 dark:border-white/10 transform-gpu cursor-pointer shadow-xs dark:shadow-none"
                 >
                   &rarr;
                 </button>
@@ -868,18 +873,18 @@ const Quotes = () => {
       {/* Edit Status Modal */}
       {editModalOpen && selectedQuote && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={() => setEditModalOpen(false)}></div>
-          <div className="bg-slate-950/25 border border-white/15 rounded-3xl p-6 w-full max-w-md relative z-10 shadow-2xl animate-in fade-in zoom-in-95">
-            <button onClick={() => setEditModalOpen(false)} className="absolute right-4 top-4 p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
+          <div className="absolute inset-0 dark:bg-slate-950/50 backdrop-blur-lg" onClick={() => setEditModalOpen(false)}></div>
+          <div className="bg-white/40 dark:bg-slate-950/90 border border-slate-200 dark:border-white/15 rounded-3xl p-6 w-full max-w-md relative z-10 shadow-2xl animate-in fade-in zoom-in-95">
+            <button onClick={() => setEditModalOpen(false)} className="absolute right-4 top-4 p-1 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-all cursor-pointer">
               <FiX size={20} />
             </button>
 
-            <h3 className="text-lg font-bold text-white mb-1">Update Quote Status</h3>
-            <p className="text-xs text-slate-400 mb-4">Modify the state of quote request and append follow-up notes.</p>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Update Quote Status</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Modify the state of quote request and append follow-up notes.</p>
 
             <form onSubmit={handleUpdateStatusSubmit} className="space-y-4 text-left">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Status</label>
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Status</label>
                 <CustomDropdown
                   value={editStatus}
                   options={[
@@ -889,18 +894,18 @@ const Quotes = () => {
                     { value: 'rejected', label: 'Rejected' }
                   ]}
                   onChange={(val) => setEditStatus(val)}
-                  statusColor="bg-black/25 text-white border-white/10 text-xs font-semibold w-full text-left"
+                  statusColor="bg-slate-50 dark:bg-black/25 text-slate-900 dark:text-white border-slate-500 dark:border-white/10 text-xs font-semibold w-full text-left"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Follow-up Notes</label>
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Follow-up Notes</label>
                 <textarea
                   value={editAdminNotes}
                   onChange={(e) => setEditAdminNotes(e.target.value)}
                   placeholder="e.g. Discussed bulk orders. Offered custom slab rate."
                   rows={4}
-                  className="w-full px-4 py-2.5 bg-black/25 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-semibold resize-none"
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-black/25 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-semibold resize-none"
                 />
               </div>
 
@@ -908,7 +913,7 @@ const Quotes = () => {
                 <button
                   type="button"
                   onClick={() => setEditModalOpen(false)}
-                  className="px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer border border-white/5"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer border border-slate-200 dark:border-white/5"
                 >
                   Cancel
                 </button>
@@ -928,17 +933,17 @@ const Quotes = () => {
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && quoteToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={() => setDeleteModalOpen(false)}></div>
-          <div className="bg-slate-950/25 border border-white/20 rounded-3xl p-6 w-full max-w-md relative z-10 shadow-2xl animate-in fade-in zoom-in-95 text-center">
+          <div className="absolute inset-0 dark:bg-slate-950/50 backdrop-blur-lg" onClick={() => setDeleteModalOpen(false)}></div>
+          <div className="bg-white/40 dark:bg-slate-950/90 border border-slate-200 dark:border-white/20 rounded-3xl p-6 w-full max-w-md relative z-10 shadow-2xl animate-in fade-in zoom-in-95 text-center">
 
-            <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-400 flex items-center justify-center mx-auto mb-3">
+            <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400 flex items-center justify-center mx-auto mb-3 border border-rose-200 dark:border-transparent">
               <FiTrash2 size={24} />
             </div>
 
-            <h3 className="text-lg font-bold text-white mb-1">Delete Quote Request</h3>
-            <p className="text-xs text-slate-400 mb-4">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Delete Quote Request</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
               Are you sure you want to delete this quote request? To proceed, please type the client's name:
-              <strong className="text-white block mt-1 select-all font-mono font-black">
+              <strong className="text-slate-900 dark:text-white block mt-1 select-all font-mono font-black">
                 {(quoteToDelete.name || quoteToDelete.user?.name || '')}
               </strong>
             </p>
@@ -948,14 +953,14 @@ const Quotes = () => {
               placeholder="Type client's name here..."
               value={typedConfirmName}
               onChange={(e) => setTypedConfirmName(e.target.value)}
-              className="w-full px-4 py-2.5 bg-black/25 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/50 transition-all font-semibold font-mono text-center mb-4"
+              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-black/25 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/50 transition-all font-semibold font-mono text-center mb-4"
             />
 
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => setDeleteModalOpen(false)}
-                className="flex-1 py-2 bg-slate-900/75 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer border border-white/15"
+                className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900/75 dark:hover:bg-white/10 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer border border-slate-200 dark:border-white/15"
               >
                 Cancel
               </button>
@@ -974,27 +979,27 @@ const Quotes = () => {
       {/* Confirmation Status Modal */}
       {confirmStatusModalOpen && selectedQuote && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={() => setConfirmStatusModalOpen(false)}></div>
-          <div className="bg-slate-950/15 border border-white/20 rounded-3xl p-6 w-full max-w-md relative z-10 shadow-2xl animate-in fade-in zoom-in-95 text-center">
+          <div className="absolute inset-0 dark:bg-slate-950/50 backdrop-blur-lg" onClick={() => setConfirmStatusModalOpen(false)}></div>
+          <div className="bg-white/40 dark:bg-slate-950/90 border border-slate-200 dark:border-white/20 rounded-3xl p-6 w-full max-w-md relative z-10 shadow-2xl animate-in fade-in zoom-in-95 text-center">
 
-            <div className="w-12 h-12 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center mx-auto mb-3 animate-bounce">
+            <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 flex items-center justify-center mx-auto mb-3 animate-bounce border border-blue-200 dark:border-transparent">
               <FiAlertCircle size={24} />
             </div>
 
-            <h3 className="text-lg font-bold text-white mb-2">Confirm Status Change</h3>
-            <p className="text-xs text-slate-400 mb-6 flex flex-col items-center gap-2">
-              <span>Are you sure you want to change the status of the quote request for <span className="text-white font-semibold">{(selectedQuote.name || selectedQuote.user?.name || 'this client')}</span>?</span>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Confirm Status Change</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 flex flex-col items-center gap-2">
+              <span>Are you sure you want to change the status of the quote request for <span className="text-slate-900 dark:text-white font-semibold">{(selectedQuote.name || selectedQuote.user?.name || 'this client')}</span>?</span>
               <span className="flex items-center gap-2 mt-2">
-                <span className={`text-[10px] font-black px-2 py-0.5 rounded border uppercase ${selectedQuote.status === 'pending' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
-                  selectedQuote.status === 'contacted' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                    selectedQuote.status === 'resolved' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                      'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded border uppercase ${selectedQuote.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20' :
+                  selectedQuote.status === 'contacted' ? 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20' :
+                    selectedQuote.status === 'resolved' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20' :
+                      'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20'
                   }`}>{selectedQuote.status || 'pending'}</span>
-                <span className="text-slate-500">→</span>
-                <span className={`text-[10px] font-black px-2 py-0.5 rounded border uppercase ${editStatus === 'pending' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
-                  editStatus === 'contacted' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                    editStatus === 'resolved' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                      'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                <span className="text-slate-400 dark:text-slate-500">→</span>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded border uppercase ${editStatus === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20' :
+                  editStatus === 'contacted' ? 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20' :
+                    editStatus === 'resolved' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20' :
+                      'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20'
                   }`}>{editStatus}</span>
               </span>
             </p>
@@ -1003,7 +1008,7 @@ const Quotes = () => {
               <button
                 type="button"
                 onClick={() => setConfirmStatusModalOpen(false)}
-                className="flex-1 py-2 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer border border-white/5"
+                className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer border border-slate-200 dark:border-white/5"
               >
                 Cancel
               </button>
@@ -1022,15 +1027,15 @@ const Quotes = () => {
       {/* Global Alert Notification Popup */}
       {alertOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setAlertOpen(false)}></div>
-          <div className="bg-slate-900 border border-white/15 rounded-3xl p-6 w-full max-w-sm relative z-10 shadow-2xl animate-in fade-in zoom-in-95 text-center">
+          <div className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm" onClick={() => setAlertOpen(false)}></div>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/15 rounded-3xl p-6 w-full max-w-sm relative z-10 shadow-2xl animate-in fade-in zoom-in-95 text-center">
 
-            <div className="w-12 h-12 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center mx-auto mb-3">
+            <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 flex items-center justify-center mx-auto mb-3 border border-blue-200 dark:border-transparent">
               <FiCheckCircle size={24} />
             </div>
 
-            <h3 className="text-base font-bold text-white mb-2">Quote Operations</h3>
-            <p className="text-xs text-slate-400 mb-5">{alertMessage}</p>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">Quote Operations</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-5">{alertMessage}</p>
 
             <button
               onClick={() => setAlertOpen(false)}

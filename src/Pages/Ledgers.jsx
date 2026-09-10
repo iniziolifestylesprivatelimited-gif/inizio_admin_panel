@@ -213,17 +213,17 @@ export const Ledgers = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-            <FiFileText className="text-blue-400" />
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+            <FiFileText className="text-blue-600 dark:text-blue-400" />
             Ledgers
           </h1>
-          <p className="text-slate-400 font-medium mt-1">Manage customer account statements and uploaded ledgers.</p>
+          <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Manage customer account statements and uploaded ledgers.</p>
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto">
           {/* Search Box */}
           <div className="relative w-full sm:w-64">
-            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
+            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 z-10" />
             <input
               type="text"
               placeholder="Search by title, customer..."
@@ -232,7 +232,7 @@ export const Ledgers = () => {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-10 pr-9 py-2.5 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 text-xs font-medium transition-all"
+              className="w-full pl-10 pr-9 py-2.5 bg-white dark:bg-black/20 border border-slate-200/80 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-black/40 shadow-xs dark:shadow-inner backdrop-blur-md text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-xs font-medium transition-all"
             />
             {searchQuery && (
               <button
@@ -241,7 +241,7 @@ export const Ledgers = () => {
                   setSearchQuery('');
                   setCurrentPage(1);
                 }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
               >
                 <FiX size={13} />
               </button>
@@ -259,20 +259,20 @@ export const Ledgers = () => {
 
       {/* Content Area */}
       {loading ? (
-        <div className="h-64 flex flex-col justify-center items-center bg-slate-900/50 border border-white/10 rounded-2xl">
-          <FiLoader className="animate-spin text-3xl text-blue-400 mb-4" />
-          <p className="text-slate-400 font-medium">Loading ledgers...</p>
+        <div className="h-64 flex flex-col justify-center items-center bg-white/40 dark:bg-transparent backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 shadow-xl dark:shadow-2xl shadow-slate-200/50 dark:shadow-black/50 rounded-2xl md:rounded-3xl">
+          <FiLoader className="animate-spin text-3xl text-blue-600 dark:text-blue-400 mb-4" />
+          <p className="text-slate-500 dark:text-slate-400 font-medium">Loading ledgers...</p>
         </div>
       ) : error ? (
-        <div className="text-red-400 bg-red-900/20 p-4 rounded-xl border border-red-500/30 flex items-center">
+        <div className="text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-4 rounded-xl border border-red-200 dark:border-red-500/30 flex items-center shadow-xs">
           <FiAlertCircle className="mr-2 text-lg shrink-0" /> {error}
         </div>
       ) : (
-        <div className="relative z-10 border border-white/10 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col h-full">
+        <div className="relative z-10 bg-transparent backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 shadow-xl dark:shadow-2xl shadow-slate-200/50 dark:shadow-black/50 rounded-2xl md:rounded-3xl overflow-hidden flex flex-col h-full">
           <div className="overflow-auto custom-scrollbar max-h-[59vh]">
             <table className="w-full text-left border-collapse whitespace-nowrap min-w-150">
-              <thead className="sticky top-0 z-20 bg-white/[0.03] backdrop-blur-md shadow-md border-b border-white/10">
-                <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-slate-400">
+              <thead className="sticky top-0 z-20 bg-slate-100/70 dark:bg-white/[0.03] backdrop-blur-md shadow-xs dark:shadow-md border-b border-slate-200/80 dark:border-white/10">
+                <tr className="border-b border-slate-200/80 dark:border-white/10 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   <th className="p-5 font-bold w-16">S.No</th>
                   <th className="p-5 font-bold">Title</th>
                   <th className="p-5 font-bold">Customer</th>
@@ -281,12 +281,12 @@ export const Ledgers = () => {
                       setSortOrder(prev => (prev === 'desc' ? 'asc' : 'desc'));
                       setCurrentPage(1);
                     }}
-                    className="p-5 font-bold cursor-pointer select-none hover:text-white transition-colors"
+                    className="p-5 font-bold cursor-pointer select-none hover:text-slate-900 dark:hover:text-white transition-colors"
                     title={`Sorted: ${sortOrder === 'desc' ? 'Newest First' : 'Oldest First'}. Click to toggle.`}
                   >
                     <div className="flex items-center gap-1.5">
-                      <span className="text-blue-400 font-extrabold">Uploaded Date</span>
-                      <span className="text-blue-400 text-xs">
+                      <span className="text-blue-600 dark:text-blue-400 font-extrabold">Uploaded Date</span>
+                      <span className="text-blue-600 dark:text-blue-400 text-xs">
                         {sortOrder === 'asc' ? '▲' : '▼'}
                       </span>
                     </div>
@@ -294,42 +294,42 @@ export const Ledgers = () => {
                   <th className="p-5 font-bold text-center">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-slate-200/80 dark:divide-white/5">
                 {currentLedgers.length > 0 ? (
                   currentLedgers.map((ledger, index) => {
                     const user = getUserDetails(ledger.user);
                     return (
-                      <tr key={ledger._id} className="hover:bg-white/[0.02] transition-colors">
-                        <td className="p-5 text-sm text-slate-400 font-medium font-mono">{indexOfFirstItem + index + 1}</td>
+                      <tr key={ledger._id} className="hover:bg-slate-100/60 dark:hover:bg-white/[0.02] transition-colors">
+                        <td className="p-5 text-sm text-slate-500 dark:text-slate-400 font-medium font-mono">{indexOfFirstItem + index + 1}</td>
                         <td className="p-5">
                           <div className="flex items-center gap-2.5">
-                            <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 shrink-0">
+                            <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0">
                               <FiFileText size={16} />
                             </div>
-                            <span className="text-sm text-white font-bold">{ledger.title}</span>
+                            <span className="text-sm text-slate-900 dark:text-white font-bold">{ledger.title}</span>
                           </div>
                         </td>
                         <td className="p-5">
                           {user.isUnlinked ? (
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800/80 text-slate-400 border border-white/5 italic">
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/5 italic">
                               User Removed
                             </span>
                           ) : (
                             <div>
-                              <div className="text-sm font-semibold text-slate-200 flex items-center gap-1.5">
-                                <FiUser size={13} className="text-blue-400 shrink-0" />
+                              <div className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                                <FiUser size={13} className="text-blue-600 dark:text-blue-400 shrink-0" />
                                 <span>{user.name}</span>
                               </div>
                               {user.email && (
-                                <span className="text-xs text-slate-500 flex items-center gap-1 mt-0.5 font-mono">
-                                  <FiMail size={11} className="text-slate-600 shrink-0" />
+                                <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5 font-mono">
+                                  <FiMail size={11} className="text-slate-400 dark:text-slate-500 shrink-0" />
                                   {user.email}
                                 </span>
                               )}
                             </div>
                           )}
                         </td>
-                        <td className="p-5 text-sm text-slate-300 font-mono">
+                        <td className="p-5 text-sm text-slate-600 dark:text-slate-300 font-mono">
                           {formatDateDDMMYYYY(ledger.createdAt)}
                         </td>
                         <td className="p-5">
@@ -337,7 +337,7 @@ export const Ledgers = () => {
                             <button
                               type="button"
                               onClick={() => setPreviewPdfUrl(getFileUrl(ledger.fileUrl))}
-                              className="p-2.5 text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all cursor-pointer hover:scale-105"
+                              className="p-2.5 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 rounded-lg transition-all cursor-pointer hover:scale-105"
                               title="Preview Ledger"
                             >
                               <FiEye size={15} />
@@ -346,14 +346,14 @@ export const Ledgers = () => {
                               href={getFileUrl(ledger.fileUrl)}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="p-2.5 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg transition-all cursor-pointer hover:scale-105"
+                              className="p-2.5 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 rounded-lg transition-all cursor-pointer hover:scale-105"
                               title="Download Ledger"
                             >
                               <FiDownloadCloud size={15} />
                             </a>
                             <button
                               onClick={() => handleDelete(ledger._id)}
-                              className="p-2.5 text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg transition-all cursor-pointer hover:scale-105"
+                              className="p-2.5 text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 rounded-lg transition-all cursor-pointer hover:scale-105"
                               title="Delete Ledger"
                             >
                               <FiTrash2 size={15} />
@@ -365,7 +365,7 @@ export const Ledgers = () => {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={5} className="p-12 text-center text-slate-400 italic">
+                    <td colSpan={5} className="p-12 text-center text-slate-500 dark:text-slate-400 italic">
                       {searchQuery ? 'No ledgers found matching your search.' : 'No ledgers found.'}
                     </td>
                   </tr>
@@ -376,15 +376,15 @@ export const Ledgers = () => {
 
           {/* Pagination Controls */}
           {!loading && filteredLedgers.length > 0 && (
-            <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/[0.02] backdrop-blur-md">
-              <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
-                Showing <span className="font-bold text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastItem, filteredLedgers.length)}</span> of <span className="font-bold text-white">{filteredLedgers.length}</span> ledgers
+            <div className="p-4 border-t border-slate-200/80 dark:border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50 dark:bg-white/[0.02] backdrop-blur-md">
+              <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 text-center sm:text-left">
+                Showing <span className="font-bold text-slate-900 dark:text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-slate-900 dark:text-white">{Math.min(indexOfLastItem, filteredLedgers.length)}</span> of <span className="font-bold text-slate-900 dark:text-white">{filteredLedgers.length}</span> ledgers
               </span>
               <div className="flex space-x-2">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                  className="px-3 sm:px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-950/20 dark:hover:bg-white/10 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200 dark:border-white/10 transform-gpu cursor-pointer shadow-xs dark:shadow-none"
                 >
                   &larr;
                 </button>
@@ -420,8 +420,8 @@ export const Ledgers = () => {
                         className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${page === currentPage
                             ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
                             : page === '...'
-                              ? 'bg-transparent text-slate-500 border-transparent cursor-default'
-                              : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
+                              ? 'bg-transparent text-slate-400 dark:text-slate-500 border-transparent cursor-default'
+                              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100 hover:text-slate-900 dark:bg-slate-950/20 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10 dark:hover:text-white cursor-pointer shadow-xs dark:shadow-none'
                           }`}
                       >
                         {page}
@@ -432,7 +432,7 @@ export const Ledgers = () => {
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages || totalPages === 0}
-                  className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
+                  className="px-3 sm:px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-950/20 dark:hover:bg-white/10 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200 dark:border-white/10 transform-gpu cursor-pointer shadow-xs dark:shadow-none"
                 >
                   &rarr;
                 </button>
@@ -445,26 +445,26 @@ export const Ledgers = () => {
       {/* Upload Modal */}
       {isModalOpen && createPortal(
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-lg" onClick={closeModal}></div>
-          <div className="relative bg-slate-950/15 border border-white/20 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-5 py-3 border-b border-white/10 flex justify-between items-center bg-white/[0.03]">
-              <h3 className="font-bold text-white text-lg flex items-center gap-2">
-                <FiUpload className="text-blue-400" /> Upload New Ledger
+          <div className="absolute inset-0 dark:bg-slate-950/50 backdrop-blur-lg" onClick={closeModal}></div>
+          <div className="relative bg-transparent dark:bg-slate-950/90 border border-slate-200 dark:border-white/20 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200 backdrop-blur-xl">
+            <div className="px-5 py-3 border-b border-slate-200/80 dark:border-white/10 flex justify-between items-center bg-slate-50/80 dark:bg-white/[0.03]">
+              <h3 className="font-bold text-slate-900 dark:text-white text-lg flex items-center gap-2">
+                <FiUpload className="text-blue-600 dark:text-blue-400" /> Upload New Ledger
               </h3>
-              <button onClick={closeModal} className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors">
+              <button onClick={closeModal} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors cursor-pointer">
                 <FiX className="text-xl" />
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="overflow-y-auto custom-scrollbar p-6 space-y-5">
               <div className="relative">
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Customer</label>
+                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Customer</label>
 
                 {/* Selected Trigger Button */}
                 <button
                   type="button"
                   onClick={() => setIsUserSelectOpen(!isUserSelectOpen)}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner text-left text-white text-sm font-medium"
+                  className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-black/40 shadow-xs dark:shadow-inner text-left text-slate-900 dark:text-white text-sm font-medium cursor-pointer"
                 >
                   <span className="truncate">
                     {selectedUser
@@ -475,28 +475,28 @@ export const Ledgers = () => {
                       : 'Select a customer'
                     }
                   </span>
-                  <span className="pointer-events-none text-slate-400 text-[10px]">▼</span>
+                  <span className="pointer-events-none text-slate-400 dark:text-slate-500 text-[10px]">▼</span>
                 </button>
 
                 {/* Dropdown Menu */}
                 {isUserSelectOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setIsUserSelectOpen(false)}></div>
-                    <div className="absolute z-50 w-full mt-2 bg-slate-950/25 backdrop-blur-sm border border-white/10 rounded-xl shadow-2xl p-3 space-y-2 animate-in fade-in duration-200">
+                    <div className="absolute z-50 w-full mt-2 bg-white dark:bg-slate-950/95 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl p-3 space-y-2 animate-in fade-in duration-200">
                       <div className="relative">
                         <input
                           type="text"
                           value={userSearchTerm}
                           onChange={(e) => setUserSearchTerm(e.target.value)}
                           placeholder="Search customer by name or email..."
-                          className="w-full pl-3 pr-8 py-2 bg-slate-900 border border-white/10 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 text-white text-xs placeholder-slate-500"
+                          className="w-full pl-3 pr-8 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-900 dark:text-white text-xs placeholder-slate-400 dark:placeholder-slate-500"
                           autoFocus
                         />
                         {userSearchTerm && (
                           <button
                             type="button"
                             onClick={() => setUserSearchTerm('')}
-                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer"
                           >
                             <FiX className="w-3.5 h-3.5" />
                           </button>
@@ -520,17 +520,17 @@ export const Ledgers = () => {
                                 setIsUserSelectOpen(false);
                                 setUserSearchTerm('');
                               }}
-                              className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors ${selectedUser === user._id
+                              className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${selectedUser === user._id
                                   ? 'bg-blue-600 text-white'
-                                  : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
                                 }`}
                             >
                               <span className="font-bold">{user.name}</span>
-                              <span className={`block text-[10px] ${selectedUser === user._id ? 'text-blue-100' : 'text-slate-500'}`}>{user.email}</span>
+                              <span className={`block text-[10px] ${selectedUser === user._id ? 'text-blue-100' : 'text-slate-500 dark:text-slate-400'}`}>{user.email}</span>
                             </button>
                           ))
                         ) : (
-                          <div className="px-3 py-4 text-center text-xs text-slate-500">No customers found</div>
+                          <div className="px-3 py-4 text-center text-xs text-slate-400 dark:text-slate-500">No customers found</div>
                         )}
                       </div>
                     </div>
@@ -539,20 +539,20 @@ export const Ledgers = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Ledger Title</label>
+                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Ledger Title</label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g., July 2026 Ledger"
                   required
-                  className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/40 shadow-inner backdrop-blur-md text-white placeholder-slate-500 transition-all text-sm font-medium"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-black/40 shadow-xs dark:shadow-inner backdrop-blur-md text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all text-sm font-medium"
                 />
               </div>
 
               {/* Ledger File Upload Dropzone */}
               <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Ledger File (PDF)</label>
+                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Ledger File (PDF)</label>
                 <div
                   onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                   onDragLeave={() => setIsDragging(false)}
@@ -568,8 +568,8 @@ export const Ledgers = () => {
                   }}
                   onClick={() => document.getElementById('ledger-file-input').click()}
                   className={`w-full h-36 border-2 border-dashed rounded-2xl flex flex-col justify-center items-center gap-2 cursor-pointer transition-all duration-300 relative overflow-hidden group select-none ${isDragging
-                      ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/20'
-                      : 'border-white/10 hover:border-blue-500/40 hover:bg-white/5'
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10 ring-2 ring-blue-500/20'
+                      : 'border-slate-300 dark:border-white/10 hover:border-blue-500/50 hover:bg-slate-50 dark:hover:bg-white/5 bg-slate-50/50 dark:bg-transparent'
                     }`}
                 >
                   <input
@@ -587,38 +587,38 @@ export const Ledgers = () => {
                           e.stopPropagation();
                           setFile(null);
                         }}
-                        className="absolute top-2.5 right-2.5 p-1.5 bg-slate-900/80 hover:bg-red-600 hover:text-white rounded-lg text-slate-400 transition-colors z-30"
+                        className="absolute top-2.5 right-2.5 p-1.5 bg-slate-200 dark:bg-slate-900/80 hover:bg-red-600 hover:text-white rounded-lg text-slate-600 dark:text-slate-400 transition-colors z-30 cursor-pointer"
                         title="Clear file"
                       >
                         <FiX size={14} />
                       </button>
-                      <FiFileText size={32} className="text-red-400 group-hover:scale-110 transition-transform duration-300" />
-                      <span className="text-xs font-bold text-white text-center px-4 truncate max-w-70" title={file.name}>{file.name}</span>
-                      <span className="text-[10px] text-slate-400">{(file.size / 1024 / 1024).toFixed(2)} MB • Click or drag to change file</span>
+                      <FiFileText size={32} className="text-red-500 dark:text-red-400 group-hover:scale-110 transition-transform duration-300" />
+                      <span className="text-xs font-bold text-slate-900 dark:text-white text-center px-4 truncate max-w-70" title={file.name}>{file.name}</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400">{(file.size / 1024 / 1024).toFixed(2)} MB • Click or drag to change file</span>
                     </>
                   ) : (
                     <>
-                      <FiUpload size={24} className="text-slate-400 group-hover:text-blue-400 transition-colors" />
-                      <span className="text-xs font-medium text-slate-300 group-hover:text-white transition-colors">Drag & drop PDF ledger here, or <span className="text-blue-400 group-hover:underline">browse</span></span>
-                      <span className="text-[10px] text-slate-500">Only PDF formats are supported</span>
+                      <FiUpload size={24} className="text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
+                      <span className="text-xs font-medium text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Drag & drop PDF ledger here, or <span className="text-blue-600 dark:text-blue-400 group-hover:underline">browse</span></span>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500">Only PDF formats are supported</span>
                     </>
                   )}
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-white/20 flex flex-col sm:flex-row justify-end gap-3">
+              <div className="pt-4 border-t border-slate-200/80 dark:border-white/20 flex flex-col sm:flex-row justify-end gap-3">
                 <button
                   type="button"
                   onClick={closeModal}
                   disabled={isSubmitting}
-                  className="w-full sm:w-auto px-6 py-2.5 bg-transparent border border-white/10 text-slate-300 font-bold rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-50"
+                  className="w-full sm:w-auto px-6 py-2.5 bg-white dark:bg-transparent border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 shadow-xs dark:shadow-none cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 text-white font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                  className="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 text-white font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 cursor-pointer shadow-lg shadow-blue-500/10"
                 >
                   {isSubmitting ? <FiLoader className="animate-spin mr-2" /> : <FiUpload className="mr-2" />}
                   {isSubmitting ? 'Uploading...' : 'Upload Ledger'}
@@ -632,17 +632,17 @@ export const Ledgers = () => {
       {/* PDF Preview Modal */}
       {previewPdfUrl && createPortal(
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => {
+          <div className="absolute inset-0 bg-black/50 dark:bg-slate-950/60 backdrop-blur-md animate-fade-in" onClick={() => {
             if (!isSubmitting) {
               setPreviewPdfUrl(null);
               setIsPendingUpload(false);
             }
           }}></div>
-          <div className="relative bg-slate-950/30 border border-white/10 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-slate-800/50">
+          <div className="relative bg-white dark:bg-slate-950/90 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-200 dark:border-white/10 bg-slate-50/90 dark:bg-slate-800/50">
               <div className="flex items-center gap-3">
-                <FiFileText className="text-blue-400 text-xl" />
-                <h3 className="text-lg font-bold text-white">
+                <FiFileText className="text-blue-600 dark:text-blue-400 text-xl" />
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                   {isPendingUpload ? 'Confirm Ledger PDF Before Uploading' : 'Ledger PDF Preview'}
                 </h3>
               </div>
@@ -652,20 +652,20 @@ export const Ledgers = () => {
                   setIsPendingUpload(false);
                 }}
                 disabled={isSubmitting}
-                className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors disabled:opacity-50"
+                className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors disabled:opacity-50 cursor-pointer"
               >
                 <FiX className="text-xl" />
               </button>
             </div>
 
-            <div className="p-4 bg-slate-950 flex-1 flex flex-col min-h-0">
+            <div className="p-4 bg-slate-100 dark:bg-slate-950 flex-1 flex flex-col min-h-0">
               <iframe
                 src={`${previewPdfUrl}#toolbar=0&navpanes=0&view=FitH`}
-                className="w-full h-[60vh] min-h-[450px] rounded-xl bg-slate-900 border border-white/5"
+                className="w-full h-[60vh] min-h-[450px] rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5"
                 title="Ledger PDF"
               />
               <div className="mt-3 text-center sm:text-left">
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   {isPendingUpload
                     ? 'Please review the ledger details. Click "Confirm & Upload" to save this ledger document.'
                     : 'Note: If the PDF does not display, you can download it directly using the button below.'}
@@ -673,7 +673,7 @@ export const Ledgers = () => {
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-white/10 bg-slate-800/50 flex justify-end gap-3">
+            <div className="px-6 py-4 border-t border-slate-200 dark:border-white/10 bg-slate-50/90 dark:bg-slate-800/50 flex justify-end gap-3">
               {isPendingUpload ? (
                 <>
                   <button
@@ -683,7 +683,7 @@ export const Ledgers = () => {
                       setIsPendingUpload(false);
                     }}
                     disabled={isSubmitting}
-                    className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl transition-colors text-sm cursor-pointer disabled:opacity-50"
+                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white font-bold rounded-xl transition-colors text-sm cursor-pointer disabled:opacity-50 border border-slate-200 dark:border-transparent"
                   >
                     Cancel
                   </button>
@@ -717,7 +717,7 @@ export const Ledgers = () => {
                   </a>
                   <button
                     onClick={() => setPreviewPdfUrl(null)}
-                    className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl transition-colors text-sm cursor-pointer"
+                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white font-bold rounded-xl transition-colors text-sm cursor-pointer border border-slate-200 dark:border-transparent"
                   >
                     Close
                   </button>
