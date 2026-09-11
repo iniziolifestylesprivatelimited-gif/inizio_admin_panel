@@ -16,6 +16,8 @@ import { DiAndroid, DiApple } from 'react-icons/di';
 import { useConfirm } from '../../../Context/ConfirmationContext';
 import ProductDetailsModal from '../../../Components/ProductDetailsModal';
 import GmailLink from '../../../Components/GmailLink';
+import DocumentLightbox from '../../../Components/DocumentLightbox';
+import useEscapeKey from '../../../utils/useEscapeKey';
 
 const hasValidAppVersion = (appVersion) => {
   if (!appVersion) return false;
@@ -116,6 +118,7 @@ const UserDetails = () => {
   const [authStatus, setAuthStatus] = useState(null);
   const [loadingAuthStatus, setLoadingAuthStatus] = useState(false);
   const [viewModalProductId, setViewModalProductId] = useState(null);
+  const [isDocumentLightboxOpen, setIsDocumentLightboxOpen] = useState(false);
 
   const [isActionLoading, setIsActionLoading] = useState(false);
 
@@ -130,6 +133,10 @@ const UserDetails = () => {
     setAlertMessage(msg);
     setAlertOpen(true);
   };
+
+  // Keyboard shortcut Esc handling (topmost first via LIFO stack)
+  useEscapeKey(() => setAlertOpen(false), alertOpen);
+  useEscapeKey(() => { setDeleteConfirmOpen(false); setTypedConfirmName(''); }, deleteConfirmOpen);
 
   // Browsing Activities State
   const [userActivities, setUserActivities] = useState({ products: [], brands: [], categories: [], searches: [] });
@@ -896,14 +903,24 @@ const UserDetails = () => {
                       </p>
                     </div>
                     {user.gstDocument ? (
-                      <a
-                        href={getDocumentUrl(user.gstDocument)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 dark:bg-blue-500/15 dark:hover:bg-blue-500/25 border border-blue-500/20 dark:border-blue-500/30 text-blue-600 dark:text-blue-300 rounded-xl font-bold text-xs transition-all shrink-0 active:scale-95 shadow-xs"
-                      >
-                        <FiFileText size={14} /> View Document
-                      </a>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setIsDocumentLightboxOpen(true)}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs transition-all shrink-0 active:scale-95 shadow-md shadow-blue-600/20 cursor-pointer"
+                        >
+                          <FiEye size={14} /> Inspect Document
+                        </button>
+                        <a
+                          href={getDocumentUrl(user.gstDocument)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 bg-slate-200/60 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 rounded-xl transition-all"
+                          title="Open original file"
+                        >
+                          <FiExternalLink size={14} />
+                        </a>
+                      </div>
                     ) : (
                       <span className="text-xs text-slate-500 italic bg-slate-200/50 dark:bg-white/[0.03] px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/10">
                         No Document
@@ -1782,6 +1799,15 @@ const UserDetails = () => {
         productId={viewModalProductId}
         onClose={() => setViewModalProductId(null)}
         showEditButton={false}
+      />
+
+      {/* Document Inspection Lightbox (Zoom, Rotate, Pan) */}
+      <DocumentLightbox
+        isOpen={isDocumentLightboxOpen}
+        onClose={() => setIsDocumentLightboxOpen(false)}
+        src={user?.gstDocument ? getDocumentUrl(user.gstDocument) : ''}
+        title={`${user?.name || 'Customer'}'s GST Document`}
+        subtitle={user?.gstNumber ? `GSTIN: ${user.gstNumber}` : ''}
       />
 
     </div>

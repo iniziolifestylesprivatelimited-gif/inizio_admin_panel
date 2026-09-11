@@ -149,7 +149,7 @@ const InternetStrengthIndicator = ({ compact = true, className = '' }) => {
         level: 4,
         bars: 4,
         label: 'Excellent',
-        color: 'text-emerald-600 dark:text-emerald-400',
+        color: 'text-emerald-700 dark:text-emerald-400',
         barColor: 'bg-emerald-500',
         badgeBg: 'bg-emerald-500/50 border-emerald-500/20 text-emerald-600 dark:text-emerald-400',
         dotColor: 'bg-emerald-500'
@@ -161,7 +161,7 @@ const InternetStrengthIndicator = ({ compact = true, className = '' }) => {
         level: 3,
         bars: 3,
         label: 'Good',
-        color: 'text-emerald-500/25 dark:text-emerald-400',
+        color: 'text-emerald-500 dark:text-emerald-400',
         barColor: 'bg-emerald-500/25',
         badgeBg: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 dark:text-emerald-400',
         dotColor: 'bg-emerald-500'
@@ -275,7 +275,7 @@ const InternetStrengthIndicator = ({ compact = true, className = '' }) => {
 
       {/* Popover Details Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2.5 w-72 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl p-4 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-3.5">
+        <div className="absolute right-0 mt-2.5 w-72 bg-white/40 dark:bg-slate-900/50 backdrop-blur-sm border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl p-4 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-3.5">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 pb-2.5">
             <div className="flex items-center gap-2">

@@ -3,11 +3,14 @@ import { createPortal } from 'react-dom';
 import axios from 'axios';
 import {
   FiPlus, FiEdit2, FiTrash2, FiImage,
-  FiX, FiCheck, FiLoader, FiAlertCircle, FiLink
+  FiX, FiCheck, FiLoader, FiAlertCircle, FiLink,
+  FiCalendar, FiClock
 } from 'react-icons/fi';
 import { api, BASE_URL } from '../api/axios';
 import { useConfirm } from '../Context/ConfirmationContext';
 import CustomDropdown from '../Components/CustomDropdown';
+import useEscapeKey from '../utils/useEscapeKey';
+import { formatDateTimeDDMMYYYY } from '../utils/dateUtils';
 
 const getImageUrl = (path) => {
   if (!path) return '';
@@ -162,6 +165,9 @@ const Banners = () => {
     setIsDropdownOpen(false);
     setSearchTerm('');
   };
+
+  // Keyboard shortcut Esc handling (topmost first via LIFO stack)
+  useEscapeKey(closeModal, isModalOpen);
 
   // Handle Image Selection
   const handleImageChange = (e) => {
@@ -347,6 +353,26 @@ const Banners = () => {
                     </span>
                   </div>
                 )}
+
+                {/* Timestamps */}
+                <div className="mt-3 pt-3 border-t border-slate-200/80 dark:border-white/10 space-y-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                      <FiCalendar size={11} className="text-blue-500/70" /> Created:
+                    </span>
+                    <span className="font-mono text-[11px] font-medium text-slate-700 dark:text-slate-300">
+                      {banner.createdAt ? formatDateTimeDDMMYYYY(banner.createdAt) : 'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                      <FiClock size={11} className="text-amber-500/70" /> Updated:
+                    </span>
+                    <span className="font-mono text-[11px] font-medium text-slate-700 dark:text-slate-300">
+                      {banner.updatedAt ? formatDateTimeDDMMYYYY(banner.updatedAt) : 'N/A'}
+                    </span>
+                  </div>
+                </div>
 
                 {/* Card Actions (Pushed to bottom) */}
                 <div className="mt-auto pt-4 flex gap-2">
@@ -568,6 +594,32 @@ const Banners = () => {
                               </div>
                             </div>
                           )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Timestamps (when editing) */}
+                  {editingBanner && (editingBanner.createdAt || editingBanner.updatedAt) && (
+                    <div className="p-3 bg-slate-50/80 dark:bg-white/[0.03] rounded-xl border border-slate-200/80 dark:border-white/10 space-y-1.5 text-xs">
+                      {editingBanner.createdAt && (
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                            <FiCalendar size={12} className="text-blue-500/70" /> Created At:
+                          </span>
+                          <span className="font-mono text-xs font-medium text-slate-700 dark:text-slate-300">
+                            {formatDateTimeDDMMYYYY(editingBanner.createdAt)}
+                          </span>
+                        </div>
+                      )}
+                      {editingBanner.updatedAt && (
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                            <FiClock size={12} className="text-amber-500/70" /> Last Updated:
+                          </span>
+                          <span className="font-mono text-xs font-medium text-slate-700 dark:text-slate-300">
+                            {formatDateTimeDDMMYYYY(editingBanner.updatedAt)}
+                          </span>
                         </div>
                       )}
                     </div>

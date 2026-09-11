@@ -3,11 +3,14 @@ import { createPortal } from 'react-dom';
 import { api, BASE_URL } from '../../../api/axios';
 import { 
   FiCheck, FiX, FiLoader, FiAlertCircle, 
-  FiSearch, FiUser, FiFileText, FiUserMinus 
+  FiSearch, FiUser, FiFileText, FiUserMinus,
+  FiEye, FiExternalLink 
 } from 'react-icons/fi';
 import { useOutletContext } from 'react-router-dom';
 import { useConfirm } from '../../../Context/ConfirmationContext';
 import GmailLink from '../../../Components/GmailLink';
+import DocumentLightbox from '../../../Components/DocumentLightbox';
+import useEscapeKey from '../../../utils/useEscapeKey';
 
 const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuery, refreshParentCounts }) => {
   const { confirm, showAlert } = useConfirm();
@@ -24,6 +27,7 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
   const [loadingAuthStatus, setLoadingAuthStatus] = useState(false);
   const [rejectingUserId, setRejectingUserId] = useState(null);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [lightboxUser, setLightboxUser] = useState(null);
 
   const triggerReject = (id) => {
     setRejectingUserId(id);
@@ -83,6 +87,7 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
       });
       setUsers((prevUsers) => prevUsers.filter((user) => user._id !== id));
       if (selectedUser && selectedUser._id === id) closeModal();
+      if (lightboxUser && lightboxUser._id === id) setLightboxUser(null);
       showAlert('User approved and ID generated successfully! They have been moved to the Approved Customers list.', 'success');
       if (refreshParentCounts) refreshParentCounts();
     } catch (err) {
@@ -109,6 +114,7 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
       );
       setUsers((prevUsers) => prevUsers.filter((user) => user._id !== id));
       if (selectedUser && selectedUser._id === id) closeModal();
+      if (lightboxUser && lightboxUser._id === id) setLightboxUser(null);
       setRejectingUserId(null);
       setRejectionReason('');
       showAlert('User KYC rejected. They have been moved to the Rejected KYC list.', 'success');
@@ -144,6 +150,10 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
     setSelectedUser(null);
     setAuthStatus(null);
   };
+
+  // Keyboard shortcut Esc handling (topmost first via LIFO stack)
+  useEscapeKey(() => { setRejectingUserId(null); setRejectionReason(''); }, !!rejectingUserId);
+  useEscapeKey(closeModal, isModalOpen);
 
   const getDocumentUrl = (path) => {
     if (!path) return '';
@@ -244,6 +254,19 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
                         </span>
                       </td>
                       <td className="p-5 flex items-center justify-center gap-2">
+                        {user.gstDocument && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setLightboxUser(user);
+                            }}
+                            className="p-2.5 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 border border-blue-200 dark:border-blue-500/20 rounded-lg transition-all cursor-pointer shadow-xs"
+                            title="Inspect KYC Document (Zoom & Rotate)"
+                          >
+                            <FiEye />
+                          </button>
+                        )}
                         <button 
                           onClick={(e) => { e.stopPropagation(); handleApprove(user._id); }} 
                           disabled={isActionLoading} 
@@ -281,8 +304,8 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 dark:bg-slate-950/50 backdrop-blur-lg animate-fade-in" onClick={closeModal}></div>
           
-          <div className="relative bg-transparent dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-2xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-5 py-3 border-b border-slate-200 dark:border-white/10 flex justify-between items-center bg-white/40 dark:bg-slate-800/50">
+          <div className="relative bg-transparent dark:bg-slate-950/25 border border-slate-200 dark:border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-2xl overflow-hidden flex flex-col h-[90vh] md:h-[85vh] max-h-[95vh] animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-5 py-3 border-b border-slate-200 dark:border-white/10 flex justify-between items-center bg-white/40 dark:bg-white/[0.03]">
               <h3 className="font-bold text-slate-900 dark:text-white text-lg flex items-center gap-2">
                 <FiUser className="text-amber-500 dark:text-amber-400" /> Pending KYC Details
               </h3>
@@ -358,14 +381,40 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
                   <div className="sm:col-span-2">
                     <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">GST Document</p>
                     {selectedUser.gstDocument ? (
-                      <a 
-                        href={getDocumentUrl(selectedUser.gstDocument)} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-3 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 hover:bg-blue-100 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-xl font-medium text-sm transition-all"
-                      >
-                        <FiFileText className="text-lg" /> View Uploaded Document
-                      </a>
+                      <div className="p-3.5 rounded-2xl bg-white/40 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                            <FiFileText className="text-xl" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                              GST Certificate / Registration
+                            </p>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                              Click to inspect with zoom, rotation & decision tools
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setLightboxUser(selectedUser)}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs shadow-md shadow-blue-600/20 transition-all cursor-pointer"
+                          >
+                            <FiEye size={14} /> Inspect Document
+                          </button>
+                          <a 
+                            href={getDocumentUrl(selectedUser.gstDocument)} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="p-2 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 rounded-xl transition-all"
+                            title="Open original link"
+                          >
+                            <FiExternalLink size={14} />
+                          </a>
+                        </div>
+                      </div>
                     ) : (
                       <div className="inline-flex items-center gap-2 px-4 py-3 bg-slate-50 dark:bg-transparent border border-dashed border-slate-200 dark:border-white/10 text-slate-500 rounded-xl text-sm italic">
                         <FiFileText className="text-lg" /> No document uploaded
@@ -381,7 +430,7 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
             </div>
 
             {/* Footer Actions */}
-            <div className="pt-3 pb-4 px-5 border-t border-slate-200 dark:border-white/10 flex flex-col sm:flex-row justify-end gap-3 bg-white/40 dark:bg-slate-800/30 shrink-0">
+            <div className="pt-3 pb-4 px-5 border-t border-slate-200 dark:border-white/10 flex flex-col sm:flex-row justify-end gap-3 bg-white/40 dark:bg-white/[0.03] shrink-0">
               <button onClick={() => triggerReject(selectedUser._id)} disabled={isActionLoading} className="w-full sm:w-auto px-6 py-2.5 bg-white dark:bg-transparent border border-rose-300 dark:border-red-500/30 text-rose-600 dark:text-red-400 font-bold rounded-xl hover:bg-rose-50 dark:hover:bg-red-500/10 transition-colors disabled:opacity-50 cursor-pointer">
                 Reject KYC
               </button>
@@ -396,10 +445,10 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
 
       {/* Reject KYC Reason Popup Modal */}
       {rejectingUserId && createPortal(
-        <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[10006] flex items-center justify-center p-4">
           <div className="absolute inset-0 dark:bg-slate-950/50 backdrop-blur-lg animate-fade-in" onClick={() => { setRejectingUserId(null); setRejectionReason(''); }}></div>
           
-          <div className="relative bg-transparent dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-2xl rounded-2xl p-6 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative bg-transparent dark:bg-slate-950/25 border border-slate-200 dark:border-white/10 shadow-2xl rounded-2xl p-6 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
               <FiUserMinus className="text-rose-600 dark:text-red-400" /> Reject KYC Application
             </h3>
@@ -432,6 +481,24 @@ const UsersVerification = ({ hideHeader = false, searchQuery: externalSearchQuer
           </div>
         </div>
       , document.body)}
+
+      {/* Document Inspection Lightbox (Zoom, Rotate, Pan, Approve/Reject) */}
+      <DocumentLightbox
+        isOpen={!!lightboxUser}
+        onClose={() => setLightboxUser(null)}
+        src={lightboxUser?.gstDocument ? getDocumentUrl(lightboxUser.gstDocument) : ''}
+        title={`${lightboxUser?.name || 'User'}'s GST Document`}
+        subtitle={lightboxUser?.gstNumber ? `GSTIN: ${lightboxUser.gstNumber}` : ''}
+        onApprove={() => {
+          if (!lightboxUser) return;
+          handleApprove(lightboxUser._id);
+        }}
+        onReject={() => {
+          if (!lightboxUser) return;
+          triggerReject(lightboxUser._id);
+        }}
+        isActionLoading={isActionLoading}
+      />
     </div>
   );
 };

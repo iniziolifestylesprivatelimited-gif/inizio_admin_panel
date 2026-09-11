@@ -1014,7 +1014,7 @@ const ProductMapping = () => {
                       onClick={() => setTallyFilter('all')}
                       className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${tallyFilter === 'all'
                           ? 'bg-blue-600 text-white shadow'
-                          : 'bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700'
+                          : 'bg-slate-800 text-slate-400 hover:text-slate-200 dark:!hover:text-slate-900 border border-slate-700'
                         }`}
                     >
                       Show All ({mappedData.length})
@@ -1379,7 +1379,7 @@ const ProductMapping = () => {
                     onClick={() => setStockFilter('all')}
                     className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${stockFilter === 'all'
                         ? 'bg-blue-600 text-white shadow'
-                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-slate-200 dark:border-slate-700'
+                        : 'bg-slate-100 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-slate-200 dark:border-slate-700'
                       }`}
                   >
                     Show All ({stockMappedData.length})
@@ -1388,7 +1388,7 @@ const ProductMapping = () => {
                     onClick={() => setStockFilter('diff')}
                     className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${stockFilter === 'diff'
                         ? 'bg-amber-600 text-white shadow'
-                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-slate-200 dark:border-slate-700'
+                        : 'bg-slate-100 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-slate-200 dark:border-slate-700'
                       }`}
                   >
                     Only Differences ({
@@ -1403,7 +1403,7 @@ const ProductMapping = () => {
                     onClick={() => setStockFilter('unmatched_missing')}
                     className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${stockFilter === 'unmatched_missing'
                         ? 'bg-red-600 text-white shadow'
-                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-slate-200 dark:border-slate-700'
+                        : 'bg-slate-100 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-slate-200 dark:border-slate-700'
                       }`}
                   >
                     Unmatched & Missing ({stockMappedData.filter(m => !m.matchedProduct).length + getMissingStockItems().length})

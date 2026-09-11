@@ -14,6 +14,8 @@ import { useOutletContext } from 'react-router-dom';
 import { getImageUrl } from '../../../utils/imageUtils';
 import OptimizedImage from '../../../Components/OptimizedImage';
 import GmailLink from '../../../Components/GmailLink';
+import Pagination from '../../../Components/Pagination';
+import useEscapeKey from '../../../utils/useEscapeKey';
 
 const Orders = ({ defaultStatus = 'all' }) => {
   const [orders, setOrders] = useState([]);
@@ -241,6 +243,10 @@ const Orders = ({ defaultStatus = 'all' }) => {
     setRejectionInputOpen(false);
     setRejectionReasonText('');
   };
+
+  // Keyboard shortcut Esc handling (topmost first via LIFO stack)
+  useEscapeKey(closeReturnModal, isReturnModalOpen);
+  useEscapeKey(closeModal, isModalOpen);
 
   const handleInvoiceUpload = async (e) => {
     const file = e.target.files[0];
@@ -517,64 +523,11 @@ const Orders = ({ defaultStatus = 'all' }) => {
                   <span className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
                     Showing <span className="font-bold text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-white">{Math.min(indexOfLastItem, filteredOrders.length)}</span> of <span className="font-bold text-white">{filteredOrders.length}</span> orders
                   </span>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                      disabled={currentPage === 1}
-                      className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
-                    >
-                      &larr;
-                    </button>
-                    <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 items-center">
-                      {(() => {
-                        const pageNumbers = [];
-                        if (totalPages <= 7) {
-                          for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
-                        } else {
-                          if (currentPage <= 4) {
-                            for (let i = 1; i <= 5; i++) pageNumbers.push(i);
-                            pageNumbers.push('...');
-                            pageNumbers.push(totalPages);
-                          } else if (currentPage >= totalPages - 3) {
-                            pageNumbers.push(1);
-                            pageNumbers.push('...');
-                            for (let i = totalPages - 4; i <= totalPages; i++) pageNumbers.push(i);
-                          } else {
-                            pageNumbers.push(1);
-                            pageNumbers.push('...');
-                            for (let i = currentPage - 1; i <= currentPage + 1; i++) pageNumbers.push(i);
-                            pageNumbers.push('...');
-                            pageNumbers.push(totalPages);
-                          }
-                        }
-                        return pageNumbers.map((page, index) => (
-                          <button
-                            key={index}
-                            onClick={() => {
-                              if (page !== '...') setCurrentPage(page);
-                            }}
-                            disabled={page === '...'}
-                            className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${
-                              page === currentPage
-                                ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
-                                : page === '...'
-                                ? 'bg-transparent text-slate-500 border-transparent cursor-default'
-                                : 'bg-slate-950/20 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white cursor-pointer'
-                            }`}
-                          >
-                            {page}
-                          </button>
-                        ));
-                      })()}
-                    </div>
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                      disabled={currentPage === totalPages || totalPages === 0}
-                      className="px-3 sm:px-4 py-2 bg-slate-950/20 hover:bg-white/10 text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-white/10 transform-gpu cursor-pointer"
-                    >
-                      &rarr;
-                    </button>
-                  </div>
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                  />
                 </div>
               )}
             </>
@@ -706,7 +659,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
 
       {/* ORDER DETAILS MODAL */}
       {isModalOpen && selectedOrder && createPortal(
-        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeModal}></div>
           
           <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-5xl h-[90vh] md:h-[85vh] max-h-[95vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
@@ -1024,7 +977,7 @@ const Orders = ({ defaultStatus = 'all' }) => {
 
       {/* RETURN DETAILS MODAL */}
       {isReturnModalOpen && selectedReturn && createPortal(
-        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeReturnModal}></div>
           
           <div className="relative bg-slate-900 border border-white/10 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-4xl h-[90vh] md:h-[80vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">

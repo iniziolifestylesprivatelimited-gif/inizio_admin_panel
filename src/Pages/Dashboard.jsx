@@ -27,6 +27,7 @@ import ProductDetailsModal from '../Components/ProductDetailsModal';
 import { getPollingInterval } from '../utils/browserNotifications';
 import OptimizedImage from '../Components/OptimizedImage';
 import { useTheme } from '../Context/ThemeContext';
+import useEscapeKey from '../utils/useEscapeKey';
 
 const formatActivityTime = (dateString) => {
   if (!dateString) return '';
@@ -327,6 +328,8 @@ const ChartDetailsModal = ({
   setIsNotificationsModalOpen,
   priceTierEngagementData
 }) => {
+  useEscapeKey(onClose, !!activeChartModal);
+
   if (!activeChartModal) return null;
 
   // 1. Sales Revenue Metrics
@@ -857,6 +860,11 @@ const Dashboard = () => {
   const [trendsRange, setTrendsRange] = useState('1w'); // '1d', '1w', '1y'
   const [activeChartModal, setActiveChartModal] = useState(null); // 'revenue' | 'volume' | 'brand' | 'version' | 'notifications' | 'priceTier' | null
   const [viewModalProductId, setViewModalProductId] = useState(null);
+
+  // Keyboard shortcut Esc handling (topmost first via LIFO stack)
+  useEscapeKey(() => { setIsNotificationsModalOpen(false); setNotificationsSearchQuery(''); }, isNotificationsModalOpen);
+  useEscapeKey(() => { setIsProductModalOpen(false); setSelectedProductViews(null); setProductViewerSearch(''); }, isProductModalOpen);
+  useEscapeKey(() => setActiveChartModal(null), !!activeChartModal);
 
   const getActivityStatsUrl = () => {
     if (breakdownType === 'day') {
@@ -2094,7 +2102,7 @@ const Dashboard = () => {
                     { value: 'month', label: 'Monthly Breakdown' },
                     { value: 'custom', label: 'Custom Date Range' }
                   ]}
-                  statusColor="border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-blue-500/30 text-slate-800 dark:text-white font-bold bg-white dark:bg-slate-800/80 !py-1.5 !rounded-xl text-xs"
+                  statusColor="border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-blue-500/30 text-slate-800 dark:text-white font-bold bg-white dark:bg-slate-950/50 !py-1.5 !rounded-xl text-xs"
                 />
               </div>
 

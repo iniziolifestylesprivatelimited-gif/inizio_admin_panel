@@ -133,7 +133,7 @@ const CustomDropdown = ({ value, onChange, options, statusColor, defaultLabel })
             minWidth: `${coords.minWidth}px`,
             maxHeight: `${coords.maxHeight}px`
           }}
-          className={`w-max max-w-[280px] bg-white/95 dark:bg-slate-950/90 backdrop-blur-md border border-slate-200 dark:border-white/20 rounded-xl shadow-xl dark:shadow-2xl shadow-slate-900/10 dark:shadow-black/80 overflow-y-auto overflow-x-hidden custom-scrollbar z-[99999] ${
+          className={`w-max max-w-[280px] bg-white/95 dark:bg-slate-950/50 backdrop-blur-md border border-slate-200 dark:border-white/20 rounded-xl shadow-xl dark:shadow-2xl shadow-slate-900/10 dark:shadow-black/80 overflow-y-auto overflow-x-hidden custom-scrollbar z-[99999] ${
             coords.openUp ? 'animate-dropdown-up' : 'animate-dropdown'
           }`}
         >
@@ -165,4 +165,4 @@ const CustomDropdown = ({ value, onChange, options, statusColor, defaultLabel })
   );
 };
 
-export default CustomDropdown;
+export default CustomDropdown;

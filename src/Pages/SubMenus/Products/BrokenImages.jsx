@@ -11,6 +11,7 @@ import { formatDateTimeDDMMYYYY } from '../../../utils/dateUtils';
 import { TableRowSkeleton } from '../../../Components/Skeleton';
 import CopyButton from '../../../Components/CopyButton';
 import PageHeader from '../../../Components/PageHeader';
+import Pagination from '../../../Components/Pagination';
 
 // Format image URLs safely
 const formatImageUrl = (path) => {
@@ -1068,48 +1069,11 @@ export default function BrokenImages() {
               Showing <span className="font-bold text-slate-900 dark:text-white font-mono">{((currentPage - 1) * itemsPerPage) + 1}</span> to <span className="font-bold text-slate-900 dark:text-white font-mono">{Math.min(currentPage * itemsPerPage, filteredItems.length)}</span> of <span className="font-bold text-slate-900 dark:text-white font-mono">{filteredItems.length}</span> reports
             </div>
 
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="p-2 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer shadow-xs"
-                title="Previous Page"
-              >
-                <FiChevronLeft size={14} />
-              </button>
-
-              {Array.from({ length: totalPages }, (_, i) => i + 1)
-                .filter(p => p === 1 || p === totalPages || (p >= currentPage - 1 && p <= currentPage + 1))
-                .map((page, i, arr) => {
-                  const prev = arr[i - 1];
-                  return (
-                    <React.Fragment key={page}>
-                      {prev && page - prev > 1 && (
-                        <span className="px-2 text-slate-400 dark:text-slate-600 text-xs">...</span>
-                      )}
-                      <button
-                        onClick={() => handlePageChange(page)}
-                        className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                          currentPage === page
-                            ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                            : 'bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white shadow-xs'
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    </React.Fragment>
-                  );
-                })}
-
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="p-2 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer shadow-xs"
-                title="Next Page"
-              >
-                <FiChevronRight size={14} />
-              </button>
-            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
           </div>
         )}
       </div>

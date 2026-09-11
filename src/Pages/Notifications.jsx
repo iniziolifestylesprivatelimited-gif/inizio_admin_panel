@@ -18,6 +18,7 @@ import Card from '../Components/Card';
 import PageHeader from '../Components/PageHeader';
 import { formatDateDDMMYYYY, formatDateTimeDDMMYYYY } from '../utils/dateUtils';
 import { TableRowSkeleton } from '../Components/Skeleton';
+import Pagination from '../Components/Pagination';
 import { useConfirm } from '../Context/ConfirmationContext';
 import appIconImg from '../assets/app_icon.png';
 import { showBrowserNotification, requestBrowserNotificationPermission, isBrowserNotificationSupported } from '../utils/browserNotifications';
@@ -1148,64 +1149,11 @@ const Notifications = () => {
               <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 text-center sm:text-left">
                 Showing <span className="font-bold text-slate-900 dark:text-white">{indexOfFirstHistoryItem + 1}</span> to <span className="font-bold text-slate-900 dark:text-white">{Math.min(indexOfLastHistoryItem, filteredCampaigns.length)}</span> of <span className="font-bold text-slate-900 dark:text-white">{filteredCampaigns.length}</span> notifications
               </span>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => setCurrentHistoryPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentHistoryPage === 1}
-                  className="px-3 sm:px-4 py-2 bg-white hover:bg-slate-100 dark:bg-slate-950/20 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200 dark:border-white/10 transform-gpu cursor-pointer shadow-xs"
-                >
-                  &larr;
-                </button>
-                <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 items-center">
-                  {(() => {
-                    const pageNumbers = [];
-                    if (totalHistoryPages <= 7) {
-                      for (let i = 1; i <= totalHistoryPages; i++) pageNumbers.push(i);
-                    } else {
-                      if (currentHistoryPage <= 4) {
-                        for (let i = 1; i <= 5; i++) pageNumbers.push(i);
-                        pageNumbers.push('...');
-                        pageNumbers.push(totalHistoryPages);
-                      } else if (currentHistoryPage >= totalHistoryPages - 3) {
-                        pageNumbers.push(1);
-                        pageNumbers.push('...');
-                        for (let i = totalHistoryPages - 4; i <= totalHistoryPages; i++) pageNumbers.push(i);
-                      } else {
-                        pageNumbers.push(1);
-                        pageNumbers.push('...');
-                        for (let i = currentHistoryPage - 1; i <= currentHistoryPage + 1; i++) pageNumbers.push(i);
-                        pageNumbers.push('...');
-                        pageNumbers.push(totalHistoryPages);
-                      }
-                    }
-                    return pageNumbers.map((page, index) => (
-                      <button
-                        key={index}
-                        onClick={() => {
-                          if (page !== '...') setCurrentHistoryPage(page);
-                        }}
-                        disabled={page === '...'}
-                        className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${
-                          page === currentHistoryPage
-                            ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
-                            : page === '...'
-                            ? 'bg-transparent text-slate-400 dark:text-slate-500 border-transparent cursor-default'
-                            : 'bg-white hover:bg-slate-100 dark:bg-slate-950/20 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-white/10 dark:hover:bg-white/10 dark:hover:text-white cursor-pointer shadow-xs'
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ));
-                  })()}
-                </div>
-                <button
-                  onClick={() => setCurrentHistoryPage(prev => Math.min(prev + 1, totalHistoryPages))}
-                  disabled={currentHistoryPage === totalHistoryPages || totalHistoryPages === 0}
-                  className="px-3 sm:px-4 py-2 bg-white hover:bg-slate-100 dark:bg-slate-950/20 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200 dark:border-white/10 transform-gpu cursor-pointer shadow-xs"
-                >
-                  &rarr;
-                </button>
-              </div>
+              <Pagination
+                currentPage={currentHistoryPage}
+                totalPages={totalHistoryPages}
+                onPageChange={setCurrentHistoryPage}
+              />
             </div>
           )}
         </Card>

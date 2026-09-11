@@ -6,6 +6,7 @@ import {
 import Card from '../../../Components/Card';
 import CustomDropdown from '../../../Components/CustomDropdown';
 import GmailLink from '../../../Components/GmailLink';
+import Pagination from '../../../Components/Pagination';
 import { formatDateTimeDDMMYYYY } from '../../../utils/dateUtils';
 
 const checkAppStatus = (u) => {
@@ -300,7 +301,7 @@ const ActiveUsers = () => {
               value: totalActiveUsers,
               icon: FiUsers,
               color: "text-blue-600 dark:text-blue-400",
-              valueColor: "text-blue-800 dark:text-white",
+              valueColor: "text-blue-500 dark:text-white",
               bg: "bg-blue-500/10 dark:bg-blue-500/20",
               fromColor: "from-blue-500/50 dark:from-blue-500/25",
               hoverBorder: "hover:border-blue-500/40 dark:hover:border-blue-500/30"
@@ -310,7 +311,7 @@ const ActiveUsers = () => {
               value: totalLogins,
               icon: FiKey,
               color: "text-emerald-600 dark:text-emerald-400",
-              valueColor: "text-emerald-800 dark:text-white",
+              valueColor: "text-emerald-500 dark:text-white",
               bg: "bg-emerald-500/10 dark:bg-emerald-500/20",
               fromColor: "from-emerald-500/50 dark:from-emerald-500/25",
               hoverBorder: "hover:border-emerald-500/40 dark:hover:border-emerald-500/30"
@@ -321,7 +322,7 @@ const ActiveUsers = () => {
               subText: mostActiveUser ? `Logins: ${mostActiveUser.loginCount}` : null,
               icon: FiClock,
               color: "text-amber-600 dark:text-amber-400",
-              valueColor: "text-amber-800 dark:text-white",
+              valueColor: "text-amber-500 dark:text-white",
               subTextColor: "text-amber-700/90 dark:text-slate-400",
               bg: "bg-amber-500/10 dark:bg-amber-500/20",
               fromColor: "from-amber-500/50 dark:from-amber-500/25",
@@ -366,7 +367,7 @@ const ActiveUsers = () => {
               value: totalChecked,
               icon: FiUsers,
               color: "text-blue-600 dark:text-blue-400",
-              valueColor: "text-blue-800 dark:text-white",
+              valueColor: "text-blue-500 dark:text-white",
               bg: "bg-blue-500/10 dark:bg-blue-500/20",
               fromColor: "from-blue-500/50 dark:from-blue-500/25",
               hoverBorder: "hover:border-blue-500/40 dark:hover:border-blue-500/30"
@@ -376,7 +377,7 @@ const ActiveUsers = () => {
               value: notSentCount,
               icon: FiMail,
               color: "text-rose-600 dark:text-rose-400",
-              valueColor: "text-rose-800 dark:text-white",
+              valueColor: "text-rose-500 dark:text-white",
               bg: "bg-rose-500/10 dark:bg-rose-500/20",
               fromColor: "from-rose-500/50 dark:from-rose-500/25",
               hoverBorder: "hover:border-rose-500/40 dark:hover:border-rose-500/30"
@@ -386,7 +387,7 @@ const ActiveUsers = () => {
               value: `${reportData.filter(u => u.passwordSetupStatus !== 'not_sent' && u.passwordSetupStatus !== 'sent').length} / ${sentOrCompletedCount}`,
               icon: FiCheck,
               color: "text-emerald-600 dark:text-emerald-400",
-              valueColor: "text-emerald-800 dark:text-white",
+              valueColor: "text-emerald-500 dark:text-white",
               bg: "bg-emerald-500/10 dark:bg-emerald-500/20",
               fromColor: "from-emerald-500/50 dark:from-emerald-500/25",
               hoverBorder: "hover:border-emerald-500/40 dark:hover:border-emerald-500/30"
@@ -699,63 +700,11 @@ const ActiveUsers = () => {
               <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 text-center sm:text-left">
                 Showing <span className="font-bold text-slate-900 dark:text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-slate-900 dark:text-white">{Math.min(indexOfLastItem, sortedData.length)}</span> of <span className="font-bold text-slate-900 dark:text-white">{sortedData.length}</span> records
               </span>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 sm:px-4 py-2 bg-white dark:bg-slate-950/20 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200/80 dark:border-white/10 shadow-xs dark:shadow-none transform-gpu cursor-pointer"
-                >
-                  &larr;
-                </button>
-                <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 items-center">
-                  {(() => {
-                    const pageNumbers = [];
-                    if (totalPages <= 7) {
-                      for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
-                    } else {
-                      if (currentPage <= 4) {
-                        for (let i = 1; i <= 5; i++) pageNumbers.push(i);
-                        pageNumbers.push('...');
-                        pageNumbers.push(totalPages);
-                      } else if (currentPage >= totalPages - 3) {
-                        pageNumbers.push(1);
-                        pageNumbers.push('...');
-                        for (let i = totalPages - 4; i <= totalPages; i++) pageNumbers.push(i);
-                      } else {
-                        pageNumbers.push(1);
-                        pageNumbers.push('...');
-                        for (let i = currentPage - 1; i <= currentPage + 1; i++) pageNumbers.push(i);
-                        pageNumbers.push('...');
-                        pageNumbers.push(totalPages);
-                      }
-                    }
-                    return pageNumbers.map((page, index) => (
-                      <button
-                        key={index}
-                        onClick={() => {
-                          if (page !== '...') setCurrentPage(page);
-                        }}
-                        disabled={page === '...'}
-                        className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${page === currentPage
-                            ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
-                            : page === '...'
-                              ? 'bg-transparent text-slate-400 dark:text-slate-500 border-transparent cursor-default'
-                              : 'bg-white dark:bg-slate-950/20 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white shadow-xs dark:shadow-none cursor-pointer'
-                          }`}
-                      >
-                        {page}
-                      </button>
-                    ));
-                  })()}
-                </div>
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages || totalPages === 0}
-                  className="px-3 sm:px-4 py-2 bg-white dark:bg-slate-950/20 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200/80 dark:border-white/10 shadow-xs dark:shadow-none transform-gpu cursor-pointer"
-                >
-                  &rarr;
-                </button>
-              </div>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
             </div>
           )}
         </div>

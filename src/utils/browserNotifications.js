@@ -11,6 +11,7 @@ export const DEFAULT_NOTIFICATION_SETTINGS = {
   toastAlertsEnabled: true,   // in-app master switch for floating toasts
   soundEnabled: true,         // in-app sound chime toggle
   toastDuration: 6000,        // toast auto-dismiss duration in ms
+  paginationDropdownLimit: 7, // page count threshold above which page selection dropdown appears
   categories: {
     orders: true,
     quotes: true,
@@ -37,6 +38,9 @@ export const getNotificationSettings = () => {
     return {
       ...DEFAULT_NOTIFICATION_SETTINGS,
       ...parsed,
+      paginationDropdownLimit: typeof parsed.paginationDropdownLimit === 'number' && parsed.paginationDropdownLimit >= 1
+        ? parsed.paginationDropdownLimit
+        : DEFAULT_NOTIFICATION_SETTINGS.paginationDropdownLimit,
       categories: {
         ...DEFAULT_NOTIFICATION_SETTINGS.categories,
         ...(parsed.categories || {})
@@ -73,6 +77,12 @@ export const saveNotificationSettings = (settings) => {
     console.error('Failed to save notification settings:', e);
     return getNotificationSettings();
   }
+};
+
+export const getPaginationDropdownLimit = () => {
+  const settings = getNotificationSettings();
+  const val = Number(settings.paginationDropdownLimit);
+  return !isNaN(val) && val >= 1 ? val : DEFAULT_NOTIFICATION_SETTINGS.paginationDropdownLimit;
 };
 
 export const getPollingInterval = (categoryKey, fallbackSeconds = 30) => {

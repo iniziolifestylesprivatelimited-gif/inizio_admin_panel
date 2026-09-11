@@ -12,6 +12,8 @@ import { formatDateTimeDDMMYYYY } from '../../../utils/dateUtils';
 import { getImageUrl } from '../../../utils/imageUtils';
 import { getVariantColorStyle, VARIANT_COLOR_PALETTE } from '../../../utils/colorUtils';
 import { ProgressiveImage } from '../../../Components/OptimizedImage';
+import Pagination from '../../../Components/Pagination';
+import useEscapeKey from '../../../utils/useEscapeKey';
 
 const QuantityFilterDropdown = ({ qtyOp, qtyVal, onApply, onClear }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -846,6 +848,15 @@ const ProductList = () => {
     setAddVariants([]);
     setExpandedAddVariantIndex(null);
   };
+
+  // Keyboard shortcut Esc handling (topmost first via LIFO stack)
+  useEscapeKey(() => setAlertOpen(false), alertOpen);
+  useEscapeKey(() => { setDeleteConfirmOpen(false); setProductToDelete(null); setTypedConfirmName(''); }, deleteConfirmOpen);
+  useEscapeKey(() => setIsActivateModalOpen(false), isActivateModalOpen);
+  useEscapeKey(() => setIsDeactivateModalOpen(false), isDeactivateModalOpen);
+  useEscapeKey(() => setIsImageViewOpen(false), isImageViewOpen);
+  useEscapeKey(closeAddModal, isAddModalOpen);
+  useEscapeKey(() => { setIsDetailsModalOpen(false); setCurrentProductForView(null); }, isDetailsModalOpen);
 
   const handleAddChange = (e) => {
     const { name, value } = e.target;
@@ -1725,9 +1736,8 @@ const ProductList = () => {
       normalImages.push(...product.image_urls.split(',').map(s => s.trim()).filter(Boolean));
     }
 
-    const hasVariantImages = variantImages.length > 0;
-    const totalImgs = hasVariantImages ? variantImages.length : normalImages.length;
-    const thumb = (hasVariantImages ? variantImages[0] : normalImages[0]) || normalImages[0] || variantImages[0] || '';
+    const totalImgs = normalImages.length + variantImages.length;
+    const thumb = normalImages[0] || variantImages[0] || '';
 
     return { thumb, totalImgs };
   };
@@ -2367,9 +2377,8 @@ const ProductList = () => {
                               normalImages.push(...product.image_urls.split(',').map(s => s.trim()).filter(Boolean));
                             }
 
-                            const hasVariantImages = variantImages.length > 0;
-                            const totalImgs = hasVariantImages ? variantImages.length : normalImages.length;
-                            const thumb = (hasVariantImages ? variantImages[0] : normalImages[0]) || normalImages[0] || variantImages[0] || '';
+                            const totalImgs = normalImages.length + variantImages.length;
+                            const thumb = normalImages[0] || variantImages[0] || '';
 
                             return thumb ? (
                               <div
@@ -2818,78 +2827,16 @@ const ProductList = () => {
             <span className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 text-center sm:text-left">
               Showing <span className="font-bold text-slate-900 dark:text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-slate-900 dark:text-white">{Math.min(indexOfLastItem, sortedProducts.length)}</span> of <span className="font-bold text-slate-900 dark:text-white">{sortedProducts.length}</span> products
             </span>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => {
-                  setSearchParams(prev => {
-                    prev.set('page', String(Math.max(currentPage - 1, 1)));
-                    return prev;
-                  });
-                }}
-                disabled={currentPage === 1}
-                className="px-3 sm:px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-950/20 dark:hover:bg-white/10 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200 dark:border-white/10 transform-gpu cursor-pointer shadow-xs dark:shadow-none"
-              >
-                &larr;
-              </button>
-              <div className="flex gap-1 mx-1 sm:mx-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 items-center">
-                {(() => {
-                  const pageNumbers = [];
-                  if (totalPages <= 7) {
-                    for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
-                  } else {
-                    if (currentPage <= 4) {
-                      for (let i = 1; i <= 5; i++) pageNumbers.push(i);
-                      pageNumbers.push('...');
-                      pageNumbers.push(totalPages);
-                    } else if (currentPage >= totalPages - 3) {
-                      pageNumbers.push(1);
-                      pageNumbers.push('...');
-                      for (let i = totalPages - 4; i <= totalPages; i++) pageNumbers.push(i);
-                    } else {
-                      pageNumbers.push(1);
-                      pageNumbers.push('...');
-                      for (let i = currentPage - 1; i <= currentPage + 1; i++) pageNumbers.push(i);
-                      pageNumbers.push('...');
-                      pageNumbers.push(totalPages);
-                    }
-                  }
-                  return pageNumbers.map((page, index) => (
-                    <button
-                      key={index}
-                      onClick={() => {
-                        if (page !== '...') {
-                          setSearchParams(prev => {
-                            prev.set('page', String(page));
-                            return prev;
-                          });
-                        }
-                      }}
-                      disabled={page === '...'}
-                      className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium border transition-colors shrink-0 transform-gpu ${page === currentPage
-                          ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
-                          : page === '...'
-                            ? 'bg-transparent text-slate-400 dark:text-slate-500 border-transparent cursor-default'
-                            : 'bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 dark:bg-slate-950/20 dark:hover:bg-white/10 dark:text-slate-300 dark:hover:text-white border-slate-200 dark:border-white/10 cursor-pointer shadow-xs dark:shadow-none'
-                        }`}
-                    >
-                      {page}
-                    </button>
-                  ));
-                })()}
-              </div>
-              <button
-                onClick={() => {
-                  setSearchParams(prev => {
-                    prev.set('page', String(Math.min(currentPage + 1, totalPages)));
-                    return prev;
-                  });
-                }}
-                disabled={currentPage === totalPages || totalPages === 0}
-                className="px-3 sm:px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-950/20 dark:hover:bg-white/10 dark:text-slate-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-bold border border-slate-200 dark:border-white/10 transform-gpu cursor-pointer shadow-xs dark:shadow-none"
-              >
-                &rarr;
-              </button>
-            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={(page) => {
+                setSearchParams(prev => {
+                  prev.set('page', String(page));
+                  return prev;
+                });
+              }}
+            />
           </div>
         )}
       </div>
@@ -3918,6 +3865,13 @@ const ProductList = () => {
               }
 
               let variantGroups = [];
+              if (mainImages.length > 0) {
+                variantGroups.push({
+                  name: 'Main Product',
+                  images: mainImages
+                });
+              }
+
               if (currentProductForView.variants && Array.isArray(currentProductForView.variants)) {
                 currentProductForView.variants.forEach((v, idx) => {
                   let imgs = [];
@@ -3940,7 +3894,7 @@ const ProductList = () => {
                 });
               }
 
-              const hasVariants = variantGroups.length > 0;
+              const hasVariants = variantGroups.length > 1 || (currentProductForView.variants && currentProductForView.variants.length > 0);
 
               return (
                 <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-5">
@@ -3952,7 +3906,9 @@ const ProductList = () => {
                     <div className="min-w-0">
                       <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white truncate">{currentProductForView.name || 'Product Images'}</h2>
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                        {hasVariants ? `${variantGroups.length} Variant${variantGroups.length === 1 ? '' : 's'} Available` : 'Main Product Images'}
+                        {mainImages.length > 0 && `${mainImages.length} Main Photo${mainImages.length === 1 ? '' : 's'}`}
+                        {mainImages.length > 0 && currentProductForView.variants?.length > 0 && ' • '}
+                        {currentProductForView.variants?.length > 0 && `${currentProductForView.variants.length} Variant${currentProductForView.variants.length === 1 ? '' : 's'} Available`}
                       </p>
                     </div>
                   </div>

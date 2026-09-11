@@ -1539,7 +1539,7 @@ const Layout = () => {
       <div className={`flex-1 flex flex-col h-full overflow-hidden bg-transparent relative pt-16 lg:pt-0 lg:pl-20 transition-all duration-300 ${isExpanded ? 'lg:blur-[2px]' : 'blur-none'}`}>
 
         {/* GLOBAL HEADER (Desktop Top Bar) */}
-        <header className={`hidden lg:flex h-16 backdrop-blur-2xl border-b items-center justify-between px-8 sticky top-0 z-40 transition-colors ${
+        <header className={`hidden lg:flex h-16 border-b items-center justify-between px-8 sticky top-0 z-40 transition-colors ${
           isDark 
             ? 'bg-transparent border-white/10 shadow-sm shadow-black/50' 
             : 'bg-white/5 border-slate-200/80 shadow-md shadow-slate-900/5'
@@ -1568,10 +1568,10 @@ const Layout = () => {
               </button>
 
               {isNotificationsDropdownOpen && (
-                <div className={`absolute right-0 mt-3 w-80 sm:w-96 backdrop-blur-2xl border rounded-2xl shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-2 ${
+                <div className={`absolute right-0 mt-3 w-80 sm:w-96 backdrop-blur-sm border rounded-2xl shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-2 ${
                   isDark 
-                    ? 'bg-slate-900/90 border-white/10 shadow-black/50' 
-                    : 'bg-white/80 border-slate-200 shadow-slate-900/10'
+                    ? 'bg-slate-900/50 border-white/10 shadow-black/50' 
+                    : 'bg-white/40 border-slate-200 shadow-slate-900/10'
                 }`}>
                   <div className={`px-4 py-2.5 border-b flex justify-between items-center mb-1 ${isDark ? 'border-white/10' : 'border-slate-100'}`}>
                     <div className="flex items-center gap-2">
@@ -1762,10 +1762,10 @@ const Layout = () => {
 
               {/* Dropdown Menu */}
               {isProfileDropdownOpen && (
-                <div className={`absolute right-0 mt-3 w-52 backdrop-blur-2xl border rounded-xl shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-2 ${
+                <div className={`absolute right-0 mt-3 w-52 backdrop-blur-sm border rounded-xl shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-2 ${
                   isDark 
-                    ? 'bg-slate-900/90 border-white/10 shadow-black/50' 
-                    : 'bg-white/95 border-slate-200 shadow-slate-900/10'
+                    ? 'bg-slate-900/50 border-white/10 shadow-black/50' 
+                    : 'bg-white/40 border-slate-200 shadow-slate-900/10'
                 }`}>
                   <div className={`px-4 py-2 border-b mb-1 ${isDark ? 'border-white/10' : 'border-slate-100'}`}>
                     <p className={`text-sm font-semibold line-clamp-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>{user.email || 'User'}</p>

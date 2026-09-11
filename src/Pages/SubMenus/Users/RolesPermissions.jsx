@@ -368,37 +368,35 @@ const RolesPermissions = () => {
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   };
-
   return (
     <div className="relative space-y-6 min-h-full z-0 isolate w-full pb-10">
-
 
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-            <FiShield className="text-blue-400" />
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+            <FiShield className="text-blue-600 dark:text-blue-400" />
             Roles & Permissions
           </h1>
-          <p className="text-slate-400 font-medium mt-1">Manage system roles, register operations staff and modify access control policies.</p>
+          <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Manage system roles, register operations staff and modify access control policies.</p>
         </div>
 
         {/* Tab Buttons */}
-        <div className="flex bg-white/[0.03] border border-white/10 rounded-2xl p-1 gap-1 w-full md:w-auto">
+        <div className="flex bg-slate-100 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 rounded-2xl p-1 gap-1 w-full md:w-auto">
           <button
             onClick={() => setActiveTab('CREATE_USER')}
-            className={`flex-1 md:flex-initial px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'CREATE_USER'
+            className={`flex-1 md:flex-initial px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${activeTab === 'CREATE_USER'
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/35 border border-blue-500/35'
-                : 'text-slate-400 hover:text-white hover:bg-white/5'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/5'
               }`}
           >
             <FiUserPlus /> Register Staff
           </button>
           <button
             onClick={() => setActiveTab('PERMISSIONS')}
-            className={`flex-1 md:flex-initial px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'PERMISSIONS'
+            className={`flex-1 md:flex-initial px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${activeTab === 'PERMISSIONS'
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/35 border border-blue-500/35'
-                : 'text-slate-400 hover:text-white hover:bg-white/5'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/5'
               }`}
           >
             <FiShield /> Access Control
@@ -410,7 +408,7 @@ const RolesPermissions = () => {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         {loadingRoles ? (
           [...Array(6)].map((_, i) => (
-            <div key={i} className="bg-slate-900/20 border border-white/5 rounded-2xl p-4 animate-pulse h-24"></div>
+            <div key={i} className="bg-slate-100 dark:bg-slate-900/20 border border-slate-200/80 dark:border-white/5 rounded-2xl p-4 animate-pulse h-24"></div>
           ))
         ) : (
           Object.keys(roleCounts).length > 0 ? (
@@ -420,22 +418,22 @@ const RolesPermissions = () => {
                 <div
                   key={role}
                   onClick={() => handleSelectRoleForUsers(role)}
-                  className={`bg-slate-900/40 backdrop-blur-2xl border shadow-lg rounded-2xl p-4 flex flex-col justify-between overflow-hidden relative group hover:border-white/30 hover:bg-slate-900/60 cursor-pointer transition-all active:scale-95 ${isSelected ? 'border-blue-500/50 bg-blue-500/[0.05] ring-1 ring-blue-500/30' : 'border-white/10'
+                  className={`bg-white/80 dark:bg-slate-900/40 backdrop-blur-2xl border shadow-lg shadow-slate-200/40 dark:shadow-none rounded-2xl p-4 flex flex-col justify-between overflow-hidden relative group hover:border-slate-300 dark:hover:border-white/30 hover:bg-white dark:hover:bg-slate-900/60 cursor-pointer transition-all active:scale-95 ${isSelected ? 'border-blue-500/50 bg-blue-50/50 dark:bg-blue-500/[0.05] ring-1 ring-blue-500/30' : 'border-slate-200/80 dark:border-white/10'
                     }`}
                 >
-                  <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
+                  <div className="absolute inset-0 bg-linear-to-b from-slate-100/40 dark:from-white/5 to-transparent pointer-events-none"></div>
+                  <div className="flex justify-between items-center mb-2 relative z-10">
+                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none">
                       {getRoleLabel(role)}
                     </span>
-                    <div className={`p-1.5 rounded-lg shrink-0 transition-colors ${isSelected ? 'bg-blue-500 text-white' : 'bg-blue-500/10 text-blue-400'
+                    <div className={`p-1.5 rounded-lg shrink-0 transition-colors ${isSelected ? 'bg-blue-600 text-white' : 'bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400'
                       }`}>
                       <FiUsers size={12} />
                     </div>
                   </div>
-                  <div className="flex items-baseline gap-1 mt-1">
-                    <span className="text-2xl font-black text-white">{count}</span>
-                    <span className="text-slate-500 text-[10px] font-bold">users</span>
+                  <div className="flex items-baseline gap-1 mt-1 relative z-10">
+                    <span className="text-2xl font-black text-slate-900 dark:text-white">{count}</span>
+                    <span className="text-slate-400 dark:text-slate-500 text-[10px] font-bold">users</span>
                   </div>
                 </div>
               );
@@ -447,22 +445,22 @@ const RolesPermissions = () => {
                 <div
                   key={role}
                   onClick={() => handleSelectRoleForUsers(role)}
-                  className={`bg-slate-900/40 backdrop-blur-2xl border shadow-lg rounded-2xl p-4 flex flex-col justify-between overflow-hidden relative group hover:border-white/30 hover:bg-slate-900/60 cursor-pointer transition-all active:scale-95 ${isSelected ? 'border-blue-500/50 bg-blue-500/[0.05] ring-1 ring-blue-500/30' : 'border-white/10'
+                  className={`bg-white/80 dark:bg-slate-900/40 backdrop-blur-2xl border shadow-lg shadow-slate-200/40 dark:shadow-none rounded-2xl p-4 flex flex-col justify-between overflow-hidden relative group hover:border-slate-300 dark:hover:border-white/30 hover:bg-white dark:hover:bg-slate-900/60 cursor-pointer transition-all active:scale-95 ${isSelected ? 'border-blue-500/50 bg-blue-50/50 dark:bg-blue-500/[0.05] ring-1 ring-blue-500/30' : 'border-slate-200/80 dark:border-white/10'
                     }`}
                 >
-                  <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
+                  <div className="absolute inset-0 bg-linear-to-b from-slate-100/40 dark:from-white/5 to-transparent pointer-events-none"></div>
+                  <div className="flex justify-between items-center mb-2 relative z-10">
+                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none">
                       {getRoleLabel(role)}
                     </span>
-                    <div className={`p-1.5 rounded-lg shrink-0 transition-colors ${isSelected ? 'bg-blue-500 text-white' : 'bg-slate-800 text-slate-500'
+                    <div className={`p-1.5 rounded-lg shrink-0 transition-colors ${isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'
                       }`}>
                       <FiUsers size={12} />
                     </div>
                   </div>
-                  <div className="flex items-baseline gap-1 mt-1">
-                    <span className="text-2xl font-black text-white">0</span>
-                    <span className="text-slate-500 text-[10px] font-bold">users</span>
+                  <div className="flex items-baseline gap-1 mt-1 relative z-10">
+                    <span className="text-2xl font-black text-slate-900 dark:text-white">0</span>
+                    <span className="text-slate-400 dark:text-slate-500 text-[10px] font-bold">users</span>
                   </div>
                 </div>
               );
@@ -473,15 +471,15 @@ const RolesPermissions = () => {
 
       {/* Selected Role Users & Profile Details */}
       {selectedRoleForUsers && (
-        <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden relative p-6 space-y-6">
-          <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
+        <div className="bg-white/80 dark:bg-transparent backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 shadow-xl dark:shadow-2xl rounded-3xl overflow-hidden relative p-6 space-y-6">
+          <div className="absolute inset-0 bg-linear-to-b from-slate-100/40 dark:from-white/5 to-transparent pointer-events-none"></div>
 
-          <div className="flex justify-between items-center border-b border-white/10 pb-4">
+          <div className="flex justify-between items-center border-b border-slate-200/80 dark:border-white/10 pb-4 relative z-10">
             <div className="flex items-center gap-3">
-              <FiUsers className="text-blue-400 text-xl" />
+              <FiUsers className="text-blue-600 dark:text-blue-400 text-xl" />
               <div>
-                <h2 className="text-lg font-bold text-white uppercase tracking-wider">{getRoleLabel(selectedRoleForUsers)} Accounts</h2>
-                <p className="text-xs text-slate-400 font-medium">Select a user profile to retrieve detailed hierarchy and logs.</p>
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white uppercase tracking-wider">{getRoleLabel(selectedRoleForUsers)} Accounts</h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Select a user profile to retrieve detailed hierarchy and logs.</p>
               </div>
             </div>
             <button
@@ -491,20 +489,20 @@ const RolesPermissions = () => {
                 setSelectedDetailedUser(null);
                 setDetailedUserInfo(null);
               }}
-              className="px-3.5 py-1.5 bg-white/5 hover:bg-white/15 rounded-xl text-slate-400 hover:text-white text-xs font-bold transition-all cursor-pointer border border-white/5"
+              className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/15 rounded-xl text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white text-xs font-bold transition-all cursor-pointer border border-slate-200 dark:border-white/5"
             >
               Clear Panel
             </button>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
             {/* Left Column: Users List */}
-            <div className="lg:col-span-1 border-r border-white/5 pr-0 lg:pr-6 space-y-3">
+            <div className="lg:col-span-1 border-r border-slate-200/80 dark:border-white/5 pr-0 lg:pr-6 space-y-3">
               <span className="text-xs font-black text-slate-500 uppercase tracking-widest block mb-2">User Registry ({roleUsersList.length})</span>
 
               {loadingRoleUsers ? (
                 <div className="py-12 flex flex-col justify-center items-center gap-2">
-                  <FiLoader className="animate-spin text-lg text-blue-400" />
+                  <FiLoader className="animate-spin text-lg text-blue-600 dark:text-blue-400" />
                   <span className="text-xs text-slate-500 font-bold">Fetching user accounts...</span>
                 </div>
               ) : roleUsersList.length === 0 ? (
@@ -520,15 +518,15 @@ const RolesPermissions = () => {
                         key={u._id}
                         onClick={() => handleFetchDetailedUser(u._id)}
                         className={`p-3.5 rounded-2xl border text-left cursor-pointer transition-all active:scale-98 ${isUserSelected
-                            ? 'bg-blue-600/15 border-blue-500/40 text-white shadow-md'
-                            : 'bg-white/[0.02] border-white/5 hover:border-white/10 text-slate-300'
+                            ? 'bg-blue-500/10 dark:bg-blue-600/15 border-blue-500/50 dark:border-blue-500/40 text-blue-900 dark:text-white shadow-xs'
+                            : 'bg-slate-50/80 hover:bg-slate-100 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10 text-slate-700 dark:text-slate-300'
                           }`}
                       >
-                        <div className="font-bold text-sm truncate">{u.name}</div>
+                        <div className="font-bold text-sm truncate text-slate-900 dark:text-white">{u.name}</div>
                         <div className="text-xs text-slate-500 font-medium truncate font-mono mt-0.5">
-                          <GmailLink email={u.email} className="text-slate-500 hover:text-blue-400" />
+                          <GmailLink email={u.email} className="text-slate-500 hover:text-blue-600 dark:hover:text-blue-400" />
                         </div>
-                        {u.phone && <div className="text-[10px] text-slate-500 font-semibold font-mono mt-1">+{u.phone}</div>}
+                        {u.phone && <div className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold font-mono mt-1">+{u.phone}</div>}
                       </div>
                     );
                   })}
@@ -541,37 +539,37 @@ const RolesPermissions = () => {
               <span className="text-xs font-black text-slate-500 uppercase tracking-widest block mb-2">Profile & Hierarchy Details</span>
 
               {!selectedDetailedUser ? (
-                <div className="h-64 flex flex-col justify-center items-center border border-dashed border-white/10 rounded-2xl text-slate-500 p-6 text-center">
-                  <FiAlertCircle size={28} className="text-slate-600 mb-2" />
+                <div className="h-64 flex flex-col justify-center items-center border border-dashed border-slate-200 dark:border-white/10 rounded-2xl text-slate-400 dark:text-slate-500 p-6 text-center">
+                  <FiAlertCircle size={28} className="text-slate-400 dark:text-slate-600 mb-2" />
                   <span className="text-xs font-bold">Select a user account from the left list to fetch detailed profile information.</span>
                 </div>
               ) : loadingDetailedUser ? (
                 <div className="h-64 flex flex-col justify-center items-center">
-                  <FiLoader className="animate-spin text-2xl text-blue-400 mb-2" />
+                  <FiLoader className="animate-spin text-2xl text-blue-600 dark:text-blue-400 mb-2" />
                   <span className="text-xs text-slate-500 font-bold">Fetching user profile data from API...</span>
                 </div>
               ) : detailedUserInfo ? (
-                <div className="bg-black/25 border border-white/5 rounded-2xl p-5 space-y-5 text-left animate-in fade-in">
+                <div className="bg-slate-50/70 dark:bg-black/25 border border-slate-200/80 dark:border-white/5 rounded-2xl p-5 space-y-5 text-left animate-in fade-in">
 
                   {/* User Profile Header */}
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/5 pb-4">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200/80 dark:border-white/5 pb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-blue-500/20 text-blue-400 font-black flex items-center justify-center text-lg shadow-inner">
+                      <div className="w-12 h-12 rounded-2xl bg-blue-500/15 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-black flex items-center justify-center text-lg shadow-inner">
                         {detailedUserInfo.name?.charAt(0).toUpperCase() || 'U'}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="font-extrabold text-white text-lg">{detailedUserInfo.name}</h3>
-                          <span className="text-[9px] font-black bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded uppercase shrink-0">
+                          <h3 className="font-extrabold text-slate-900 dark:text-white text-lg">{detailedUserInfo.name}</h3>
+                          <span className="text-[9px] font-black bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded uppercase shrink-0">
                             {detailedUserInfo.role || 'customer'}
                           </span>
                         </div>
-                        <GmailLink email={detailedUserInfo.email} className="text-xs text-slate-400 font-medium font-mono mt-0.5 hover:text-blue-400" />
+                        <GmailLink email={detailedUserInfo.email} className="text-xs text-slate-500 dark:text-slate-400 font-medium font-mono mt-0.5 hover:text-blue-600 dark:hover:text-blue-400" />
                       </div>
                     </div>
                     {detailedUserInfo.phone && (
-                      <div className="text-xs text-slate-400 font-bold font-mono">
-                        Phone: <span className="text-white">+{detailedUserInfo.phone}</span>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 font-bold font-mono">
+                        Phone: <span className="text-slate-900 dark:text-white">+{detailedUserInfo.phone}</span>
                       </div>
                     )}
                   </div>
@@ -583,17 +581,17 @@ const RolesPermissions = () => {
                       {detailedUserInfo.states && detailedUserInfo.states.length > 0 ? (
                         <div className="flex flex-wrap gap-1.5">
                           {detailedUserInfo.states.map(s => (
-                            <span key={s} className="text-[10px] bg-slate-800 text-slate-300 font-bold px-2 py-1 rounded-lg border border-white/5">{s}</span>
+                            <span key={s} className="text-[10px] bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold px-2 py-1 rounded-lg border border-slate-300 dark:border-white/5">{s}</span>
                           ))}
                         </div>
                       ) : detailedUserInfo.territories && detailedUserInfo.territories.length > 0 ? (
                         <div className="flex flex-wrap gap-1.5">
                           {detailedUserInfo.territories.map(t => (
-                            <span key={t} className="text-[10px] bg-slate-800 text-slate-300 font-bold px-2 py-1 rounded-lg border border-white/5">{t}</span>
+                            <span key={t} className="text-[10px] bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold px-2 py-1 rounded-lg border border-slate-300 dark:border-white/5">{t}</span>
                           ))}
                         </div>
                       ) : (
-                        <span className="text-slate-500 text-xs italic">No territorial states or boundaries assigned.</span>
+                        <span className="text-slate-400 dark:text-slate-500 text-xs italic">No territorial states or boundaries assigned.</span>
                       )}
                     </div>
 
@@ -601,18 +599,18 @@ const RolesPermissions = () => {
                     <div className="space-y-2">
                       <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider">Hierarchy & Reporting</h4>
                       {detailedUserInfo.salesHead ? (
-                        <div className="p-3 bg-white/[0.02] border border-white/5 rounded-xl text-xs space-y-1">
+                        <div className="p-3 bg-white dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 rounded-xl text-xs space-y-1">
                           <div className="text-slate-500 font-bold uppercase text-[9px] tracking-wider">Reports To (Sales Head)</div>
-                          <div className="font-extrabold text-white">{detailedUserInfo.salesHead.name || 'Sales Head'}</div>
-                          <GmailLink email={detailedUserInfo.salesHead.email} className="text-slate-400 font-medium truncate font-mono text-[10px] hover:text-blue-400" />
+                          <div className="font-extrabold text-slate-900 dark:text-white">{detailedUserInfo.salesHead.name || 'Sales Head'}</div>
+                          <GmailLink email={detailedUserInfo.salesHead.email} className="text-slate-500 dark:text-slate-400 font-medium truncate font-mono text-[10px] hover:text-blue-600 dark:hover:text-blue-400" />
                         </div>
                       ) : detailedUserInfo.tsmCount !== undefined ? (
                         <div className="flex items-baseline gap-1 mt-1">
-                          <span className="text-2xl font-black text-white">{detailedUserInfo.tsmCount}</span>
+                          <span className="text-2xl font-black text-slate-900 dark:text-white">{detailedUserInfo.tsmCount}</span>
                           <span className="text-slate-500 text-xs font-bold">TSMs reporting to this Sales Head</span>
                         </div>
                       ) : (
-                        <span className="text-slate-500 text-xs italic">Direct staff or independent organization role.</span>
+                        <span className="text-slate-400 dark:text-slate-500 text-xs italic">Direct staff or independent organization role.</span>
                       )}
                     </div>
                   </div>
@@ -623,11 +621,11 @@ const RolesPermissions = () => {
                     {detailedUserInfo.devices && detailedUserInfo.devices.length > 0 ? (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                         {detailedUserInfo.devices.map((dev, i) => (
-                          <div key={i} className="p-3.5 bg-black/40 border border-white/5 rounded-xl space-y-2 text-xs relative overflow-hidden">
-                            <div className="flex justify-between items-center border-b border-white/5 pb-1.5">
-                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Device #{i + 1}</span>
-                              <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border uppercase shrink-0 ${dev.devicePlatform === 'ios' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' :
-                                  'bg-orange-500/10 text-orange-400 border-orange-500/20'
+                          <div key={i} className="p-3.5 bg-white dark:bg-black/40 border border-slate-200/80 dark:border-white/5 rounded-xl space-y-2 text-xs relative overflow-hidden">
+                            <div className="flex justify-between items-center border-b border-slate-200/80 dark:border-white/5 pb-1.5">
+                              <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Device #{i + 1}</span>
+                              <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border uppercase shrink-0 ${dev.devicePlatform === 'ios' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20' :
+                                  'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20'
                                 }`}>
                                 {dev.devicePlatform || 'unknown'}
                               </span>
@@ -635,14 +633,14 @@ const RolesPermissions = () => {
                             {dev.fcmToken && (
                               <div className="space-y-0.5 min-w-0">
                                 <span className="text-[8px] text-slate-500 font-black uppercase tracking-wider">FCM Push Token</span>
-                                <div className="text-[9px] text-slate-400 font-mono break-all line-clamp-1 hover:line-clamp-none select-all cursor-pointer transition-all">{dev.fcmToken}</div>
+                                <div className="text-[9px] text-slate-500 dark:text-slate-400 font-mono break-all line-clamp-1 hover:line-clamp-none select-all cursor-pointer transition-all">{dev.fcmToken}</div>
                               </div>
                             )}
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <span className="text-slate-500 text-xs italic block">No active device connections registered.</span>
+                      <span className="text-slate-400 dark:text-slate-500 text-xs italic block">No active device connections registered.</span>
                     )}
                   </div>
 
@@ -652,13 +650,13 @@ const RolesPermissions = () => {
                       <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider">Active Cart Items</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[180px] overflow-y-auto custom-scrollbar">
                         {detailedUserInfo.cartItems.map((cart, idx) => (
-                          <div key={idx} className="p-3 bg-white/[0.02] border border-white/5 rounded-xl flex items-center justify-between text-xs">
+                          <div key={idx} className="p-3 bg-white dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 rounded-xl flex items-center justify-between text-xs">
                             <div className="space-y-0.5">
-                              <div className="font-bold text-white">{cart.productName || 'Product'}</div>
+                              <div className="font-bold text-slate-900 dark:text-white">{cart.productName || 'Product'}</div>
                               {cart.variantName && <div className="text-[10px] text-slate-500 font-medium font-mono">{cart.variantName}</div>}
                             </div>
                             <div className="text-right shrink-0">
-                              <div className="font-extrabold text-blue-400">Qty: {cart.quantity || 1}</div>
+                              <div className="font-extrabold text-blue-600 dark:text-blue-400">Qty: {cart.quantity || 1}</div>
                               {cart.price && <div className="text-[10px] text-slate-500 font-bold font-mono">₹{cart.price}</div>}
                             </div>
                           </div>
@@ -669,8 +667,8 @@ const RolesPermissions = () => {
 
                 </div>
               ) : (
-                <div className="h-64 flex flex-col justify-center items-center border border-dashed border-white/10 rounded-2xl text-slate-500 p-6 text-center">
-                  <FiAlertCircle size={28} className="text-slate-600 mb-2" />
+                <div className="h-64 flex flex-col justify-center items-center border border-dashed border-slate-200 dark:border-white/10 rounded-2xl text-slate-400 dark:text-slate-500 p-6 text-center">
+                  <FiAlertCircle size={28} className="text-slate-400 dark:text-slate-600 mb-2" />
                   <span className="text-xs font-bold">Failed to load detailed profile. Please verify network status.</span>
                 </div>
               )}
@@ -681,27 +679,27 @@ const RolesPermissions = () => {
 
       {/* Main Content Card */}
       {activeTab === 'CREATE_USER' && (
-        <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden relative p-6">
-          <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
+        <div className="bg-white/80 dark:bg-transparent backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 shadow-xl dark:shadow-2xl rounded-3xl overflow-hidden relative p-6">
+          <div className="absolute inset-0 bg-linear-to-b from-slate-100/40 dark:from-white/5 to-transparent pointer-events-none"></div>
 
-          <div className="max-w-2xl mx-auto">
-            <div className="mb-6 flex items-center gap-3 border-b border-white/10 pb-4">
-              <FiUserPlus className="text-blue-400 text-xl" />
+          <div className="max-w-2xl mx-auto relative z-10">
+            <div className="mb-6 flex items-center gap-3 border-b border-slate-200/80 dark:border-white/10 pb-4">
+              <FiUserPlus className="text-blue-600 dark:text-blue-400 text-xl" />
               <div>
-                <h2 className="text-lg font-bold text-white">Register Operations Staff</h2>
-                <p className="text-xs text-slate-400 font-medium">Create user profiles with specialized internal roles.</p>
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Register Operations Staff</h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Create user profiles with specialized internal roles.</p>
               </div>
             </div>
 
             {createSuccessMsg && (
-              <div className="mb-5 p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-sm font-bold flex items-center gap-3 animate-in fade-in">
+              <div className="mb-5 p-4 rounded-xl border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-sm font-bold flex items-center gap-3 animate-in fade-in">
                 <FiCheckCircle size={18} />
                 <span>{createSuccessMsg}</span>
               </div>
             )}
 
             {createErrorMsg && (
-              <div className="mb-5 p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-sm font-bold flex items-center gap-3 animate-in fade-in">
+              <div className="mb-5 p-4 rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 text-sm font-bold flex items-center gap-3 animate-in fade-in">
                 <FiAlertCircle size={18} />
                 <span>{createErrorMsg}</span>
               </div>
@@ -710,7 +708,7 @@ const RolesPermissions = () => {
             <form onSubmit={handleRegisterUser} className="space-y-4 text-left">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Full Name</label>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wider block">Full Name</label>
                   <input
                     type="text"
                     name="name"
@@ -718,12 +716,12 @@ const RolesPermissions = () => {
                     value={createUserForm.name}
                     onChange={handleFormChange}
                     placeholder="Enter name"
-                    className="w-full px-4 py-2.5 bg-black/25 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-semibold"
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-black/25 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-semibold"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Role Category</label>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wider block">Role Category</label>
                   <CustomDropdown
                     value={createUserForm.role}
                     options={[
@@ -734,14 +732,14 @@ const RolesPermissions = () => {
                       { value: 'admin', label: 'Administrator' }
                     ]}
                     onChange={(val) => setCreateUserForm(prev => ({ ...prev, role: val }))}
-                    statusColor="bg-black/25 text-white border-white/10 text-xs font-semibold w-full text-left"
+                    statusColor="bg-slate-50 dark:bg-black/25 text-slate-900 dark:text-white border-slate-200 dark:border-white/10 text-xs font-semibold w-full text-left"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Email Address</label>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wider block">Email Address</label>
                   <input
                     type="email"
                     name="email"
@@ -749,12 +747,12 @@ const RolesPermissions = () => {
                     value={createUserForm.email}
                     onChange={handleFormChange}
                     placeholder="name@inizio.in"
-                    className="w-full px-4 py-2.5 bg-black/25 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-semibold font-mono"
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-black/25 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-semibold font-mono"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Phone Number</label>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wider block">Phone Number</label>
                   <input
                     type="tel"
                     name="phone"
@@ -764,13 +762,13 @@ const RolesPermissions = () => {
                     value={createUserForm.phone}
                     onChange={handleFormChange}
                     placeholder="10 digit number"
-                    className="w-full px-4 py-2.5 bg-black/25 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-semibold font-mono"
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-black/25 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-semibold font-mono"
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Password</label>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wider block">Password</label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -780,12 +778,12 @@ const RolesPermissions = () => {
                     value={createUserForm.password}
                     onChange={handleFormChange}
                     placeholder="Set temporary secure password"
-                    className="w-full pl-4 pr-11 py-2.5 bg-black/25 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-semibold"
+                    className="w-full pl-4 pr-11 py-2.5 bg-slate-50 dark:bg-black/25 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-semibold"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer p-1 rounded-md"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors cursor-pointer p-1 rounded-md"
                   >
                     {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
                   </button>
@@ -794,10 +792,10 @@ const RolesPermissions = () => {
 
               {/* Conditional Fields based on Role selection */}
               {createUserForm.role === 'sales_head' && (
-                <div className="space-y-1 bg-blue-500/5 border border-blue-500/10 p-4 rounded-2xl animate-in slide-in-from-top-2">
+                <div className="space-y-1 bg-blue-50/50 dark:bg-blue-500/5 border border-blue-200 dark:border-blue-500/10 p-4 rounded-2xl animate-in slide-in-from-top-2">
                   <div className="flex items-center gap-2 mb-1">
-                    <FiMapPin className="text-blue-400 text-xs" />
-                    <label className="text-xs font-black text-blue-400 uppercase tracking-wider block">Assigned States</label>
+                    <FiMapPin className="text-blue-600 dark:text-blue-400 text-xs" />
+                    <label className="text-xs font-black text-blue-600 dark:text-blue-400 uppercase tracking-wider block">Assigned States</label>
                   </div>
                   <input
                     type="text"
@@ -806,17 +804,17 @@ const RolesPermissions = () => {
                     value={createUserForm.statesInput}
                     onChange={handleFormChange}
                     placeholder="Telangana, Andhra Pradesh, Maharashtra (Comma-separated)"
-                    className="w-full px-4 py-2.5 bg-black/30 border border-blue-500/25 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-semibold"
+                    className="w-full px-4 py-2.5 bg-white dark:bg-black/30 border border-blue-200 dark:border-blue-500/25 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-semibold"
                   />
                   <span className="text-[10px] text-slate-500 font-bold block mt-1">Specify all states this Sales Head will supervise.</span>
                 </div>
               )}
 
               {createUserForm.role === 'tsm' && (
-                <div className="space-y-4 bg-purple-500/5 border border-purple-500/10 p-4 rounded-2xl animate-in slide-in-from-top-2">
+                <div className="space-y-4 bg-purple-50/50 dark:bg-purple-500/5 border border-purple-200 dark:border-purple-500/10 p-4 rounded-2xl animate-in slide-in-from-top-2">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="text-xs font-black text-purple-400 uppercase tracking-wider block">Reporting Sales Head</label>
+                      <label className="text-xs font-black text-purple-600 dark:text-purple-400 uppercase tracking-wider block">Reporting Sales Head</label>
                       <CustomDropdown
                         value={createUserForm.salesHead}
                         options={
@@ -825,14 +823,14 @@ const RolesPermissions = () => {
                             : [{ value: '', label: 'No active Sales Heads registered' }]
                         }
                         onChange={(val) => setCreateUserForm(prev => ({ ...prev, salesHead: val }))}
-                        statusColor="bg-black/25 text-white border-purple-500/25 text-xs font-semibold w-full text-left"
+                        statusColor="bg-white dark:bg-black/25 text-slate-900 dark:text-white border-purple-200 dark:border-purple-500/25 text-xs font-semibold w-full text-left"
                       />
                     </div>
 
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <FiMapPin className="text-purple-400 text-xs" />
-                        <label className="text-xs font-black text-purple-400 uppercase tracking-wider block">Assigned Territories</label>
+                        <FiMapPin className="text-purple-600 dark:text-purple-400 text-xs" />
+                        <label className="text-xs font-black text-purple-600 dark:text-purple-400 uppercase tracking-wider block">Assigned Territories</label>
                       </div>
                       <input
                         type="text"
@@ -841,7 +839,7 @@ const RolesPermissions = () => {
                         value={createUserForm.territoriesInput}
                         onChange={handleFormChange}
                         placeholder="Hyderabad, Secunderabad, Warangal"
-                        className="w-full px-4 py-2.5 bg-black/30 border border-purple-500/25 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-semibold"
+                        className="w-full px-4 py-2.5 bg-white dark:bg-black/30 border border-purple-200 dark:border-purple-500/25 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-semibold"
                       />
                     </div>
                   </div>
@@ -849,11 +847,11 @@ const RolesPermissions = () => {
                 </div>
               )}
 
-              <div className="pt-4 border-t border-white/5 flex justify-end">
+              <div className="pt-4 border-t border-slate-200/80 dark:border-white/5 flex justify-end">
                 <button
                   type="submit"
                   disabled={creatingUser}
-                  className="px-6 py-3 disabled:opacity-50 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer border border-blue-500/35 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                  className="px-6 py-3 disabled:opacity-50 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer border border-blue-500/35 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md shadow-blue-500/20"
                 >
                   {creatingUser ? (
                     <>
@@ -875,20 +873,20 @@ const RolesPermissions = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 
           {/* Left Column: Role Selector & Permissions Form */}
-          <div className="lg:col-span-2 bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden relative p-6 space-y-6">
-            <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
+          <div className="lg:col-span-2 bg-white/80 dark:bg-transparent backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 shadow-xl dark:shadow-2xl rounded-3xl overflow-hidden relative p-6 space-y-6">
+            <div className="absolute inset-0 bg-linear-to-b from-slate-100/40 dark:from-white/5 to-transparent pointer-events-none"></div>
 
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200/80 dark:border-white/10 pb-4 relative z-10">
               <div className="flex items-center gap-3">
-                <FiLock className="text-amber-400 text-xl" />
+                <FiLock className="text-amber-500 dark:text-amber-400 text-xl" />
                 <div>
-                  <h2 className="text-lg font-bold text-white">Access Control Settings</h2>
-                  <p className="text-xs text-slate-400 font-medium">Assign specific endpoint permissions to each user role.</p>
+                  <h2 className="text-lg font-bold text-slate-900 dark:text-white">Access Control Settings</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Assign specific endpoint permissions to each user role.</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 w-full sm:w-auto">
-                <span className="text-xs font-bold text-slate-400 uppercase shrink-0">Role:</span>
+                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase shrink-0">Role:</span>
                 <div className="w-full sm:w-48">
                   <CustomDropdown
                     value={selectedRoleForPermissions}
@@ -901,34 +899,34 @@ const RolesPermissions = () => {
                       { value: 'customer', label: 'Customer' }
                     ]}
                     onChange={(val) => setSelectedRoleForPermissions(val)}
-                    statusColor="bg-slate-900 border-white/10 text-white text-xs font-bold py-1.5 w-full text-left"
+                    statusColor="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-bold py-1.5 w-full text-left"
                   />
                 </div>
               </div>
             </div>
 
             {permissionsSuccessMsg && (
-              <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-sm font-bold flex items-center gap-3 animate-in fade-in">
+              <div className="p-4 rounded-xl border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-sm font-bold flex items-center gap-3 animate-in fade-in relative z-10">
                 <FiCheckCircle size={18} />
                 <span>{permissionsSuccessMsg}</span>
               </div>
             )}
 
             {permissionsErrorMsg && (
-              <div className="p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-sm font-bold flex items-center gap-3 animate-in fade-in">
+              <div className="p-4 rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 text-sm font-bold flex items-center gap-3 animate-in fade-in relative z-10">
                 <FiAlertCircle size={18} />
                 <span>{permissionsErrorMsg}</span>
               </div>
             )}
 
             {loadingPermissions ? (
-              <div className="h-64 flex flex-col justify-center items-center">
-                <FiLoader className="animate-spin text-2xl text-blue-400 mb-2" />
+              <div className="h-64 flex flex-col justify-center items-center relative z-10">
+                <FiLoader className="animate-spin text-2xl text-blue-600 dark:text-blue-400 mb-2" />
                 <p className="text-xs text-slate-500 font-bold">Loading permissions mapping...</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 sm:grid-cols-2 gap-3">
+              <div className="space-y-4 relative z-10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {availablePermissions.map(perm => {
                     const isChecked = roleActivePermissions.includes(perm);
                     return (
@@ -936,18 +934,18 @@ const RolesPermissions = () => {
                         key={perm}
                         onClick={() => handleTogglePermission(perm)}
                         className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group ${isChecked
-                            ? 'bg-blue-600/15 border-blue-500/40 text-white'
-                            : 'bg-white/[0.02] border-white/5 text-slate-400 hover:border-white/10 hover:text-white'
+                            ? 'bg-blue-500/10 dark:bg-blue-600/15 border-blue-500/50 dark:border-blue-500/40 text-blue-900 dark:text-white shadow-xs'
+                            : 'bg-slate-50/80 hover:bg-slate-100 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/5 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-white/10 hover:text-slate-900 dark:hover:text-white'
                           }`}
                       >
                         <div className="flex flex-col text-left">
-                          <code className="text-xs font-mono font-bold text-slate-300">{perm}</code>
-                          <span className="text-[10px] text-slate-500 font-bold mt-0.5 tracking-wider">
+                          <code className="text-xs font-mono font-bold text-slate-800 dark:text-slate-300">{perm}</code>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 tracking-wider">
                             {getRoleLabel(perm)} Access
                           </span>
                         </div>
 
-                        <div className={`w-8 h-5 rounded-full p-0.5 transition-colors relative flex items-center shrink-0 ${isChecked ? 'bg-blue-500' : 'bg-slate-800'}`}>
+                        <div className={`w-8 h-5 rounded-full p-0.5 transition-colors relative flex items-center shrink-0 ${isChecked ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-800'}`}>
                           <div className={`w-4 h-4 rounded-full bg-white shadow-md transform transition-transform ${isChecked ? 'translate-x-3' : 'translate-x-0'}`}></div>
                         </div>
                       </div>
@@ -955,11 +953,11 @@ const RolesPermissions = () => {
                   })}
                 </div>
 
-                <div className="pt-4 border-t border-white/5 flex justify-end">
+                <div className="pt-4 border-t border-slate-200/80 dark:border-white/5 flex justify-end">
                   <button
                     onClick={handleSavePermissions}
                     disabled={savingPermissions}
-                    className="px-6 py-3 disabled:opacity-50 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer border border-blue-500/35 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                    className="px-6 py-3 disabled:opacity-50 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer border border-blue-500/35 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md shadow-blue-500/20"
                   >
                     {savingPermissions ? (
                       <>
@@ -974,29 +972,29 @@ const RolesPermissions = () => {
                 </div>
 
                 {/* API Scope Reference Section */}
-                <div className="pt-6 border-t border-white/10 space-y-4">
+                <div className="pt-6 border-t border-slate-200/80 dark:border-white/10 space-y-4">
                   <div className="flex items-center gap-2.5">
-                    <FiLayers className="text-blue-400 text-base" />
+                    <FiLayers className="text-blue-600 dark:text-blue-400 text-base" />
                     <div>
-                      <h3 className="text-sm font-bold text-white uppercase tracking-wider">Authorized API Endpoints Reference</h3>
-                      <p className="text-[10px] text-slate-400 font-medium">HTTP routes accessible under this role's default policy.</p>
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Authorized API Endpoints Reference</h3>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">HTTP routes accessible under this role's default policy.</p>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 gap-2.5">
                     {getRoleApiEndpoints(selectedRoleForPermissions).map((api, idx) => (
-                      <div key={idx} className="p-3.5 rounded-2xl bg-black/25 border border-white/5 hover:border-white/10 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left">
+                      <div key={idx} className="p-3.5 rounded-2xl bg-slate-50/80 dark:bg-black/25 border border-slate-200/80 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left">
                         <div className="space-y-1 min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded shrink-0 ${api.method === 'GET' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-                                api.method === 'POST' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
-                                  'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded shrink-0 ${api.method === 'GET' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' :
+                                api.method === 'POST' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20' :
+                                  'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
                               }`}>
                               {api.method}
                             </span>
-                            <code className="text-xs font-bold text-blue-300 font-mono break-all">{api.path}</code>
+                            <code className="text-xs font-bold text-blue-600 dark:text-blue-300 font-mono break-all">{api.path}</code>
                           </div>
-                          <p className="text-[11px] text-slate-400 font-medium leading-relaxed">{api.desc}</p>
+                          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium leading-relaxed">{api.desc}</p>
                         </div>
 
                         <div className="flex items-center gap-3 shrink-0 self-end sm:self-auto">
@@ -1005,14 +1003,14 @@ const RolesPermissions = () => {
                               <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">Params</span>
                               <div className="flex flex-wrap gap-1 justify-end">
                                 {api.params.map(p => (
-                                  <code key={p} className="text-[9px] font-mono text-amber-400 bg-amber-500/10 px-1 py-0.5 rounded border border-amber-500/20">{p}</code>
+                                  <code key={p} className="text-[9px] font-mono text-amber-700 dark:text-amber-400 bg-amber-500/10 px-1 py-0.5 rounded border border-amber-500/20">{p}</code>
                                 ))}
                               </div>
                             </div>
                           )}
                           <button
                             onClick={() => handleTestApi(api)}
-                            className="px-3.5 py-2 bg-blue-600/10 hover:bg-blue-600 border border-blue-500/20 hover:border-blue-500 text-blue-400 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shrink-0"
+                            className="px-3.5 py-2 bg-blue-600/10 hover:bg-blue-600 border border-blue-500/20 hover:border-blue-500 text-blue-600 dark:text-blue-400 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shrink-0"
                           >
                             Fetch Data
                           </button>
@@ -1024,11 +1022,11 @@ const RolesPermissions = () => {
 
                 {/* API response data preview panel */}
                 {activeApiTest && (
-                  <div className="pt-6 border-t border-white/10 space-y-3 animate-in fade-in slide-in-from-top-2">
+                  <div className="pt-6 border-t border-slate-200/80 dark:border-white/10 space-y-3 animate-in fade-in slide-in-from-top-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2.5">
                         <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <h3 className="text-sm font-bold text-white uppercase tracking-wider">Live Response Viewer</h3>
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Live Response Viewer</h3>
                       </div>
                       <button
                         onClick={() => {
@@ -1036,19 +1034,19 @@ const RolesPermissions = () => {
                           setApiTestResponse(null);
                           setApiTestError('');
                         }}
-                        className="p-1 hover:bg-white/15 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
+                        className="p-1 hover:bg-slate-100 dark:hover:bg-white/15 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer"
                       >
                         <FiX size={16} />
                       </button>
                     </div>
 
-                    <div className="p-4 rounded-2xl bg-black/40 border border-white/10 font-mono text-xs text-left overflow-hidden relative">
-                      <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-2">
+                    <div className="p-4 rounded-2xl bg-slate-900 dark:bg-black/60 border border-slate-800 dark:border-white/10 font-mono text-xs text-left overflow-hidden relative shadow-lg">
+                      <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
                         <div className="flex items-center gap-2">
-                          <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 border border-blue-500/20">
+                          <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
                             {activeApiTest.method}
                           </span>
-                          <code className="text-slate-300 font-bold text-xs">{activeApiTest.path}</code>
+                          <code className="text-slate-200 font-bold text-xs">{activeApiTest.path}</code>
                         </div>
                         {testingApi && (
                           <div className="flex items-center gap-1.5">
@@ -1060,12 +1058,12 @@ const RolesPermissions = () => {
 
                       <div className="max-h-[300px] overflow-y-auto custom-scrollbar pr-1">
                         {testingApi ? (
-                          <div className="py-12 flex flex-col justify-center items-center gap-2 text-slate-500">
+                          <div className="py-12 flex flex-col justify-center items-center gap-2 text-slate-400">
                             <FiLoader className="animate-spin text-lg text-blue-400" />
                             <span className="font-bold">Fetching live payload...</span>
                           </div>
                         ) : apiTestError ? (
-                          <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl font-sans text-xs">
+                          <div className="p-3 bg-rose-500/15 border border-rose-500/30 text-rose-300 rounded-xl font-sans text-xs">
                             {apiTestError}
                           </div>
                         ) : apiTestResponse ? (
@@ -1073,7 +1071,7 @@ const RolesPermissions = () => {
                             {JSON.stringify(apiTestResponse, null, 2)}
                           </pre>
                         ) : (
-                          <span className="text-slate-600 italic">No response payload recorded.</span>
+                          <span className="text-slate-500 italic">No response payload recorded.</span>
                         )}
                       </div>
                     </div>
@@ -1084,25 +1082,25 @@ const RolesPermissions = () => {
           </div>
 
           {/* Right Column: Permission Change Logs */}
-          <div className="bg-transparent backdrop-blur-2xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden relative p-6 space-y-4 text-left">
-            <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none"></div>
+          <div className="bg-white/80 dark:bg-transparent backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 shadow-xl dark:shadow-2xl rounded-3xl overflow-hidden relative p-6 space-y-4 text-left">
+            <div className="absolute inset-0 bg-linear-to-b from-slate-100/40 dark:from-white/5 to-transparent pointer-events-none"></div>
 
-            <div className="flex items-center gap-3 border-b border-white/10 pb-4">
-              <FiList className="text-blue-400 text-lg" />
+            <div className="flex items-center gap-3 border-b border-slate-200/80 dark:border-white/10 pb-4 relative z-10">
+              <FiList className="text-blue-600 dark:text-blue-400 text-lg" />
               <div>
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Role Modification Audit</h3>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Role Modification Audit</h3>
                 <p className="text-[10px] text-slate-500 font-medium">History log of permissions changes.</p>
               </div>
             </div>
 
             {loadingPermissions ? (
-              <div className="space-y-3">
+              <div className="space-y-3 relative z-10">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="h-16 rounded-xl bg-white/[0.02] border border-white/5 animate-pulse"></div>
+                  <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 animate-pulse"></div>
                 ))}
               </div>
             ) : (
-              <div className="space-y-3 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1">
+              <div className="space-y-3 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1 relative z-10">
                 {roleMappings.length === 0 ? (
                   <div className="py-12 text-center text-slate-500 italic text-xs">
                     No permission modifications logged yet.
@@ -1111,10 +1109,10 @@ const RolesPermissions = () => {
                   roleMappings.map((log, idx) => (
                     <div
                       key={log._id || idx}
-                      className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col gap-2 relative overflow-hidden"
+                      className="p-3.5 rounded-2xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 flex flex-col gap-2 relative overflow-hidden shadow-2xs dark:shadow-none"
                     >
                       <div className="flex justify-between items-start">
-                        <span className="text-[10px] bg-slate-800 text-slate-300 font-extrabold px-2 py-0.5 rounded border border-white/5 uppercase">
+                        <span className="text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-extrabold px-2 py-0.5 rounded border border-slate-300 dark:border-white/5 uppercase">
                           {log.role}
                         </span>
                         {log.updatedAt && (
@@ -1126,21 +1124,21 @@ const RolesPermissions = () => {
 
                       <div className="flex flex-wrap gap-1">
                         {log.permissions && log.permissions.map(p => (
-                          <span key={p} className="text-[9px] bg-blue-500/10 border border-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded font-mono">
+                          <span key={p} className="text-[9px] bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded font-mono">
                             {p}
                           </span>
                         ))}
                         {(!log.permissions || log.permissions.length === 0) && (
-                          <span className="text-[9px] text-red-400 font-semibold italic">
+                          <span className="text-[9px] text-red-600 dark:text-red-400 font-semibold italic">
                             Blocked Accounts Access (No permissions)
                           </span>
                         )}
                       </div>
 
                       {log.modifiedBy && (
-                        <div className="text-[9px] text-slate-500 font-bold border-t border-white/5 pt-1.5 flex items-center gap-1">
+                        <div className="text-[9px] text-slate-500 font-bold border-t border-slate-200/80 dark:border-white/5 pt-1.5 flex items-center gap-1">
                           <span>Modified by:</span>
-                          <span className="text-slate-400">{log.modifiedBy.name || log.modifiedBy.email || 'System'}</span>
+                          <span className="text-slate-700 dark:text-slate-400">{log.modifiedBy.name || log.modifiedBy.email || 'System'}</span>
                         </div>
                       )}
                     </div>

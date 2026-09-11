@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { FiAlertCircle, FiX, FiCheckCircle, FiInfo } from 'react-icons/fi';
+import { useEscapeKey } from '../utils/useEscapeKey';
 
 const ConfirmationContext = createContext(null);
 
@@ -67,6 +68,8 @@ export const ConfirmationProvider = ({ children }) => {
     if (resolverRef.current) resolverRef.current(false);
   };
 
+  useEscapeKey(handleCancel, modalState.isOpen);
+
   const getAlertIcon = () => {
     if (modalState.alertType === 'success') return <FiCheckCircle size={24} className="text-emerald-400" />;
     if (modalState.alertType === 'error') return <FiAlertCircle size={24} className="text-rose-400" />;
@@ -95,7 +98,7 @@ export const ConfirmationProvider = ({ children }) => {
     <ConfirmationContext.Provider value={{ confirm, showAlert }}>
       {children}
       {modalState.isOpen && createPortal(
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 dark:bg-slate-950/50 backdrop-blur-lg animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[10005] flex items-center justify-center p-4 dark:bg-slate-950/50 backdrop-blur-lg animate-in fade-in duration-200">
           <div className={`relative w-full max-w-md bg-transparent dark:bg-slate-950/25 border border-white/10 rounded-2xl shadow-2xl ${getAlertShadowClass()} p-6 overflow-hidden animate-in zoom-in-95 duration-200 text-left`}>
             {/* Ambient indicator header */}
             <div className={`absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r ${getAlertThemeClass()} shadow-sm ${getAlertShadowClass()}`}></div>

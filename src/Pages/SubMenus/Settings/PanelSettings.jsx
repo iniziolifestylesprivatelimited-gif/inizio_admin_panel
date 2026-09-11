@@ -5,12 +5,14 @@ import {
   FiUsers, FiMessageCircle, FiImage, FiSend, FiRefreshCw, FiExternalLink,
   FiServer, FiClock, FiZap, FiChevronDown, FiChevronUp, FiCopy, FiInfo,
   FiShield, FiTerminal, FiHelpCircle, FiCheck, FiSave, FiRotateCcw,
-  FiSun, FiMoon
+  FiSun, FiMoon, FiLayers,
+  FiAlertCircle
 } from 'react-icons/fi';
 import PageHeader from '../../../Components/PageHeader';
 import Card from '../../../Components/Card';
 import CustomDropdown from '../../../Components/CustomDropdown';
 import CopyButton from '../../../Components/CopyButton';
+import Pagination from '../../../Components/Pagination';
 import { useConfirm } from '../../../Context/ConfirmationContext';
 import { useTheme } from '../../../Context/ThemeContext';
 import { 
@@ -23,12 +25,25 @@ import {
   isBrowserNotificationSupported,
   DEFAULT_NOTIFICATION_SETTINGS
 } from '../../../utils/browserNotifications';
+import { RiCheckLine, RiInformationLine } from 'react-icons/ri';
 
 const TOAST_DURATION_OPTIONS = [
   { value: 4000, label: '4 Seconds' },
   { value: 6000, label: '6 Seconds (Default)' },
   { value: 8000, label: '8 Seconds' },
   { value: 10000, label: '10 Seconds' }
+];
+
+const PAGINATION_LIMIT_OPTIONS = [
+  { value: 1, label: 'Always Show (1+ Pages)' },
+  { value: 3, label: '3 Pages' },
+  { value: 5, label: '5 Pages (Compact)' },
+  { value: 7, label: '7 Pages (Standard / Default)' },
+  { value: 10, label: '10 Pages' },
+  { value: 15, label: '15 Pages' },
+  { value: 20, label: '20 Pages' },
+  { value: 25, label: '25 Pages' },
+  { value: 50, label: '50 Pages' }
 ];
 
 const PanelSettings = () => {
@@ -46,6 +61,8 @@ const PanelSettings = () => {
   const [showHttpGuide, setShowHttpGuide] = useState(false);
   const [selectedBrowserTab, setSelectedBrowserTab] = useState('chrome');
   const [activeTab, setActiveTab] = useState('notifications');
+  const [demoTotalPages, setDemoTotalPages] = useState(12);
+  const [demoCurrentPage, setDemoCurrentPage] = useState(1);
 
   const hasChanges = useMemo(() => {
     return JSON.stringify(settings) !== JSON.stringify(savedSettings);
@@ -392,6 +409,18 @@ const PanelSettings = () => {
           >
             <FiClock size={14} />
             <span>Polling Engine</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('pagination')}
+            className={`flex-1 sm:flex-initial px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+              activeTab === 'pagination'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 border border-blue-500/40'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/5 border border-transparent'
+            }`}
+          >
+            <FiLayers size={14} />
+            <span>Pagination & Display</span>
           </button>
         </div>
 
@@ -942,6 +971,248 @@ const PanelSettings = () => {
             })}
           </div>
         </Card>
+        </div>
+      )}
+
+      {/* 3. Pagination & Display Section */}
+      {activeTab === 'pagination' && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Main Threshold Configuration Card */}
+          <Card className="p-5 sm:p-6 space-y-6 bg-white/30 dark:bg-slate-900/60 border border-slate-200/90 dark:border-white/10 rounded-2xl w-full shadow-xs dark:shadow-none">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-white/10">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-blue-500/15 text-blue-600 dark:text-blue-400 shrink-0">
+                  <FiLayers size={20} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white">Page Selection Dropdown Threshold</h3>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-400/30 dark:border-blue-500/30">
+                      Active: {settings.paginationDropdownLimit ?? 7} Pages Limit
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Automatically display a quick page navigation dropdown on all paginated tables and lists when the total page count exceeds this limit.
+                  </p>
+                </div>
+              </div>
+
+              {/* Reset to default button */}
+              <button
+                type="button"
+                onClick={() => handleUpdate({ paginationDropdownLimit: 7 })}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-300 dark:text-slate-400 dark:hover:text-white dark:bg-white/5 dark:hover:bg-white/10 dark:border-white/10 transition-all cursor-pointer shrink-0 self-start sm:self-auto"
+              >
+                Reset to Default (7)
+              </button>
+            </div>
+
+            {/* Controls Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+              {/* Left Column: Preset Buttons and Dropdown */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-2">
+                    Quick Presets:
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { label: 'Always Show (1)', value: 1 },
+                      { label: '3 Pages', value: 3 },
+                      { label: '5 Pages (Compact)', value: 5 },
+                      { label: '7 Pages (Default)', value: 7 },
+                      { label: '10 Pages', value: 10 },
+                      { label: '15 Pages', value: 15 },
+                      { label: '20 Pages', value: 20 }
+                    ].map((preset) => {
+                      const isSelected = (settings.paginationDropdownLimit ?? 7) === preset.value;
+                      return (
+                        <button
+                          key={preset.value}
+                          type="button"
+                          onClick={() => handleUpdate({ paginationDropdownLimit: preset.value })}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 border border-blue-500/40'
+                              : 'bg-white dark:bg-slate-950/40 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10'
+                          }`}
+                        >
+                          {preset.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Dropdown Selector */}
+                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-white/5 space-y-2.5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-bold text-slate-800 dark:text-white">Choose Threshold From Dropdown</p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">Select standard limit presets</p>
+                    </div>
+                    <div className="w-48 sm:w-56">
+                      <CustomDropdown
+                        value={settings.paginationDropdownLimit ?? 7}
+                        onChange={(val) => handleUpdate({ paginationDropdownLimit: Number(val) })}
+                        options={PAGINATION_LIMIT_OPTIONS}
+                        statusColor="bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 text-slate-800 dark:text-white text-xs font-bold !py-1.5 !px-3 !rounded-xl focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Custom Exact Number Input */}
+                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-white/5 flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold text-slate-800 dark:text-white">Custom Threshold Limit</p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">Enter any custom number of pages</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleUpdate({ paginationDropdownLimit: Math.max(1, (settings.paginationDropdownLimit ?? 7) - 1) })}
+                      className="w-8 h-8 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 font-bold hover:bg-slate-100 dark:hover:bg-white/10 cursor-pointer flex items-center justify-center text-sm"
+                      title="Decrease by 1"
+                    >
+                      -
+                    </button>
+                    <input
+                      type="number"
+                      min="1"
+                      max="1000"
+                      value={settings.paginationDropdownLimit ?? 7}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value, 10);
+                        if (!isNaN(val) && val >= 1) {
+                          handleUpdate({ paginationDropdownLimit: val });
+                        }
+                      }}
+                      className="w-16 text-center py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleUpdate({ paginationDropdownLimit: (settings.paginationDropdownLimit ?? 7) + 1 })}
+                      className="w-8 h-8 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 font-bold hover:bg-slate-100 dark:hover:bg-white/10 cursor-pointer flex items-center justify-center text-sm"
+                      title="Increase by 1"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: How it works & Status info */}
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-blue-500/5 via-slate-50 to-slate-100 dark:from-blue-500/10 dark:via-slate-950/60 dark:to-slate-900/40 border border-blue-500/20 space-y-4">
+                <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300 font-bold text-sm">
+                  <FiInfo size={16} />
+                  <span>How It Operates Across the Admin Panel</span>
+                </div>
+                <div className="space-y-2.5 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                  <div className="p-3 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-white/10 flex items-start gap-2.5">
+                    <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold text-[12px] flex items-center justify-center shrink-0 mt-0.5"><RiCheckLine/></span>
+                    <div>
+                      <strong className="text-slate-800 dark:text-white">When Total Pages &gt; {settings.paginationDropdownLimit ?? 7}:</strong>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                        A page selection dropdown <code className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-blue-400 font-mono">"Go to: [Page X]"</code> will be visible, allowing admins to instantly jump to any page in 1 click.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-white/10 flex items-start gap-2.5">
+                    <span className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-bold text-[12px] flex items-center justify-center shrink-0 mt-0.5"><RiInformationLine/></span>
+                    <div>
+                      <strong className="text-slate-800 dark:text-white">When Total Pages &le; {settings.paginationDropdownLimit ?? 7}:</strong>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                        Only standard page number buttons are displayed without cluttering the interface with an extra dropdown.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 pt-1">
+                    Applied automatically to: <strong>Orders, Quotes, Ledgers, Notifications, User Accounts, Products, Catalog, and Reports</strong>.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Interactive Live Demonstration & Playground Card */}
+          <Card className="p-5 sm:p-6 space-y-5 bg-white/30 dark:bg-slate-900/60 border border-slate-200/90 dark:border-white/10 rounded-2xl w-full shadow-xs dark:shadow-none">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-white/10">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-purple-500/15 text-purple-600 dark:text-purple-400 shrink-0">
+                  <FiSliders size={20} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Interactive Live Preview & Demonstration</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Test how pagination behaves with different total page counts against your threshold.</p>
+                </div>
+              </div>
+
+              {/* Status pill indicating whether dropdown is visible in preview */}
+              <div className="shrink-0">
+                {demoTotalPages > (settings.paginationDropdownLimit ?? 7) ? (
+                  <span className="px-3 py-1.5 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Dropdown Visible ({demoTotalPages} &gt; {settings.paginationDropdownLimit ?? 7})
+                  </span>
+                ) : (
+                  <span className="px-3 py-1.5 rounded-full text-xs font-extrabold bg-white/40 dark:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-300 dark:border-white/10 flex items-center gap-1.5">
+                    Dropdown Hidden ({demoTotalPages} &le; {settings.paginationDropdownLimit ?? 7})
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Playground Controls to simulate different page counts */}
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-white/5 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Simulate Total Pages:
+                </span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {[
+                    { label: '4 Pages (Below Limit)', value: 4 },
+                    { label: '7 Pages (At Limit)', value: 7 },
+                    { label: '8 Pages (Above Limit)', value: 8 },
+                    { label: '15 Pages', value: 15 },
+                    { label: '50 Pages', value: 50 }
+                  ].map((preset) => (
+                    <button
+                      key={preset.value}
+                      type="button"
+                      onClick={() => {
+                        setDemoTotalPages(preset.value);
+                        setDemoCurrentPage(1);
+                      }}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        demoTotalPages === preset.value
+                          ? 'bg-purple-600 text-white shadow-xs'
+                          : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Live Rendered Pagination Bar */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white/60 dark:bg-slate-950/40 border border-slate-200/80 dark:border-white/10 shadow-xs flex flex-col sm:flex-row justify-between items-center gap-4">
+              <span className="text-xs text-slate-600 dark:text-slate-400">
+                Simulated Items: <span className="font-bold text-slate-900 dark:text-white">{demoCurrentPage * 10 - 9}</span> to <span className="font-bold text-slate-900 dark:text-white">{Math.min(demoCurrentPage * 10, demoTotalPages * 10)}</span> of <span className="font-bold text-slate-900 dark:text-white">{demoTotalPages * 10}</span> demo records
+              </span>
+
+              <Pagination
+                currentPage={demoCurrentPage}
+                totalPages={demoTotalPages}
+                onPageChange={(page) => setDemoCurrentPage(page)}
+                showDropdownThreshold={settings.paginationDropdownLimit ?? 7}
+              />
+            </div>
+          </Card>
         </div>
       )}
 

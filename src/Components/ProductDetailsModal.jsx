@@ -9,6 +9,7 @@ import { formatDateTimeDDMMYYYY } from '../utils/dateUtils';
 import CopyButton from './CopyButton';
 import { getImageUrl, DEFAULT_FALLBACK_IMAGE } from '../utils/imageUtils';
 import OptimizedImage from './OptimizedImage';
+import { useEscapeKey } from '../utils/useEscapeKey';
 
 const ProductDetailsModal = ({
   isOpen,
@@ -17,6 +18,7 @@ const ProductDetailsModal = ({
   product: initialProduct = null,
   showEditButton = false
 }) => {
+  useEscapeKey(onClose, isOpen);
   const navigate = useNavigate();
   const [product, setProduct] = useState(initialProduct);
   const [loading, setLoading] = useState(false);
@@ -345,7 +347,7 @@ const ProductDetailsModal = ({
                     <span className="w-8 h-8 rounded-full bg-white/60 dark:bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-sm border border-blue-500/30">
                       {product.variants?.length || 0}
                     </span>
-                    <span className="font-bold !text-black dark:text-white text-base">Product Variants</span>
+                    <span className="font-bold !text-black dark:!text-white text-base">Product Variants</span>
                   </div>
                   {isVariantsExpanded ? <FiChevronUp className="text-slate-400 text-xl" /> : <FiChevronDown className="text-slate-400 text-xl" />}
                 </button>
