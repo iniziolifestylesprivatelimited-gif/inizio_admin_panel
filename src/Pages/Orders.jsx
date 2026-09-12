@@ -6,7 +6,7 @@ import {
   FiBox, FiLoader, FiAlertCircle, FiChevronDown, FiCalendar,
   FiX, FiMapPin, FiCreditCard, FiUser, FiPhone, FiMail,
   FiFileText, FiUpload, FiDownload, FiCheckCircle, FiTrash2, FiInfo, FiRefreshCcw, FiCheck,
-  FiTruck, FiCopy, FiEye, FiSearch
+  FiTruck, FiCopy, FiEye, FiSearch, FiArrowRight, FiClock, FiPackage, FiExternalLink
 } from 'react-icons/fi';
 import CustomDropdown from '../Components/CustomDropdown';
 import CopyButton from '../Components/CopyButton';
@@ -924,104 +924,245 @@ const Orders = ({ defaultStatus = 'all' }) => {
 
       {/* ORDER DETAILS MODAL */}
       {isModalOpen && selectedOrder && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 dark:bg-slate-950/50 backdrop-blur-lg" onClick={closeModal}></div>
-          <div className="relative bg-transparent dark:bg-slate-950/25 border border-slate-200/80 dark:border-white/20 shadow-2xl rounded-2xl md:rounded-3xl w-full max-w-5xl h-[90vh] md:h-[85vh] max-h-[95vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 md:p-6 animate-in fade-in duration-200">
+          <div className="absolute inset-0 dark:bg-slate-950/50 backdrop-blur-lg transition-opacity" onClick={closeModal}></div>
+          <div className="relative bg-transparent dark:bg-slate-950/25 dark:backdrop-blur-sm border border-slate-200/80 dark:border-white/10 shadow-2xl rounded-3xl w-full max-w-5xl h-[92vh] md:h-[88vh] max-h-[95vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             {/* Modal Header */}
-            <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-200/80 dark:border-white/20 flex justify-between items-center bg-white/40 dark:bg-white/[0.03] shrink-0">
-              <div>
-                <h3 className="font-bold text-slate-900 dark:text-white text-xl flex items-center gap-2">
-                  <FiBox className="text-blue-600 dark:text-blue-400" />
-                  Order Details
-                </h3>
-                <div className="flex items-center gap-1 mt-1">
-                  <span className="text-sm font-mono text-slate-500 dark:text-slate-400">#{selectedOrder._id}</span>
-                  <CopyButton text={selectedOrder._id} className="text-slate-400 hover:text-slate-700 dark:hover:text-white" size={12} />
+            <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-200/80 dark:border-white/10 flex flex-wrap justify-between items-center gap-3 bg-white/60 dark:bg-white/[0.02] shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-linear-to-tr from-blue-600/20 to-indigo-600/20 border border-blue-500/30 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-inner">
+                  <FiBox size={20} />
                 </div>
-              </div>
-              <button onClick={closeModal} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors cursor-pointer">
-                <FiX className="text-2xl" />
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div className="overflow-y-auto w-full flex-1 custom-scrollbar p-4 sm:p-6 space-y-6 bg-slate-50/40 dark:bg-slate-950/25">
-
-              {/* Quick Info Badges */}
-              <div className="flex flex-wrap gap-3">
-                <div className="px-4 py-2 bg-white/40 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/20 rounded-xl flex items-center gap-2 text-sm shadow-xs">
-                  <FiCalendar className="text-slate-400 dark:text-slate-400" />
-                  <span className="text-slate-600 dark:text-slate-200">Date:</span>
-                  <span className="font-bold text-slate-900 dark:text-white">{formatDateTimeDDMMYYYY(selectedOrder.createdAt)}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">Status:</span>
-                  <div className="relative min-w-37.5">
-                    {updatingId === selectedOrder._id ? (
-                      <div className="flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/5 rounded-lg w-full h-9.5">
-                        <FiLoader className="animate-spin" /> Updating
-                      </div>
-                    ) : (
-                      <CustomDropdown
-                        value={selectedOrder.orderStatus || 'Pending'}
-                        onChange={(newStatus) => {
-                          if (newStatus === 'Shipped') {
-                            setShippingInputOpen(true);
-                            setAwbNumberText(selectedOrder.awbNumber || '');
-                            setCourierNameText(selectedOrder.courierName || '');
-                          } else {
-                            setStatusConfirmData({ orderId: selectedOrder._id, newStatus, shippingInfo: {} });
-                            setStatusConfirmOpen(true);
-                          }
-                        }}
-                        options={['Processing', 'Shipped', 'Delivered', 'Cancelled']}
-                        statusColor={getStatusColor(selectedOrder.orderStatus)}
-                      />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-extrabold text-slate-900 dark:text-white text-lg tracking-tight">Order Details</h3>
+                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-mono font-bold text-slate-700 dark:text-slate-300">
+                      <span>#{selectedOrder._id}</span>
+                      <CopyButton text={selectedOrder._id} className="text-slate-400 hover:text-slate-700 dark:hover:text-white" size={11} />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                    <span className="flex items-center gap-1 font-medium">
+                      <FiCalendar size={12} className="text-slate-400" />
+                      {formatDateTimeDDMMYYYY(selectedOrder.createdAt)}
+                    </span>
+                    {selectedOrder.deliveredAt && (
+                      <>
+                        <span>&bull;</span>
+                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                          <FiCheckCircle size={12} /> Delivered {formatDateTimeDDMMYYYY(selectedOrder.deliveredAt)}
+                        </span>
+                      </>
                     )}
                   </div>
                 </div>
-
-
-                {selectedOrder.deliveredAt && (
-                  <div className="px-4 py-2 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-xl flex items-center gap-2 text-sm shadow-xs">
-                    <FiCalendar className="text-emerald-600 dark:text-emerald-400" />
-                    <span className="text-emerald-700 dark:text-emerald-200">Delivered:</span>
-                    <span className="font-bold text-emerald-700 dark:text-emerald-400">{formatDateTimeDDMMYYYY(selectedOrder.deliveredAt)}</span>
-                  </div>
-                )}
               </div>
+
+              <div className="flex items-center gap-2.5">
+                {/* Payment status badge */}
+                <div className={`px-2.5 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5 ${
+                  selectedOrder.paymentStatus === 'Paid'
+                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                    : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${selectedOrder.paymentStatus === 'Paid' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`}></span>
+                  <span>{selectedOrder.paymentStatus || 'Pending Payment'}</span>
+                </div>
+
+                <button 
+                  onClick={closeModal} 
+                  className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-colors cursor-pointer"
+                  title="Close modal (Esc)"
+                >
+                  <FiX size={20} />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="overflow-y-auto w-full flex-1 custom-scrollbar p-4 sm:p-6 space-y-6 bg-slate-50/50 dark:bg-slate-950/20">
+
+              {/* Order Status Stepper Card */}
+              {(() => {
+                const currentStatus = (selectedOrder.orderStatus || 'Pending').toLowerCase();
+                const isCancelled = currentStatus === 'cancelled';
+                const stepIndex = currentStatus === 'delivered' ? 3 :
+                                  currentStatus === 'shipped' ? 2 :
+                                  currentStatus === 'processing' ? 1 : 0;
+
+                const pipelineSteps = [
+                  { title: 'Order Placed', subtitle: formatDateDDMMYYYY(selectedOrder.createdAt), icon: FiCheckCircle },
+                  { title: 'Processing', subtitle: 'Packing & Preparing', icon: FiPackage },
+                  { title: 'Shipped', subtitle: selectedOrder.courierName || 'Carrier Handover', icon: FiTruck },
+                  { title: 'Delivered', subtitle: selectedOrder.deliveredAt ? formatDateDDMMYYYY(selectedOrder.deliveredAt) : 'Recipient Delivery', icon: FiCheckCircle }
+                ];
+
+                return (
+                  <div className="p-4 sm:p-5 rounded-2xl bg-white/40 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 shadow-xs space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                          <FiClock className="text-blue-500" size={13} />
+                          Fulfillment Pipeline
+                        </span>
+                        {isCancelled ? (
+                          <span className="px-2 py-0.5 rounded-md text-xs font-black bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 uppercase tracking-wide">
+                            Cancelled Order
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-md text-xs font-black bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 capitalize">
+                            {selectedOrder.orderStatus || 'Processing'}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Status quick control dropdown & actions */}
+                      <div className="flex items-center gap-2">
+                        {currentStatus === 'processing' && !shippingInputOpen && (
+                          <button
+                            onClick={() => {
+                              setShippingInputOpen(true);
+                              setAwbNumberText(selectedOrder.awbNumber || '');
+                              setCourierNameText(selectedOrder.courierName || '');
+                            }}
+                            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm shadow-blue-500/25 transition-all cursor-pointer"
+                          >
+                            <FiTruck size={13} /> Mark as Shipped
+                          </button>
+                        )}
+
+                        {currentStatus === 'shipped' && (
+                          <button
+                            onClick={() => {
+                              setStatusConfirmData({ orderId: selectedOrder._id, newStatus: 'Delivered', shippingInfo: {} });
+                              setStatusConfirmOpen(true);
+                            }}
+                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm shadow-emerald-500/25 transition-all cursor-pointer"
+                          >
+                            <FiCheckCircle size={13} /> Mark Delivered
+                          </button>
+                        )}
+
+                        <div className="min-w-36">
+                          {updatingId === selectedOrder._id ? (
+                            <div className="flex items-center justify-center gap-2 px-3 py-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/5 rounded-xl h-8.5">
+                              <FiLoader className="animate-spin" size={13} /> Updating
+                            </div>
+                          ) : (
+                            <CustomDropdown
+                              value={selectedOrder.orderStatus || 'Pending'}
+                              onChange={(newStatus) => {
+                                if (newStatus === 'Shipped') {
+                                  setShippingInputOpen(true);
+                                  setAwbNumberText(selectedOrder.awbNumber || '');
+                                  setCourierNameText(selectedOrder.courierName || '');
+                                } else {
+                                  setStatusConfirmData({ orderId: selectedOrder._id, newStatus, shippingInfo: {} });
+                                  setStatusConfirmOpen(true);
+                                }
+                              }}
+                              options={['Processing', 'Shipped', 'Delivered', 'Cancelled']}
+                              statusColor={getStatusColor(selectedOrder.orderStatus)}
+                            />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Visual Timeline Stepper */}
+                    {!isCancelled && (
+                      <div className="pt-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 relative">
+                          {pipelineSteps.map((step, idx) => {
+                            const isCompleted = idx <= stepIndex;
+                            const isCurrent = idx === stepIndex;
+                            const StepIcon = step.icon;
+
+                            return (
+                              <div
+                                key={step.title}
+                                className={`p-3 rounded-xl border transition-all duration-200 relative ${
+                                  isCurrent
+                                    ? 'bg-blue-50/80 dark:bg-blue-500/10 border-blue-500/40 dark:border-blue-500/30 shadow-xs'
+                                    : isCompleted
+                                      ? 'bg-slate-50/60 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/10'
+                                      : 'bg-transparent border-slate-200/40 dark:border-white/5 opacity-50'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2 mb-1.5">
+                                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
+                                    isCurrent
+                                      ? 'bg-blue-600 text-white shadow-xs animate-pulse'
+                                      : isCompleted
+                                        ? 'bg-emerald-500 text-white shadow-xs'
+                                        : 'bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-slate-400'
+                                  }`}>
+                                    {isCompleted && !isCurrent ? <FiCheck size={14} /> : <StepIcon size={14} />}
+                                  </div>
+                                  <span className={`text-xs font-bold truncate ${isCurrent ? 'text-blue-600 dark:text-blue-400' : isCompleted ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'}`}>
+                                    {step.title}
+                                  </span>
+                                </div>
+                                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono truncate pl-9">
+                                  {step.subtitle}
+                                </p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {isCancelled && (
+                      <div className="p-3 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-xl flex items-center gap-3 text-xs text-rose-700 dark:text-rose-400">
+                        <FiAlertCircle size={16} className="shrink-0" />
+                        <span>This order was cancelled. Inventory reservations or pending payment captures have been reversed.</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Shipping Details Form Overlay */}
               {shippingInputOpen && (
-                <div className="p-5 bg-white dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/20 rounded-2xl space-y-4 animate-in slide-in-from-bottom-2 shadow-xs">
-                  <h4 className="text-sm font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider flex items-center gap-2">
-                    <FiBox /> Enter Shipping details for Shipped status
-                  </h4>
+                <div className="p-5 bg-white/40 dark:bg-white/[0.03] border border-blue-200 dark:border-blue-500/30 rounded-2xl space-y-4 animate-in slide-in-from-top-2 duration-200 shadow-lg shadow-blue-500/5">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wider flex items-center gap-2">
+                      <FiTruck size={15} /> Enter Shipment Courier & AWB Tracking
+                    </h4>
+                    <span className="text-[11px] text-slate-400">Required to mark as Shipped</span>
+                  </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Courier Name</label>
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">Courier Partner Name</label>
                       <input
                         type="text"
                         required
                         value={courierNameText}
                         onChange={(e) => setCourierNameText(e.target.value)}
-                        placeholder="e.g. Blue Dart Surface"
-                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-white/10 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500"
+                        placeholder="e.g. Blue Dart, Delhivery, DTDC..."
+                        className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-white/10 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-xs font-medium placeholder-slate-400 dark:placeholder-slate-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">AWB Number</label>
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">AWB Tracking Number</label>
                       <input
                         type="text"
                         required
                         value={awbNumberText}
                         onChange={(e) => setAwbNumberText(e.target.value)}
                         placeholder="e.g. 77030714471"
-                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-white/10 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm font-medium placeholder-slate-400 dark:placeholder-slate-500"
+                        className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-white/10 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-xs font-mono font-medium placeholder-slate-400 dark:placeholder-slate-500"
                       />
                     </div>
                   </div>
-                  <div className="flex gap-2 justify-end">
+                  <div className="flex gap-2 justify-end pt-1">
+                    <button
+                      onClick={() => { setShippingInputOpen(false); setAwbNumberText(''); setCourierNameText(''); }}
+                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                    >
+                      Cancel
+                    </button>
                     <button
                       onClick={() => {
                         setStatusConfirmData({
@@ -1032,133 +1173,213 @@ const Orders = ({ defaultStatus = 'all' }) => {
                         setStatusConfirmOpen(true);
                       }}
                       disabled={!courierNameText.trim() || !awbNumberText.trim()}
-                      className="px-5 py-2.5 text-white text-xs font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                      className="px-5 py-2 text-white text-xs font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md shadow-blue-500/20"
                     >
                       Confirm Shipped Status
-                    </button>
-                    <button
-                      onClick={() => { setShippingInputOpen(false); setAwbNumberText(''); setCourierNameText(''); }}
-                      className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900/60 dark:hover:bg-slate-800 border border-slate-300 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl transition-colors cursor-pointer"
-                    >
-                      Cancel
                     </button>
                   </div>
                 </div>
               )}
 
+              {/* Customer & Shipping 2-Column Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                {/* Customer Details */}
-                <div className="bg-white/40 dark:bg-white/[0.03] p-4 rounded-2xl border border-slate-200/80 dark:border-white/20 space-y-4 shadow-xs">
-                  <h4 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                    <FiUser className="text-blue-600 dark:text-blue-400" /> Customer Information
-                  </h4>
-                  <div className="space-y-3 text-sm">
-                    <div>
-                      <span className="block text-xs text-slate-400 dark:text-slate-500 mb-0.5">Name</span>
-                      <span className="font-medium text-slate-900 dark:text-white capitalize">{selectedOrder.address?.name || selectedOrder.user?.name || 'N/A'}</span>
-                    </div>
-                    {selectedOrder.user?.email && (
-                      <div>
-                        <span className="block text-xs text-slate-400 dark:text-slate-500 mb-0.5">Email</span>
-                        <div className="font-medium text-slate-900 dark:text-white flex items-center gap-1.5">
-                          <GmailLink email={selectedOrder.user.email} showIcon={true} className="text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400" />
+                {/* Customer Details Card */}
+                {(() => {
+                  const customerName = selectedOrder.address?.name || selectedOrder.shippingAddress?.name || selectedOrder.user?.name || 'Customer';
+                  const initials = customerName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'CU';
+                  const customerEmail = selectedOrder.user?.email || selectedOrder.address?.email || selectedOrder.shippingAddress?.email;
+                  const customerPhone = selectedOrder.address?.phone || selectedOrder.shippingAddress?.phone || selectedOrder.user?.phone;
+
+                  return (
+                    <div className="bg-white/40 dark:bg-white/[0.02] p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 space-y-4 shadow-xs">
+                      <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-white/10 pb-3">
+                        <h4 className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                          <FiUser className="text-blue-600 dark:text-blue-400" size={14} /> Customer Profile
+                        </h4>
+                        {selectedOrder.user?._id && (
+                          <button
+                            onClick={() => {
+                              closeModal();
+                              navigate(`/users/list?userId=${selectedOrder.user._id}`);
+                            }}
+                            className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 cursor-pointer"
+                          >
+                            <span>View Profile</span>
+                            <FiExternalLink size={10} />
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-3.5">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600/20 to-indigo-600/20 border border-blue-500/30 text-blue-600 dark:text-blue-400 font-black text-sm flex items-center justify-center shrink-0 shadow-inner">
+                          {initials}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-extrabold text-slate-900 dark:text-white capitalize text-sm truncate">
+                              {customerName}
+                            </span>
+                            {selectedOrder.user?.role && selectedOrder.user.role !== 'user' && (
+                              <span className="px-1.5 py-0.2 rounded text-[9px] font-extrabold uppercase bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                {selectedOrder.user.role}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[11px] text-slate-400 font-mono block mt-0.5">
+                            Customer ID: {selectedOrder.user?._id || 'Guest'}
+                          </span>
                         </div>
                       </div>
-                    )}
-                    <div>
-                      <span className="block text-xs text-slate-400 dark:text-slate-500 mb-0.5">Phone</span>
-                      <span className="font-medium text-slate-900 dark:text-white flex items-center gap-1.5"><FiPhone className="text-slate-400" /> {selectedOrder.address?.phone || 'N/A'}</span>
-                    </div>
-                  </div>
-                </div>
 
-                {/* Shipping Address */}
-                <div className="bg-white/40 dark:bg-white/[0.03] p-4 rounded-2xl border border-slate-200/80 dark:border-white/20 space-y-4 flex flex-col justify-between shadow-xs">
-                  <div className="space-y-4">
-                    <h4 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                      <FiMapPin className="text-emerald-600 dark:text-emerald-400" /> Shipping Address
-                    </h4>
-                    <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                      <p className="font-medium text-slate-900 dark:text-white mb-1">{selectedOrder.address?.addressLine1 || 'N/A'}</p>
-                      {selectedOrder.address?.addressLine2 && <p>{selectedOrder.address.addressLine2}</p>}
-                      <p>{selectedOrder.address?.city}, {selectedOrder.address?.state}</p>
-                      <p>{selectedOrder.address?.country} - <span className="font-mono text-slate-500 dark:text-slate-400">{selectedOrder.address?.pincode}</span></p>
-                    </div>
-                  </div>
+                      <div className="space-y-2.5 pt-1 text-xs">
+                        {customerEmail && (
+                          <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5">
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              <FiMail className="text-slate-400 shrink-0" size={13} />
+                              <GmailLink email={customerEmail} showIcon={false} className="text-slate-700 dark:text-slate-300 font-medium truncate hover:text-blue-600 dark:hover:text-blue-400" />
+                            </div>
+                            <CopyButton text={customerEmail} size={11} className="text-slate-400 hover:text-slate-600 dark:hover:text-white shrink-0 ml-2" />
+                          </div>
+                        )}
 
-                  {(selectedOrder.awbNumber || selectedOrder.courierName) && (
-                    <div className="border-t border-slate-200/80 dark:border-white/10 pt-3 mt-3 space-y-2">
-                      <h5 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                        <FiBox className="text-purple-600 dark:text-purple-400" /> Tracking & Delivery
-                      </h5>
-                      <div className="grid grid-cols-2 gap-4 text-xs">
-                        <div>
-                          <span className="block text-slate-400 dark:text-slate-500">Courier Partner</span>
-                          <span className="font-semibold text-slate-800 dark:text-slate-200">{selectedOrder.courierName || 'N/A'}</span>
-                        </div>
-                        <div>
-                          <span className="block text-slate-400 dark:text-slate-500">AWB Tracking No.</span>
-                          <span className="font-semibold text-slate-800 dark:text-slate-200 font-mono select-all">{selectedOrder.awbNumber || 'N/A'}</span>
-                        </div>
+                        {customerPhone && (
+                          <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5">
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              <FiPhone className="text-slate-400 shrink-0" size={13} />
+                              <a href={`tel:${customerPhone}`} className="text-slate-700 dark:text-slate-300 font-mono font-medium truncate hover:text-blue-600 dark:hover:text-blue-400">
+                                {customerPhone}
+                              </a>
+                            </div>
+                            <CopyButton text={customerPhone} size={11} className="text-slate-400 hover:text-slate-600 dark:hover:text-white shrink-0 ml-2" />
+                          </div>
+                        )}
                       </div>
                     </div>
-                  )}
-                </div>
+                  );
+                })()}
+
+                {/* Shipping Destination Card */}
+                {(() => {
+                  const addr = selectedOrder.address || selectedOrder.shippingAddress || {};
+                  return (
+                    <div className="bg-white/40 dark:bg-white/[0.02] p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 space-y-4 shadow-xs flex flex-col justify-between">
+                      <div className="space-y-3">
+                        <div className="border-b border-slate-200/80 dark:border-white/10 pb-3 flex items-center justify-between">
+                          <h4 className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                            <FiMapPin className="text-emerald-600 dark:text-emerald-400" size={14} /> Shipping Destination
+                          </h4>
+                          {addr.pincode && (
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold">
+                              PIN: {addr.pincode}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed space-y-1">
+                          <p className="font-extrabold text-slate-900 dark:text-white text-sm">
+                            {addr.name || 'Recipient Address'}
+                          </p>
+                          <p className="text-slate-700 dark:text-slate-300">{addr.addressLine1 || 'N/A'}</p>
+                          {addr.addressLine2 && (
+                            <p className="text-slate-500 dark:text-slate-400">{addr.addressLine2}</p>
+                          )}
+                          <p className="font-medium text-slate-800 dark:text-slate-200">
+                            {[addr.city, addr.state].filter(Boolean).join(', ')}
+                            {addr.country && ` • ${addr.country}`}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Courier & AWB bar if shipped */}
+                      {(selectedOrder.awbNumber || selectedOrder.courierName) && (
+                        <div className="border-t border-slate-200/80 dark:border-white/10 pt-3 mt-2 grid grid-cols-2 gap-3 bg-slate-50 dark:bg-white/[0.02] p-3 rounded-xl border border-slate-200/80 dark:border-white/5">
+                          <div>
+                            <span className="block text-[10px] font-bold uppercase text-slate-400">Carrier Partner</span>
+                            <span className="font-extrabold text-xs text-slate-900 dark:text-white truncate block mt-0.5">
+                              {selectedOrder.courierName || 'Standard Delivery'}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="block text-[10px] font-bold uppercase text-slate-400">AWB Tracking #</span>
+                            <div className="flex items-center gap-1 mt-0.5">
+                              <span className="font-mono font-bold text-xs text-blue-600 dark:text-blue-400 truncate select-all">
+                                {selectedOrder.awbNumber || 'N/A'}
+                              </span>
+                              {selectedOrder.awbNumber && (
+                                <CopyButton text={selectedOrder.awbNumber} size={11} className="text-slate-400 hover:text-slate-600 dark:hover:text-white" />
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
 
-              {/* Shipment Tracking Timeline */}
+              {/* Shipment Tracking Timeline (if AWB tracking exists) */}
               {selectedOrder.awbNumber && (
-                <div className="bg-white/40 dark:bg-white/[0.03] p-5 rounded-2xl border border-slate-200/80 dark:border-white/20 space-y-4 shadow-xs">
-                  <h4 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                    <FiTruck className="text-blue-600 dark:text-blue-400" /> Shipment Tracking Details
-                  </h4>
+                <div className="bg-white/40 dark:bg-white/[0.02] p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 space-y-4 shadow-xs">
+                  <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-white/10 pb-3">
+                    <h4 className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                      <FiTruck className="text-blue-600 dark:text-blue-400" size={14} /> Shipment Telemetry & Tracking
+                    </h4>
+                    <button
+                      onClick={() => fetchTrackingInfo(selectedOrder._id)}
+                      className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 font-bold cursor-pointer"
+                    >
+                      <FiRefreshCcw size={11} /> Refresh Tracking
+                    </button>
+                  </div>
 
                   {loadingTracking ? (
-                    <div className="py-6 flex flex-col justify-center items-center">
+                    <div className="py-8 flex flex-col justify-center items-center">
                       <FiLoader className="animate-spin text-2xl text-blue-600 dark:text-blue-400 mb-2" />
-                      <span className="text-xs text-slate-500 dark:text-slate-400">Fetching live tracking information...</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Fetching real-time carrier updates...</span>
                     </div>
                   ) : trackingError ? (
-                    <div className="text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/10 p-3 rounded-xl border border-red-200 dark:border-red-500/20 text-xs flex items-center gap-2 shadow-xs">
-                      <FiAlertCircle /> {trackingError}
+                    <div className="text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/10 p-3 rounded-xl border border-amber-200 dark:border-amber-500/20 text-xs flex items-center gap-2 shadow-xs">
+                      <FiAlertCircle size={15} className="shrink-0" />
+                      <span>{trackingError}</span>
                     </div>
                   ) : trackingData ? (
                     <div className="space-y-4">
-                      {/* Tracking Meta */}
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 dark:bg-slate-950/45 p-4 rounded-xl border border-slate-200/80 dark:border-white/10 text-sm">
+                      {/* Tracking Meta Banner */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 dark:bg-slate-950/45 p-3.5 rounded-xl border border-slate-200/80 dark:border-white/10 text-xs">
                         <div>
-                          <span className="block text-xs text-slate-400 dark:text-slate-500 mb-0.5">Courier Status</span>
-                          <span className="font-bold text-slate-900 dark:text-white capitalize">{trackingData.status || 'In Transit'}</span>
-                        </div>
-                        <div>
-                          <span className="block text-xs text-slate-400 dark:text-slate-500 mb-0.5">Expected Delivery</span>
-                          <span className="font-bold text-slate-900 dark:text-white">
-                            {trackingData.expectedDeliveryDate
-                              ? formatDateDDMMYYYY(trackingData.expectedDeliveryDate)
-                              : 'Pending Courier Update'}
+                          <span className="block text-[10px] uppercase font-bold text-slate-400 mb-0.5">Carrier Status</span>
+                          <span className="font-extrabold text-slate-900 dark:text-white capitalize">
+                            {trackingData.status || 'In Transit'}
                           </span>
                         </div>
                         <div>
-                          <span className="block text-xs text-slate-400 dark:text-slate-500 mb-0.5">Awb Number</span>
-                          <span className="font-mono font-bold text-blue-600 dark:text-blue-300">{trackingData.awbNumber}</span>
+                          <span className="block text-[10px] uppercase font-bold text-slate-400 mb-0.5">Estimated Delivery</span>
+                          <span className="font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
+                            {trackingData.expectedDeliveryDate ? formatDateDDMMYYYY(trackingData.expectedDeliveryDate) : 'Pending Carrier Update'}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="block text-[10px] uppercase font-bold text-slate-400 mb-0.5">AWB Tracking Code</span>
+                          <span className="font-mono font-bold text-blue-600 dark:text-blue-300">
+                            {trackingData.awbNumber}
+                          </span>
                         </div>
                       </div>
 
-                      {/* Activities Timeline */}
+                      {/* Activities Vertical Tree */}
                       {trackingData.activities && trackingData.activities.length > 0 ? (
-                        <div className="relative pl-6 border-l-2 border-slate-200 dark:border-slate-700/60 space-y-6 ml-3 py-2">
+                        <div className="relative pl-6 border-l-2 border-slate-200 dark:border-slate-800 space-y-5 ml-2 py-1">
                           {trackingData.activities.map((act, i) => (
                             <div key={i} className="relative">
-                              {/* Timeline dot */}
-                              <span className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full ring-4 ring-white dark:ring-slate-900 flex items-center justify-center bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+                              <span className="absolute -left-[31px] top-1.5 w-3.5 h-3.5 rounded-full ring-4 ring-white dark:ring-slate-950 flex items-center justify-center bg-blue-600 shadow-xs">
                                 <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
                               </span>
-                              <div className="text-sm">
-                                <p className="font-bold text-slate-900 dark:text-white">{act.activity}</p>
-                                <div className="flex flex-wrap gap-x-4 text-xs text-slate-500 dark:text-slate-400 mt-1">
+                              <div className="text-xs">
+                                <p className="font-extrabold text-slate-900 dark:text-white leading-snug">{act.activity}</p>
+                                <div className="flex flex-wrap gap-x-3 text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-mono">
                                   {act.location && (
-                                    <span>Location: <strong className="text-slate-700 dark:text-slate-300">{act.location}</strong></span>
+                                    <span>Loc: <strong className="text-slate-700 dark:text-slate-300">{act.location}</strong></span>
                                   )}
                                   <span>Time: <strong className="text-slate-700 dark:text-slate-300">{formatDateTimeDDMMYYYY(act.timestamp)}</strong></span>
                                 </div>
@@ -1167,180 +1388,207 @@ const Orders = ({ defaultStatus = 'all' }) => {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-xs text-slate-400 dark:text-slate-500 italic pl-1">No shipment tracking history recorded yet.</p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 italic py-2">No individual checkpoint events recorded yet.</p>
                       )}
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-400 dark:text-slate-500 italic pl-1">No tracking details returned.</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 italic py-2">No carrier telemetry updates available yet.</p>
                   )}
                 </div>
               )}
 
-              {/* Order Items */}
-              <div className="bg-white/40 dark:bg-white/[0.03] p-4 rounded-2xl border border-slate-200/80 dark:border-white/20 shadow-xs">
-                <h4 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <FiBox className="text-purple-600 dark:text-purple-400" /> Purchased Items ({selectedOrder.items?.length || 0})
-                </h4>
-                <div className="space-y-4">
-                  {selectedOrder.items?.map((item, idx) => (
-                    <div key={idx} className="flex flex-col sm:flex-row gap-4 justify-between p-4 bg-white/40 dark:bg-slate-950/45 rounded-xl border border-slate-200/80 dark:border-white/10">
-                      <div className="flex flex-col gap-3 flex-1 min-w-0">
-                        <div className="min-w-0">
-                          <p className="font-bold text-slate-900 dark:text-white line-clamp-2">
-                            {item.product?.name || item.name || 'Unknown Product'}
-                            {item.variant?.name && <span className="text-amber-600 dark:text-amber-400 ml-2 text-sm">({item.variant.name})</span>}
-                          </p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Quantity: <span className="font-bold text-slate-900 dark:text-white">{item.quantity}</span></p>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {(() => {
-                            const displayImages = item.variant?.images?.length > 0
-                              ? item.variant.images
-                              : item.product?.images?.length > 0
-                                ? item.product.images
-                                : item.image
-                                  ? [item.image]
-                                  : [];
+              {/* Purchased Items Modern Table */}
+              <div className="bg-white/40 dark:bg-white/[0.02] p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 space-y-4 shadow-xs">
+                <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-white/10 pb-3">
+                  <h4 className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <FiBox className="text-purple-600 dark:text-purple-400" size={14} /> 
+                    <span>Purchased Items</span>
+                    <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 text-[10px] font-bold font-mono">
+                      {selectedOrder.items?.length || 0}
+                    </span>
+                  </h4>
+                </div>
 
-                            const prodId = item.product?._id || item.product || item.productId;
-                            return displayImages.length > 0 ? (
-                              displayImages.map((img, imgIdx) => (
-                                <div
-                                  key={imgIdx}
-                                  onClick={() => {
-                                    if (prodId) {
-                                      setViewModalProductId(prodId);
-                                    }
-                                  }}
-                                  className={`w-14 h-14 rounded-lg overflow-hidden bg-slate-100 dark:bg-white/10 shrink-0 border border-slate-200 dark:border-white/10 flex items-center justify-center ${prodId ? 'cursor-pointer hover:border-blue-500/50 hover:scale-105 transition-all shadow-xs' : ''}`}
-                                  title={prodId ? "View Product Details" : undefined}
-                                >
-                                  <OptimizedImage src={img} alt={`Product ${imgIdx + 1}`} width={120} quality={65} className="w-full h-full object-contain bg-white" />
-                                </div>
-                              ))
+                <div className="space-y-3">
+                  {selectedOrder.items?.map((item, idx) => {
+                    const prodId = item.product?._id || item.product || item.productId;
+                    const unitPrice = item.price || item.variant?.offerPrice || item.variant?.price || item.product?.basePrice || 0;
+                    const itemQuantity = item.quantity || 1;
+                    const lineTotal = unitPrice * itemQuantity;
+
+                    const displayImages = item.variant?.images?.length > 0
+                      ? item.variant.images
+                      : item.product?.images?.length > 0
+                        ? item.product.images
+                        : item.image
+                          ? [item.image]
+                          : [];
+                    const firstImg = displayImages[0];
+
+                    return (
+                      <div
+                        key={idx}
+                        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 p-3.5 rounded-xl bg-slate-50/70 dark:bg-slate-950/40 border border-slate-200/80 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/15 transition-all"
+                      >
+                        {/* Image & Product info */}
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div
+                            onClick={() => {
+                              if (prodId) setViewModalProductId(prodId);
+                            }}
+                            className={`w-14 h-14 rounded-xl overflow-hidden bg-white shrink-0 border border-slate-200 dark:border-white/10 flex items-center justify-center p-1 shadow-inner ${
+                              prodId ? 'cursor-pointer hover:border-blue-500 hover:scale-105 transition-all' : ''
+                            }`}
+                            title={prodId ? "View Product Details" : undefined}
+                          >
+                            {firstImg ? (
+                              <OptimizedImage src={firstImg} alt={item.name || 'Product'} width={120} quality={65} className="w-full h-full object-contain" />
                             ) : (
-                              <div
+                              <FiBox className="text-slate-400 text-lg" />
+                            )}
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <p
                                 onClick={() => {
-                                  if (prodId) {
-                                    setViewModalProductId(prodId);
-                                  }
+                                  if (prodId) setViewModalProductId(prodId);
                                 }}
-                                className={`w-14 h-14 rounded-lg overflow-hidden bg-slate-100 dark:bg-white/10 shrink-0 border border-slate-200 dark:border-white/10 flex items-center justify-center ${prodId ? 'cursor-pointer hover:border-blue-500/50 hover:scale-105 transition-all shadow-xs' : ''}`}
-                                title={prodId ? "View Product Details" : undefined}
+                                className={`font-bold text-xs text-slate-900 dark:text-white truncate ${prodId ? 'cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors' : ''}`}
+                                title={item.product?.name || item.name || 'Unknown Product'}
                               >
-                                <FiBox className="text-xl text-slate-400 dark:text-slate-500" />
-                              </div>
-                            );
-                          })()}
+                                {item.product?.name || item.name || 'Unknown Product'}
+                              </p>
+                              {item.variant?.name && (
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0">
+                                  {item.variant.name}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-3 mt-1 text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+                              <span>Unit: ₹{unitPrice.toLocaleString('en-IN')}</span>
+                              <span>&bull;</span>
+                              <span className="font-bold text-slate-800 dark:text-slate-200">Qty: {itemQuantity}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Line Total */}
+                        <div className="text-right shrink-0 self-end sm:self-center pl-17 sm:pl-0">
+                          <span className="block text-[10px] font-bold uppercase text-slate-400">Total</span>
+                          <span className="font-black text-sm font-mono text-emerald-600 dark:text-emerald-400">
+                            ₹{lineTotal.toLocaleString('en-IN')}
+                          </span>
                         </div>
                       </div>
-                      <div className="text-left sm:text-right shrink-0">
-                        <p className="text-xs text-slate-500 dark:text-slate-400">Price/Unit</p>
-                        <p className="font-bold text-emerald-600 dark:text-emerald-400">₹{(item.price || item.variant?.offerPrice || item.variant?.price || item.product?.basePrice || 0).toLocaleString('en-IN')}</p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Payment Summary */}
-              <div className="bg-white/40 dark:bg-white/[0.03] p-4 rounded-2xl border border-slate-200/80 dark:border-white/20 space-y-4 shadow-xs">
-                <h4 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                  <FiCreditCard className="text-amber-600 dark:text-amber-400" /> Payment Summary
-                </h4>
-                <div className="flex flex-wrap md:flex-nowrap justify-between gap-6">
-                  <div className="space-y-2 flex-1">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-500 dark:text-slate-400">Payment Method</span>
-                      <span className="font-bold text-slate-900 dark:text-white">{selectedOrder.paymentMethod}</span>
+              {/* Payment Summary & Invoice Management 2-Column Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                {/* Payment Summary Card */}
+                <div className="bg-white/40 dark:bg-white/[0.02] p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 space-y-4 shadow-xs">
+                  <h4 className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-200/80 dark:border-white/10 pb-3">
+                    <FiCreditCard className="text-amber-600 dark:text-amber-400" size={14} /> Payment & Billing
+                  </h4>
+                  <div className="space-y-2.5 text-xs">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500 dark:text-slate-400">Payment Gateway/Method</span>
+                      <span className="font-bold text-slate-900 dark:text-white uppercase px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10">
+                        {selectedOrder.paymentMethod || 'COD'}
+                      </span>
                     </div>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between items-center">
                       <span className="text-slate-500 dark:text-slate-400">Payment Status</span>
-                      <span className={`font-bold ${selectedOrder.paymentStatus === 'Paid' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                      <span className={`font-extrabold px-2 py-0.5 rounded-md border ${
+                        selectedOrder.paymentStatus === 'Paid'
+                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                          : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                      }`}>
                         {selectedOrder.paymentStatus || 'Pending'}
                       </span>
                     </div>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between items-center font-mono">
                       <span className="text-slate-500 dark:text-slate-400">Paid Amount</span>
                       <span className="font-bold text-slate-900 dark:text-white">₹{(selectedOrder.paidAmount || 0).toLocaleString('en-IN')}</span>
                     </div>
-                    {selectedOrder.remainingAmount !== undefined && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-slate-500 dark:text-slate-400">Remaining Amount</span>
-                        <span className="font-bold text-slate-900 dark:text-white">₹{selectedOrder.remainingAmount.toLocaleString('en-IN')}</span>
+                    {selectedOrder.remainingAmount !== undefined && selectedOrder.remainingAmount > 0 && (
+                      <div className="flex justify-between items-center font-mono">
+                        <span className="text-rose-500 font-semibold">Remaining Due</span>
+                        <span className="font-extrabold text-rose-600 dark:text-rose-400">₹{selectedOrder.remainingAmount.toLocaleString('en-IN')}</span>
                       </div>
                     )}
-                  </div>
-
-                  <div className="w-full h-px md:w-px md:h-auto bg-slate-200 dark:bg-white/20 shrink-0"></div>
-
-                  <div className="flex-1 flex flex-col justify-center items-end bg-white/40 dark:bg-slate-950/45 p-4 rounded-xl border border-slate-200/80 dark:border-white/15">
-                    <span className="text-sm text-slate-500 dark:text-slate-400 mb-1">Total Order Amount</span>
-                    <span className="text-3xl font-black text-emerald-600 dark:text-emerald-400">₹{(selectedOrder.totalAmount || 0).toLocaleString('en-IN')}</span>
+                    <div className="pt-2 border-t border-slate-200/80 dark:border-white/10 flex justify-between items-center">
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">Total Order Amount</span>
+                      <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
+                        ₹{(selectedOrder.totalAmount || 0).toLocaleString('en-IN')}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Invoice Section */}
-              <div className="bg-white/40 dark:bg-white/[0.03] p-4 rounded-2xl border border-slate-200/80 dark:border-white/20 space-y-4 shadow-xs">
-                <h4 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                  <FiFileText className="text-blue-600 dark:text-blue-400" /> Invoice Management
-                </h4>
-                <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white/40 dark:bg-slate-950/45 p-4 rounded-xl border border-slate-200/80 dark:border-white/15">
-                  <div className="flex-1 space-y-1">
+                {/* Invoice Management Card */}
+                <div className="bg-white/40 dark:bg-white/[0.02] p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 space-y-4 shadow-xs flex flex-col justify-between">
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-200/80 dark:border-white/10 pb-3">
+                      <FiFileText className="text-blue-600 dark:text-blue-400" size={14} /> Tax Invoice Hub
+                    </h4>
                     {selectedOrder.invoiceUrl ? (
-                      <div>
-                        <span className="text-emerald-700 dark:text-emerald-400 text-sm font-medium flex items-center gap-1.5">
-                          <FiCheckCircle /> Invoice is ready & sent to customer
-                        </span>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                          You can download the invoice or upload a new one to overwrite it.
-                        </p>
+                      <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-2.5 text-xs text-emerald-700 dark:text-emerald-400">
+                        <FiCheckCircle className="shrink-0 text-emerald-600 dark:text-emerald-400" size={15} />
+                        <div>
+                          <span className="font-bold block">Tax Invoice Generated</span>
+                          <span className="text-[10px] text-emerald-600/80 dark:text-emerald-400/80">PDF invoice is attached and emailed to the customer.</span>
+                        </div>
                       </div>
                     ) : (
-                      <div>
-                        <span className="text-amber-700 dark:text-amber-400 text-sm font-medium flex items-center gap-1.5">
-                          <FiAlertCircle /> No Invoice Uploaded
-                        </span>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                          Upload the invoice (PDF) to attach it to the order and notify the customer via email.
-                        </p>
+                      <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-2.5 text-xs text-amber-700 dark:text-amber-400">
+                        <FiAlertCircle className="shrink-0 text-amber-600 dark:text-amber-400" size={15} />
+                        <div>
+                          <span className="font-bold block">No Invoice Attached</span>
+                          <span className="text-[10px] text-amber-600/80 dark:text-amber-400/80">Upload invoice PDF to attach it to this order.</span>
+                        </div>
                       </div>
                     )}
                   </div>
 
-                  <div className="flex flex-wrap gap-3 items-center w-full md:w-auto justify-end">
+                  {/* Invoice Actions */}
+                  <div className="flex flex-wrap gap-2 justify-end pt-2">
                     {selectedOrder.invoiceUrl && (
                       <>
                         <button
                           type="button"
                           onClick={() => setPreviewPdfUrl(getImageUrl(selectedOrder.invoiceUrl))}
-                          className="px-4 py-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 text-blue-700 dark:text-blue-400 rounded-lg transition-colors text-sm font-medium border border-blue-200 dark:border-blue-500/20 flex items-center gap-2 cursor-pointer"
+                          className="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 text-blue-700 dark:text-blue-400 rounded-xl transition-colors text-xs font-bold border border-blue-200 dark:border-blue-500/20 flex items-center gap-1.5 cursor-pointer shadow-xs"
                         >
-                          <FiEye /> Preview Invoice
+                          <FiEye size={13} /> Preview
                         </button>
                         <a
                           href={getImageUrl(selectedOrder.invoiceUrl)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 rounded-lg transition-colors text-sm font-medium border border-emerald-200 dark:border-emerald-500/20 flex items-center gap-2 cursor-pointer"
+                          className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 rounded-xl transition-colors text-xs font-bold border border-emerald-200 dark:border-emerald-500/20 flex items-center gap-1.5 cursor-pointer shadow-xs"
                         >
-                          <FiDownload /> Download Invoice
+                          <FiDownload size={13} /> Download
                         </a>
                       </>
                     )}
 
-                    <label className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer ${isUploadingInvoice
-                      ? 'bg-slate-200 text-slate-400 dark:bg-slate-800 dark:text-slate-500 border border-slate-300 dark:border-white/5 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-500 !text-white shadow-md shadow-blue-500/20 border border-blue-500'
-                      }`}>
+                    <label className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${
+                      isUploadingInvoice
+                        ? 'bg-slate-200 text-slate-400 dark:bg-slate-800 dark:text-slate-500 border border-slate-300 dark:border-white/5 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 !text-white shadow-blue-500/20'
+                    }`}>
                       {isUploadingInvoice ? (
                         <>
-                          <FiLoader className="animate-spin" /> Uploading...
+                          <FiLoader className="animate-spin" size={13} /> Uploading...
                         </>
                       ) : (
                         <>
-                          <FiUpload /> {selectedOrder.invoiceUrl ? 'Update Invoice' : 'Upload Invoice'}
+                          <FiUpload size={13} /> {selectedOrder.invoiceUrl ? 'Update Invoice' : 'Upload Invoice PDF'}
                         </>
                       )}
                       <input

@@ -13,7 +13,10 @@ import {
   FiSmartphone,
   FiChevronDown,
   FiX,
-  FiFilter
+  FiFilter,
+  FiCopy,
+  FiCheck,
+  FiArrowRight
 } from 'react-icons/fi';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -46,10 +49,19 @@ const CampaignStats = () => {
   const [sortOrder, setSortOrder] = useState('desc'); // 'desc' | 'asc'
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedGroups, setExpandedGroups] = useState({});
+  const [copiedId, setCopiedId] = useState(null);
   const itemsPerPage = 10;
 
   // Navigation Hook
   const navigate = useNavigate();
+
+  const handleCopyId = (e, id) => {
+    e.stopPropagation();
+    if (!id) return;
+    navigator.clipboard.writeText(id);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   const metricOptions = [
     { value: 'all', label: 'All (Sent / Recv / Clicked)' },
@@ -330,99 +342,151 @@ const CampaignStats = () => {
     }
   }, [currentPage, currentGroups]);
 
-  const renderDirectNames = (campaignId) => {
-    const recipients = recipientsMap[campaignId];
-    if (recipients === undefined) {
+  const getInitials = (nameOrEmail) => {
+    if (!nameOrEmail) return '?';
+    const clean = nameOrEmail.trim();
+    const parts = clean.split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return clean.slice(0, 2).toUpperCase();
+  };
+
+  const getAvatarColor = (name = '') => {
+    const colors = [
+      'bg-gradient-to-tr from-blue-500 to-indigo-600 text-white',
+      'bg-gradient-to-tr from-emerald-500 to-teal-600 text-white',
+      'bg-gradient-to-tr from-violet-500 to-purple-600 text-white',
+      'bg-gradient-to-tr from-amber-500 to-orange-600 text-white',
+      'bg-gradient-to-tr from-rose-500 to-pink-600 text-white',
+      'bg-gradient-to-tr from-cyan-500 to-blue-600 text-white'
+    ];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
+  };
+
+  const renderAvatarStack = (recipients, isLoading, isTopRow = false) => {
+    if (isLoading) {
       return (
-        <div className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500 text-xs font-medium justify-center">
-          <div className="w-3.5 h-3.5 border-2 border-indigo-500 dark:border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
-          <span>Loading...</span>
+        <div className="flex items-center gap-1.5 justify-center py-1">
+          <div className="flex -space-x-2">
+            <div className="w-7 h-7 rounded-full bg-slate-200 dark:bg-white/10 animate-pulse border-2 border-white dark:border-slate-900" />
+            <div className="w-7 h-7 rounded-full bg-slate-200 dark:bg-white/10 animate-pulse border-2 border-white dark:border-slate-900" />
+            <div className="w-7 h-7 rounded-full bg-slate-200 dark:bg-white/10 animate-pulse border-2 border-white dark:border-slate-900" />
+          </div>
         </div>
       );
     }
-    if (recipients.length === 0) {
-      return <span className="text-slate-400 dark:text-slate-500 text-xs font-semibold">No users</span>;
+
+    if (!recipients || recipients.length === 0) {
+      return <span className="text-slate-400 dark:text-slate-500 text-xs font-semibold">No recipients</span>;
     }
-    
-    const names = recipients.map(r => r.user?.name || r.user?.email || r.user?.phone || 'N/A');
-    const limit = 5;
-    const displayedNames = names.slice(0, limit);
-    const remaining = names.length - limit;
+
+    const maxVisible = 4;
+    const visible = recipients.slice(0, maxVisible);
+    const overflow = recipients.length - maxVisible;
+    const popoverPosition = isTopRow ? 'top-full mt-2' : 'bottom-full mb-2';
 
     return (
-      <div className="flex flex-wrap gap-1 max-w-[200px] justify-center">
-        {displayedNames.map((name, idx) => (
-          <span 
-            key={idx} 
-            className="px-2 py-0.5 bg-indigo-50 border border-indigo-200 rounded text-indigo-700 dark:bg-indigo-500/10 dark:border-indigo-500/20 dark:text-indigo-300 text-[10px] font-semibold"
-            title={name}
-          >
-            {name}
-          </span>
-        ))}
-        {remaining > 0 && (
-          <span 
-            className="px-2 py-0.5 bg-indigo-100 border border-indigo-300 rounded text-indigo-800 dark:bg-indigo-500/20 dark:border-indigo-500/30 dark:text-indigo-400 text-[10px] font-bold"
-            title={names.slice(limit).join(', ')}
-          >
-            +{remaining} more
-          </span>
-        )}
+      <div className="relative group/stack inline-flex items-center justify-center py-1">
+        {/* Overlapping Avatar Stack */}
+        <div className="flex items-center -space-x-2 hover:space-x-0.5 transition-all duration-200 cursor-pointer">
+          {visible.map((rec, idx) => {
+            const name = rec.user?.name || rec.user?.email || rec.user?.phone || 'User';
+            const initials = getInitials(name);
+            const colorClass = getAvatarColor(name);
+            return (
+              <div
+                key={idx}
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black uppercase ring-2 ring-white dark:ring-slate-900 shadow-sm transition-transform hover:scale-110 hover:z-20 ${colorClass}`}
+                title={name}
+              >
+                {initials}
+              </div>
+            );
+          })}
+          {overflow > 0 && (
+            <div className="w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-black bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 ring-2 ring-white dark:ring-slate-900 shadow-sm transition-transform hover:scale-110 hover:z-20">
+              +{overflow}
+            </div>
+          )}
+        </div>
+
+        {/* Hover Popover */}
+        <div className={`absolute ${popoverPosition} left-1/2 -translate-x-1/2 w-64 p-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-white/10 shadow-2xl opacity-0 invisible group-hover/stack:opacity-100 group-hover/stack:visible transition-all duration-200 z-50 pointer-events-none group-hover/stack:pointer-events-auto text-left`}>
+          <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 dark:border-white/5">
+            <span className="text-[11px] font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+              <FiUsers className="text-blue-500 text-xs" /> Recipients ({recipients.length})
+            </span>
+            <span className="text-[9px] font-semibold text-slate-400">Preview</span>
+          </div>
+          <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+            {recipients.slice(0, 6).map((rec, rIdx) => {
+              const name = rec.user?.name || 'User';
+              const contact = rec.user?.email || rec.user?.phone || rec.user?.userId || '';
+              const status = rec.isClicked ? 'Clicked' : rec.isReceived ? 'Delivered' : 'Sent';
+              const statusColor = rec.isClicked 
+                ? 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400' 
+                : rec.isReceived 
+                  ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' 
+                  : 'bg-slate-100 text-slate-600 dark:bg-white/5 dark:text-slate-400';
+
+              return (
+                <div key={rIdx} className="flex items-center justify-between gap-2 text-xs">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold shrink-0 ${getAvatarColor(name)}`}>
+                      {getInitials(name)}
+                    </div>
+                    <div className="min-w-0 truncate">
+                      <p className="font-semibold text-slate-800 dark:text-slate-200 truncate text-[11px] leading-tight">{name}</p>
+                      {contact && <p className="text-[9px] text-slate-400 truncate">{contact}</p>}
+                    </div>
+                  </div>
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${statusColor}`}>
+                    {status}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          {recipients.length > 6 && (
+            <p className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold text-center mt-2 pt-1.5 border-t border-slate-100 dark:border-white/5">
+              +{recipients.length - 6} more in detailed view
+            </p>
+          )}
+        </div>
       </div>
     );
   };
 
-  const renderGroupDirectNames = (group) => {
+  const renderDirectNames = (campaignId, isTopRow = false) => {
+    const recipients = recipientsMap[campaignId];
+    return renderAvatarStack(recipients, recipients === undefined, isTopRow);
+  };
+
+  const renderGroupDirectNames = (group, isTopRow = false) => {
     const anyLoading = group.members.some(m => recipientsMap[m.campaignId] === undefined);
     if (anyLoading) {
-      return (
-        <div className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500 text-xs font-medium justify-center">
-          <div className="w-3.5 h-3.5 border-2 border-indigo-500 dark:border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
-          <span>Loading...</span>
-        </div>
-      );
+      return renderAvatarStack([], true, isTopRow);
     }
 
-    const allNames = [];
+    const allRecipients = [];
+    const seenKeys = new Set();
     group.members.forEach(m => {
       const recs = recipientsMap[m.campaignId] || [];
       recs.forEach(r => {
-        const name = r.user?.name || r.user?.email || r.user?.phone || 'N/A';
-        if (!allNames.includes(name)) {
-          allNames.push(name);
+        const key = r.user?._id || r.user?.userId || r.user?.email || r.user?.phone || JSON.stringify(r);
+        if (!seenKeys.has(key)) {
+          seenKeys.add(key);
+          allRecipients.push(r);
         }
       });
     });
 
-    if (allNames.length === 0) {
-      return <span className="text-slate-400 dark:text-slate-500 text-xs font-semibold">No users</span>;
-    }
-
-    const limit = 5;
-    const displayedNames = allNames.slice(0, limit);
-    const remaining = allNames.length - limit;
-
-    return (
-      <div className="flex flex-wrap gap-1 max-w-[220px] justify-center text-center">
-        {displayedNames.map((name, idx) => (
-          <span 
-            key={idx} 
-            className="px-2 py-0.5 bg-indigo-50 border border-indigo-200 rounded text-indigo-700 dark:bg-indigo-500/10 dark:border-indigo-500/20 dark:text-indigo-300 text-[10px] font-semibold"
-            title={name}
-          >
-            {name}
-          </span>
-        ))}
-        {remaining > 0 && (
-          <span 
-            className="px-2 py-0.5 bg-indigo-100 border border-indigo-300 rounded text-indigo-800 dark:bg-indigo-500/20 dark:border-indigo-500/30 dark:text-indigo-400 text-[10px] font-bold"
-            title={allNames.slice(limit).join(', ')}
-          >
-            +{remaining} more
-          </span>
-        )}
-      </div>
-    );
+    return renderAvatarStack(allRecipients, false, isTopRow);
   };
 
   return (
@@ -553,7 +617,7 @@ const CampaignStats = () => {
 
       {loading && campaigns.length === 0 ? (
         <Card className="p-6">
-          <TableRowSkeleton columns={5} rows={5} />
+          <TableRowSkeleton columns={6} rows={5} />
         </Card>
       ) : sortedGroups.length === 0 ? (
         <div className="py-16 flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 dark:border-white/20">
@@ -609,6 +673,7 @@ const CampaignStats = () => {
                       />
                     </div>
                   </th>
+                  <th className="p-4 font-bold text-center w-28">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-white/5">
@@ -616,12 +681,13 @@ const CampaignStats = () => {
                   const item = group.representative;
                   const isGrouped = group.members.length > 1;
                   const isExpanded = expandedGroups[group.groupKey];
+                  const isTopRow = index < 2;
 
                   return (
                     <React.Fragment key={group.groupKey}>
                       <tr 
                         onClick={() => navigate(`/campaign-stats/${item.campaignId}`, { state: { from: '/campaign-stats' } })}
-                        className="hover:bg-slate-50/60 dark:hover:bg-white/[0.02] cursor-pointer transition-colors group"
+                        className="hover:bg-slate-50/75 dark:hover:bg-white/[0.025] cursor-pointer transition-colors group"
                       >
                         <td className="p-4 text-sm text-slate-500 dark:text-slate-400 text-center font-medium">
                           {indexOfFirstItem + index + 1}
@@ -632,11 +698,11 @@ const CampaignStats = () => {
                               <img 
                                 src={item.imageUrl} 
                                 alt="Campaign" 
-                                className="w-10 h-10 rounded-lg object-cover border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-slate-800"
+                                className="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-slate-800 shadow-xs"
                                 onError={(e) => { e.target.src = 'https://placehold.co/40x40?text=Img'; }} 
                               />
                             ) : (
-                              <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 flex items-center justify-center border border-blue-200 dark:border-blue-500/20 shrink-0">
+                              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 flex items-center justify-center border border-blue-200 dark:border-blue-500/20 shrink-0 shadow-xs">
                                 <MdImage className="text-xl" />
                               </div>
                             )}
@@ -647,22 +713,32 @@ const CampaignStats = () => {
                               <div className="flex items-center gap-1.5 mt-0.5">
                                 <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">ID: {item.campaignId}</span>
                                 {isGrouped && (
-                                  <span 
+                                  <button 
+                                    type="button"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       toggleGroupExpand(group.groupKey);
                                     }}
-                                    className="px-1.5 py-0.2 text-[9px] font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-500/20 dark:text-indigo-300 dark:hover:bg-indigo-500/30 rounded border border-indigo-200 dark:border-indigo-500/30 transition-colors"
+                                    className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded-lg border transition-all cursor-pointer active:scale-95 shadow-xs ${
+                                      isExpanded
+                                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-indigo-500/20'
+                                        : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-500/15 dark:hover:bg-indigo-500/25 dark:text-indigo-300 border-indigo-200/80 dark:border-indigo-500/30'
+                                    }`}
+                                    title={isExpanded ? 'Collapse platform breakdown' : 'Expand platform breakdown'}
                                   >
-                                    {isExpanded ? '▲ hide' : `▼ +${group.members.length - 1} platform`}
-                                  </span>
+                                    <span>{isExpanded ? 'Hide' : `+${group.members.length - 1} platforms`}</span>
+                                    <FiChevronDown 
+                                      size={12} 
+                                      className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} 
+                                    />
+                                  </button>
                                 )}
                               </div>
                             </div>
                           </div>
                         </td>
                         <td className="p-4 text-sm max-w-[260px]">
-                          <p className="text-slate-700 dark:text-slate-300 text-xs truncate leading-relaxed" title={item.message}>
+                          <p className="text-slate-700 dark:text-slate-300 text-xs truncate leading-relaxed font-medium" title={item.message}>
                             {item.message || 'No description'}
                           </p>
                           <span className="text-slate-400 dark:text-slate-500 text-[11px] block mt-0.5">
@@ -670,7 +746,7 @@ const CampaignStats = () => {
                           </span>
                         </td>
                         <td className="p-4 text-sm text-center" onClick={(e) => e.stopPropagation()}>
-                          {renderGroupDirectNames(group)}
+                          {renderGroupDirectNames(group, isTopRow)}
                         </td>
                         <td className="p-4 text-sm text-center">
                           <div className="inline-flex flex-col items-stretch gap-1.5 min-w-[160px]">
@@ -702,21 +778,53 @@ const CampaignStats = () => {
                             </div>
                           </div>
                         </td>
+                        <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={(e) => handleCopyId(e, item.campaignId)}
+                              title="Copy Campaign ID"
+                              className="relative p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-400 dark:hover:text-white border border-slate-200 dark:border-white/10 transition-all cursor-pointer shadow-xs active:scale-95"
+                            >
+                              {copiedId === item.campaignId ? (
+                                <FiCheck size={13} className="text-emerald-500" />
+                              ) : (
+                                <FiCopy size={13} />
+                              )}
+                              {copiedId === item.campaignId && (
+                                <span className="absolute -top-7 left-1/2 -translate-x-1/2 px-1.5 py-0.5 bg-slate-900 text-white text-[9px] font-bold rounded shadow-md whitespace-nowrap z-30">
+                                  Copied!
+                                </span>
+                              )}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => navigate(`/campaign-stats/${item.campaignId}`, { state: { from: '/campaign-stats' } })}
+                              title="View Campaign Details"
+                              className="p-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-600/10 dark:hover:bg-blue-600/20 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 transition-all cursor-pointer shadow-xs active:scale-95 group/btn"
+                            >
+                              <FiArrowRight size={14} className="transition-transform group-hover/btn:translate-x-0.5" />
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                       {isGrouped && isExpanded && group.members.map((member, mIdx) => (
                         <tr 
                           key={member.campaignId}
                           onClick={() => navigate(`/campaign-stats/${member.campaignId}`)}
-                          className="bg-slate-50/50 hover:bg-slate-100/50 dark:bg-white/[0.015] dark:hover:bg-white/[0.03] cursor-pointer transition-colors border-l-2 border-indigo-500/40"
+                          className="bg-indigo-50/20 hover:bg-indigo-50/50 dark:bg-indigo-950/10 dark:hover:bg-indigo-950/20 cursor-pointer transition-colors border-l-4 border-indigo-500/80 group/sub"
                         >
                           <td className="p-3 text-center">
-                            <span className="text-[10px] text-slate-400 dark:text-slate-600 font-mono">{mIdx + 1}</span>
+                            <span className="text-[10px] text-indigo-400 dark:text-indigo-500 font-mono font-bold">↳ {mIdx + 1}</span>
                           </td>
-                          <td className="p-3 pl-6 text-sm">
+                          <td className="p-3 pl-8 text-sm">
                             <div className="flex items-center gap-2">
-                              <div className="w-1 h-8 rounded-full bg-indigo-500/30 shrink-0" />
+                              <div className="w-1.5 h-6 rounded-full bg-indigo-500/40 shrink-0" />
                               <div>
-                                <span className="text-[10px] text-slate-500 font-mono block">ID: {member.campaignId}</span>
+                                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover/sub:text-indigo-600 dark:group-hover/sub:text-indigo-400 transition-colors">
+                                  Platform #{mIdx + 1}
+                                </span>
+                                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono block">ID: {member.campaignId}</span>
                               </div>
                             </div>
                           </td>
@@ -724,7 +832,7 @@ const CampaignStats = () => {
                             {member.createdAt ? formatDateTimeDDMMYYYY(member.createdAt) : 'N/A'}
                           </td>
                           <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
-                            {renderDirectNames(member.campaignId)}
+                            {renderDirectNames(member.campaignId, isTopRow)}
                           </td>
                           <td className="p-3 text-center">
                             <div className="inline-flex flex-col items-stretch gap-1 min-w-[140px]">
@@ -734,12 +842,41 @@ const CampaignStats = () => {
                               </div>
                               <div className="w-full h-1 bg-slate-200 dark:bg-white/5 rounded-full overflow-hidden flex">
                                 <div className="bg-emerald-500 h-full" style={{ width: `${parseFloat(member.deliveryRate) || 0}%` }} />
-                                <div className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" style={{ width: `${parseFloat(member.clickRate) || 0}%` }} />
+                                <div className="h-full bg-gradient-to-r from-blue-600 to-indigo-600" style={{ width: `${parseFloat(member.clickRate) || 0}%` }} />
                               </div>
                               <div className="flex justify-between text-[9px] text-slate-500 dark:text-slate-600">
                                 <span>Recv: <strong className="text-emerald-600 dark:text-emerald-400">{member.totalReceived || 0}</strong></span>
                                 <span>Clicks: <strong className="text-blue-600 dark:text-blue-400">{member.totalClicked || 0}</strong></span>
                               </div>
+                            </div>
+                          </td>
+                          <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                type="button"
+                                onClick={(e) => handleCopyId(e, member.campaignId)}
+                                title="Copy Sub-Campaign ID"
+                                className="relative p-1.5 rounded-lg bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white border border-slate-200 dark:border-white/10 transition-all cursor-pointer shadow-xs active:scale-95"
+                              >
+                                {copiedId === member.campaignId ? (
+                                  <FiCheck size={11} className="text-emerald-500" />
+                                ) : (
+                                  <FiCopy size={11} />
+                                )}
+                                {copiedId === member.campaignId && (
+                                  <span className="absolute -top-7 left-1/2 -translate-x-1/2 px-1.5 py-0.5 bg-slate-900 text-white text-[9px] font-bold rounded shadow-md whitespace-nowrap z-30">
+                                    Copied!
+                                  </span>
+                                )}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => navigate(`/campaign-stats/${member.campaignId}`, { state: { from: '/campaign-stats' } })}
+                                title="View Details"
+                                className="p-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 transition-all cursor-pointer shadow-xs active:scale-95 group/btn"
+                              >
+                                <FiArrowRight size={12} className="transition-transform group-hover/btn:translate-x-0.5" />
+                              </button>
                             </div>
                           </td>
                         </tr>
