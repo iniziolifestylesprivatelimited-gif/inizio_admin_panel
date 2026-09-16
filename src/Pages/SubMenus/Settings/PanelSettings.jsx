@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   FiBell, FiBellOff, FiVolume2, FiVolumeX, FiCheckCircle, 
   FiAlertTriangle, FiSliders, FiShoppingCart, FiFileText, 
@@ -6,7 +7,7 @@ import {
   FiServer, FiClock, FiZap, FiChevronDown, FiChevronUp, FiCopy, FiInfo,
   FiShield, FiTerminal, FiHelpCircle, FiCheck, FiSave, FiRotateCcw,
   FiSun, FiMoon, FiLayers,
-  FiAlertCircle
+  FiAlertCircle, FiGrid, FiList, FiPackage
 } from 'react-icons/fi';
 import PageHeader from '../../../Components/PageHeader';
 import Card from '../../../Components/Card';
@@ -47,6 +48,7 @@ const PAGINATION_LIMIT_OPTIONS = [
 ];
 
 const PanelSettings = () => {
+  const navigate = useNavigate();
   const { confirm, showAlert } = useConfirm();
   const { theme, setTheme, isDark } = useTheme();
   const [settings, setSettings] = useState(() => getNotificationSettings());
@@ -67,6 +69,18 @@ const PanelSettings = () => {
   const hasChanges = useMemo(() => {
     return JSON.stringify(settings) !== JSON.stringify(savedSettings);
   }, [settings, savedSettings]);
+
+  useEffect(() => {
+    const handleViewModeSync = () => {
+      setSettings(prev => ({
+        ...prev,
+        productViewMode: localStorage.getItem('product_view_mode') || prev.productViewMode || 'grid',
+        quotesViewMode: localStorage.getItem('quotes_view_mode') || prev.quotesViewMode || 'grid'
+      }));
+    };
+    window.addEventListener('panel_view_mode_changed', handleViewModeSync);
+    return () => window.removeEventListener('panel_view_mode_changed', handleViewModeSync);
+  }, []);
 
   useEffect(() => {
     const updatePerm = () => {
@@ -420,7 +434,7 @@ const PanelSettings = () => {
             }`}
           >
             <FiLayers size={14} />
-            <span>Pagination & Display</span>
+            <span>Display & Pagination</span>
           </button>
         </div>
 
@@ -977,6 +991,212 @@ const PanelSettings = () => {
       {/* 3. Pagination & Display Section */}
       {activeTab === 'pagination' && (
         <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Default Page View Modes (ProductList & Quotes) */}
+          <Card className="p-5 sm:p-6 space-y-6 bg-white/30 dark:bg-slate-900/60 border border-slate-200/90 dark:border-white/10 rounded-2xl w-full shadow-xs dark:shadow-none">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-white/10">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 shrink-0">
+                  <FiGrid size={20} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white">Default Page View Modes</h3>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-400/30 dark:border-indigo-500/30">
+                      Table & Grid Layouts
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Configure whether the Product List and Quotes pages open in Table View or Grid / Cards View by default.
+                  </p>
+                </div>
+              </div>
+
+              {/* Reset to default button */}
+              <button
+                type="button"
+                onClick={() => {
+                  handleUpdate({ productViewMode: 'grid', quotesViewMode: 'grid' });
+                  try {
+                    localStorage.setItem('product_view_mode', 'grid');
+                    localStorage.setItem('quotes_view_mode', 'grid');
+                    window.dispatchEvent(new Event('panel_view_mode_changed'));
+                  } catch (e) {
+                    console.error(e);
+                  }
+                }}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-300 dark:text-slate-400 dark:hover:text-white dark:bg-white/5 dark:hover:bg-white/10 dark:border-white/10 transition-all cursor-pointer shrink-0 self-start sm:self-auto"
+              >
+                Reset to Defaults (Grid)
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Product List View Card */}
+              <div className="p-5 rounded-2xl bg-white/70 dark:bg-slate-950/60 border border-slate-200/90 dark:border-white/10 shadow-xs flex flex-col justify-between gap-4 hover:border-slate-300 dark:hover:border-white/20 transition-all">
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
+                        <FiPackage size={16} />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">Product List</h4>
+                        <p className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">/products/list</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/products/list')}
+                      className="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors cursor-pointer flex items-center gap-1 text-xs font-semibold"
+                      title="Open Product List"
+                    >
+                      <span className="hidden sm:inline">Open</span>
+                      <FiExternalLink size={13} />
+                    </button>
+                  </div>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
+                    Choose whether your catalog opens in an app-style visual card grid with variant previews or in a spreadsheet-style tabular data view.
+                  </p>
+                </div>
+
+                <div className="space-y-3 pt-3 border-t border-slate-200/70 dark:border-white/5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Current View:</span>
+                    <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20">
+                      {(settings.productViewMode ?? 'grid') === 'grid' ? 'Grid (Cards)' : 'Table (Rows)'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 bg-slate-100/80 dark:bg-slate-900/90 p-1 rounded-xl border border-slate-200/80 dark:border-white/10">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleUpdate({ productViewMode: 'grid' });
+                        try {
+                          localStorage.setItem('product_view_mode', 'grid');
+                          window.dispatchEvent(new Event('panel_view_mode_changed'));
+                        } catch (e) {
+                          console.error(e);
+                        }
+                      }}
+                      className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        (settings.productViewMode ?? 'grid') === 'grid'
+                          ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/5'
+                      }`}
+                    >
+                      <FiGrid size={14} />
+                      <span>Grid View</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleUpdate({ productViewMode: 'table' });
+                        try {
+                          localStorage.setItem('product_view_mode', 'table');
+                          window.dispatchEvent(new Event('panel_view_mode_changed'));
+                        } catch (e) {
+                          console.error(e);
+                        }
+                      }}
+                      className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        (settings.productViewMode ?? 'grid') === 'table'
+                          ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/5'
+                      }`}
+                    >
+                      <FiList size={14} />
+                      <span>Table View</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quotes View Card */}
+              <div className="p-5 rounded-2xl bg-white/70 dark:bg-slate-950/60 border border-slate-200/90 dark:border-white/10 shadow-xs flex flex-col justify-between gap-4 hover:border-slate-300 dark:hover:border-white/20 transition-all">
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+                        <FiFileText size={16} />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">Quotes</h4>
+                        <p className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">/quotes</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/quotes')}
+                      className="p-1.5 text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors cursor-pointer flex items-center gap-1 text-xs font-semibold"
+                      title="Open Quotes"
+                    >
+                      <span className="hidden sm:inline">Open</span>
+                      <FiExternalLink size={13} />
+                    </button>
+                  </div>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
+                    Choose whether quotation inquiries show as interactive visual cards with user contacts or as a streamlined table for fast scanning and status updates.
+                  </p>
+                </div>
+
+                <div className="space-y-3 pt-3 border-t border-slate-200/70 dark:border-white/5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Current View:</span>
+                    <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20">
+                      {(settings.quotesViewMode ?? 'grid') === 'grid' ? 'Cards (Grid)' : 'Table (Rows)'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 bg-slate-100/80 dark:bg-slate-900/90 p-1 rounded-xl border border-slate-200/80 dark:border-white/10">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleUpdate({ quotesViewMode: 'grid' });
+                        try {
+                          localStorage.setItem('quotes_view_mode', 'grid');
+                          window.dispatchEvent(new Event('panel_view_mode_changed'));
+                        } catch (e) {
+                          console.error(e);
+                        }
+                      }}
+                      className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        (settings.quotesViewMode ?? 'grid') === 'grid'
+                          ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/5'
+                      }`}
+                    >
+                      <FiGrid size={14} />
+                      <span>Cards View</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleUpdate({ quotesViewMode: 'table' });
+                        try {
+                          localStorage.setItem('quotes_view_mode', 'table');
+                          window.dispatchEvent(new Event('panel_view_mode_changed'));
+                        } catch (e) {
+                          console.error(e);
+                        }
+                      }}
+                      className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        (settings.quotesViewMode ?? 'grid') === 'table'
+                          ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/5'
+                      }`}
+                    >
+                      <FiList size={14} />
+                      <span>Table View</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+
           {/* Main Threshold Configuration Card */}
           <Card className="p-5 sm:p-6 space-y-6 bg-white/30 dark:bg-slate-900/60 border border-slate-200/90 dark:border-white/10 rounded-2xl w-full shadow-xs dark:shadow-none">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-white/10">

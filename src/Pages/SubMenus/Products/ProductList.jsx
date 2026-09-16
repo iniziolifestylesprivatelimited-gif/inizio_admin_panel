@@ -409,10 +409,30 @@ const ProductList = () => {
     setViewMode(mode);
     try {
       localStorage.setItem('product_view_mode', mode);
+      window.dispatchEvent(new Event('panel_view_mode_changed'));
     } catch (e) {
       console.error('Failed to save view mode', e);
     }
   };
+
+  useEffect(() => {
+    const handleSync = () => {
+      try {
+        const stored = localStorage.getItem('product_view_mode');
+        if (stored && (stored === 'grid' || stored === 'table')) {
+          setViewMode(stored);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('panel_view_mode_changed', handleSync);
+    return () => {
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('panel_view_mode_changed', handleSync);
+    };
+  }, []);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -1840,13 +1860,18 @@ const ProductList = () => {
       // 2. Brand filter
       if (selectedBrand) {
         const pBrandId = product.brand?._id || product.brand;
-        if (pBrandId !== selectedBrand) return false;
+        if (String(pBrandId) !== String(selectedBrand)) return false;
       }
 
       // 3. Category filter
       if (selectedCategory) {
         const pCategoryId = product.category?._id || product.category;
-        if (pCategoryId !== selectedCategory) return false;
+        if (Array.isArray(product.category)) {
+          const hasCategory = product.category.some(c => String(c?._id || c) === String(selectedCategory));
+          if (!hasCategory) return false;
+        } else if (String(pCategoryId) !== String(selectedCategory)) {
+          return false;
+        }
       }
 
       // 4. Quantity / Stock status filter

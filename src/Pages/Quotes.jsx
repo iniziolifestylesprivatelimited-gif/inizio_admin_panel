@@ -52,7 +52,43 @@ const Quotes = () => {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'table'
+  const [viewMode, setViewMode] = useState(() => {
+    try {
+      return localStorage.getItem('quotes_view_mode') || 'grid';
+    } catch {
+      return 'grid';
+    }
+  });
+
+  const handleViewModeChange = (mode) => {
+    setViewMode(mode);
+    try {
+      localStorage.setItem('quotes_view_mode', mode);
+      window.dispatchEvent(new Event('panel_view_mode_changed'));
+    } catch (e) {
+      console.error('Failed to save quotes view mode', e);
+    }
+  };
+
+  useEffect(() => {
+    const handleSync = () => {
+      try {
+        const stored = localStorage.getItem('quotes_view_mode');
+        if (stored && (stored === 'grid' || stored === 'table')) {
+          setViewMode(stored);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('panel_view_mode_changed', handleSync);
+    return () => {
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('panel_view_mode_changed', handleSync);
+    };
+  }, []);
+
   const [viewModalProductId, setViewModalProductId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -357,7 +393,7 @@ const Quotes = () => {
         {/* View Mode Toggle */}
         <div className="flex items-center gap-1 bg-white/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-white/10 rounded-2xl p-1 shrink-0 self-end sm:self-auto shadow-xs dark:shadow-none">
           <button
-            onClick={() => setViewMode('grid')}
+            onClick={() => handleViewModeChange('grid')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${viewMode === 'grid' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
               }`}
             title="Card Grid View"
@@ -366,7 +402,7 @@ const Quotes = () => {
             <span>Cards</span>
           </button>
           <button
-            onClick={() => setViewMode('table')}
+            onClick={() => handleViewModeChange('table')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${viewMode === 'table' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
               }`}
             title="Table View"

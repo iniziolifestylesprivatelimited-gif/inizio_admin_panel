@@ -12,6 +12,8 @@ export const DEFAULT_NOTIFICATION_SETTINGS = {
   soundEnabled: true,         // in-app sound chime toggle
   toastDuration: 6000,        // toast auto-dismiss duration in ms
   paginationDropdownLimit: 7, // page count threshold above which page selection dropdown appears
+  productViewMode: 'grid',    // 'grid' | 'table' default view for /products/list
+  quotesViewMode: 'grid',     // 'grid' | 'table' default view for /quotes
   categories: {
     orders: true,
     quotes: true,
@@ -33,7 +35,13 @@ export const DEFAULT_NOTIFICATION_SETTINGS = {
 export const getNotificationSettings = () => {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
-    if (!raw) return { ...DEFAULT_NOTIFICATION_SETTINGS };
+    if (!raw) {
+      return {
+        ...DEFAULT_NOTIFICATION_SETTINGS,
+        productViewMode: localStorage.getItem('product_view_mode') || DEFAULT_NOTIFICATION_SETTINGS.productViewMode,
+        quotesViewMode: localStorage.getItem('quotes_view_mode') || DEFAULT_NOTIFICATION_SETTINGS.quotesViewMode,
+      };
+    }
     const parsed = JSON.parse(raw);
     return {
       ...DEFAULT_NOTIFICATION_SETTINGS,
@@ -41,6 +49,12 @@ export const getNotificationSettings = () => {
       paginationDropdownLimit: typeof parsed.paginationDropdownLimit === 'number' && parsed.paginationDropdownLimit >= 1
         ? parsed.paginationDropdownLimit
         : DEFAULT_NOTIFICATION_SETTINGS.paginationDropdownLimit,
+      productViewMode: (parsed.productViewMode === 'table' || parsed.productViewMode === 'grid')
+        ? parsed.productViewMode
+        : (localStorage.getItem('product_view_mode') || DEFAULT_NOTIFICATION_SETTINGS.productViewMode),
+      quotesViewMode: (parsed.quotesViewMode === 'table' || parsed.quotesViewMode === 'grid')
+        ? parsed.quotesViewMode
+        : (localStorage.getItem('quotes_view_mode') || DEFAULT_NOTIFICATION_SETTINGS.quotesViewMode),
       categories: {
         ...DEFAULT_NOTIFICATION_SETTINGS.categories,
         ...(parsed.categories || {})
@@ -70,8 +84,15 @@ export const saveNotificationSettings = (settings) => {
         ...(settings.pollingIntervals || {})
       }
     };
+    if (updated.productViewMode) {
+      localStorage.setItem('product_view_mode', updated.productViewMode);
+    }
+    if (updated.quotesViewMode) {
+      localStorage.setItem('quotes_view_mode', updated.quotesViewMode);
+    }
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(updated));
     window.dispatchEvent(new CustomEvent('inizio:notification-settings-changed', { detail: updated }));
+    window.dispatchEvent(new Event('panel_view_mode_changed'));
     return updated;
   } catch (e) {
     console.error('Failed to save notification settings:', e);

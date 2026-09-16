@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
-import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiTag, FiAlertCircle, FiImage, FiLoader, FiSearch, FiCopy, FiCheck, FiInfo } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiTag, FiAlertCircle, FiImage, FiLoader, FiSearch, FiCopy, FiCheck, FiInfo, FiEye } from 'react-icons/fi';
 
 import { api, BASE_URL } from '../../../api/axios';
 import { formatDateTimeDDMMYYYY } from '../../../utils/dateUtils';
@@ -10,9 +10,12 @@ import { getImageUrl } from '../../../utils/imageUtils';
 import OptimizedImage from '../../../Components/OptimizedImage';
 import Pagination from '../../../Components/Pagination';
 import useEscapeKey from '../../../utils/useEscapeKey';
+import CatalogProductsModal from '../../../Components/CatalogProductsModal';
 
 const Brands = () => {
   const [brands, setBrands] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
+  const [selectedBrandForProducts, setSelectedBrandForProducts] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -76,6 +79,7 @@ const Brands = () => {
       }));
 
       setBrands(brandsWithCounts);
+      setAllProducts(prodList);
     } catch (err) {
       console.error('Failed to load brands:', err);
     } finally {
@@ -428,13 +432,21 @@ const Brands = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm font-semibold text-slate-700 dark:text-slate-300 text-center">
-                          <div className="inline-flex items-center justify-center gap-1.5">
-                            <span className="font-bold text-slate-900 dark:text-white" title="Products count">{brand.productCount || 0}</span>
+                        <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-300 text-center">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedBrandForProducts(brand)}
+                            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 transition-all cursor-pointer group shadow-xs"
+                            title={`Click to view all ${brand.productCount || 0} products for ${brand.name}`}
+                          >
+                            <span className="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors">
+                              {brand.productCount || 0}
+                            </span>
                             <span className="text-xs text-slate-500 dark:text-slate-400 font-normal" title="Count including variants">
                               ({brand.variantCount || 0})
                             </span>
-                          </div>
+                            {/* <FiEye className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all ml-0.5 text-blue-600 dark:text-blue-400" /> */}
+                          </button>
                         </td>
                         <td className="px-6 py-4 text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
                           <div className="flex flex-col gap-0.5">
@@ -548,6 +560,15 @@ const Brands = () => {
         </div>,
         document.body
       )}
+
+      {/* Products Quick-View Modal */}
+      <CatalogProductsModal
+        isOpen={Boolean(selectedBrandForProducts)}
+        onClose={() => setSelectedBrandForProducts(null)}
+        entityType="brand"
+        entity={selectedBrandForProducts}
+        products={allProducts}
+      />
 
     </div>
   );
