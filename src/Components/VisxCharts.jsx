@@ -24,9 +24,10 @@ const getTooltipStyles = () => {
   const isDark = getIsDark();
   return {
     ...tooltipStyles,
-    backgroundColor: isDark ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.95)',
-    backdropFilter: 'blur(16px)',
-    WebkitBackdropFilter: 'blur(16px)',
+    position: 'absolute',
+    backgroundColor: isDark ? 'rgba(15, 23, 42, 0.5)' : 'rgba(255, 255, 255, 0.5)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
     border: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(203, 213, 225, 0.9)',
     borderRadius: '16px',
     color: isDark ? '#f8fafc' : '#0f172a',
@@ -37,13 +38,28 @@ const getTooltipStyles = () => {
       : '0 20px 30px -10px rgba(0, 0, 0, 0.12), inset 0 1px 0 0 rgba(255, 255, 255, 0.8)',
     padding: '10px 14px',
     pointerEvents: 'none',
-    zIndex: 9999
+    zIndex: 99999
   };
 };
 
 const tooltipCustomStyles = new Proxy({}, {
   get(target, prop) {
     return getTooltipStyles()[prop];
+  },
+  ownKeys() {
+    return Reflect.ownKeys(getTooltipStyles());
+  },
+  getOwnPropertyDescriptor(target, prop) {
+    const styles = getTooltipStyles();
+    if (prop in styles) {
+      return {
+        value: styles[prop],
+        writable: true,
+        enumerable: true,
+        configurable: true
+      };
+    }
+    return undefined;
   }
 });
 
@@ -257,7 +273,8 @@ function AppVersionsHorizontalChart({ data, width, height }) {
 
   const { containerRef, TooltipInPortal } = useTooltipInPortal({
     detectBounds: true,
-    scroll: true
+    scroll: true,
+    zIndex: 99999
   });
 
   const isMobile = width < 480;
@@ -425,7 +442,7 @@ function AppVersionsHorizontalChart({ data, width, height }) {
       </div>
 
       {tooltipOpen && tooltipData && (
-        <TooltipInPortal top={tooltipTop} left={tooltipLeft} style={tooltipCustomStyles}>
+        <TooltipInPortal top={tooltipTop} left={tooltipLeft} style={getTooltipStyles()} zIndex={99999}>
           <div className="min-w-[150px] space-y-2 p-0.5">
             <div className="flex items-center justify-between border-b border-white/10 pb-1.5 gap-3">
               <span className="font-extrabold text-white text-xs">{tooltipData.label}</span>
@@ -512,7 +529,8 @@ function NotificationsDonutChart({ enabled, disabled, width, height, onClick }) 
 
   const { containerRef, TooltipInPortal } = useTooltipInPortal({
     detectBounds: true,
-    scroll: true
+    scroll: true,
+    zIndex: 99999
   });
 
   const data = [
@@ -667,7 +685,7 @@ function NotificationsDonutChart({ enabled, disabled, width, height, onClick }) 
       </div>
 
       {tooltipOpen && tooltipData && (
-        <TooltipInPortal top={tooltipTop} left={tooltipLeft} style={tooltipCustomStyles}>
+        <TooltipInPortal top={tooltipTop} left={tooltipLeft} style={getTooltipStyles()} zIndex={99999}>
           <div className="flex items-center gap-2">
             <span
               className="w-2.5 h-2.5 rounded-full"
@@ -716,7 +734,8 @@ function PriceTierGroupedChart({ categories, views, cartAdds, width, height }) {
 
   const { containerRef, TooltipInPortal } = useTooltipInPortal({
     detectBounds: true,
-    scroll: true
+    scroll: true,
+    zIndex: 99999
   });
 
   const keys = ['views', 'cartAdds'];
@@ -877,7 +896,7 @@ function PriceTierGroupedChart({ categories, views, cartAdds, width, height }) {
       </svg>
 
       {tooltipOpen && tooltipData && (
-        <TooltipInPortal top={tooltipTop} left={tooltipLeft} style={tooltipCustomStyles}>
+        <TooltipInPortal top={tooltipTop} left={tooltipLeft} style={getTooltipStyles()} zIndex={99999}>
           <div className="space-y-1">
             <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{tooltipData.category}</div>
             <div className="flex items-center gap-2">
@@ -924,7 +943,8 @@ function InnerAreaChart({ labels, data, breakdowns = [], color, valuePrefix, val
 
   const { containerRef, TooltipInPortal } = useTooltipInPortal({
     detectBounds: true,
-    scroll: true
+    scroll: true,
+    zIndex: 99999
   });
 
   const springProps = useSpring({
@@ -1114,7 +1134,7 @@ function InnerAreaChart({ labels, data, breakdowns = [], color, valuePrefix, val
         </Group>
       </svg>
       {tooltipOpen && tooltipData && (
-        <TooltipInPortal top={tooltipTop} left={tooltipLeft} style={tooltipCustomStyles}>
+        <TooltipInPortal top={tooltipTop} left={tooltipLeft} style={getTooltipStyles()} zIndex={99999}>
           <div className="space-y-1.5">
             <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{tooltipData.label}</div>
             <div className="flex items-center gap-2 border-b border-white/10 pb-1 mb-1">
@@ -1179,7 +1199,8 @@ function InnerStackedBarChart({ labels, series, width, height }) {
 
   const { containerRef, TooltipInPortal } = useTooltipInPortal({
     detectBounds: true,
-    scroll: true
+    scroll: true,
+    zIndex: 99999
   });
 
   const keys = series.map(s => s.name);
@@ -1328,7 +1349,7 @@ function InnerStackedBarChart({ labels, series, width, height }) {
       </svg>
 
       {tooltipOpen && tooltipData && (
-        <TooltipInPortal top={tooltipTop} left={tooltipLeft} style={tooltipCustomStyles}>
+        <TooltipInPortal top={tooltipTop} left={tooltipLeft} style={getTooltipStyles()} zIndex={99999}>
           <div className="space-y-1">
             <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{tooltipData.label}</div>
             <div className="flex items-center gap-2">
@@ -1370,7 +1391,8 @@ function InnerDonutChart({ data, centerLabel, width, height }) {
 
   const { containerRef, TooltipInPortal } = useTooltipInPortal({
     detectBounds: true,
-    scroll: true
+    scroll: true,
+    zIndex: 99999
   });
 
   const total = data.reduce((sum, d) => sum + (d.value || 0), 0);
@@ -1478,7 +1500,7 @@ function InnerDonutChart({ data, centerLabel, width, height }) {
       </div>
 
       {tooltipOpen && tooltipData && (
-        <TooltipInPortal top={tooltipTop} left={tooltipLeft} style={tooltipCustomStyles}>
+        <TooltipInPortal top={tooltipTop} left={tooltipLeft} style={getTooltipStyles()} zIndex={99999}>
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: tooltipData.color }}></span>
             <span>{tooltipData.label}: <strong className="text-white font-mono">{tooltipData.value} {centerLabel.toLowerCase()}</strong></span>
